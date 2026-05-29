@@ -1,0 +1,20 @@
+{
+  "name": "gardik",
+  "version": "1.0.0",
+  "description": "Gardik is a self-hosted service that lets businesses know if these employees haven't had compromised data",
+  "homepage": "https://github.com/WhiteMuush/Gardik#readme",
+  "bugs": {
+    "url": "https://github.com/WhiteMuush/Gardik/issues"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/WhiteMuush/Gardik.git"
+  },
+  "license": "ISC",
+  "author": "Melvin PETIT (WhiteMuush)",
+  "type": "commonjs",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  }
+}
