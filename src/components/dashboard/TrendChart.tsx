@@ -62,7 +62,7 @@ export function TrendChart({ data }: TrendChartProps) {
                 fontSize: "12px",
               }}
               cursor={{ stroke: "oklch(0.22 0.018 280)" }}
-              formatter={(value: number) => [value, "Detections"]}
+              formatter={(value) => [value, "Detections"]}
             />
             <Area
               type="monotone"
