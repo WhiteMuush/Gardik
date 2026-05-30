@@ -5,6 +5,8 @@ import { prisma } from "@/lib/prisma"
 const HIBP_API = "https://haveibeenpwned.com/api/v3/breachedaccount"
 const RATE_LIMIT_MS = 1500
 
+const runningScans = new Set<string>()
+
 async function checkEmail(email: string, apiKey: string) {
   const res = await fetch(`${HIBP_API}/${encodeURIComponent(email)}?truncateResponse=false`, {
     headers: {
@@ -28,6 +30,13 @@ export async function POST() {
 
   const companyId = session.user.companyId
 
+  if (runningScans.has(companyId)) {
+    return NextResponse.json({ error: "A scan is already running for this company" }, { status: 409 })
+  }
+
+  runningScans.add(companyId)
+
+  try {
   const employees = await prisma.employee.findMany({
     where: { companyId },
     include: { breachRecords: { select: { breachId: true } } },
@@ -70,9 +79,9 @@ export async function POST() {
         },
       })
 
-      const severity = dataTypes.some((d) => ["password", "credit_card", "ssn"].includes(d))
-        ? "HIGH"
-        : "MEDIUM"
+      const CRITICAL_TYPES = ["password", "credit_card", "ssn", "bank_account"]
+      const hasCritical = dataTypes.some((d) => CRITICAL_TYPES.includes(d))
+      const severity = hasCritical && newRecords > 1 ? "CRITICAL" : hasCritical ? "HIGH" : "MEDIUM"
 
       await prisma.alert.create({
         data: {
@@ -98,4 +107,7 @@ export async function POST() {
     newRecords,
     newAlerts,
   })
+  } finally {
+    runningScans.delete(companyId)
+  }
 }
