@@ -173,7 +173,7 @@ export function DashboardCanvas({ sections }: { sections: Section[] }) {
 
         <DragOverlay dropAnimation={{ duration: 200, easing: "ease" }}>
           {activeSection && (
-            <div className="rounded-xl shadow-2xl ring-2 ring-primary/30">
+            <div className="drag-glow w-full shadow-2xl">
               {activeSection.content}
             </div>
           )}
