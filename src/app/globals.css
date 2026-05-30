@@ -73,6 +73,25 @@
   * {
     @apply border-border outline-ring/50;
   }
+
+  @keyframes drag-glow {
+    0%, 100% {
+      box-shadow:
+        0 0 0 2px oklch(var(--primary) / 0.6),
+        0 0 24px oklch(var(--primary) / 0.2);
+    }
+    50% {
+      box-shadow:
+        0 0 0 2px oklch(var(--primary) / 1),
+        0 0 48px oklch(var(--primary) / 0.45),
+        0 0 80px oklch(var(--primary) / 0.2);
+    }
+  }
+
+  .drag-glow {
+    animation: drag-glow 1.2s ease-in-out infinite;
+    border-radius: 0.75rem;
+  }
   body {
     @apply bg-background text-foreground;
   }
