@@ -4,72 +4,56 @@
 @tailwind utilities;
 
 @layer base {
-  .theme {
-    --font-heading: var(--font-sans);
-    --font-sans: var(--font-sans)
-  }
   :root {
-    --background: 1 0 0;
-    --foreground: 0.145 0 0;
-    --card: 1 0 0;
-    --card-foreground: 0.145 0 0;
+    /* Backgrounds */
+    --background: 0.97 0.015 80;        /* #FFF5E5 warm cream */
+    --foreground: 0.15 0.04 285;        /* near-black purple tint */
+
+    --card: 1 0 0;                       /* white */
+    --card-foreground: 0.15 0.04 285;
+
     --popover: 1 0 0;
-    --popover-foreground: 0.145 0 0;
-    --primary: 0.205 0 0;
-    --primary-foreground: 0.985 0 0;
-    --secondary: 0.97 0 0;
-    --secondary-foreground: 0.205 0 0;
-    --muted: 0.97 0 0;
-    --muted-foreground: 0.556 0 0;
-    --accent: 0.97 0 0;
-    --accent-foreground: 0.205 0 0;
-    --destructive: 0.577 0.245 27.325;
-    --border: 0.922 0 0;
-    --input: 0.922 0 0;
-    --ring: 0.708 0 0;
-    --radius: 0.625rem;
-    --sidebar: 0.985 0 0;
-    --sidebar-foreground: 0.145 0 0;
-    --sidebar-primary: 0.205 0 0;
-    --sidebar-primary-foreground: 0.985 0 0;
-    --sidebar-accent: 0.97 0 0;
-    --sidebar-accent-foreground: 0.205 0 0;
-    --sidebar-border: 0.922 0 0;
-    --sidebar-ring: 0.708 0 0
-  }
-  .dark {
-    --background: 0.09 0.008 280;
-    --foreground: 0.96 0.005 280;
-    --card: 0.13 0.012 280;
-    --card-foreground: 0.96 0.005 280;
-    --popover: 0.13 0.012 280;
-    --popover-foreground: 0.96 0.005 280;
-    --primary: 0.488 0.243 264.376;
-    --primary-foreground: 0.985 0 0;
-    --secondary: 0.20 0.015 280;
-    --secondary-foreground: 0.96 0.005 280;
-    --muted: 0.18 0.012 280;
-    --muted-foreground: 0.58 0.025 280;
-    --accent: 0.20 0.015 280;
-    --accent-foreground: 0.96 0.005 280;
+    --popover-foreground: 0.15 0.04 285;
+
+    /* Brand colors */
+    --primary: 0.44 0.28 275;           /* #7F27FF violet */
+    --primary-foreground: 1 0 0;
+
+    --secondary: 0.63 0.19 278;         /* #9F70FD violet clair */
+    --secondary-foreground: 1 0 0;
+
+    --accent: 0.72 0.19 58;             /* #FF8911 orange */
+    --accent-foreground: 0.15 0.04 285;
+
+    /* UI */
+    --muted: 0.94 0.02 280;
+    --muted-foreground: 0.55 0.04 280;
+
     --destructive: 0.637 0.237 25;
-    --border: 0.22 0.018 280;
-    --input: 0.22 0.018 280;
-    --ring: 0.488 0.243 264.376;
+
+    --border: 0.88 0.025 280;
+    --input: 0.88 0.025 280;
+    --ring: 0.44 0.28 275;
+    --radius: 0.625rem;
+
+    /* Sidebar */
+    --sidebar: 1 0 0;
+    --sidebar-foreground: 0.15 0.04 285;
+    --sidebar-primary: 0.44 0.28 275;
+    --sidebar-primary-foreground: 1 0 0;
+    --sidebar-accent: 0.94 0.02 280;
+    --sidebar-accent-foreground: 0.44 0.28 275;
+    --sidebar-border: 0.88 0.025 280;
+    --sidebar-ring: 0.44 0.28 275;
+
+    /* Severity */
     --severity-critical: 0.637 0.237 25;
-    --severity-high: 0.72 0.19 55;
+    --severity-high: 0.72 0.19 58;
     --severity-medium: 0.79 0.17 85;
     --severity-low: 0.62 0.19 250;
     --severity-ok: 0.66 0.19 145;
-    --sidebar: 0.11 0.01 280;
-    --sidebar-foreground: 0.96 0.005 280;
-    --sidebar-primary: 0.488 0.243 264.376;
-    --sidebar-primary-foreground: 0.985 0 0;
-    --sidebar-accent: 0.20 0.015 280;
-    --sidebar-accent-foreground: 0.96 0.005 280;
-    --sidebar-border: 0.20 0.015 280;
-    --sidebar-ring: 0.488 0.243 264.376
   }
+
   * {
     @apply border-border outline-ring/50;
   }
