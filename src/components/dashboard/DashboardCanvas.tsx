@@ -3,11 +3,13 @@
 import { useState, useEffect, type ReactNode } from "react"
 import {
   DndContext,
+  DragOverlay,
   closestCenter,
   PointerSensor,
   useSensor,
   useSensors,
   type DragEndEvent,
+  type DragStartEvent,
 } from "@dnd-kit/core"
 import {
   SortableContext,
@@ -15,6 +17,7 @@ import {
   useSortable,
   arrayMove,
 } from "@dnd-kit/sortable"
+import { restrictToVerticalAxis, restrictToParentElement } from "@dnd-kit/modifiers"
 import { CSS } from "@dnd-kit/utilities"
 import { GripVertical, Eye, EyeOff, Settings2, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -55,7 +58,7 @@ function SortableSection({
       style={{ transform: CSS.Transform.toString(transform), transition }}
       className={cn(
         "relative",
-        isDragging && "z-50 opacity-60",
+        isDragging && "opacity-0",
         !visible && editing && "opacity-40"
       )}
     >
@@ -83,6 +86,7 @@ function SortableSection({
 
 export function DashboardCanvas({ sections }: { sections: Section[] }) {
   const [editing, setEditing] = useState(false)
+  const [activeId, setActiveId] = useState<string | null>(null)
   const [layout, setLayout] = useState<SectionState[]>(
     sections.map((s) => ({ id: s.id, visible: true }))
   )
@@ -107,9 +111,14 @@ export function DashboardCanvas({ sections }: { sections: Section[] }) {
   const toggle = (id: string) =>
     save(layout.map((s) => (s.id === id ? { ...s, visible: !s.visible } : s)))
 
-  const sensors = useSensors(useSensor(PointerSensor))
+  const sensors = useSensors(
+    useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
+  )
+
+  const onDragStart = ({ active }: DragStartEvent) => setActiveId(active.id as string)
 
   const onDragEnd = ({ active, over }: DragEndEvent) => {
+    setActiveId(null)
     if (over && active.id !== over.id) {
       const from = layout.findIndex((s) => s.id === active.id)
       const to = layout.findIndex((s) => s.id === over.id)
@@ -121,8 +130,10 @@ export function DashboardCanvas({ sections }: { sections: Section[] }) {
     .map((l) => ({ ...l, section: sections.find((s) => s.id === l.id)! }))
     .filter((s) => s.section && (s.visible || editing))
 
+  const activeSection = sections.find((s) => s.id === activeId)
+
   return (
-    <div className={cn("transition-all", editing && "px-10")}>
+    <div className={cn("transition-all duration-200", editing && "px-10")}>
       <div className="mb-4 flex justify-end">
         {editing ? (
           <Button size="sm" onClick={() => setEditing(false)} className="gap-1.5">
@@ -137,7 +148,13 @@ export function DashboardCanvas({ sections }: { sections: Section[] }) {
         )}
       </div>
 
-      <DndContext sensors={sensors} collisionDetection={closestCenter} onDragEnd={onDragEnd}>
+      <DndContext
+        sensors={sensors}
+        collisionDetection={closestCenter}
+        modifiers={[restrictToVerticalAxis, restrictToParentElement]}
+        onDragStart={onDragStart}
+        onDragEnd={onDragEnd}
+      >
         <SortableContext items={layout.map((s) => s.id)} strategy={verticalListSortingStrategy}>
           <div className="space-y-6">
             {ordered.map(({ id, visible, section }) => (
@@ -153,6 +170,14 @@ export function DashboardCanvas({ sections }: { sections: Section[] }) {
             ))}
           </div>
         </SortableContext>
+
+        <DragOverlay dropAnimation={{ duration: 200, easing: "ease" }}>
+          {activeSection && (
+            <div className="rounded-xl shadow-2xl ring-2 ring-primary/30">
+              {activeSection.content}
+            </div>
+          )}
+        </DragOverlay>
       </DndContext>
     </div>
   )
