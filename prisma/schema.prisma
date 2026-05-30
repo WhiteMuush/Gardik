@@ -4,5 +4,110 @@ generator client {
 
 datasource db {
   provider = "postgresql"
-  url      = env("DATABASE_URL")
+}
+
+model Company {
+  id        String   @id @default(cuid())
+  name      String
+  domain    String   @unique
+  logoUrl   String?
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  users     User[]
+  employees Employee[]
+  alerts    Alert[]
+}
+
+model User {
+  id             String   @id @default(cuid())
+  email          String   @unique
+  hashedPassword String
+  role           Role     @default(VIEWER)
+  companyId      String
+  createdAt      DateTime @default(now())
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+}
+
+enum Role {
+  ADMIN
+  VIEWER
+}
+
+model Employee {
+  id         String   @id @default(cuid())
+  email      String
+  firstName  String
+  lastName   String
+  department String?
+  companyId  String
+  createdAt  DateTime @default(now())
+
+  company       Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  breachRecords BreachRecord[]
+  alerts        Alert[]
+
+  @@unique([email, companyId])
+}
+
+model Breach {
+  id          String       @id @default(cuid())
+  name        String       @unique
+  source      BreachSource @default(HIBP)
+  breachDate  DateTime
+  description String?
+  dataTypes   String[]
+  createdAt   DateTime     @default(now())
+
+  records BreachRecord[]
+  alerts  Alert[]
+}
+
+enum BreachSource {
+  HIBP
+  MANUAL
+  DARK_WEB
+}
+
+model BreachRecord {
+  id          String   @id @default(cuid())
+  employeeId  String
+  breachId    String
+  exposedData String[]
+  detectedAt  DateTime @default(now())
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+  breach   Breach   @relation(fields: [breachId], references: [id], onDelete: Cascade)
+
+  @@unique([employeeId, breachId])
+}
+
+model Alert {
+  id         String      @id @default(cuid())
+  companyId  String
+  employeeId String?
+  breachId   String?
+  severity   Severity
+  status     AlertStatus @default(OPEN)
+  message    String
+  createdAt  DateTime    @default(now())
+  updatedAt  DateTime    @updatedAt
+
+  company  Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  employee Employee? @relation(fields: [employeeId], references: [id], onDelete: SetNull)
+  breach   Breach?   @relation(fields: [breachId], references: [id], onDelete: SetNull)
+}
+
+enum Severity {
+  CRITICAL
+  HIGH
+  MEDIUM
+  LOW
+}
+
+enum AlertStatus {
+  OPEN
+  ACKNOWLEDGED
+  RESOLVED
 }
