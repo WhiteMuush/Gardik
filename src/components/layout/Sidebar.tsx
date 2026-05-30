@@ -10,7 +10,6 @@ import {
   Bell,
   FileText,
   Settings,
-  Shield,
   LogOut,
 } from "lucide-react"
 
@@ -32,13 +31,8 @@ export function Sidebar({ companyName, userEmail }: SidebarProps) {
 
   return (
     <aside className="flex h-screen w-60 shrink-0 flex-col border-r border-sidebar-border bg-sidebar">
-      <div className="flex h-12 items-center gap-2.5 border-b border-sidebar-border px-4">
-        <div className="flex size-7 items-center justify-center rounded-lg bg-sidebar-primary/15">
-          <Shield className="size-4 text-sidebar-primary" />
-        </div>
-        <span className="text-sm font-semibold text-sidebar-foreground">
-          DataShield
-        </span>
+      <div className="flex h-12 items-center border-b border-sidebar-border px-4">
+        <span className="text-sm font-semibold text-sidebar-foreground">DataShield</span>
       </div>
 
       <nav className="flex-1 space-y-0.5 overflow-y-auto px-2 py-3">
