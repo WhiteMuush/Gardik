@@ -32,46 +32,46 @@ export function TrendChart({ data }: TrendChartProps) {
           <AreaChart data={data} margin={{ top: 5, right: 10, bottom: 0, left: -20 }}>
             <defs>
               <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
-                <stop offset="5%" stopColor="oklch(0.488 0.243 264.376)" stopOpacity={0.25} />
-                <stop offset="95%" stopColor="oklch(0.488 0.243 264.376)" stopOpacity={0} />
+                <stop offset="5%" stopColor="oklch(var(--primary))" stopOpacity={0.25} />
+                <stop offset="95%" stopColor="oklch(var(--primary))" stopOpacity={0} />
               </linearGradient>
             </defs>
             <CartesianGrid
               strokeDasharray="3 3"
-              stroke="oklch(0.22 0.018 280)"
+              stroke="oklch(var(--border))"
               vertical={false}
             />
             <XAxis
               dataKey="month"
-              tick={{ fill: "oklch(0.58 0.025 280)", fontSize: 11 }}
+              tick={{ fill: "oklch(var(--muted-foreground))", fontSize: 11 }}
               axisLine={false}
               tickLine={false}
             />
             <YAxis
-              tick={{ fill: "oklch(0.58 0.025 280)", fontSize: 11 }}
+              tick={{ fill: "oklch(var(--muted-foreground))", fontSize: 11 }}
               axisLine={false}
               tickLine={false}
               allowDecimals={false}
             />
             <Tooltip
               contentStyle={{
-                background: "oklch(0.13 0.012 280)",
-                border: "1px solid oklch(0.22 0.018 280)",
+                background: "oklch(var(--card))",
+                border: "1px solid oklch(var(--border))",
                 borderRadius: "8px",
-                color: "oklch(0.96 0.005 280)",
+                color: "oklch(var(--foreground))",
                 fontSize: "12px",
               }}
-              cursor={{ stroke: "oklch(0.22 0.018 280)" }}
+              cursor={{ stroke: "oklch(var(--border))" }}
               formatter={(value) => [value, "Detections"]}
             />
             <Area
               type="monotone"
               dataKey="count"
-              stroke="oklch(0.488 0.243 264.376)"
+              stroke="oklch(var(--primary))"
               strokeWidth={2}
               fill="url(#areaGradient)"
               dot={false}
-              activeDot={{ r: 4, fill: "oklch(0.488 0.243 264.376)" }}
+              activeDot={{ r: 4, fill: "oklch(var(--primary))" }}
             />
           </AreaChart>
         </ResponsiveContainer>
