@@ -3,7 +3,6 @@
 import { useState } from "react"
 import { signIn } from "next-auth/react"
 import { useRouter } from "next/navigation"
-import { Shield } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
 export default function LoginPage() {
@@ -35,9 +34,6 @@ export default function LoginPage() {
     <div className="flex min-h-screen items-center justify-center bg-background">
       <div className="w-full max-w-sm space-y-8 px-4">
         <div className="flex flex-col items-center gap-3">
-          <div className="flex size-12 items-center justify-center rounded-xl bg-primary/10 ring-1 ring-primary/20">
-            <Shield className="size-6 text-primary" />
-          </div>
           <div className="text-center">
             <h1 className="text-2xl font-semibold tracking-tight text-foreground">
               DataShield
