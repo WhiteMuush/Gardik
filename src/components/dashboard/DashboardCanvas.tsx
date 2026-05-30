@@ -55,12 +55,12 @@ function SortableSection({
   return (
     <div
       ref={setNodeRef}
-      style={{ transform: CSS.Transform.toString(transform), transition }}
-      className={cn(
-        "relative",
-        isDragging && "opacity-0",
-        !visible && editing && "opacity-40"
-      )}
+      style={{
+        transform: CSS.Transform.toString(transform),
+        transition,
+        opacity: isDragging ? 0 : !visible && editing ? 0.4 : 1,
+      }}
+      className="relative"
     >
       {editing && (
         <>
