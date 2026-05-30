@@ -4,6 +4,9 @@ const config: Config = {
   content: ["./src/**/*.{ts,tsx}"],
   theme: {
     extend: {
+      fontFamily: {
+        sans: ["Satoshi", "sans-serif"],
+      },
       colors: {
         background: "oklch(var(--background) / <alpha-value>)",
         foreground: "oklch(var(--foreground) / <alpha-value>)",
