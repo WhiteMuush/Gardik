@@ -13,3 +13,7 @@ next-env.d.ts
 
 # misc
 .DS_Store
+
+# private
+ROADMAP.md
+prisma/seed.dev.ts
