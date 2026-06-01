@@ -1,8 +1,11 @@
 import { prisma } from "@/lib/prisma"
+import { calculateRiskScore, getRiskLevel } from "@/lib/risk"
+
+export { calculateRiskScore, getRiskLevel }
 
 export async function getDashboardData(companyId: string) {
-  const sixMonthsAgo = new Date()
-  sixMonthsAgo.setMonth(sixMonthsAgo.getMonth() - 6)
+  const twelveMonthsAgo = new Date()
+  twelveMonthsAgo.setMonth(twelveMonthsAgo.getMonth() - 12)
 
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
 
@@ -13,28 +16,93 @@ export async function getDashboardData(companyId: string) {
     criticalAlerts,
     highAlerts,
     mediumAlerts,
+    lowAlerts,
     recentBreaches,
     trendRecords,
     allBreachRecords,
+    breachSources,
+    departmentEmployees,
+    recentAlerts,
+    topRiskyEmployees,
+    alertsYearly,
+    acknowledgedAlerts,
+    resolvedAlerts,
+    urgentOpenAlerts,
+    alertsForDepartment,
+    velocityAlerts,
   ] = await Promise.all([
     prisma.employee.count({ where: { companyId } }),
-    prisma.employee.count({
-      where: { companyId, breachRecords: { some: {} } },
-    }),
+    prisma.employee.count({ where: { companyId, breachRecords: { some: {} } } }),
     prisma.alert.count({ where: { companyId, status: "OPEN" } }),
     prisma.alert.count({ where: { companyId, status: "OPEN", severity: "CRITICAL" } }),
     prisma.alert.count({ where: { companyId, status: "OPEN", severity: "HIGH" } }),
     prisma.alert.count({ where: { companyId, status: "OPEN", severity: "MEDIUM" } }),
+    prisma.alert.count({ where: { companyId, status: "OPEN", severity: "LOW" } }),
     prisma.breachRecord.count({
       where: { employee: { companyId }, detectedAt: { gte: thirtyDaysAgo } },
     }),
     prisma.breachRecord.findMany({
-      where: { employee: { companyId }, detectedAt: { gte: sixMonthsAgo } },
+      where: { employee: { companyId }, detectedAt: { gte: twelveMonthsAgo } },
       select: { detectedAt: true },
     }),
     prisma.breachRecord.findMany({
       where: { employee: { companyId } },
       select: { exposedData: true },
+    }),
+    prisma.breach.findMany({
+      where: { records: { some: { employee: { companyId } } } },
+      select: {
+        id: true, name: true, source: true, breachDate: true, dataTypes: true,
+        records: { where: { employee: { companyId } }, select: { employeeId: true } },
+      },
+      orderBy: { breachDate: "desc" },
+    }),
+    prisma.employee.findMany({
+      where: { companyId },
+      select: { department: true, breachRecords: { select: { id: true } } },
+    }),
+    prisma.alert.findMany({
+      where: { companyId },
+      orderBy: { createdAt: "desc" },
+      take: 30,
+      select: {
+        id: true, severity: true, status: true, createdAt: true,
+        employee: { select: { firstName: true, lastName: true, department: true } },
+        breach: { select: { name: true } },
+      },
+    }),
+    prisma.employee.findMany({
+      where: { companyId, breachRecords: { some: {} } },
+      select: {
+        id: true, firstName: true, lastName: true, department: true,
+        breachRecords: { select: { detectedAt: true, exposedData: true } },
+        alerts: { where: { status: "OPEN" }, select: { severity: true } },
+      },
+    }),
+    // New queries
+    prisma.alert.findMany({
+      where: { companyId, createdAt: { gte: twelveMonthsAgo } },
+      select: { createdAt: true, severity: true },
+    }),
+    prisma.alert.count({ where: { companyId, status: "ACKNOWLEDGED" } }),
+    prisma.alert.count({ where: { companyId, status: "RESOLVED" } }),
+    prisma.alert.findMany({
+      where: { companyId, status: "OPEN", severity: { in: ["CRITICAL", "HIGH"] } },
+      orderBy: { createdAt: "desc" },
+      take: 30,
+      select: {
+        id: true, severity: true, createdAt: true,
+        employee: { select: { firstName: true, lastName: true, department: true } },
+        breach: { select: { name: true } },
+      },
+    }),
+    prisma.alert.findMany({
+      where: { companyId },
+      select: { severity: true, employee: { select: { department: true } } },
+    }),
+    prisma.alert.findMany({
+      where: { companyId, createdAt: { gte: thirtyDaysAgo } },
+      select: { createdAt: true },
     }),
   ])
 
@@ -55,46 +123,47 @@ export async function getDashboardData(companyId: string) {
     riskScore,
     trendData: buildTrendData(trendRecords),
     dataTypes: buildDataTypes(allBreachRecords),
+    alertSeverity: { critical: criticalAlerts, high: highAlerts, medium: mediumAlerts, low: lowAlerts },
+    breachSources: breachSources.map((b) => ({
+      id: b.id,
+      name: b.name,
+      source: b.source,
+      breachDate: b.breachDate.toISOString(),
+      dataTypes: b.dataTypes,
+      affectedEmployees: new Set(b.records.map((r) => r.employeeId)).size,
+    })),
+    departmentRisk: buildDepartmentRisk(departmentEmployees),
+    topRiskyEmployees: buildTopRiskyEmployees(topRiskyEmployees, thirtyDaysAgo),
+    recentAlerts: recentAlerts.map((a) => ({
+      id: a.id,
+      severity: a.severity,
+      status: a.status,
+      createdAt: a.createdAt.toISOString(),
+      employeeName: a.employee ? `${a.employee.firstName} ${a.employee.lastName}` : null,
+      department: a.employee?.department ?? null,
+      breachName: a.breach?.name ?? null,
+    })),
+    // New data fields
+    alertsByMonth: buildAlertsByMonth(alertsYearly),
+    alertStatusCounts: { open: openAlerts, acknowledged: acknowledgedAlerts, resolved: resolvedAlerts },
+    urgentAlerts: urgentOpenAlerts.map((a) => ({
+      id: a.id,
+      severity: a.severity,
+      createdAt: a.createdAt.toISOString(),
+      employeeName: a.employee ? `${a.employee.firstName} ${a.employee.lastName}` : null,
+      department: a.employee?.department ?? null,
+      breachName: a.breach?.name ?? null,
+    })),
+    alertsByDepartment: buildAlertsByDepartment(alertsForDepartment),
+    employeeExposureLevels: buildEmployeeExposureLevels(departmentEmployees),
+    alertVelocityData: buildAlertVelocity(velocityAlerts),
   }
-}
-
-export function calculateRiskScore({
-  totalEmployees,
-  compromisedEmployees,
-  criticalAlerts,
-  highAlerts,
-  mediumAlerts,
-  recentBreaches,
-}: {
-  totalEmployees: number
-  compromisedEmployees: number
-  criticalAlerts: number
-  highAlerts: number
-  mediumAlerts: number
-  recentBreaches: number
-}): number {
-  if (totalEmployees === 0) return 0
-  const exposureScore = (compromisedEmployees / totalEmployees) * 40
-  const alertScore = Math.min(criticalAlerts * 12 + highAlerts * 6 + mediumAlerts * 2, 40)
-  const recencyScore = Math.min(recentBreaches * 4, 20)
-  return Math.min(Math.round(exposureScore + alertScore + recencyScore), 100)
-}
-
-export function getRiskLevel(score: number): {
-  level: "CRITICAL" | "HIGH" | "MEDIUM" | "LOW"
-  label: string
-  variant: "critical" | "high" | "medium" | "ok"
-} {
-  if (score >= 76) return { level: "CRITICAL", label: "Critical risk", variant: "critical" }
-  if (score >= 51) return { level: "HIGH", label: "High risk", variant: "high" }
-  if (score >= 26) return { level: "MEDIUM", label: "Medium risk", variant: "medium" }
-  return { level: "LOW", label: "Low risk", variant: "ok" }
 }
 
 function buildTrendData(records: { detectedAt: Date }[]) {
   const months: Record<string, number> = {}
 
-  for (let i = 5; i >= 0; i--) {
+  for (let i = 11; i >= 0; i--) {
     const d = new Date()
     d.setMonth(d.getMonth() - i)
     const key = d.toLocaleString("en-US", { month: "short", year: "2-digit" })
@@ -107,6 +176,63 @@ function buildTrendData(records: { detectedAt: Date }[]) {
   })
 
   return Object.entries(months).map(([month, count]) => ({ month, count }))
+}
+
+type EmployeeRaw = {
+  id: string
+  firstName: string
+  lastName: string
+  department: string | null
+  breachRecords: { detectedAt: Date; exposedData: string[] }[]
+  alerts: { severity: string }[]
+}
+
+function buildTopRiskyEmployees(employees: EmployeeRaw[], thirtyDaysAgo: Date) {
+  return employees
+    .map((e) => {
+      const recentBreaches = e.breachRecords.filter((r) => r.detectedAt >= thirtyDaysAgo).length
+      const score = calculateRiskScore({
+        totalEmployees: 1,
+        compromisedEmployees: 1,
+        criticalAlerts: e.alerts.filter((a) => a.severity === "CRITICAL").length,
+        highAlerts: e.alerts.filter((a) => a.severity === "HIGH").length,
+        mediumAlerts: e.alerts.filter((a) => a.severity === "MEDIUM").length,
+        recentBreaches,
+      })
+      return {
+        id: e.id,
+        name: `${e.firstName} ${e.lastName}`,
+        department: e.department,
+        breachCount: e.breachRecords.length,
+        openAlerts: e.alerts.length,
+        riskScore: score,
+        riskLevel: getRiskLevel(score).label,
+        riskVariant: getRiskLevel(score).variant,
+      }
+    })
+    .sort((a, b) => b.riskScore - a.riskScore)
+    .slice(0, 8)
+}
+
+function buildDepartmentRisk(employees: { department: string | null; breachRecords: { id: string }[] }[]) {
+  const depts: Record<string, { total: number; compromised: number }> = {}
+
+  employees.forEach(({ department, breachRecords }) => {
+    const dept = department ?? "Unknown"
+    if (!depts[dept]) depts[dept] = { total: 0, compromised: 0 }
+    depts[dept].total++
+    if (breachRecords.length > 0) depts[dept].compromised++
+  })
+
+  return Object.entries(depts)
+    .map(([dept, { total, compromised }]) => ({
+      department: dept,
+      total,
+      compromised,
+      percentage: total > 0 ? Math.round((compromised / total) * 100) : 0,
+    }))
+    .sort((a, b) => b.compromised - a.compromised)
+    .slice(0, 8)
 }
 
 function buildDataTypes(records: { exposedData: string[] }[]) {
@@ -127,4 +253,73 @@ function buildDataTypes(records: { exposedData: string[] }[]) {
       count,
       percentage: total > 0 ? Math.round((count / total) * 100) : 0,
     }))
+}
+
+function buildAlertsByMonth(alerts: { createdAt: Date; severity: string }[]) {
+  const months: Record<string, { month: string; critical: number; high: number; medium: number; low: number }> = {}
+
+  for (let i = 11; i >= 0; i--) {
+    const d = new Date()
+    d.setMonth(d.getMonth() - i)
+    const key = d.toLocaleString("en-US", { month: "short", year: "2-digit" })
+    months[key] = { month: key, critical: 0, high: 0, medium: 0, low: 0 }
+  }
+
+  alerts.forEach(({ createdAt, severity }) => {
+    const key = new Date(createdAt).toLocaleString("en-US", { month: "short", year: "2-digit" })
+    if (!(key in months)) return
+    const s = severity.toLowerCase() as "critical" | "high" | "medium" | "low"
+    if (s in months[key]) months[key][s]++
+  })
+
+  return Object.values(months)
+}
+
+function buildAlertsByDepartment(
+  alerts: { severity: string; employee: { department: string | null } | null }[]
+) {
+  const depts: Record<string, { critical: number; high: number; medium: number; low: number; total: number }> = {}
+
+  alerts.forEach(({ severity, employee }) => {
+    const dept = employee?.department ?? "Unknown"
+    if (!depts[dept]) depts[dept] = { critical: 0, high: 0, medium: 0, low: 0, total: 0 }
+    depts[dept].total++
+    const s = severity.toLowerCase() as "critical" | "high" | "medium" | "low"
+    if (s in depts[dept]) depts[dept][s]++
+  })
+
+  return Object.entries(depts)
+    .map(([department, counts]) => ({ department, ...counts }))
+    .sort((a, b) => b.total - a.total)
+    .slice(0, 8)
+}
+
+function buildEmployeeExposureLevels(employees: { breachRecords: { id: string }[] }[]) {
+  return employees.reduce(
+    (acc, e) => {
+      if (e.breachRecords.length === 0) acc.none++
+      else if (e.breachRecords.length === 1) acc.one++
+      else acc.multiple++
+      return acc
+    },
+    { none: 0, one: 0, multiple: 0 }
+  )
+}
+
+function buildAlertVelocity(alerts: { createdAt: Date }[]) {
+  const days: Record<string, number> = {}
+
+  for (let i = 29; i >= 0; i--) {
+    const d = new Date()
+    d.setDate(d.getDate() - i)
+    const key = d.toLocaleDateString("en-US", { month: "short", day: "numeric" })
+    days[key] = 0
+  }
+
+  alerts.forEach(({ createdAt }) => {
+    const key = new Date(createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })
+    if (key in days) days[key]++
+  })
+
+  return Object.entries(days).map(([day, count]) => ({ day, count }))
 }

@@ -1,184 +1,562 @@
 "use client"
 
-import { useState, useEffect, type ReactNode } from "react"
-import {
-  DndContext,
-  DragOverlay,
-  closestCenter,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
-  type DragStartEvent,
-} from "@dnd-kit/core"
-import {
-  SortableContext,
-  verticalListSortingStrategy,
-  useSortable,
-  arrayMove,
-} from "@dnd-kit/sortable"
-import { restrictToVerticalAxis, restrictToParentElement } from "@dnd-kit/modifiers"
-import { CSS } from "@dnd-kit/utilities"
-import { GripVertical, Eye, EyeOff, Settings2, Check } from "lucide-react"
+import { useState, useCallback, useEffect, useRef, type ReactNode } from "react"
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const { ResponsiveGridLayout, verticalCompactor } = require("react-grid-layout")
+import "react-grid-layout/css/styles.css"
+import "react-resizable/css/styles.css"
+import { Settings2, Check, Pencil, Plus, Trash2, Building2, User, LayoutGrid, GripHorizontal } from "lucide-react"
+import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { DashboardEditContext } from "@/contexts/DashboardEditContext"
+import { DashboardConfigContext } from "@/contexts/DashboardConfigContext"
+import type { GridItemLayout, WidgetMeta, DashboardPreset } from "@/types/dashboard"
 
-export type Section = {
-  id: string
-  label: string
+const COLS = 12
+
+export type WidgetEntry = {
+  instanceId: string
+  type: string
+  defaultTitle: string
   content: ReactNode
+  defaultSize: { w: number; h: number }
+  defaultPosition?: { x: number; y: number }
+  minSize: { w: number; h: number }
+  centerContent?: boolean
+  defaultVisible?: boolean
 }
 
-type SectionState = {
-  id: string
-  visible: boolean
+function buildDefaultLayout(widgets: WidgetEntry[]): GridItemLayout[] {
+  let cursor = 0
+  return widgets.map((w) => {
+    const y = w.defaultPosition?.y ?? cursor
+    const x = w.defaultPosition?.x ?? 0
+    if (!w.defaultPosition) cursor += w.defaultSize.h
+    return {
+      i: w.instanceId,
+      x,
+      y,
+      w: w.defaultSize.w,
+      h: w.defaultSize.h,
+      minW: w.minSize.w,
+      minH: w.minSize.h,
+    }
+  })
 }
 
-const STORAGE_KEY = "datashield-dashboard-layout"
+function buildDefaultMeta(widgets: WidgetEntry[]): WidgetMeta[] {
+  return widgets.map((w) => ({
+    instanceId: w.instanceId,
+    title: null,
+    visible: w.defaultVisible ?? true,
+  }))
+}
 
-function SortableSection({
-  id,
-  visible,
-  editing,
-  onToggle,
-  children,
-}: {
-  id: string
-  visible: boolean
-  editing: boolean
-  onToggle: () => void
-  children: ReactNode
-}) {
-  const { attributes, listeners, setNodeRef, transform, transition, isDragging } =
-    useSortable({ id, disabled: !editing })
+function mergeLayout(saved: GridItemLayout[], widgets: WidgetEntry[]): GridItemLayout[] {
+  return widgets.map((w) => {
+    const s = saved.find((l) => l.i === w.instanceId)
+    if (s) {
+      return {
+        ...s,
+        w: Math.max(s.w, w.minSize.w),
+        h: Math.max(s.h, w.minSize.h),
+        minW: w.minSize.w,
+        minH: w.minSize.h,
+      }
+    }
+    return {
+      i: w.instanceId,
+      x: 0,
+      y: Infinity,
+      w: w.defaultSize.w,
+      h: w.defaultSize.h,
+      minW: w.minSize.w,
+      minH: w.minSize.h,
+    }
+  })
+}
+
+function mergeMeta(saved: WidgetMeta[], widgets: WidgetEntry[]): WidgetMeta[] {
+  return widgets.map((w) => {
+    const s = saved.find((m) => m.instanceId === w.instanceId)
+    return s ?? { instanceId: w.instanceId, title: null, visible: w.defaultVisible ?? true }
+  })
+}
+
+function RenameOverlay({ title, onChange }: { title: string; onChange: (t: string) => void }) {
+  const [renaming, setRenaming] = useState(false)
+  const [draft, setDraft] = useState(title)
+  const inputRef = useRef<HTMLInputElement>(null)
+
+  useEffect(() => {
+    if (renaming) {
+      setDraft(title)
+      setTimeout(() => { inputRef.current?.focus(); inputRef.current?.select() }, 10)
+    }
+  }, [renaming, title])
+
+  const commit = () => {
+    const trimmed = draft.trim()
+    if (trimmed) onChange(trimmed)
+    setRenaming(false)
+  }
 
   return (
     <div
-      ref={setNodeRef}
-      style={{
-        transform: CSS.Transform.toString(transform),
-        transition,
-        opacity: isDragging ? 0 : !visible && editing ? 0.4 : 1,
-      }}
-      className="relative"
+      className="absolute top-2 left-2 z-20"
+      onClick={(e) => e.stopPropagation()}
+      onMouseDown={(e) => e.stopPropagation()}
     >
-      {editing && (
-        <>
-          <button
-            {...attributes}
-            {...listeners}
-            className="absolute -left-9 top-1/2 -translate-y-1/2 flex size-7 cursor-grab items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground active:cursor-grabbing"
-          >
-            <GripVertical className="size-4" />
-          </button>
-          <button
-            onClick={onToggle}
-            className="absolute -right-9 top-1/2 -translate-y-1/2 flex size-7 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-          >
-            {visible ? <Eye className="size-4" /> : <EyeOff className="size-4" />}
-          </button>
-        </>
+      {renaming ? (
+        <input
+          ref={inputRef}
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onBlur={commit}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") commit()
+            if (e.key === "Escape") setRenaming(false)
+          }}
+          className="h-6 w-40 rounded border border-primary bg-card px-2 text-xs font-medium text-foreground shadow focus:outline-none"
+        />
+      ) : (
+        <button
+          onClick={() => setRenaming(true)}
+          className="flex items-center gap-1 rounded bg-background/80 px-1.5 py-0.5 text-xs text-muted-foreground shadow-sm backdrop-blur-sm transition-colors hover:text-foreground"
+        >
+          <Pencil className="size-3" />
+          Rename
+        </button>
       )}
-      {children}
     </div>
   )
 }
 
-export function DashboardCanvas({ sections }: { sections: Section[] }) {
-  const [editing, setEditing] = useState(false)
-  const [activeId, setActiveId] = useState<string | null>(null)
-  const [layout, setLayout] = useState<SectionState[]>(
-    sections.map((s) => ({ id: s.id, visible: true }))
-  )
+function PresetTab({
+  preset,
+  active,
+  canDelete,
+  canRename,
+  onClick,
+  onRename,
+  onDelete,
+}: {
+  preset: DashboardPreset
+  active: boolean
+  canDelete: boolean
+  canRename: boolean
+  onClick: () => void
+  onRename: (name: string) => void
+  onDelete: () => void
+}) {
+  const [renaming, setRenaming] = useState(false)
+  const [draft, setDraft] = useState(preset.name)
+  const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    try {
-      const saved = localStorage.getItem(STORAGE_KEY)
-      if (saved) {
-        const parsed: SectionState[] = JSON.parse(saved)
-        setLayout(
-          sections.map((s) => parsed.find((p) => p.id === s.id) ?? { id: s.id, visible: true })
-        )
-      }
-    } catch {}
-  }, [])
-
-  const save = (next: SectionState[]) => {
-    setLayout(next)
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(next))
-  }
-
-  const toggle = (id: string) =>
-    save(layout.map((s) => (s.id === id ? { ...s, visible: !s.visible } : s)))
-
-  const sensors = useSensors(
-    useSensor(PointerSensor, { activationConstraint: { distance: 8 } })
-  )
-
-  const onDragStart = ({ active }: DragStartEvent) => setActiveId(active.id as string)
-
-  const onDragEnd = ({ active, over }: DragEndEvent) => {
-    setActiveId(null)
-    if (over && active.id !== over.id) {
-      const from = layout.findIndex((s) => s.id === active.id)
-      const to = layout.findIndex((s) => s.id === over.id)
-      save(arrayMove(layout, from, to))
+    if (renaming) {
+      setDraft(preset.name)
+      setTimeout(() => { inputRef.current?.focus(); inputRef.current?.select() }, 10)
     }
+  }, [renaming, preset.name])
+
+  const commit = () => {
+    const trimmed = draft.trim()
+    if (trimmed && trimmed !== preset.name) onRename(trimmed)
+    setRenaming(false)
   }
-
-  const ordered = layout
-    .map((l) => ({ ...l, section: sections.find((s) => s.id === l.id)! }))
-    .filter((s) => s.section && (s.visible || editing))
-
-  const activeSection = sections.find((s) => s.id === activeId)
 
   return (
-    <div className={cn("transition-all duration-200", editing && "px-10")}>
-      <div className="mb-4 flex justify-end">
-        {editing ? (
-          <Button size="sm" onClick={() => setEditing(false)} className="gap-1.5">
-            <Check className="size-3.5" />
-            Done
-          </Button>
-        ) : (
-          <Button variant="outline" size="sm" onClick={() => setEditing(true)} className="gap-1.5">
-            <Settings2 className="size-3.5" />
-            Customize
-          </Button>
-        )}
-      </div>
+    <div
+      className={cn(
+        "group flex h-8 items-center gap-1.5 rounded-md px-3 text-xs font-medium transition-colors cursor-pointer select-none",
+        active
+          ? "bg-primary text-primary-foreground"
+          : "bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground"
+      )}
+      onClick={onClick}
+    >
+      {preset.scope === "COMPANY" ? (
+        <Building2 className="size-3 shrink-0 opacity-70" />
+      ) : (
+        <User className="size-3 shrink-0 opacity-60" />
+      )}
 
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        modifiers={[restrictToVerticalAxis, restrictToParentElement]}
-        onDragStart={onDragStart}
-        onDragEnd={onDragEnd}
-      >
-        <SortableContext items={layout.map((s) => s.id)} strategy={verticalListSortingStrategy}>
-          <div className="space-y-6">
-            {ordered.map(({ id, visible, section }) => (
-              <SortableSection
-                key={id}
-                id={id}
-                visible={visible}
-                editing={editing}
-                onToggle={() => toggle(id)}
-              >
-                {section.content}
-              </SortableSection>
-            ))}
-          </div>
-        </SortableContext>
+      {renaming ? (
+        <input
+          ref={inputRef}
+          value={draft}
+          onChange={(e) => setDraft(e.target.value)}
+          onBlur={commit}
+          onKeyDown={(e) => {
+            if (e.key === "Enter") commit()
+            if (e.key === "Escape") setRenaming(false)
+          }}
+          onClick={(e) => e.stopPropagation()}
+          className="w-24 bg-transparent outline-none"
+        />
+      ) : (
+        <span className="max-w-[120px] truncate">{preset.name}</span>
+      )}
 
-        <DragOverlay dropAnimation={{ duration: 200, easing: "ease" }}>
-          {activeSection && (
-            <div className="drag-glow w-full shadow-2xl">
-              {activeSection.content}
-            </div>
+      {active && !renaming && (
+        <div className="ml-1 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
+          {canRename && (
+            <button
+              onClick={(e) => { e.stopPropagation(); setRenaming(true) }}
+              className="rounded p-0.5 hover:bg-white/20"
+            >
+              <Pencil className="size-2.5" />
+            </button>
           )}
-        </DragOverlay>
-      </DndContext>
+          {canDelete && (
+            <button
+              onClick={(e) => { e.stopPropagation(); onDelete() }}
+              className="rounded p-0.5 hover:bg-white/20"
+            >
+              <Trash2 className="size-2.5" />
+            </button>
+          )}
+        </div>
+      )}
     </div>
   )
+}
+
+export function DashboardCanvas({
+  widgets,
+  presets: initialPresets,
+  activePresetId: initialActivePresetId,
+  userRole,
+}: {
+  widgets: WidgetEntry[]
+  presets: DashboardPreset[]
+  activePresetId: string | null
+  userRole: string
+}) {
+  const [editing, setEditing] = useState(false)
+  const [containerW, setContainerW] = useState(0)
+  const containerRef = useRef<HTMLDivElement>(null)
+
+  const [presets, setPresets] = useState<DashboardPreset[]>(initialPresets)
+  const [activePresetId, setActivePresetId] = useState<string | null>(initialActivePresetId)
+
+  const activePreset = presets.find((p) => p.id === activePresetId) ?? presets[0] ?? null
+
+  const initLayout = useCallback((preset: DashboardPreset | null) => {
+    if (!preset || !preset.layout?.length) return buildDefaultLayout(widgets)
+    return mergeLayout(preset.layout, widgets)
+  }, [widgets])
+
+  const initMeta = useCallback((preset: DashboardPreset | null) => {
+    if (!preset || !preset.widgets?.length) return buildDefaultMeta(widgets)
+    return mergeMeta(preset.widgets, widgets)
+  }, [widgets])
+
+  const [layout, setLayout] = useState<GridItemLayout[]>(() => initLayout(activePreset))
+  const [meta, setMeta] = useState<WidgetMeta[]>(() => initMeta(activePreset))
+  const [draggingId, setDraggingId] = useState<string | null>(null)
+  const [addMenuOpen, setAddMenuOpen] = useState(false)
+  const addMenuRef = useRef<HTMLDivElement>(null)
+  const saveTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  useEffect(() => {
+    if (!addMenuOpen) return
+    const handler = (e: MouseEvent) => {
+      if (!addMenuRef.current?.contains(e.target as Node)) setAddMenuOpen(false)
+    }
+    document.addEventListener("mousedown", handler)
+    return () => document.removeEventListener("mousedown", handler)
+  }, [addMenuOpen])
+
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+    const ro = new ResizeObserver((entries) => setContainerW(entries[0].contentRect.width))
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+
+  const persistPreset = useCallback((id: string, nextLayout: GridItemLayout[], nextMeta: WidgetMeta[]) => {
+    setPresets((prev) => prev.map((p) => p.id === id ? { ...p, layout: nextLayout, widgets: nextMeta } : p))
+    if (saveTimeout.current) clearTimeout(saveTimeout.current)
+    saveTimeout.current = setTimeout(() => {
+      fetch(`/api/dashboard/presets/${id}`, {
+        method: "PUT",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({ layout: nextLayout, widgets: nextMeta }),
+      })
+    }, 800)
+  }, [])
+
+  const switchPreset = useCallback((preset: DashboardPreset) => {
+    setActivePresetId(preset.id)
+    setLayout(initLayout(preset))
+    setMeta(initMeta(preset))
+    fetch(`/api/dashboard/presets/${preset.id}/activate`, { method: "PATCH" })
+  }, [initLayout, initMeta])
+
+  const createPreset = useCallback(async (scope: "PERSONAL" | "COMPANY") => {
+    const name = scope === "COMPANY" ? "Company View" : `View ${presets.filter((p) => p.scope === "PERSONAL").length + 1}`
+    const res = await fetch("/api/dashboard/presets", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name, scope, layout: buildDefaultLayout(widgets), widgets: buildDefaultMeta(widgets) }),
+    })
+    if (!res.ok) return
+    const created: DashboardPreset = await res.json()
+    setPresets((prev) => [...prev, created])
+    switchPreset(created)
+  }, [presets, widgets, switchPreset])
+
+  const renamePreset = useCallback(async (id: string, name: string) => {
+    await fetch(`/api/dashboard/presets/${id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ name }),
+    })
+    setPresets((prev) => prev.map((p) => p.id === id ? { ...p, name } : p))
+  }, [])
+
+  const deletePreset = useCallback(async (id: string) => {
+    await fetch(`/api/dashboard/presets/${id}`, { method: "DELETE" })
+    setPresets((prev) => {
+      const next = prev.filter((p) => p.id !== id)
+      if (activePresetId === id) {
+        const fallback = next[0] ?? null
+        setActivePresetId(fallback?.id ?? null)
+        setLayout(initLayout(fallback))
+        setMeta(initMeta(fallback))
+      }
+      return next
+    })
+  }, [activePresetId, initLayout, initMeta])
+
+  const onLayoutChange = (current: RglItem[]) => {
+    const next = current.map((item) => ({
+      i: item.i, x: item.x, y: item.y, w: item.w, h: item.h, minW: item.minW, minH: item.minH,
+    }))
+    setLayout(next)
+
+    // HARD RULE: the dashboard is only ever modified in Customize mode.
+    // Outside editing we never write — not on mount, not on compaction, never.
+    // New widgets still flow into free space visually (y:Infinity + vertical
+    // compaction on render); that placement is baked into the DB the next time
+    // the user arranges things in Customize.
+    if (!editing || !activePreset) return
+
+    // The grid only renders visible widgets, so `next` omits hidden ones.
+    // Preserve hidden widgets' saved positions so toggling them off never loses placement.
+    const savedLayout = activePreset.layout ?? []
+    const visibleIds = new Set(next.map((l) => l.i))
+    const preserved = savedLayout.filter((l) => !visibleIds.has(l.i))
+    const merged = [...next, ...preserved]
+    persistPreset(activePreset.id, merged, meta)
+  }
+
+  const setTitle = useCallback((instanceId: string, title: string) => {
+    const next = meta.map((m) => m.instanceId === instanceId ? { ...m, title } : m)
+    setMeta(next)
+    if (activePreset) persistPreset(activePreset.id, layout, next)
+  }, [meta, layout, activePreset, persistPreset])
+
+  const getTitle = useCallback((instanceId: string, defaultTitle: string) => {
+    const m = meta.find((m) => m.instanceId === instanceId)
+    return m?.title ?? defaultTitle
+  }, [meta])
+
+  const visibleWidgets = widgets.filter((w) => {
+    const m = meta.find((m) => m.instanceId === w.instanceId)
+    return m?.visible !== false
+  })
+
+  // Controlled layout fed to RGL via the `layouts` prop (not per-child data-grid,
+  // which RGL only reads on first mount). Widgets with no saved position get
+  // y: Infinity so vertical compaction drops them into the first free space.
+  // Note: we never set `static` here — drag/resize locking outside Customize is
+  // handled by isDraggable/isResizable={editing}. A `static` item is excluded from
+  // compaction, which would make newly-added widgets overlap instead of flowing in.
+  const rglLayout = visibleWidgets.map((w) => {
+    return layout.find((l) => l.i === w.instanceId) ?? {
+      i: w.instanceId,
+      x: 0,
+      y: Infinity,
+      w: w.defaultSize.w,
+      h: w.defaultSize.h,
+      minW: w.minSize.w,
+      minH: w.minSize.h,
+    }
+  })
+
+  const isAdmin = userRole === "ADMIN"
+  const canEditPreset = activePreset
+    ? activePreset.scope === "PERSONAL" || isAdmin
+    : false
+
+  return (
+    <DashboardEditContext.Provider value={editing}>
+      <DashboardConfigContext.Provider value={{ getTitle, setTitle, editing }}>
+        <div className="flex flex-1 flex-col min-h-0">
+
+          {/* ── Toolbar ─────────────────────────────────────────────────── */}
+          <div className="flex shrink-0 items-center gap-2 border-b border-border px-4 py-2">
+
+            {/* Preset tabs */}
+            <div className="flex flex-1 items-center gap-1.5 overflow-x-auto scrollbar-none">
+              {presets.map((p) => (
+                <PresetTab
+                  key={p.id}
+                  preset={p}
+                  active={p.id === activePreset?.id}
+                  canDelete={presets.length > 1 && (p.scope === "PERSONAL" || isAdmin)}
+                  canRename={p.scope === "PERSONAL" || isAdmin}
+                  onClick={() => switchPreset(p)}
+                  onRename={(name) => renamePreset(p.id, name)}
+                  onDelete={() => deletePreset(p.id)}
+                />
+              ))}
+            </div>
+
+            {/* New preset button — outside overflow container to avoid clipping */}
+            <div ref={addMenuRef} className="relative shrink-0">
+              <button
+                onClick={() => isAdmin ? setAddMenuOpen((o) => !o) : createPreset("PERSONAL")}
+                className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                title="Add preset"
+              >
+                <Plus className="size-3.5" />
+              </button>
+              {addMenuOpen && isAdmin && (
+                <div className="absolute left-0 top-full z-50 mt-1 min-w-[160px] rounded-md border border-border bg-popover shadow-md">
+                  <button
+                    onClick={() => { createPreset("PERSONAL"); setAddMenuOpen(false) }}
+                    className="flex w-full items-center gap-2 px-3 py-2 text-xs hover:bg-muted"
+                  >
+                    <User className="size-3.5" />
+                    Personal preset
+                  </button>
+                  <button
+                    onClick={() => { createPreset("COMPANY"); setAddMenuOpen(false) }}
+                    className="flex w-full items-center gap-2 px-3 py-2 text-xs hover:bg-muted"
+                  >
+                    <Building2 className="size-3.5" />
+                    Company preset
+                  </button>
+                </div>
+              )}
+            </div>
+
+            {/* Right side */}
+            <div className="flex shrink-0 items-center gap-2">
+              {editing && (
+                <>
+                  <p className="text-xs text-muted-foreground">
+                    Drag · Resize · Rename
+                  </p>
+                  <Link
+                    href="/dashboard/widgets"
+                    className="flex h-8 items-center gap-1.5 rounded-md border border-border px-3 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                  >
+                    <LayoutGrid className="size-3.5" />
+                    Library
+                  </Link>
+                </>
+              )}
+              {editing ? (
+                <Button size="sm" onClick={() => setEditing(false)} className="gap-1.5">
+                  <Check className="size-3.5" />
+                  Done
+                </Button>
+              ) : (
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={() => setEditing(true)}
+                  disabled={!canEditPreset}
+                  className="gap-1.5"
+                >
+                  <Settings2 className="size-3.5" />
+                  Customize
+                </Button>
+              )}
+            </div>
+          </div>
+
+          {/* ── Scrollable grid ──────────────────────────────────────────── */}
+          <div
+            ref={containerRef}
+            className={cn(
+              "flex-1 overflow-y-auto overflow-x-hidden",
+              editing ? "select-none" : "[&_.react-resizable-handle]:hidden"
+            )}
+            style={{
+              backgroundImage: "radial-gradient(circle, oklch(var(--border)) 1px, transparent 1px)",
+              backgroundSize: "24px 24px",
+            }}
+          >
+            {containerW > 0 && (
+              <ResponsiveGridLayout
+                className="layout"
+                width={containerW}
+                breakpoints={{ lg: 0 }}
+                cols={{ lg: COLS }}
+                layouts={{ lg: rglLayout }}
+                rowHeight={50}
+                compactor={verticalCompactor}
+                dragConfig={{ enabled: editing, handle: ".widget-drag-handle" }}
+                resizeConfig={{ enabled: editing }}
+                onLayoutChange={onLayoutChange}
+                onDragStart={(_layout: unknown, oldItem: RglItem | null) => setDraggingId(oldItem?.i ?? null)}
+                onDragStop={() => setDraggingId(null)}
+                margin={[16, 16]}
+                containerPadding={[16, 16]}
+              >
+                {visibleWidgets.map((w) => {
+                  const title = getTitle(w.instanceId, w.defaultTitle)
+                  return (
+                    <div
+                      key={w.instanceId}
+                      className={cn(
+                        "relative h-full",
+                        editing && "rounded-xl outline outline-2 outline-primary/30",
+                        draggingId === w.instanceId && "drag-glow"
+                      )}
+                    >
+                      {editing && (
+                        <>
+                          {/* Dedicated drag handle — the only place that starts a drag,
+                              so chart tooltips and in-widget settings stay clickable. */}
+                          <button
+                            type="button"
+                            className="widget-drag-handle absolute left-1/2 top-2 z-30 flex -translate-x-1/2 cursor-grab items-center gap-1 rounded-full border border-primary/40 bg-card/95 px-2.5 py-1 text-[10px] font-medium text-muted-foreground shadow-sm backdrop-blur-sm transition-colors hover:text-foreground active:cursor-grabbing"
+                            title="Drag to move"
+                          >
+                            <GripHorizontal className="size-3" />
+                            Move
+                          </button>
+                          <RenameOverlay
+                            title={title}
+                            onChange={(t) => setTitle(w.instanceId, t)}
+                          />
+                        </>
+                      )}
+                      <div className={cn("h-full", w.centerContent && "flex items-center [&>*]:w-full")}>
+                        {w.content}
+                      </div>
+                    </div>
+                  )
+                })}
+              </ResponsiveGridLayout>
+            )}
+          </div>
+
+        </div>
+      </DashboardConfigContext.Provider>
+    </DashboardEditContext.Provider>
+  )
+}
+
+type RglItem = {
+  i: string; x: number; y: number; w: number; h: number; minW?: number; minH?: number
 }

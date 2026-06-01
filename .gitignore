@@ -17,3 +17,6 @@ next-env.d.ts
 # private
 ROADMAP.md
 prisma/seed.dev.ts
+
+# TypeScript incremental build info
+tsconfig.tsbuildinfo
