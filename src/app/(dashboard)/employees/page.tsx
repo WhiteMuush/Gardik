@@ -8,7 +8,7 @@ export default async function EmployeesPage() {
   const employees = await getEmployees(session!.user.companyId)
 
   return (
-    <div>
+    <div className="h-full overflow-y-auto p-6">
       <div className="mb-6 flex items-start justify-between">
         <div>
           <h2 className="text-lg font-semibold text-foreground">Employees</h2>

@@ -9,12 +9,14 @@ export const authConfig: NextAuthConfig = {
     },
     jwt({ token, user }) {
       if (user) {
+        token.id = user.id
         token.companyId = user.companyId
         token.role = user.role
       }
       return token
     },
     session({ session, token }) {
+      session.user.id = (token.id ?? token.sub) as string
       session.user.companyId = token.companyId as string
       session.user.role = token.role as "ADMIN" | "VIEWER"
       return session
