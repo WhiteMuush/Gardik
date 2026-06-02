@@ -1,8 +1,9 @@
 import { NextResponse } from "next/server"
+import { randomUUID } from "crypto"
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { encryptConfig } from "@/lib/directory/crypto"
-import type { AzureADConfig, GoogleWorkspaceConfig, LDAPConfig } from "@/lib/directory/types"
+import type { DirectoryType } from "@prisma/client"
 
 export async function GET() {
   const session = await auth()
@@ -33,22 +34,21 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Admin only" }, { status: 403 })
 
   const body = await req.json()
-  const { type, name, config } = body as {
-    type: string
-    name: string
-    config: AzureADConfig | GoogleWorkspaceConfig | LDAPConfig
-  }
+  const { type, name, config } = body as { type: string; name: string; config: Record<string, unknown> }
 
-  if (!type || !name || !config)
-    return NextResponse.json({ error: "Missing fields" }, { status: 400 })
+  if (!type || !name) return NextResponse.json({ error: "Missing fields" }, { status: 400 })
+
+  const isSCIM = type === "SCIM"
+  const bearerToken = isSCIM ? randomUUID() : undefined
+  const finalConfig = isSCIM ? { bearerToken } : (config ?? {})
 
   const connection = await prisma.directoryConnection.create({
     data: {
       companyId: session.user.companyId,
-      type: type as "AZURE_AD" | "GOOGLE_WORKSPACE" | "LDAP",
+      type: type as DirectoryType,
       name,
-      encryptedConfig: encryptConfig(config),
-      status: "PENDING",
+      encryptedConfig: encryptConfig(finalConfig),
+      status: isSCIM ? "ACTIVE" : "PENDING",
     },
     select: {
       id: true,
@@ -62,5 +62,8 @@ export async function POST(req: Request) {
     },
   })
 
-  return NextResponse.json(connection, { status: 201 })
+  return NextResponse.json(
+    { ...connection, ...(isSCIM ? { bearerToken } : {}) },
+    { status: 201 }
+  )
 }

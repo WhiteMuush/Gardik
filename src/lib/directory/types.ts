@@ -28,7 +28,16 @@ export type AWSDirectoryConfig = {
   identityStoreId: string
 }
 
-export type DirectoryConfig = AzureADConfig | GoogleWorkspaceConfig | LDAPConfig | AWSDirectoryConfig
+export type OktaConfig = {
+  domain: string
+  apiToken: string
+}
+
+export type SCIMConfig = {
+  bearerToken: string
+}
+
+export type DirectoryConfig = AzureADConfig | GoogleWorkspaceConfig | LDAPConfig | AWSDirectoryConfig | OktaConfig | SCIMConfig
 
 export type DirectoryUser = {
   email: string

@@ -9,6 +9,8 @@ import {
   Globe,
   Network,
   Cloud,
+  Shield,
+  Link,
   Loader2,
   AlertCircle,
 } from "lucide-react"
@@ -17,7 +19,7 @@ import { ConnectWizard } from "./ConnectWizard"
 import { cn } from "@/lib/utils"
 
 type ConnectStatus = "ACTIVE" | "ERROR" | "PENDING"
-type DirectoryType = "AZURE_AD" | "GOOGLE_WORKSPACE" | "LDAP" | "AWS_DIRECTORY"
+type DirectoryType = "AZURE_AD" | "GOOGLE_WORKSPACE" | "LDAP" | "AWS_DIRECTORY" | "OKTA" | "SCIM"
 
 type Connection = {
   id: string
@@ -50,6 +52,16 @@ const TYPE_META: Record<DirectoryType, { label: string; icon: React.ReactNode; c
     label: "AWS Identity Center",
     icon: <Cloud className="size-4" />,
     color: "bg-orange-500/10 text-orange-600 dark:text-orange-400",
+  },
+  OKTA: {
+    label: "Okta",
+    icon: <Shield className="size-4" />,
+    color: "bg-blue-500/10 text-blue-600 dark:text-blue-400",
+  },
+  SCIM: {
+    label: "SCIM 2.0",
+    icon: <Link className="size-4" />,
+    color: "bg-purple-500/10 text-purple-600 dark:text-purple-400",
   },
 }
 

@@ -4,7 +4,8 @@ import { fetchAzureUsers } from "./azure"
 import { fetchGoogleUsers } from "./google"
 import { fetchLDAPUsers } from "./ldap"
 import { fetchAWSUsers } from "./aws"
-import type { AzureADConfig, GoogleWorkspaceConfig, LDAPConfig, AWSDirectoryConfig, DirectoryUser } from "./types"
+import { fetchOktaUsers } from "./okta"
+import type { AzureADConfig, GoogleWorkspaceConfig, LDAPConfig, AWSDirectoryConfig, OktaConfig, DirectoryUser } from "./types"
 
 async function getUsersForConnection(
   type: string,
@@ -19,6 +20,10 @@ async function getUsersForConnection(
       return fetchLDAPUsers(decryptConfig<LDAPConfig>(encryptedConfig))
     case "AWS_DIRECTORY":
       return fetchAWSUsers(decryptConfig<AWSDirectoryConfig>(encryptedConfig))
+    case "OKTA":
+      return fetchOktaUsers(decryptConfig<OktaConfig>(encryptedConfig))
+    case "SCIM":
+      throw new Error("SCIM connections are push-based — sync is triggered by your identity provider.")
     default:
       throw new Error(`Unknown directory type: ${type}`)
   }
