@@ -14,10 +14,41 @@ model Company {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
-  users            User[]
-  employees        Employee[]
-  alerts           Alert[]
-  dashboardPresets DashboardPreset[]
+  users                User[]
+  employees            Employee[]
+  alerts               Alert[]
+  dashboardPresets     DashboardPreset[]
+  directoryConnections DirectoryConnection[]
+}
+
+model DirectoryConnection {
+  id              String        @id @default(cuid())
+  companyId       String
+  type            DirectoryType
+  name            String
+  encryptedConfig String
+  status          ConnectStatus @default(PENDING)
+  lastSyncAt      DateTime?
+  lastSyncCount   Int?
+  errorMessage    String?
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+}
+
+enum DirectoryType {
+  AZURE_AD
+  GOOGLE_WORKSPACE
+  LDAP
+}
+
+enum ConnectStatus {
+  ACTIVE
+  ERROR
+  PENDING
 }
 
 model User {
