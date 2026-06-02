@@ -8,6 +8,7 @@ import {
   Building2,
   Globe,
   Network,
+  Cloud,
   Loader2,
   AlertCircle,
 } from "lucide-react"
@@ -16,7 +17,7 @@ import { ConnectWizard } from "./ConnectWizard"
 import { cn } from "@/lib/utils"
 
 type ConnectStatus = "ACTIVE" | "ERROR" | "PENDING"
-type DirectoryType = "AZURE_AD" | "GOOGLE_WORKSPACE" | "LDAP"
+type DirectoryType = "AZURE_AD" | "GOOGLE_WORKSPACE" | "LDAP" | "AWS_DIRECTORY"
 
 type Connection = {
   id: string
@@ -44,6 +45,11 @@ const TYPE_META: Record<DirectoryType, { label: string; icon: React.ReactNode; c
     label: "LDAP",
     icon: <Network className="size-4" />,
     color: "bg-muted text-muted-foreground",
+  },
+  AWS_DIRECTORY: {
+    label: "AWS Identity Center",
+    icon: <Cloud className="size-4" />,
+    color: "bg-orange-500/10 text-orange-600 dark:text-orange-400",
   },
 }
 

@@ -1,11 +1,11 @@
 "use client"
 
 import { useState } from "react"
-import { X, ChevronRight, CheckCircle, XCircle, Loader2, Building2, Globe, Network, Eye, EyeOff } from "lucide-react"
+import { X, ChevronRight, CheckCircle, XCircle, Loader2, Building2, Globe, Network, Eye, EyeOff, Cloud } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
-type DirectoryType = "AZURE_AD" | "GOOGLE_WORKSPACE" | "LDAP"
+type DirectoryType = "AZURE_AD" | "GOOGLE_WORKSPACE" | "LDAP" | "AWS_DIRECTORY"
 
 type ProviderOption = {
   type: DirectoryType
@@ -36,6 +36,13 @@ const PROVIDERS: ProviderOption[] = [
     description: "OpenLDAP, on-premise Active Directory, FreeIPA",
     icon: <Network className="size-5" />,
     docsUrl: "",
+  },
+  {
+    type: "AWS_DIRECTORY",
+    label: "AWS IAM Identity Center",
+    description: "AWS Directory Service, AWS SSO, Managed Microsoft AD",
+    icon: <Cloud className="size-5" />,
+    docsUrl: "https://docs.aws.amazon.com/singlesignon/latest/userguide/what-is.html",
   },
 ]
 
@@ -96,6 +103,32 @@ const FIELDS: Record<DirectoryType, FieldDef[]> = {
       label: "Domain",
       placeholder: "yourdomain.com",
       hint: "Primary domain of your Google Workspace",
+    },
+  ],
+  AWS_DIRECTORY: [
+    {
+      key: "accessKeyId",
+      label: "Access Key ID",
+      placeholder: "AKIAIOSFODNN7EXAMPLE",
+      hint: "IAM user with identitystore:ListUsers permission",
+    },
+    {
+      key: "secretAccessKey",
+      label: "Secret Access Key",
+      type: "password" as const,
+      placeholder: "wJalrXUtnFEMI/K7MDENG/bPxRfiCYEXAMPLEKEY",
+    },
+    {
+      key: "region",
+      label: "Region",
+      placeholder: "us-east-1",
+      hint: "AWS region where IAM Identity Center is configured",
+    },
+    {
+      key: "identityStoreId",
+      label: "Identity Store ID",
+      placeholder: "d-1234567890",
+      hint: "IAM Identity Center console > Settings > Identity store ID",
     },
   ],
   LDAP: [

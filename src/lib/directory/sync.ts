@@ -3,7 +3,8 @@ import { decryptConfig } from "./crypto"
 import { fetchAzureUsers } from "./azure"
 import { fetchGoogleUsers } from "./google"
 import { fetchLDAPUsers } from "./ldap"
-import type { AzureADConfig, GoogleWorkspaceConfig, LDAPConfig, DirectoryUser } from "./types"
+import { fetchAWSUsers } from "./aws"
+import type { AzureADConfig, GoogleWorkspaceConfig, LDAPConfig, AWSDirectoryConfig, DirectoryUser } from "./types"
 
 async function getUsersForConnection(
   type: string,
@@ -16,6 +17,8 @@ async function getUsersForConnection(
       return fetchGoogleUsers(decryptConfig<GoogleWorkspaceConfig>(encryptedConfig))
     case "LDAP":
       return fetchLDAPUsers(decryptConfig<LDAPConfig>(encryptedConfig))
+    case "AWS_DIRECTORY":
+      return fetchAWSUsers(decryptConfig<AWSDirectoryConfig>(encryptedConfig))
     default:
       throw new Error(`Unknown directory type: ${type}`)
   }
