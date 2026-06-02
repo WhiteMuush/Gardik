@@ -1,6 +1,7 @@
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { DirectoryConnections } from "@/components/settings/DirectoryConnections"
+import { SetupGuides } from "@/components/settings/SetupGuides"
 
 export default async function SettingsPage() {
   const session = await auth()
@@ -38,6 +39,7 @@ export default async function SettingsPage() {
 
       <div className="mx-auto max-w-3xl space-y-10">
         <DirectoryConnections initial={serialized} isAdmin={isAdmin} />
+        <SetupGuides />
       </div>
     </div>
   )
