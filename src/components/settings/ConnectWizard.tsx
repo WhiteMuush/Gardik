@@ -21,7 +21,7 @@ const PROVIDERS: ProviderOption[] = [
     label: "Microsoft Azure AD / Entra ID",
     description: "Microsoft 365, Entra ID, hybrid on-prem",
     icon: <Building2 className="size-5" />,
-    docsUrl: "https://learn.microsoft.com/azure/active-directory/develop/app-registrations",
+    docsUrl: "https://learn.microsoft.com/fr-fr/entra/identity/",
   },
   {
     type: "GOOGLE_WORKSPACE",
@@ -54,7 +54,7 @@ const FIELDS: Record<DirectoryType, FieldDef[]> = {
       key: "tenantId",
       label: "Tenant ID",
       placeholder: "xxxxxxxx-xxxx-xxxx-xxxx-xxxxxxxxxxxx",
-      hint: "Azure portal > Azure Active Directory > Properties > Tenant ID",
+      hint: "Azure portal > Microsoft Entra ID > Properties > Tenant ID",
     },
     {
       key: "clientId",
