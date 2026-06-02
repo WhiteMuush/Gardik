@@ -21,7 +21,14 @@ export type LDAPConfig = {
   userFilter: string
 }
 
-export type DirectoryConfig = AzureADConfig | GoogleWorkspaceConfig | LDAPConfig
+export type AWSDirectoryConfig = {
+  accessKeyId: string
+  secretAccessKey: string
+  region: string
+  identityStoreId: string
+}
+
+export type DirectoryConfig = AzureADConfig | GoogleWorkspaceConfig | LDAPConfig | AWSDirectoryConfig
 
 export type DirectoryUser = {
   email: string

@@ -43,6 +43,7 @@ enum DirectoryType {
   AZURE_AD
   GOOGLE_WORKSPACE
   LDAP
+  AWS_DIRECTORY
 }
 
 enum ConnectStatus {

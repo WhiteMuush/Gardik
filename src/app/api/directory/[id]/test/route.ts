@@ -5,7 +5,8 @@ import { decryptConfig } from "@/lib/directory/crypto"
 import { testAzureConnection } from "@/lib/directory/azure"
 import { testGoogleConnection } from "@/lib/directory/google"
 import { testLDAPConnection } from "@/lib/directory/ldap"
-import type { AzureADConfig, GoogleWorkspaceConfig, LDAPConfig } from "@/lib/directory/types"
+import { testAWSConnection } from "@/lib/directory/aws"
+import type { AzureADConfig, GoogleWorkspaceConfig, LDAPConfig, AWSDirectoryConfig } from "@/lib/directory/types"
 
 export async function POST(
   _req: Request,
@@ -35,6 +36,9 @@ export async function POST(
       break
     case "LDAP":
       result = await testLDAPConnection(decryptConfig<LDAPConfig>(connection.encryptedConfig))
+      break
+    case "AWS_DIRECTORY":
+      result = await testAWSConnection(decryptConfig<AWSDirectoryConfig>(connection.encryptedConfig))
       break
     default:
       result = { ok: false, error: "Unknown type" }
