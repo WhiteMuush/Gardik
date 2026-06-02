@@ -38,9 +38,9 @@ function Code({ children }: { children: string }) {
 
 function Warning({ children }: { children: React.ReactNode }) {
   return (
-    <div className="flex items-start gap-2 rounded-lg border border-yellow-500/30 bg-yellow-500/10 px-3 py-2.5">
-      <AlertTriangle className="mt-0.5 size-3.5 shrink-0 text-yellow-600 dark:text-yellow-400" />
-      <p className="text-xs text-yellow-700 dark:text-yellow-300">{children}</p>
+    <div className="flex items-start gap-2 rounded-lg border border-amber-500/50 bg-amber-500/15 px-3 py-2.5">
+      <AlertTriangle className="mt-0.5 size-3.5 shrink-0 text-amber-600 dark:text-amber-400" />
+      <p className="text-xs text-amber-800 dark:text-amber-200">{children}</p>
     </div>
   )
 }
