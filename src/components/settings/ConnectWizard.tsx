@@ -1,7 +1,7 @@
 "use client"
 
 import { useState } from "react"
-import { X, ChevronRight, CheckCircle, XCircle, Loader2, Building2, Globe, Network } from "lucide-react"
+import { X, ChevronRight, CheckCircle, XCircle, Loader2, Building2, Globe, Network, Eye, EyeOff } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
@@ -44,6 +44,7 @@ type FieldDef = {
   label: string
   placeholder?: string
   type?: "text" | "password" | "number" | "textarea"
+  secret?: boolean
   hint?: string
 }
 
@@ -80,6 +81,7 @@ const FIELDS: Record<DirectoryType, FieldDef[]> = {
       key: "privateKey",
       label: "Private key (RSA)",
       type: "textarea",
+      secret: true,
       placeholder: "-----BEGIN RSA PRIVATE KEY-----\n...\n-----END RSA PRIVATE KEY-----",
       hint: "Service account JSON file > private_key field",
     },
@@ -159,6 +161,15 @@ export function ConnectWizard({ onClose, onCreated }: Props) {
   const [testResult, setTestResult] = useState<TestResult | null>(null)
   const [createdId, setCreatedId] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
+  const [revealedFields, setRevealedFields] = useState<Set<string>>(new Set())
+
+  function toggleReveal(key: string) {
+    setRevealedFields((prev) => {
+      const next = new Set(prev)
+      next.has(key) ? next.delete(key) : next.add(key)
+      return next
+    })
+  }
 
   const fieldDefs = selectedType ? FIELDS[selectedType] : []
 
@@ -300,13 +311,25 @@ export function ConnectWizard({ onClose, onCreated }: Props) {
                     {def.label}
                   </label>
                   {def.type === "textarea" ? (
-                    <textarea
-                      value={fields[def.key] ?? ""}
-                      onChange={(e) => handleFieldChange(def.key, e.target.value)}
-                      placeholder={def.placeholder}
-                      rows={4}
-                      className="w-full rounded-lg border border-border bg-background px-3 py-2 font-mono text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
-                    />
+                    <div className="relative">
+                      <textarea
+                        value={fields[def.key] ?? ""}
+                        onChange={(e) => handleFieldChange(def.key, e.target.value)}
+                        placeholder={def.placeholder}
+                        rows={4}
+                        style={def.secret && !revealedFields.has(def.key) ? { WebkitTextSecurity: "disc" } as React.CSSProperties : undefined}
+                        className="w-full rounded-lg border border-border bg-background px-3 py-2 pr-9 font-mono text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                      />
+                      {def.secret && (
+                        <button
+                          type="button"
+                          onClick={() => toggleReveal(def.key)}
+                          className="absolute right-2.5 top-2.5 text-muted-foreground hover:text-foreground"
+                        >
+                          {revealedFields.has(def.key) ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
+                        </button>
+                      )}
+                    </div>
                   ) : (
                     <input
                       type={def.type ?? "text"}
