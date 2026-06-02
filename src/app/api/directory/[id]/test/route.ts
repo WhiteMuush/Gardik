@@ -6,7 +6,8 @@ import { testAzureConnection } from "@/lib/directory/azure"
 import { testGoogleConnection } from "@/lib/directory/google"
 import { testLDAPConnection } from "@/lib/directory/ldap"
 import { testAWSConnection } from "@/lib/directory/aws"
-import type { AzureADConfig, GoogleWorkspaceConfig, LDAPConfig, AWSDirectoryConfig } from "@/lib/directory/types"
+import { testOktaConnection } from "@/lib/directory/okta"
+import type { AzureADConfig, GoogleWorkspaceConfig, LDAPConfig, AWSDirectoryConfig, OktaConfig } from "@/lib/directory/types"
 
 export async function POST(
   _req: Request,
@@ -39,6 +40,12 @@ export async function POST(
       break
     case "AWS_DIRECTORY":
       result = await testAWSConnection(decryptConfig<AWSDirectoryConfig>(connection.encryptedConfig))
+      break
+    case "OKTA":
+      result = await testOktaConnection(decryptConfig<OktaConfig>(connection.encryptedConfig))
+      break
+    case "SCIM":
+      result = { ok: true }
       break
     default:
       result = { ok: false, error: "Unknown type" }

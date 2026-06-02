@@ -44,6 +44,8 @@ enum DirectoryType {
   GOOGLE_WORKSPACE
   LDAP
   AWS_DIRECTORY
+  OKTA
+  SCIM
 }
 
 enum ConnectStatus {

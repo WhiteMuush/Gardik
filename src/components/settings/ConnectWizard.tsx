@@ -1,11 +1,11 @@
 "use client"
 
 import { useState } from "react"
-import { X, ChevronRight, CheckCircle, XCircle, Loader2, Building2, Globe, Network, Eye, EyeOff, Cloud } from "lucide-react"
+import { X, ChevronRight, CheckCircle, XCircle, Loader2, Building2, Globe, Network, Eye, EyeOff, Cloud, Shield, Link } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
-type DirectoryType = "AZURE_AD" | "GOOGLE_WORKSPACE" | "LDAP" | "AWS_DIRECTORY"
+type DirectoryType = "AZURE_AD" | "GOOGLE_WORKSPACE" | "LDAP" | "AWS_DIRECTORY" | "OKTA" | "SCIM"
 
 type ProviderOption = {
   type: DirectoryType
@@ -43,6 +43,20 @@ const PROVIDERS: ProviderOption[] = [
     description: "AWS Directory Service, AWS SSO, Managed Microsoft AD",
     icon: <Cloud className="size-5" />,
     docsUrl: "https://docs.aws.amazon.com/singlesignon/latest/userguide/what-is.html",
+  },
+  {
+    type: "OKTA",
+    label: "Okta",
+    description: "Okta Workforce Identity Cloud",
+    icon: <Shield className="size-5" />,
+    docsUrl: "https://developer.okta.com/docs/reference/api/users/",
+  },
+  {
+    type: "SCIM",
+    label: "SCIM 2.0",
+    description: "OVH, JumpCloud, OneLogin, Ping Identity, IBM, Oracle and any SCIM-compatible provider",
+    icon: <Link className="size-5" />,
+    docsUrl: "",
   },
 ]
 
@@ -105,6 +119,22 @@ const FIELDS: Record<DirectoryType, FieldDef[]> = {
       hint: "Primary domain of your Google Workspace",
     },
   ],
+  OKTA: [
+    {
+      key: "domain",
+      label: "Okta domain",
+      placeholder: "company.okta.com",
+      hint: "Your Okta organization URL without https://",
+    },
+    {
+      key: "apiToken",
+      label: "API token",
+      type: "password" as const,
+      placeholder: "00abc123...",
+      hint: "Okta Admin Console > Security > API > Tokens > Create token",
+    },
+  ],
+  SCIM: [],
   AWS_DIRECTORY: [
     {
       key: "accessKeyId",
@@ -193,6 +223,7 @@ export function ConnectWizard({ onClose, onCreated }: Props) {
   const [testing, setTesting] = useState(false)
   const [testResult, setTestResult] = useState<TestResult | null>(null)
   const [createdId, setCreatedId] = useState<string | null>(null)
+  const [scimToken, setScimToken] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [revealedFields, setRevealedFields] = useState<Set<string>>(new Set())
 
@@ -233,7 +264,12 @@ export function ConnectWizard({ onClose, onCreated }: Props) {
       if (!res.ok) throw new Error((await res.json()).error)
       const conn = await res.json()
       setCreatedId(conn.id)
-      setStep("test")
+      if (selectedType === "SCIM") {
+        setScimToken(conn.bearerToken ?? null)
+        setStep("done")
+      } else {
+        setStep("test")
+      }
     } catch (e: unknown) {
       setError((e as Error).message)
     } finally {
@@ -310,7 +346,27 @@ export function ConnectWizard({ onClose, onCreated }: Props) {
             </div>
           )}
 
-          {step === "configure" && selectedType && (
+          {step === "configure" && selectedType === "SCIM" && (
+            <div className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                DataShield will generate a unique endpoint URL and bearer token.
+                You will configure your identity provider with these values after saving.
+              </p>
+              <div>
+                <label className="mb-1 block text-xs font-medium text-foreground">
+                  Connection name
+                </label>
+                <input
+                  value={name}
+                  onChange={(e) => setName(e.target.value)}
+                  placeholder="e.g. Okta SCIM, JumpCloud, OVH..."
+                  className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
+                />
+              </div>
+            </div>
+          )}
+
+          {step === "configure" && selectedType && selectedType !== "SCIM" && (
             <div className="space-y-4">
               {provider?.docsUrl && (
                 <p className="text-xs text-muted-foreground">
@@ -424,7 +480,7 @@ export function ConnectWizard({ onClose, onCreated }: Props) {
             </div>
           )}
 
-          {step === "done" && (
+          {step === "done" && selectedType !== "SCIM" && (
             <div className="space-y-4">
               <div className="flex items-center gap-3 rounded-lg border border-green-500/30 bg-green-500/10 px-4 py-3">
                 <CheckCircle className="size-5 shrink-0 text-green-500" />
@@ -441,6 +497,39 @@ export function ConnectWizard({ onClose, onCreated }: Props) {
               <p className="text-sm text-muted-foreground">
                 Run a sync from the Settings page to import your employees into DataShield.
               </p>
+            </div>
+          )}
+
+          {step === "done" && selectedType === "SCIM" && (
+            <div className="space-y-4">
+              <div className="flex items-center gap-3 rounded-lg border border-green-500/30 bg-green-500/10 px-4 py-3">
+                <CheckCircle className="size-5 shrink-0 text-green-500" />
+                <p className="text-sm font-medium text-green-600 dark:text-green-400">
+                  SCIM endpoint ready
+                </p>
+              </div>
+              <p className="text-sm text-muted-foreground">
+                Configure your identity provider with the values below. The bearer token is only shown once.
+              </p>
+              <div>
+                <p className="mb-1 text-xs font-medium text-foreground">SCIM endpoint URL</p>
+                <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/50 px-3 py-2">
+                  <code className="flex-1 truncate font-mono text-xs text-foreground">
+                    {typeof window !== "undefined" ? window.location.origin : ""}/api/scim/{createdId}/Users
+                  </code>
+                </div>
+              </div>
+              <div>
+                <p className="mb-1 text-xs font-medium text-foreground">Bearer token</p>
+                <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/50 px-3 py-2">
+                  <code className="flex-1 truncate font-mono text-xs text-foreground">
+                    {scimToken}
+                  </code>
+                </div>
+                <p className="mt-1 text-xs text-muted-foreground">
+                  Copy this token now — it will not be shown again.
+                </p>
+              </div>
             </div>
           )}
         </div>
