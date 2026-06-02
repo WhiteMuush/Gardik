@@ -74,7 +74,7 @@ function AzureGuide() {
       <div className="space-y-4">
         <Step n={1} title="Create an App Registration">
           <Sub>
-            Go to <strong>portal.azure.com</strong> &gt; Azure Active Directory &gt; App registrations &gt; New registration.
+            Go to <strong>portal.azure.com</strong> &gt; Microsoft Entra ID &gt; App registrations &gt; New registration.
           </Sub>
           <Sub>
             Name: anything recognizable (e.g. DataShield). Supported account types: <em>Accounts in this organizational directory only</em>. No redirect URI needed.
