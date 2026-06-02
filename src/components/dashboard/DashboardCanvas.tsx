@@ -5,13 +5,16 @@ import { useState, useCallback, useEffect, useRef, type ReactNode } from "react"
 const { ResponsiveGridLayout, verticalCompactor } = require("react-grid-layout")
 import "react-grid-layout/css/styles.css"
 import "react-resizable/css/styles.css"
-import { Settings2, Check, Pencil, Plus, Trash2, Building2, User, LayoutGrid, GripHorizontal } from "lucide-react"
+import { Settings2, Check, Plus, Building2, User, LayoutGrid, GripHorizontal } from "lucide-react"
 import Link from "next/link"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { DashboardEditContext } from "@/contexts/DashboardEditContext"
 import { DashboardConfigContext } from "@/contexts/DashboardConfigContext"
 import type { GridItemLayout, WidgetMeta, DashboardPreset } from "@/types/dashboard"
+import { buildDefaultLayout, buildDefaultMeta, mergeLayout, mergeMeta } from "./dashboardLayoutUtils"
+import { PresetTab } from "./PresetTab"
+import { RenameOverlay } from "./RenameOverlay"
 
 const COLS = 12
 
@@ -27,201 +30,8 @@ export type WidgetEntry = {
   defaultVisible?: boolean
 }
 
-function buildDefaultLayout(widgets: WidgetEntry[]): GridItemLayout[] {
-  let cursor = 0
-  return widgets.map((w) => {
-    const y = w.defaultPosition?.y ?? cursor
-    const x = w.defaultPosition?.x ?? 0
-    if (!w.defaultPosition) cursor += w.defaultSize.h
-    return {
-      i: w.instanceId,
-      x,
-      y,
-      w: w.defaultSize.w,
-      h: w.defaultSize.h,
-      minW: w.minSize.w,
-      minH: w.minSize.h,
-    }
-  })
-}
-
-function buildDefaultMeta(widgets: WidgetEntry[]): WidgetMeta[] {
-  return widgets.map((w) => ({
-    instanceId: w.instanceId,
-    title: null,
-    visible: w.defaultVisible ?? true,
-  }))
-}
-
-function mergeLayout(saved: GridItemLayout[], widgets: WidgetEntry[]): GridItemLayout[] {
-  return widgets.map((w) => {
-    const s = saved.find((l) => l.i === w.instanceId)
-    if (s) {
-      return {
-        ...s,
-        w: Math.max(s.w, w.minSize.w),
-        h: Math.max(s.h, w.minSize.h),
-        minW: w.minSize.w,
-        minH: w.minSize.h,
-      }
-    }
-    return {
-      i: w.instanceId,
-      x: 0,
-      y: Infinity,
-      w: w.defaultSize.w,
-      h: w.defaultSize.h,
-      minW: w.minSize.w,
-      minH: w.minSize.h,
-    }
-  })
-}
-
-function mergeMeta(saved: WidgetMeta[], widgets: WidgetEntry[]): WidgetMeta[] {
-  return widgets.map((w) => {
-    const s = saved.find((m) => m.instanceId === w.instanceId)
-    return s ?? { instanceId: w.instanceId, title: null, visible: w.defaultVisible ?? true }
-  })
-}
-
-function RenameOverlay({ title, onChange }: { title: string; onChange: (t: string) => void }) {
-  const [renaming, setRenaming] = useState(false)
-  const [draft, setDraft] = useState(title)
-  const inputRef = useRef<HTMLInputElement>(null)
-
-  useEffect(() => {
-    if (renaming) {
-      setDraft(title)
-      setTimeout(() => { inputRef.current?.focus(); inputRef.current?.select() }, 10)
-    }
-  }, [renaming, title])
-
-  const commit = () => {
-    const trimmed = draft.trim()
-    if (trimmed) onChange(trimmed)
-    setRenaming(false)
-  }
-
-  return (
-    <div
-      className="absolute top-2 left-2 z-20"
-      onClick={(e) => e.stopPropagation()}
-      onMouseDown={(e) => e.stopPropagation()}
-    >
-      {renaming ? (
-        <input
-          ref={inputRef}
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          onBlur={commit}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") commit()
-            if (e.key === "Escape") setRenaming(false)
-          }}
-          className="h-6 w-40 rounded border border-primary bg-card px-2 text-xs font-medium text-foreground shadow focus:outline-none"
-        />
-      ) : (
-        <button
-          onClick={() => setRenaming(true)}
-          className="flex items-center gap-1 rounded bg-background/80 px-1.5 py-0.5 text-xs text-muted-foreground shadow-sm backdrop-blur-sm transition-colors hover:text-foreground"
-        >
-          <Pencil className="size-3" />
-          Rename
-        </button>
-      )}
-    </div>
-  )
-}
-
-function PresetTab({
-  preset,
-  active,
-  canDelete,
-  canRename,
-  onClick,
-  onRename,
-  onDelete,
-}: {
-  preset: DashboardPreset
-  active: boolean
-  canDelete: boolean
-  canRename: boolean
-  onClick: () => void
-  onRename: (name: string) => void
-  onDelete: () => void
-}) {
-  const [renaming, setRenaming] = useState(false)
-  const [draft, setDraft] = useState(preset.name)
-  const inputRef = useRef<HTMLInputElement>(null)
-
-  useEffect(() => {
-    if (renaming) {
-      setDraft(preset.name)
-      setTimeout(() => { inputRef.current?.focus(); inputRef.current?.select() }, 10)
-    }
-  }, [renaming, preset.name])
-
-  const commit = () => {
-    const trimmed = draft.trim()
-    if (trimmed && trimmed !== preset.name) onRename(trimmed)
-    setRenaming(false)
-  }
-
-  return (
-    <div
-      className={cn(
-        "group flex h-8 items-center gap-1.5 rounded-md px-3 text-xs font-medium transition-colors cursor-pointer select-none",
-        active
-          ? "bg-primary text-primary-foreground"
-          : "bg-muted/60 text-muted-foreground hover:bg-muted hover:text-foreground"
-      )}
-      onClick={onClick}
-    >
-      {preset.scope === "COMPANY" ? (
-        <Building2 className="size-3 shrink-0 opacity-70" />
-      ) : (
-        <User className="size-3 shrink-0 opacity-60" />
-      )}
-
-      {renaming ? (
-        <input
-          ref={inputRef}
-          value={draft}
-          onChange={(e) => setDraft(e.target.value)}
-          onBlur={commit}
-          onKeyDown={(e) => {
-            if (e.key === "Enter") commit()
-            if (e.key === "Escape") setRenaming(false)
-          }}
-          onClick={(e) => e.stopPropagation()}
-          className="w-24 bg-transparent outline-none"
-        />
-      ) : (
-        <span className="max-w-[120px] truncate">{preset.name}</span>
-      )}
-
-      {active && !renaming && (
-        <div className="ml-1 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
-          {canRename && (
-            <button
-              onClick={(e) => { e.stopPropagation(); setRenaming(true) }}
-              className="rounded p-0.5 hover:bg-white/20"
-            >
-              <Pencil className="size-2.5" />
-            </button>
-          )}
-          {canDelete && (
-            <button
-              onClick={(e) => { e.stopPropagation(); onDelete() }}
-              className="rounded p-0.5 hover:bg-white/20"
-            >
-              <Trash2 className="size-2.5" />
-            </button>
-          )}
-        </div>
-      )}
-    </div>
-  )
+type RglItem = {
+  i: string; x: number; y: number; w: number; h: number; minW?: number; minH?: number
 }
 
 export function DashboardCanvas({
@@ -555,8 +365,4 @@ export function DashboardCanvas({
       </DashboardConfigContext.Provider>
     </DashboardEditContext.Provider>
   )
-}
-
-type RglItem = {
-  i: string; x: number; y: number; w: number; h: number; minW?: number; minH?: number
 }
