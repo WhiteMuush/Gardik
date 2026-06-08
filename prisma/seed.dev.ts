@@ -241,7 +241,6 @@ async function main() {
   ]
 
   for (const r of records) {
-    const empKey = r.emp.replace(".", ".")
     const employee = eMap[r.emp.replace("@datashield.dev", "")]
     const breach = bMap[r.breach]
     if (!employee || !breach) { console.warn(`Skipping: ${r.emp} / ${r.breach}`); continue }

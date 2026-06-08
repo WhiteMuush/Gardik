@@ -1,6 +1,5 @@
 "use client"
 
-import { useState } from "react"
 import { useWidgetConfig } from "@/hooks/useWidgetConfig"
 import { useWidgetTitle } from "@/hooks/useWidgetTitle"
 import { cn } from "@/lib/utils"

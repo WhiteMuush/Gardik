@@ -261,7 +261,7 @@ function LdapGuide() {
             If DataShield runs in a cloud environment, your on-premise LDAP server is likely not reachable without a VPN, a reverse proxy, or an explicit firewall rule.
           </Sub>
           <Sub>
-            Verify with: <Code>ldapsearch -H ldaps://ldap.company.com:636 -D "cn=datashield,dc=company,dc=com" -W -b "dc=company,dc=com" "(mail=*)" mail</Code>
+            Verify with: <Code>{`ldapsearch -H ldaps://ldap.company.com:636 -D "cn=datashield,dc=company,dc=com" -W -b "dc=company,dc=com" "(mail=*)" mail`}</Code>
           </Sub>
         </Step>
       </div>

@@ -1,7 +1,6 @@
 "use client"
 
 import { useWidgetTitle } from "@/hooks/useWidgetTitle"
-import { useDashboardEditing } from "@/contexts/DashboardEditContext"
 import { cn } from "@/lib/utils"
 import { ShieldAlert, AlertTriangle } from "lucide-react"
 
@@ -33,7 +32,6 @@ const SCORE_BAR: Record<string, string> = {
 }
 
 export function TopRiskyEmployees({ data }: { data: Employee[] }) {
-  const editing = useDashboardEditing()
   const { title } = useWidgetTitle("top-risky-employees", "Top Employees at Risk")
 
   return (
