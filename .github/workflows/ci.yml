@@ -6,10 +6,23 @@ on:
   pull_request:
     branches: [main]
 
-jobs:
-  ci:
-    runs-on: ubuntu-latest
+# Least privilege by default for every job in this workflow.
+permissions:
+  contents: read
 
+# A newer push on the same ref cancels the in-flight run.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  quality:
+    name: Quality (lint, types, schema)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    env:
+      # Dummy value so loading prisma.config.ts never fails on a missing var.
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
     steps:
       - uses: actions/checkout@v4
 
@@ -22,8 +35,35 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Lint (zero warnings allowed)
+        run: npm run lint -- --max-warnings 0
+
       - name: Type check
         run: npx tsc --noEmit
+
+      - name: Validate Prisma schema
+        run: npx prisma validate
+
+  build:
+    name: Build
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    env:
+      # Placeholders: the build must never depend on real secrets.
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
+      DIRECTORY_ENCRYPTION_KEY: ci-placeholder-encryption-key-32-chars-minimum
+      AUTH_SECRET: ci-placeholder-auth-secret
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
 
       - name: Build
         run: npm run build
