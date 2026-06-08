@@ -2,12 +2,10 @@
 
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts"
 import { useWidgetTitle } from "@/hooks/useWidgetTitle"
-import { useDashboardEditing } from "@/contexts/DashboardEditContext"
 
 type DeptData = { department: string; total: number; compromised: number; percentage: number }
 
 export function DepartmentRisk({ data }: { data: DeptData[] }) {
-  const editing = useDashboardEditing()
   const { title } = useWidgetTitle("department-risk", "Department Exposure")
 
   return (

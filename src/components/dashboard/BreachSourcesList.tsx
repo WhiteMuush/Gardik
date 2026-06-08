@@ -1,6 +1,5 @@
 "use client"
 
-import { useDashboardEditing } from "@/contexts/DashboardEditContext"
 import { useWidgetTitle } from "@/hooks/useWidgetTitle"
 import { cn } from "@/lib/utils"
 import { ShieldAlert, Globe, Eye } from "lucide-react"
@@ -27,7 +26,6 @@ const SOURCE_COLORS: Record<string, string> = {
 }
 
 export function BreachSourcesList({ data }: { data: BreachSource[] }) {
-  const editing = useDashboardEditing()
   const { title } = useWidgetTitle("breach-sources", "Breach Sources")
 
   return (

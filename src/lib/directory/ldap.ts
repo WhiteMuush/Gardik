@@ -35,11 +35,10 @@ export async function fetchLDAPUsers(config: LDAPConfig): Promise<DirectoryUser[
 
   await client.unbind()
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  return searchEntries
-    .filter((e: any) => e.mail)
-    .map((e: any) => ({
-      email: (e.mail as string).toLowerCase(),
+  return (searchEntries as Record<string, unknown>[])
+    .filter((e) => Boolean(e.mail))
+    .map((e) => ({
+      email: String(e.mail).toLowerCase(),
       firstName: (e.givenName as string) ?? "",
       lastName: (e.sn as string) ?? "",
       department: (e.department as string) ?? undefined,
