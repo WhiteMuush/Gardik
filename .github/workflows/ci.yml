@@ -67,3 +67,12 @@ jobs:
 
       - name: Build
         run: npm run build
+
+  # Aggregate gate required by the main branch protection rule.
+  # Reports the "ci" status check, green only when quality and build pass.
+  ci:
+    name: ci
+    runs-on: ubuntu-latest
+    needs: [quality, build]
+    steps:
+      - run: echo "Quality and build gates passed."
