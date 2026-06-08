@@ -5,7 +5,16 @@ import { fetchGoogleUsers } from "./google"
 import { fetchLDAPUsers } from "./ldap"
 import { fetchAWSUsers } from "./aws"
 import { fetchOktaUsers } from "./okta"
-import type { AzureADConfig, GoogleWorkspaceConfig, LDAPConfig, AWSDirectoryConfig, OktaConfig, DirectoryUser } from "./types"
+import type {
+  AzureADConfig,
+  GoogleWorkspaceConfig,
+  LDAPConfig,
+  AWSDirectoryConfig,
+  OktaConfig,
+  DirectoryUser,
+} from "./types"
+
+const BATCH_SIZE = 25 // borne la concurrence des écritures pour ne pas saturer le pool de connexions
 
 async function getUsersForConnection(
   type: string,
@@ -23,10 +32,33 @@ async function getUsersForConnection(
     case "OKTA":
       return fetchOktaUsers(decryptConfig<OktaConfig>(encryptedConfig))
     case "SCIM":
-      throw new Error("SCIM connections are push-based — sync is triggered by your identity provider.")
+      throw new Error("Les connexions SCIM sont en push, le sync est déclenché par votre IdP.")
     default:
-      throw new Error(`Unknown directory type: ${type}`)
+      throw new Error(`Type d'annuaire inconnu: ${type}`)
   }
+}
+
+// Ne met à jour que les champs réellement fournis : évite d'écraser des données existantes par "".
+function buildUpdate(user: DirectoryUser): Record<string, string> {
+  const update: Record<string, string> = {}
+  if (user.firstName) update.firstName = user.firstName
+  if (user.lastName) update.lastName = user.lastName
+  if (user.department !== undefined) update.department = user.department
+  return update
+}
+
+function upsertEmployee(user: DirectoryUser, companyId: string) {
+  return prisma.employee.upsert({
+    where: { email_companyId: { email: user.email, companyId } },
+    update: buildUpdate(user),
+    create: {
+      email: user.email,
+      firstName: user.firstName,
+      lastName: user.lastName,
+      department: user.department,
+      companyId,
+    },
+  })
 }
 
 export async function syncDirectoryConnection(
@@ -44,33 +76,14 @@ export async function syncDirectoryConnection(
   } catch (e: unknown) {
     await prisma.directoryConnection.update({
       where: { id: connectionId },
-      data: {
-        status: "ERROR",
-        errorMessage: (e as Error).message,
-        updatedAt: new Date(),
-      },
+      data: { status: "ERROR", errorMessage: (e as Error)?.message ?? "Unknown error" },
     })
     throw e
   }
 
-  let synced = 0
-  for (const user of users) {
-    await prisma.employee.upsert({
-      where: { email_companyId: { email: user.email, companyId } },
-      update: {
-        firstName: user.firstName,
-        lastName: user.lastName,
-        ...(user.department !== undefined ? { department: user.department } : {}),
-      },
-      create: {
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        department: user.department,
-        companyId,
-      },
-    })
-    synced++
+  // Écriture par lots bornés plutôt qu'un round-trip séquentiel par utilisateur.
+  for (let i = 0; i < users.length; i += BATCH_SIZE) {
+    await Promise.all(users.slice(i, i + BATCH_SIZE).map((u) => upsertEmployee(u, companyId)))
   }
 
   await prisma.directoryConnection.update({
@@ -78,10 +91,10 @@ export async function syncDirectoryConnection(
     data: {
       status: "ACTIVE",
       lastSyncAt: new Date(),
-      lastSyncCount: synced,
+      lastSyncCount: users.length,
       errorMessage: null,
     },
   })
 
-  return { synced }
+  return { synced: users.length }
 }
