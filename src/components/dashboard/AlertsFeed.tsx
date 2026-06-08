@@ -2,7 +2,6 @@
 
 import { useState } from "react"
 import { useWidgetTitle } from "@/hooks/useWidgetTitle"
-import { useDashboardEditing } from "@/contexts/DashboardEditContext"
 import { cn } from "@/lib/utils"
 
 type Alert = {
@@ -40,7 +39,6 @@ const STATUS_LABELS: Record<string, string> = {
 }
 
 export function AlertsFeed({ data }: { data: Alert[] }) {
-  const editing = useDashboardEditing()
   const { title } = useWidgetTitle("alerts-feed", "Recent Alerts")
   const [filter, setFilter] = useState<"ALL" | "OPEN" | "RESOLVED">("ALL")
 

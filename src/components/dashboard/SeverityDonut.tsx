@@ -2,7 +2,6 @@
 
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from "recharts"
 import { useWidgetTitle } from "@/hooks/useWidgetTitle"
-import { useDashboardEditing } from "@/contexts/DashboardEditContext"
 
 type AlertSeverity = { critical: number; high: number; medium: number; low: number }
 
@@ -14,7 +13,6 @@ const SEVERITY = [
 ] as const
 
 export function SeverityDonut({ data }: { data: AlertSeverity }) {
-  const editing = useDashboardEditing()
   const { title } = useWidgetTitle("severity-donut", "Alert Severity")
 
   const chartData = SEVERITY

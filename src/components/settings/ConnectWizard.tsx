@@ -230,7 +230,8 @@ export function ConnectWizard({ onClose, onCreated }: Props) {
   function toggleReveal(key: string) {
     setRevealedFields((prev) => {
       const next = new Set(prev)
-      next.has(key) ? next.delete(key) : next.add(key)
+      if (next.has(key)) next.delete(key)
+      else next.add(key)
       return next
     })
   }
