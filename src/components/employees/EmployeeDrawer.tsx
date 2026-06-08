@@ -3,7 +3,7 @@
 import { cn } from "@/lib/utils"
 import { RiskBadge } from "@/components/ui/RiskBadge"
 import type { EmployeeRow } from "@/lib/employees"
-import { X, Calendar, Database, Shield } from "lucide-react"
+import { X, Calendar, Shield } from "lucide-react"
 
 const sourceLabels: Record<string, string> = {
   HIBP: "Have I Been Pwned",
