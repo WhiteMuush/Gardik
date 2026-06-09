@@ -8,7 +8,7 @@ type SearchInit = { id?: string; status?: number }
 type IntelxRecord = { name?: string; date?: string; bucket?: string }
 type ResultPage = { records?: IntelxRecord[]; status?: number }
 
-// Lance une recherche IntelX et renvoie l'identifiant de recherche, ou null.
+// Start an IntelX search and return the search id, or null when nothing matches.
 async function startSearch(email: string, apiKey: string): Promise<string | null> {
   const res = await fetch(`${ROOT}/intelligent/search`, {
     method: "POST",
@@ -29,7 +29,7 @@ async function startSearch(email: string, apiKey: string): Promise<string | null
   return data.status === 2 || !data.id ? null : data.id
 }
 
-// Poll les résultats. status: 0 = résultats dispo, 1 = terminé, 2 = introuvable, 3 = patienter.
+// Poll results. status: 0 = results available, 1 = done, 2 = not found, 3 = keep trying.
 async function collectResults(id: string, apiKey: string): Promise<IntelxRecord[]> {
   const url = `${ROOT}/intelligent/search/result?id=${encodeURIComponent(id)}&limit=100`
   const records: IntelxRecord[] = []
@@ -44,7 +44,7 @@ async function collectResults(id: string, apiKey: string): Promise<IntelxRecord[
   return records
 }
 
-// Déduplique les enregistrements par bucket/nom en un Finding par source.
+// Deduplicate records by bucket/name into one Finding per source.
 function toFindings(records: IntelxRecord[]): Finding[] {
   const byName = new Map<string, Finding>()
   for (const r of records) {
@@ -56,7 +56,7 @@ function toFindings(records: IntelxRecord[]): Finding[] {
   return [...byName.values()]
 }
 
-// Intelligence X, moteur de recherche OSINT/leaks (recherche asynchrone).
+// Intelligence X, OSINT/leaks search engine (asynchronous search).
 export const intelx: BreachProvider = {
   id: "INTELX",
   source: "DARK_WEB",

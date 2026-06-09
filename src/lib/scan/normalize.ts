@@ -1,9 +1,9 @@
-// Normalise un libellé de type de donnée en snake_case minuscule.
+// Normalize a data-type label to lowercase snake_case.
 export function normalizeType(raw: string): string {
   return raw.toLowerCase().trim().replace(/\s+/g, "_")
 }
 
-// Parse une date de fuite ; renvoie epoch (1970) quand elle est absente ou invalide.
+// Parse a breach date; returns epoch (1970) when missing or invalid.
 export function parseBreachDate(raw?: string | null): Date {
   if (!raw) return new Date(0)
   const d = new Date(raw)

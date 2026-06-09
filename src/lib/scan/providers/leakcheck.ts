@@ -9,7 +9,7 @@ type LeakCheckResult = {
 }
 type LeakCheckResponse = { success: boolean; result?: LeakCheckResult[] }
 
-// LeakCheck API v2 Pro, recherche par email.
+// LeakCheck API v2 Pro, email lookup.
 export const leakcheck: BreachProvider = {
   id: "LEAKCHECK",
   source: "DARK_WEB",

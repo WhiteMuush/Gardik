@@ -2,7 +2,7 @@ import type { BreachProvider, Finding } from "../types"
 
 const API = "https://api.dehashed.com/v2/search"
 
-// Champs susceptibles d'être exposés dans une entrée DeHashed.
+// Fields that may be exposed within a DeHashed entry.
 const EXPOSABLE = [
   "email",
   "username",
@@ -18,8 +18,8 @@ const EXPOSABLE = [
 type DeHashedEntry = Record<string, unknown> & { database_name?: string }
 type DeHashedResponse = { entries?: DeHashedEntry[] | null }
 
-// DeHashed v2, recherche exacte par email. Les entrées n'ont pas de date de
-// fuite : on agrège par base source et on déduit les champs exposés présents.
+// DeHashed v2, exact email lookup. Entries carry no breach date, so we group by
+// source database and infer which exposable fields are present.
 export const dehashed: BreachProvider = {
   id: "DEHASHED",
   source: "DARK_WEB",

@@ -18,8 +18,8 @@ type EmployeeWithRecords = {
   lastName: string
 }
 
-// Charge les providers ayant une clé configurée pour l'entreprise et déchiffre
-// leur clé côté serveur. Marque les providers utilisés comme récemment sollicités.
+// Load the providers that have a configured key for the company and decrypt
+// their key server-side. Marks the used providers as recently queried.
 export async function loadActiveProviders(companyId: string): Promise<ActiveProvider[]> {
   const creds = await prisma.apiCredential.findMany({ where: { companyId } })
   const active: ActiveProvider[] = []
@@ -45,8 +45,8 @@ function severityFor(dataTypes: string[]): Severity {
   return "MEDIUM"
 }
 
-// Enregistre une trouvaille : crée le breach si besoin, puis le record et l'alerte
-// si cet employé n'y était pas déjà associé. Renvoie true si un record a été créé.
+// Persist a finding: create the breach if needed, then the record and alert when
+// this employee was not already linked to it. Returns true if a record was created.
 async function persistFinding(
   companyId: string,
   employee: EmployeeWithRecords,
@@ -83,8 +83,8 @@ async function persistFinding(
   return true
 }
 
-// Scanne chaque employé contre chaque provider actif. Une erreur provider est
-// isolée (on passe au suivant) pour ne pas interrompre tout le scan.
+// Scan every employee against every active provider. A provider error is isolated
+// (we move on to the next one) so it never aborts the whole scan.
 export async function runScan(
   companyId: string,
   providers: ActiveProvider[]
