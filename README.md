@@ -14,7 +14,6 @@ security dashboard.
 ## Status
 
 Early development. Things move fast and not everything listed below is finished.
-See [ROADMAP.md](ROADMAP.md) for what is planned and what already works.
 
 ## Features (in progress)
 
