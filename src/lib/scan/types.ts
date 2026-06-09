@@ -1,13 +1,13 @@
 import type { ApiProvider, BreachSource } from "@prisma/client"
 
-// Résultat normalisé d'une recherche, commun à tous les providers.
+// Normalized lookup result, shared across every provider.
 export interface Finding {
-  name: string // identifiant de la fuite/source (sert de clé unique du Breach)
-  breachDate: Date // date de la fuite ; epoch (1970) si inconnue côté provider
-  dataTypes: string[] // types de données exposées, normalisés en snake_case
+  name: string // breach/source identifier (used as the Breach unique key)
+  breachDate: Date // breach date; epoch (1970) when the provider does not expose it
+  dataTypes: string[] // exposed data types, normalized to snake_case
 }
 
-// Contrat que chaque provider de breach intelligence doit implémenter.
+// Contract every breach intelligence provider must implement.
 export interface BreachProvider {
   id: ApiProvider
   source: BreachSource

@@ -2,12 +2,12 @@ import type { BreachProvider, Finding } from "../types"
 
 const API = "https://api.snusbase.com/data/search"
 
-// Champs connus retournés par Snusbase, considérés comme données exposées.
+// Known fields returned by Snusbase, treated as exposed data.
 const EXPOSABLE = ["email", "username", "password", "hash", "salt", "lastip"] as const
 
 type SnusbaseResponse = { results?: Record<string, Record<string, unknown>[]> }
 
-// Snusbase, recherche par email. Résultats regroupés par base source.
+// Snusbase, email lookup. Results grouped by source database.
 export const snusbase: BreachProvider = {
   id: "SNUSBASE",
   source: "DARK_WEB",

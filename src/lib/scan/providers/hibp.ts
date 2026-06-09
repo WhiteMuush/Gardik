@@ -5,7 +5,7 @@ const API = "https://haveibeenpwned.com/api/v3/breachedaccount"
 
 type HibpBreach = { Name: string; BreachDate: string; DataClasses: string[] }
 
-// Have I Been Pwned, recherche par compte (email).
+// Have I Been Pwned, account (email) lookup.
 export const hibp: BreachProvider = {
   id: "HIBP",
   source: "HIBP",
