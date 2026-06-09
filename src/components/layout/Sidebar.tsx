@@ -9,7 +9,7 @@ import {
   Users,
   Bell,
   FileText,
-  Settings,
+  Database,
   LogOut,
 } from "lucide-react"
 
@@ -18,7 +18,7 @@ const navItems = [
   { href: "/employees", label: "Employees", icon: Users },
   { href: "/alerts", label: "Alerts", icon: Bell },
   { href: "/reports", label: "Reports", icon: FileText },
-  { href: "/settings", label: "Settings", icon: Settings },
+  { href: "/data-sources", label: "Data Sources", icon: Database },
 ]
 
 interface SidebarProps {
