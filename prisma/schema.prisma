@@ -19,6 +19,7 @@ model Company {
   alerts               Alert[]
   dashboardPresets     DashboardPreset[]
   directoryConnections DirectoryConnection[]
+  apiCredentials       ApiCredential[]
 }
 
 model DirectoryConnection {
@@ -52,6 +53,32 @@ enum ConnectStatus {
   ACTIVE
   ERROR
   PENDING
+}
+
+model ApiCredential {
+  id           String        @id @default(cuid())
+  companyId    String
+  provider     ApiProvider
+  label        String
+  encryptedKey String
+  keyHint      String
+  status       ConnectStatus @default(PENDING)
+  lastUsedAt   DateTime?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@unique([companyId, provider])
+  @@index([companyId])
+}
+
+enum ApiProvider {
+  HIBP
+  DEHASHED
+  LEAKCHECK
+  INTELX
+  SNUSBASE
 }
 
 model User {
