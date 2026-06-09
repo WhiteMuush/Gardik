@@ -8,7 +8,8 @@ const pageTitles: Record<string, string> = {
   "/employees": "Employees",
   "/alerts": "Alerts",
   "/reports": "Reports",
-  "/settings": "Settings",
+  "/data-sources": "Data Sources",
+  "/data-api": "Data API",
 }
 
 function getTitle(pathname: string): string {

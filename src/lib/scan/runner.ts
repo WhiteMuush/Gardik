@@ -1,0 +1,117 @@
+import { prisma } from "@/lib/prisma"
+import { decryptConfig } from "@/lib/directory/crypto"
+import { providerById } from "./registry"
+import { sleep } from "./normalize"
+import type { BreachProvider, Finding } from "./types"
+import type { BreachSource, Severity } from "@prisma/client"
+
+const RATE_LIMIT_MS = 1500
+const CRITICAL_TYPES = ["password", "hashed_password", "credit_card", "ssn", "bank_account"]
+
+export type ActiveProvider = { provider: BreachProvider; key: string }
+export type ScanResult = { scanned: number; newRecords: number; newAlerts: number }
+
+type EmployeeWithRecords = {
+  id: string
+  email: string
+  firstName: string
+  lastName: string
+}
+
+// Load the providers that have a configured key for the company and decrypt
+// their key server-side. Marks the used providers as recently queried.
+export async function loadActiveProviders(companyId: string): Promise<ActiveProvider[]> {
+  const creds = await prisma.apiCredential.findMany({ where: { companyId } })
+  const active: ActiveProvider[] = []
+  for (const cred of creds) {
+    const provider = providerById(cred.provider)
+    if (!provider) continue
+    const { key } = decryptConfig<{ key: string }>(cred.encryptedKey)
+    active.push({ provider, key })
+  }
+  if (active.length) {
+    await prisma.apiCredential.updateMany({
+      where: { companyId, provider: { in: active.map((a) => a.provider.id) } },
+      data: { lastUsedAt: new Date() },
+    })
+  }
+  return active
+}
+
+function severityFor(dataTypes: string[]): Severity {
+  const critical = dataTypes.filter((d) => CRITICAL_TYPES.includes(d)).length
+  if (critical >= 2) return "CRITICAL"
+  if (critical === 1) return "HIGH"
+  return "MEDIUM"
+}
+
+// Persist a finding: create the breach if needed, then the record and alert when
+// this employee was not already linked to it. Returns true if a record was created.
+async function persistFinding(
+  companyId: string,
+  employee: EmployeeWithRecords,
+  finding: Finding,
+  source: BreachSource,
+  known: Set<string>
+): Promise<boolean> {
+  const breach = await prisma.breach.upsert({
+    where: { name: finding.name },
+    update: {},
+    create: {
+      name: finding.name,
+      source,
+      breachDate: finding.breachDate,
+      dataTypes: finding.dataTypes,
+    },
+  })
+  if (known.has(breach.id)) return false
+
+  await prisma.breachRecord.create({
+    data: { employeeId: employee.id, breachId: breach.id, exposedData: finding.dataTypes },
+  })
+  await prisma.alert.create({
+    data: {
+      companyId,
+      employeeId: employee.id,
+      breachId: breach.id,
+      severity: severityFor(finding.dataTypes),
+      status: "OPEN",
+      message: `${employee.firstName} ${employee.lastName} found in ${finding.name} breach.`,
+    },
+  })
+  known.add(breach.id)
+  return true
+}
+
+// Scan every employee against every active provider. A provider error is isolated
+// (we move on to the next one) so it never aborts the whole scan.
+export async function runScan(
+  companyId: string,
+  providers: ActiveProvider[]
+): Promise<ScanResult> {
+  const employees = await prisma.employee.findMany({
+    where: { companyId },
+    include: { breachRecords: { select: { breachId: true } } },
+  })
+
+  let newRecords = 0
+  for (const employee of employees) {
+    const known = new Set(employee.breachRecords.map((r) => r.breachId))
+    for (const { provider, key } of providers) {
+      let findings: Finding[]
+      try {
+        findings = await provider.lookup(employee.email, key)
+      } catch {
+        continue
+      }
+      for (const finding of findings) {
+        if (await persistFinding(companyId, employee, finding, provider.source, known)) {
+          newRecords++
+        }
+      }
+    }
+    await sleep(RATE_LIMIT_MS)
+  }
+
+  return { scanned: employees.length, newRecords, newAlerts: newRecords }
+}
