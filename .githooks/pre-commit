@@ -27,7 +27,7 @@ sh "$lib/run-all.sh" "HEAD:package.json" ":package.json" "$added" -- "$@" || sta
 if [ "$status" -ne 0 ]; then
   echo ""
   echo "Commit blocked by DataShield policy. Fix the issues above."
-  echo "See LLM_INSTRUCTIONS.md. Do not bypass with --no-verify."
+  echo "These checks also run in CI. Do not bypass with --no-verify."
 fi
 
 exit $status

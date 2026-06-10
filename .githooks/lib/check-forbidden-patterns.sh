@@ -8,7 +8,7 @@ match() { printf '%s' "$2" | grep -qEe "$1"; }
 while IFS= read -r entry; do
   path=${entry%%:*}
   case "$path" in
-    .githooks/*|LLM_INSTRUCTIONS.md) continue ;;
+    .githooks/*) continue ;;
   esac
   rest=${entry#*:}; lineno=${rest%%:*}; content=${rest#*:}
   loc="${path}:${lineno}"

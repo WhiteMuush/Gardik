@@ -7,7 +7,7 @@ pattern='Co-[Aa]uthored-[Bb]y|Generated with \[?Claude|noreply@anthropic\.com|Ge
 while IFS= read -r entry; do
   path=${entry%%:*}
   case "$path" in
-    LLM_INSTRUCTIONS.md|.githooks/*|.github/workflows/compliance.yml) continue ;;
+    .githooks/*|.github/workflows/compliance.yml) continue ;;
   esac
   rest=${entry#*:}; content=${rest#*:}
   if printf '%s' "$content" | grep -qEe "$pattern"; then
