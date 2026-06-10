@@ -60,7 +60,7 @@ export async function getEmployees(companyId: string): Promise<EmployeeRow[]> {
   })
 }
 
-const CRITICAL_DATA = ["password", "credit_card", "ssn", "bank_account", "financial"]
+export const CRITICAL_DATA = ["password", "credit_card", "ssn", "bank_account", "financial"]
 
 function calculateRisk(dataTypes: string[], breachCount: number): RiskLevel {
   if (breachCount === 0) return "OK"
