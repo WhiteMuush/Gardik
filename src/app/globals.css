@@ -99,3 +99,21 @@
     @apply font-sans;
   }
 }
+
+@media print {
+  aside,
+  header,
+  .no-print {
+    display: none !important;
+  }
+
+  main,
+  #report-root {
+    height: auto !important;
+    overflow: visible !important;
+  }
+
+  #report-root {
+    padding: 0 !important;
+  }
+}
