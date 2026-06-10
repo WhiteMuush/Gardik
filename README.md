@@ -70,8 +70,11 @@ reporting: [SECURITY.md](SECURITY.md).
 
 ## Contributing
 
-Contributions are welcome. Please read [CONTRIBUTING.md](CONTRIBUTING.md) and the
-[CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) first.
+Contributions are welcome.
+
+> **Contribution rules are enforced automatically by Git hooks (`.githooks/`) and CI (`.github/workflows/compliance.yml`). Non-compliant commits are rejected: invalid commit messages, AI attribution trailers, secrets, non-English text, frozen-dependency major bumps, and forbidden code patterns. The hooks activate on `npm install`.**
+
+Please also read [CONTRIBUTING.md](CONTRIBUTING.md) and [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
 
 ## License
 

@@ -14,13 +14,14 @@
   "author": "Melvin PETIT (WhiteMuush)",
   "type": "module",
   "scripts": {
-    "dev": "next dev --turbopack",
+    "dev": "next dev",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "seed": "dotenv -e .env.local -- tsx prisma/seed.ts",
     "postinstall": "prisma generate",
+    "prepare": "git config core.hooksPath .githooks 2>/dev/null || true",
     "seed:dev": "dotenv -e .env.local -- tsx prisma/seed.dev.ts"
   },
   "dependencies": {

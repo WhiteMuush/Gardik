@@ -1,0 +1,5 @@
+#!/usr/bin/env sh
+# Local gate: reject malformed messages and any AI attribution.
+set -eu
+root="$(git rev-parse --show-toplevel)"
+sh "$root/.githooks/lib/check-commit-msg.sh" "$1"
