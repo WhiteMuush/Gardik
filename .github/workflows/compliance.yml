@@ -1,0 +1,52 @@
+name: Compliance
+
+on:
+  pull_request:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: compliance-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  compliance:
+    name: compliance
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+        with:
+          ref: ${{ github.event.pull_request.head.sha }}
+          fetch-depth: 0
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 20
+
+      - name: Resolve PR range
+        id: range
+        run: |
+          git fetch --no-tags --depth=200 origin "${{ github.event.pull_request.base.ref }}"
+          base="$(git merge-base FETCH_HEAD HEAD)"
+          echo "base=$base" >> "$GITHUB_OUTPUT"
+
+      - name: Validate every commit message
+        run: |
+          status=0
+          for sha in $(git rev-list "${{ steps.range.outputs.base }}..HEAD"); do
+            git show -s --format=%B "$sha" > /tmp/msg.txt
+            sh .githooks/lib/check-commit-msg.sh /tmp/msg.txt || status=1
+          done
+          exit $status
+
+      - name: Run content and dependency checks
+        run: |
+          base="${{ steps.range.outputs.base }}"
+          sh .githooks/lib/added-lines.sh range "$base" > /tmp/added.txt
+          git diff --name-only --diff-filter=ACMR "$base..HEAD" > /tmp/changed.txt
+          xargs -a /tmp/changed.txt -d '\n' \
+            sh .githooks/lib/run-all.sh "$base:package.json" "HEAD:package.json" /tmp/added.txt --
