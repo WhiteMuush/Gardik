@@ -3,7 +3,9 @@ import { rate } from "./utils"
 import type { ComplianceSummary } from "./types"
 
 export async function getCompliance(companyId: string): Promise<ComplianceSummary> {
-  const [monitored, exposed, total, open, acknowledged, resolved, criticalOpen] =
+  const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+
+  const [monitored, exposed, total, open, acknowledged, resolved, criticalOpen, staleCriticalOpen] =
     await Promise.all([
       prisma.employee.count({ where: { companyId } }),
       prisma.employee.count({ where: { companyId, breachRecords: { some: {} } } }),
@@ -12,6 +14,14 @@ export async function getCompliance(companyId: string): Promise<ComplianceSummar
       prisma.alert.count({ where: { companyId, status: "ACKNOWLEDGED" } }),
       prisma.alert.count({ where: { companyId, status: "RESOLVED" } }),
       prisma.alert.count({ where: { companyId, status: "OPEN", severity: "CRITICAL" } }),
+      prisma.alert.count({
+        where: {
+          companyId,
+          status: "OPEN",
+          severity: "CRITICAL",
+          createdAt: { lt: thirtyDaysAgo },
+        },
+      }),
     ])
 
   return {
@@ -24,5 +34,6 @@ export async function getCompliance(companyId: string): Promise<ComplianceSummar
     alertsResolved: resolved,
     resolutionRate: rate(resolved, total),
     criticalOpen,
+    staleCriticalOpen,
   }
 }

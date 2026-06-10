@@ -1,6 +1,13 @@
 import type { ReportData } from "./types"
 
-export type CsvSection = "all" | "exposure" | "employees" | "trends" | "compliance"
+export type CsvSection =
+  | "all"
+  | "exposure"
+  | "datatypes"
+  | "departments"
+  | "employees"
+  | "trends"
+  | "compliance"
 
 type Cell = string | number
 
@@ -32,6 +39,20 @@ function exposureCsv(d: ReportData): string {
     e.topBreaches.map((b) => [b.name, b.source, b.breachDate, b.affectedEmployees])
   )
   return `${summary}\n\nTop breaches\n${breaches}`
+}
+
+function dataTypesCsv(d: ReportData): string {
+  return toCsv(
+    ["data type", "records", "share (%)", "sensitive"],
+    d.dataTypes.map((t) => [t.label, t.count, t.percentage, t.critical ? "yes" : "no"])
+  )
+}
+
+function departmentsCsv(d: ReportData): string {
+  return toCsv(
+    ["department", "employees", "exposed", "exposure rate (%)"],
+    d.departments.map((r) => [r.department, r.total, r.exposed, r.exposureRate])
+  )
 }
 
 function employeesCsv(d: ReportData): string {
@@ -78,6 +99,10 @@ export function reportCsv(section: CsvSection, d: ReportData): string {
   switch (section) {
     case "exposure":
       return exposureCsv(d)
+    case "datatypes":
+      return dataTypesCsv(d)
+    case "departments":
+      return departmentsCsv(d)
     case "employees":
       return employeesCsv(d)
     case "trends":
@@ -87,6 +112,8 @@ export function reportCsv(section: CsvSection, d: ReportData): string {
     default:
       return [
         `Exposure\n${exposureCsv(d)}`,
+        `Data types\n${dataTypesCsv(d)}`,
+        `Departments\n${departmentsCsv(d)}`,
         `Employees\n${employeesCsv(d)}`,
         `Trends\n${trendsCsv(d)}`,
         `Compliance\n${complianceCsv(d)}`,

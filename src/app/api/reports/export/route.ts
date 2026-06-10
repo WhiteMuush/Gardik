@@ -2,7 +2,15 @@ import { auth } from "@/auth"
 import { getReportData } from "@/lib/reports"
 import { reportCsv, type CsvSection } from "@/lib/reports/csv"
 
-const SECTIONS: CsvSection[] = ["all", "exposure", "employees", "trends", "compliance"]
+const SECTIONS: CsvSection[] = [
+  "all",
+  "exposure",
+  "datatypes",
+  "departments",
+  "employees",
+  "trends",
+  "compliance",
+]
 
 function isSection(value: string): value is CsvSection {
   return (SECTIONS as string[]).includes(value)
