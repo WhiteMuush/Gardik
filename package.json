@@ -21,6 +21,7 @@
     "lint:fix": "eslint . --fix",
     "seed": "dotenv -e .env.local -- tsx prisma/seed.ts",
     "postinstall": "prisma generate",
+    "prepare": "git config core.hooksPath .githooks 2>/dev/null || true",
     "seed:dev": "dotenv -e .env.local -- tsx prisma/seed.dev.ts"
   },
   "dependencies": {
