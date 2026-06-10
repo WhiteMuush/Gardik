@@ -27,6 +27,11 @@ export function ComplianceSection({ data }: { data: ComplianceSummary }) {
         <StatCard
           label="Critical open"
           value={data.criticalOpen}
+          description={
+            data.staleCriticalOpen > 0
+              ? `${data.staleCriticalOpen} older than 30 days`
+              : undefined
+          }
           icon={AlertTriangle}
           variant={data.criticalOpen > 0 ? "critical" : "ok"}
         />

@@ -115,5 +115,11 @@
 
   #report-root {
     padding: 0 !important;
+    print-color-adjust: exact;
+    -webkit-print-color-adjust: exact;
+  }
+
+  #report-root section {
+    break-inside: avoid;
   }
 }

@@ -55,11 +55,37 @@ export type ComplianceSummary = {
   alertsResolved: number
   resolutionRate: number
   criticalOpen: number
+  staleCriticalOpen: number
+}
+
+export type DataTypeExposure = {
+  type: string
+  label: string
+  count: number
+  percentage: number
+  critical: boolean
+}
+
+export type DepartmentRow = {
+  department: string
+  total: number
+  exposed: number
+  exposureRate: number
+}
+
+export type FindingSeverity = "critical" | "high" | "medium" | "info" | "ok"
+
+export type Finding = {
+  severity: FindingSeverity
+  message: string
 }
 
 export type ReportData = {
   generatedAt: string
+  findings: Finding[]
   exposure: ExposureSummary
+  dataTypes: DataTypeExposure[]
+  departments: DepartmentRow[]
   employees: EmployeeReportRow[]
   trends: Trends
   compliance: ComplianceSummary
