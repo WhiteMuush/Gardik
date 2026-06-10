@@ -1,15 +1,70 @@
-ISC License
+DataShield Proprietary License
 
-Copyright (c) 2026 Melvin PETIT (WhiteMuush)
+Copyright (c) 2026 Melvin PETIT (WhiteMuush). All rights reserved.
 
-Permission to use, copy, modify, and/or distribute this software for any
-purpose with or without fee is hereby granted, provided that the above
-copyright notice and this permission notice appear in all copies.
+1. Definitions
 
-THE SOFTWARE IS PROVIDED "AS IS" AND THE AUTHOR DISCLAIMS ALL WARRANTIES WITH
-REGARD TO THIS SOFTWARE INCLUDING ALL IMPLIED WARRANTIES OF MERCHANTABILITY
-AND FITNESS. IN NO EVENT SHALL THE AUTHOR BE LIABLE FOR ANY SPECIAL, DIRECT,
-INDIRECT, OR CONSEQUENTIAL DAMAGES OR ANY DAMAGES WHATSOEVER RESULTING FROM
-LOSS OF USE, DATA OR PROFITS, WHETHER IN AN ACTION OF CONTRACT, NEGLIGENCE OR
-OTHER TORTIOUS ACTION, ARISING OUT OF OR IN CONNECTION WITH THE USE OR
-PERFORMANCE OF THIS SOFTWARE.
+   "Software" means the DataShield source code, assets, and documentation in
+   this repository, including any modifications and contributions.
+   "Owner" means Melvin PETIT (WhiteMuush), the sole copyright holder.
+   "You" means any individual or entity exercising rights under this License.
+   "Contribution" means any code, content, or material You submit to the
+   Software, including via pull request, patch, or any other means.
+
+2. Ownership
+
+   The Software is the exclusive property of the Owner. This License grants
+   limited rights only and transfers no ownership. All rights not expressly
+   granted here are reserved by the Owner.
+
+3. Permitted use
+
+   Subject to Section 4, the Owner grants You a non-exclusive, non-transferable,
+   revocable right to:
+   a. view and study the source code;
+   b. install, run, and use the Software for Your own purposes, including
+      internal commercial and business use;
+   c. modify the Software for Your own internal use; and
+   d. submit Contributions to the Owner.
+
+4. Restrictions
+
+   You may not, without the Owner's prior written permission:
+   a. sell, rent, lease, sublicense, or otherwise commercialize the Software
+      or any derivative of it;
+   b. distribute, publish, or share the Software or any modified version of it,
+      in source or binary form, to any third party;
+   c. offer the Software, in whole or in part, as a hosted or managed service
+      to third parties;
+   d. remove, alter, or obscure any copyright, license, or attribution notice.
+
+5. Contributions
+
+   By submitting a Contribution, You assign to the Owner all right, title, and
+   interest, including all intellectual property rights, in and to that
+   Contribution, and waive any moral rights to the extent permitted by law. If
+   such assignment is not enforceable in Your jurisdiction, You instead grant
+   the Owner a perpetual, worldwide, irrevocable, royalty-free, exclusive
+   license to use, modify, sublicense, and relicense the Contribution without
+   restriction. You confirm You have the right to make the Contribution.
+
+6. Termination
+
+   This License terminates automatically upon any breach of its terms. Upon
+   termination You must cease all use of the Software and destroy all copies in
+   Your possession. Sections 2, 5, 7, and 8 survive termination.
+
+7. No warranty
+
+   THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
+   IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
+   FITNESS FOR A PARTICULAR PURPOSE, AND NONINFRINGEMENT.
+
+8. Limitation of liability
+
+   IN NO EVENT SHALL THE OWNER BE LIABLE FOR ANY CLAIM, DAMAGES, OR OTHER
+   LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT, OR OTHERWISE, ARISING FROM,
+   OUT OF, OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
+   THE SOFTWARE.
+
+For permissions beyond the scope of this License, contact the Owner.
