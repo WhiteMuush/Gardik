@@ -1,5 +1,16 @@
 # DataShield
 
+<!-- CI -->
+[![CI](https://github.com/WhiteMuush/DataShield/actions/workflows/ci.yml/badge.svg)](https://github.com/WhiteMuush/DataShield/actions/workflows/ci.yml)
+[![Security](https://github.com/WhiteMuush/DataShield/actions/workflows/security.yml/badge.svg)](https://github.com/WhiteMuush/DataShield/actions/workflows/security.yml)
+[![Compliance](https://github.com/WhiteMuush/DataShield/actions/workflows/compliance.yml/badge.svg)](https://github.com/WhiteMuush/DataShield/actions/workflows/compliance.yml)
+[![CodeQL](https://github.com/WhiteMuush/DataShield/actions/workflows/codeql.yml/badge.svg)](https://github.com/WhiteMuush/DataShield/actions/workflows/codeql.yml)
+
+<!-- Stack -->
+![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=next.js&logoColor=white)
+![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-prisma-4169e1?logo=postgresql&logoColor=white)
+
 > ### 🚧 Work in progress, projet en construction
 >
 > DataShield is under active development and is **not production ready**. The
