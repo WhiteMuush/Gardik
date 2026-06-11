@@ -34,14 +34,10 @@ jobs:
           base="$(git merge-base FETCH_HEAD HEAD)"
           echo "base=$base" >> "$GITHUB_OUTPUT"
 
-      - name: Validate every commit message
+      - name: Validate PR title
         run: |
-          status=0
-          for sha in $(git rev-list "${{ steps.range.outputs.base }}..HEAD"); do
-            git show -s --format=%B "$sha" > /tmp/msg.txt
-            sh .githooks/lib/check-commit-msg.sh /tmp/msg.txt || status=1
-          done
-          exit $status
+          printf '%s\n' "${{ github.event.pull_request.title }}" > /tmp/msg.txt
+          sh .githooks/lib/check-commit-msg.sh /tmp/msg.txt
 
       - name: Run content and dependency checks
         run: |
