@@ -1,10 +1,8 @@
 # Security Policy
 
-## Supported versions
+## Project status
 
-| Version | Supported |
-| ------- | --------- |
-| latest  | yes       |
+DataShield is under active development and has not reached a stable release. There are no versioned releases yet. Security reports are still welcome and will be addressed.
 
 ## Reporting a vulnerability
 
