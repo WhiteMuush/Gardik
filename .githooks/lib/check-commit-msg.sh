@@ -13,11 +13,11 @@ case "$header" in
 esac
 
 # 1. Conventional Commits header: type(scope): lowercase description, no period.
-fmt='^(feat|fix|chore|docs|refactor)(\([a-z0-9._-]+\))?: [a-z].*[^.]$'
+fmt='^(feat|fix|chore|docs|refactor|ci|test|build|perf|style|revert)(\([a-z0-9._-]+\))?: [a-z].*[^.]$'
 if ! printf '%s' "$header" | grep -qE "$fmt"; then
   echo "Commit header is not a valid Conventional Commit:"
   echo "  \"$header\""
-  echo "  Expected: <feat|fix|chore|docs|refactor>(optional-scope): lowercase summary"
+  echo "  Expected: <feat|fix|chore|docs|refactor|ci|test|build|perf|style|revert>(optional-scope): lowercase summary"
   echo "  No trailing period, no emoji, description starts lowercase."
   status=1
 fi
