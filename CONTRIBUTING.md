@@ -9,13 +9,19 @@
 
 ## Commit conventions
 
-This project follows [Conventional Commits](https://www.conventionalcommits.org/):
+This project follows [Conventional Commits](https://www.conventionalcommits.org/). The **PR title** is validated automatically by CI and becomes the squash merge commit message.
 
 - `feat:` — new feature
 - `fix:` — bug fix
 - `chore:` — maintenance, dependencies, config
 - `docs:` — documentation only
 - `refactor:` — code change that is not a fix nor a feature
+- `ci:` — CI/CD pipeline changes
+- `test:` — tests only
+- `build:` — build system or external dependencies
+- `perf:` — performance improvement
+- `style:` — formatting, no logic change
+- `revert:` — reverts a previous commit
 
 ## Pull requests
 
