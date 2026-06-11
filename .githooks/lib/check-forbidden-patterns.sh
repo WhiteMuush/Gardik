@@ -26,6 +26,7 @@ while IFS= read -r entry; do
     *) continue ;;
   esac
 
+  match '\bdebugger\b' "$content" && { echo "'debugger' statement: $loc"; status=1; }
   match 'as unknown as ' "$content" && { echo "Double cast 'as unknown as': $loc"; status=1; }
   match '@ts-nocheck' "$content" && { echo "'@ts-nocheck' forbidden: $loc"; status=1; }
   match '\$(queryRawUnsafe|executeRawUnsafe)' "$content" && { echo "Unsafe raw SQL: $loc"; status=1; }
