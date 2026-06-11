@@ -8,7 +8,7 @@ Gardik is under active development and has not reached a stable release. There a
 
 Please **do not** open a public GitHub issue for security vulnerabilities.
 
-Report them privately by emailing: melvin.petit31@gmail.com
+Report them privately via [GitHub Security Advisories](https://github.com/WhiteMuush/Gardik/security/advisories/new).
 
 Include:
 - A description of the vulnerability
