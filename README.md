@@ -1,5 +1,7 @@
 # DataShield
 
+<div align="center">
+
 <!-- CI -->
 [![CI](https://github.com/WhiteMuush/DataShield/actions/workflows/ci.yml/badge.svg)](https://github.com/WhiteMuush/DataShield/actions/workflows/ci.yml)
 [![Security](https://github.com/WhiteMuush/DataShield/actions/workflows/security.yml/badge.svg)](https://github.com/WhiteMuush/DataShield/actions/workflows/security.yml)
@@ -10,6 +12,8 @@
 ![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=next.js&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-prisma-4169e1?logo=postgresql&logoColor=white)
+
+</div>
 
 > ### 🚧 Work in progress, projet en construction
 >
