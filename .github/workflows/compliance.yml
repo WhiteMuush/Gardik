@@ -50,3 +50,17 @@ jobs:
           git diff --name-only --diff-filter=ACMR "$base..HEAD" > /tmp/changed.txt
           xargs -a /tmp/changed.txt -d '\n' \
             sh .githooks/lib/run-all.sh "$base:package.json" "HEAD:package.json" /tmp/added.txt --
+
+  codeowners:
+    name: codeowners
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Verify CODEOWNERS contains @WhiteMuush
+        run: |
+          if ! grep -qF '@WhiteMuush' .github/CODEOWNERS; then
+            echo "CODEOWNERS must contain @WhiteMuush. PR blocked."
+            exit 1
+          fi
