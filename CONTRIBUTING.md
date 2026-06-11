@@ -32,3 +32,9 @@ This project follows [Conventional Commits](https://www.conventionalcommits.org/
 ## Code of conduct
 
 Please read [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) before contributing.
+
+## Contributors
+
+<a href="https://github.com/WhiteMuush/DataShield/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=WhiteMuush/DataShield" />
+</a>
