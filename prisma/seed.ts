@@ -5,6 +5,9 @@ import bcrypt from "bcryptjs"
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! })
 const prisma = new PrismaClient({ adapter })
 
+const email = process.env.SEED_ADMIN_EMAIL ?? "admin@datashield.local"
+const password = process.env.SEED_ADMIN_PASSWORD ?? "ChangeMe123!"
+
 async function main() {
   const company = await prisma.company.upsert({
     where: { domain: "datashield.dev" },
@@ -12,20 +15,20 @@ async function main() {
     create: { name: "DataShield Dev", domain: "datashield.dev" },
   })
 
-  const hashedPassword = await bcrypt.hash("Passw@rd", 12)
+  const hashedPassword = await bcrypt.hash(password, 12)
 
   await prisma.user.upsert({
-    where: { email: "melvin.petit31@gmail.com" },
+    where: { email },
     update: {},
     create: {
-      email: "melvin.petit31@gmail.com",
+      email,
       hashedPassword,
       role: "ADMIN",
       companyId: company.id,
     },
   })
 
-  console.log("Seed complete — melvin.petit31@gmail.com / Passw@rd")
+  console.log(`Seed complete: ${email} (change the password after first login)`)
 }
 
 main()
