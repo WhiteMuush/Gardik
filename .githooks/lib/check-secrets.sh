@@ -29,6 +29,8 @@ while IFS= read -r entry; do
   path=${entry%%:*}
   case "$path" in
     .githooks/*) continue ;;
+    # Example env files hold placeholder credentials by design.
+    .env.example|*.env.example) continue ;;
   esac
   rest=${entry#*:}; content=${rest#*:}
   if printf '%s' "$content" | grep -qEe "$patterns"; then
