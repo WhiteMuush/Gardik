@@ -20,6 +20,9 @@
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
     "seed": "dotenv -e .env.local -- tsx prisma/seed.ts",
+    "db:up": "docker compose up -d db",
+    "db:down": "docker compose down",
+    "db:init": "sh scripts/db-init.sh",
     "postinstall": "prisma generate",
     "prepare": "sh .githooks/install.sh",
     "seed:dev": "dotenv -e .env.local -- tsx prisma/seed.dev.ts"
