@@ -22,7 +22,7 @@ Examples of unacceptable behavior:
 
 ## Enforcement
 
-Instances of abusive, harassing, or otherwise unacceptable behavior may be reported to the project maintainer at melvin.petit31@gmail.com. All complaints will be reviewed and investigated promptly and fairly.
+Instances of abusive, harassing, or otherwise unacceptable behavior may be reported by privately contacting the project maintainer on GitHub, [@WhiteMuush](https://github.com/WhiteMuush). All complaints will be reviewed and investigated promptly and fairly.
 
 ## Attribution
 
