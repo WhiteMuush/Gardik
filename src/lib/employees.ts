@@ -1,4 +1,10 @@
 import { prisma } from "@/lib/prisma"
+import type { Prisma } from "@prisma/client"
+
+export type GetEmployeesOpts = {
+  where?: Prisma.EmployeeWhereInput
+  recordWhere?: Prisma.BreachRecordWhereInput
+}
 
 export type RiskLevel = "CRITICAL" | "HIGH" | "MEDIUM" | "LOW" | "OK"
 
@@ -24,11 +30,12 @@ export type EmployeeRow = {
   breachRecords: BreachRecordDetail[]
 }
 
-export async function getEmployees(companyId: string): Promise<EmployeeRow[]> {
+export async function getEmployees(companyId: string, opts?: GetEmployeesOpts): Promise<EmployeeRow[]> {
   const employees = await prisma.employee.findMany({
-    where: { companyId },
+    where: { companyId, ...opts?.where },
     include: {
       breachRecords: {
+        where: opts?.recordWhere,
         include: { breach: true },
         orderBy: { detectedAt: "desc" },
       },

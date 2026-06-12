@@ -1,5 +1,6 @@
 import { auth } from "@/auth"
 import { getReportData } from "@/lib/reports"
+import { parseReportFilters } from "@/lib/reports/filters"
 import { reportCsv, type CsvSection } from "@/lib/reports/csv"
 
 const SECTIONS: CsvSection[] = [
@@ -20,10 +21,12 @@ export async function GET(request: Request): Promise<Response> {
   const session = await auth()
   if (!session) return new Response("Unauthorized", { status: 401 })
 
-  const section = new URL(request.url).searchParams.get("section") ?? "all"
+  const sp = new URL(request.url).searchParams
+  const section = sp.get("section") ?? "all"
   if (!isSection(section)) return new Response("Invalid section", { status: 400 })
 
-  const data = await getReportData(session.user.companyId)
+  const filters = parseReportFilters(sp)
+  const data = await getReportData(session.user.companyId, filters)
   const csv = reportCsv(section, data)
 
   return new Response(csv, {
