@@ -1,6 +1,18 @@
 #!/usr/bin/env sh
-# Local gate: type-check before push to catch errors earlier than CI.
+# Local gate before push: catch what CI would reject, earlier.
 set -eu
+
+root="$(git rev-parse --show-toplevel)"
+lib="$root/.githooks/lib"
 
 echo "[pre-push] type-check"
 npx tsc --noEmit
+
+echo "[pre-push] ascii-only (added lines vs origin/main)"
+base="$(git merge-base origin/main HEAD 2>/dev/null || git rev-parse HEAD)"
+sh "$lib/added-lines.sh" range "$base" | sh "$lib/check-ascii.sh" || {
+  echo ""
+  echo "Push blocked: non-ASCII characters in added lines (em dash, accents)."
+  echo "CI compliance rejects these. Do not bypass with --no-verify."
+  exit 1
+}
