@@ -33,6 +33,10 @@ This project follows [Conventional Commits](https://www.conventionalcommits.org/
 
 Please read [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md) before contributing.
 
+## AI agents
+
+If you use an AI assistant to contribute, please read [AGENTS.md](AGENTS.md).
+
 ## Contributors
 
 <a href="https://github.com/WhiteMuush/DataShield/graphs/contributors">
