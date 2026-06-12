@@ -47,33 +47,43 @@ Early development. Things move fast and not everything listed below is finished.
 
 ## Getting started
 
-Prerequisites: Node.js 20 or later and a PostgreSQL database.
+Prerequisites: Node.js 20 or later, and Docker (for the local database) or your
+own PostgreSQL instance.
 
 ```bash
 # 1. Install dependencies
 npm install
 
-# 2. Configure the environment (see below), then apply the schema
-npx prisma migrate dev
+# 2. Configure the environment
+cp .env.example .env.local   # then edit AUTH_SECRET (npx auth secret)
 
-# 3. Run the development server
+# 3. Start the database, apply migrations and seed demo data
+npm run db:init
+
+# 4. Run the development server
 npm run dev
 ```
 
+Open http://localhost:3000 and sign in with the seeded admin account:
+
+```
+admin@datashield.local / ChangeMe123!
+```
+
+### Database commands
+
+- `npm run db:init` starts a Postgres container (`compose.yml`), applies all
+  migrations and seeds demo data (breaches, employees, alerts).
+- `npm run db:up` / `npm run db:down` start and stop the container.
+- `npm run seed:dev` reseeds the demo data; `npm run seed` seeds only the admin.
+
+No Docker? Point `DATABASE_URL` at your own PostgreSQL, then run
+`npx prisma migrate deploy && npm run seed:dev`.
+
 ### Environment variables
 
-Create a `.env.local` file at the project root:
-
-```bash
-DATABASE_URL=postgresql://user:password@localhost:5432/datashield
-# 32 characters minimum. Used to encrypt directory connection secrets.
-# The app refuses to handle directory configs without it.
-DIRECTORY_ENCRYPTION_KEY=change-me-to-a-long-random-32-char-secret
-# Required by Auth.js for session encryption.
-AUTH_SECRET=change-me-to-a-random-secret
-# Optional, enables Have I Been Pwned breach lookups.
-HIBP_API_KEY=
-```
+All variables live in `.env.local` (copied from `.env.example`). `AUTH_SECRET`
+must be set; the rest have working defaults for local development.
 
 ## Quality and security
 
