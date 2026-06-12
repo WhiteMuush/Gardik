@@ -15,6 +15,7 @@ sh "$lib/check-env-files.sh" "$@" || status=1
 sh "$lib/check-ai-attribution.sh"     < "$added" || status=1
 sh "$lib/check-secrets.sh"            < "$added" || status=1
 sh "$lib/check-english.sh"            < "$added" || status=1
+sh "$lib/check-ascii.sh"              < "$added" || status=1
 sh "$lib/check-forbidden-patterns.sh" < "$added" || status=1
 
 exit $status
