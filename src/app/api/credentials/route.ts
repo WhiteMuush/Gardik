@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { auth } from "@/auth"
+import { requireAuth, requireAdmin } from "@/lib/apiAuth"
 import { prisma } from "@/lib/prisma"
 import { encryptConfig } from "@/lib/directory/crypto"
 import { keyHint } from "@/lib/credentials/service"
@@ -17,8 +17,8 @@ const SELECT = {
 } as const
 
 export async function GET() {
-  const session = await auth()
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  const { session, error } = await requireAuth()
+  if (error) return error
 
   const credentials = await prisma.apiCredential.findMany({
     where: { companyId: session.user.companyId },
@@ -29,10 +29,8 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const session = await auth()
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  if (session.user.role !== "ADMIN")
-    return NextResponse.json({ error: "Admin only" }, { status: 403 })
+  const { session, error } = await requireAdmin()
+  if (error) return error
 
   const { provider, key } = (await req.json()) as { provider?: string; key?: string }
   if (!provider || !PROVIDER_IDS.has(provider as ApiProvider))

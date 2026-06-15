@@ -20,6 +20,7 @@ model Company {
   dashboardPresets     DashboardPreset[]
   directoryConnections DirectoryConnection[]
   apiCredentials       ApiCredential[]
+  webhooks             Webhook[]
 }
 
 model DirectoryConnection {
@@ -198,6 +199,22 @@ model Alert {
   company  Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
   employee Employee? @relation(fields: [employeeId], references: [id], onDelete: SetNull)
   breach   Breach?   @relation(fields: [breachId], references: [id], onDelete: SetNull)
+}
+
+model Webhook {
+  id           String   @id @default(cuid())
+  companyId    String
+  label        String
+  encryptedUrl String
+  urlHint      String
+  minSeverity  Severity @default(MEDIUM)
+  enabled      Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
 }
 
 enum Severity {
