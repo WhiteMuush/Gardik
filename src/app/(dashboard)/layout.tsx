@@ -2,6 +2,7 @@ import { auth } from "@/auth"
 import { redirect } from "next/navigation"
 import { Sidebar } from "@/components/layout/Sidebar"
 import { Topbar } from "@/components/layout/Topbar"
+import { RoutePrefetcher } from "@/components/layout/RoutePrefetcher"
 import { Providers } from "@/components/providers"
 import { getOpenAlertCount } from "@/lib/alerts"
 
@@ -17,6 +18,7 @@ export default async function DashboardLayout({
 
   return (
     <Providers>
+      <RoutePrefetcher />
       <div className="flex h-screen overflow-hidden">
         <Sidebar
           companyName={session.user.name ?? ""}
