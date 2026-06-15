@@ -26,9 +26,10 @@ const navItems = [
 interface SidebarProps {
   companyName: string
   userEmail: string
+  openAlerts: number
 }
 
-export function Sidebar({ companyName, userEmail }: SidebarProps) {
+export function Sidebar({ companyName, userEmail, openAlerts }: SidebarProps) {
   const pathname = usePathname()
 
   return (
@@ -59,6 +60,11 @@ export function Sidebar({ companyName, userEmail }: SidebarProps) {
                 )}
               />
               {label}
+              {href === "/alerts" && openAlerts > 0 && (
+                <span className="ml-auto inline-flex min-w-5 items-center justify-center rounded-full bg-severity-critical px-1.5 text-xs font-medium tabular-nums text-white">
+                  {openAlerts > 99 ? "99+" : openAlerts}
+                </span>
+              )}
             </Link>
           )
         })}
