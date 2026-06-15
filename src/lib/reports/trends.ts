@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma"
 import { monthKey } from "./utils"
+import { employeeWhere, NO_DEPARTMENT, type ReportFilters } from "./filters"
 import type { MonthlyPoint, Trends } from "./types"
 
 function emptyMonths(): Map<string, MonthlyPoint> {
@@ -13,18 +14,26 @@ function emptyMonths(): Map<string, MonthlyPoint> {
   return months
 }
 
-export async function getTrends(companyId: string): Promise<Trends> {
+export async function getTrends(companyId: string, f: ReportFilters): Promise<Trends> {
   const since = new Date()
   since.setMonth(since.getMonth() - 11)
   since.setDate(1)
 
+  const alertDept = f.department
+    ? { employee: { department: f.department === NO_DEPARTMENT ? null : f.department } }
+    : {}
+
   const [records, alerts] = await Promise.all([
     prisma.breachRecord.findMany({
-      where: { employee: { companyId }, detectedAt: { gte: since } },
+      where: {
+        employee: employeeWhere(companyId, f),
+        detectedAt: { gte: since },
+        ...(f.dataType && { exposedData: { has: f.dataType } }),
+      },
       select: { detectedAt: true },
     }),
     prisma.alert.findMany({
-      where: { companyId, createdAt: { gte: since } },
+      where: { companyId, createdAt: { gte: since }, ...alertDept },
       select: { createdAt: true },
     }),
   ])

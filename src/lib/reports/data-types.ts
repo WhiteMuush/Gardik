@@ -2,13 +2,14 @@ import { prisma } from "@/lib/prisma"
 import { CRITICAL_DATA } from "@/lib/employees"
 import { PRESET_DATA_TYPES } from "@/lib/dataTypes"
 import { rate } from "./utils"
+import { breachRecordWhere, type ReportFilters } from "./filters"
 import type { DataTypeExposure } from "./types"
 
 const LABELS = new Map<string, string>(PRESET_DATA_TYPES.map((t) => [t.key, t.label]))
 
-export async function getDataTypeExposure(companyId: string): Promise<DataTypeExposure[]> {
+export async function getDataTypeExposure(companyId: string, f: ReportFilters): Promise<DataTypeExposure[]> {
   const records = await prisma.breachRecord.findMany({
-    where: { employee: { companyId } },
+    where: breachRecordWhere(companyId, f),
     select: { exposedData: true },
   })
 

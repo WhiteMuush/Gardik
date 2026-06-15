@@ -1,26 +1,23 @@
 import { prisma } from "@/lib/prisma"
 import { rate } from "./utils"
+import { alertWhere, employeeWhere, exposedEmployeeWhere, type ReportFilters } from "./filters"
 import type { ComplianceSummary } from "./types"
 
-export async function getCompliance(companyId: string): Promise<ComplianceSummary> {
+export async function getCompliance(companyId: string, f: ReportFilters): Promise<ComplianceSummary> {
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+  const base = alertWhere(companyId, f)
 
   const [monitored, exposed, total, open, acknowledged, resolved, criticalOpen, staleCriticalOpen] =
     await Promise.all([
-      prisma.employee.count({ where: { companyId } }),
-      prisma.employee.count({ where: { companyId, breachRecords: { some: {} } } }),
-      prisma.alert.count({ where: { companyId } }),
-      prisma.alert.count({ where: { companyId, status: "OPEN" } }),
-      prisma.alert.count({ where: { companyId, status: "ACKNOWLEDGED" } }),
-      prisma.alert.count({ where: { companyId, status: "RESOLVED" } }),
-      prisma.alert.count({ where: { companyId, status: "OPEN", severity: "CRITICAL" } }),
+      prisma.employee.count({ where: employeeWhere(companyId, f) }),
+      prisma.employee.count({ where: exposedEmployeeWhere(companyId, f) }),
+      prisma.alert.count({ where: base }),
+      prisma.alert.count({ where: { ...base, status: "OPEN" } }),
+      prisma.alert.count({ where: { ...base, status: "ACKNOWLEDGED" } }),
+      prisma.alert.count({ where: { ...base, status: "RESOLVED" } }),
+      prisma.alert.count({ where: { ...base, status: "OPEN", severity: "CRITICAL" } }),
       prisma.alert.count({
-        where: {
-          companyId,
-          status: "OPEN",
-          severity: "CRITICAL",
-          createdAt: { lt: thirtyDaysAgo },
-        },
+        where: { ...base, status: "OPEN", severity: "CRITICAL", createdAt: { lt: thirtyDaysAgo } },
       }),
     ])
 
