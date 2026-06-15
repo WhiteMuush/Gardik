@@ -12,7 +12,7 @@ export default async function SetupPage() {
     prisma.apiCredential.count({ where: { companyId } }),
   ])
 
-  if (employeeCount > 0 && apiKeyCount > 0) redirect("/dashboard")
+  if (employeeCount > 0 || apiKeyCount > 0) redirect("/dashboard")
 
   return (
     <SetupChecklist
