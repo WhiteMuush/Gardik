@@ -32,7 +32,7 @@ export default async function DashboardPage() {
     prisma.apiCredential.count({ where: { companyId: session!.user.companyId } }),
   ])
 
-  if (employeeCount === 0 || apiKeyCount === 0) redirect("/setup")
+  if (employeeCount === 0 && apiKeyCount === 0) redirect("/setup")
 
   const [data, presets, user] = await Promise.all([
     getDashboardData(session!.user.companyId),
