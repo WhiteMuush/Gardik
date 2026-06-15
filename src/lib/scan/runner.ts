@@ -1,6 +1,7 @@
 import { prisma } from "@/lib/prisma"
 import { decryptConfig } from "@/lib/directory/crypto"
 import { emailEnabled, sendBreachAlert } from "@/lib/email"
+import { dispatchWebhooks, loadActiveWebhooks } from "@/lib/webhooks"
 import { providerById } from "./registry"
 import { sleep } from "./normalize"
 import type { BreachProvider, Finding } from "./types"
@@ -48,13 +49,18 @@ function severityFor(dataTypes: string[]): Severity {
 
 // Persist a finding: create the breach if needed, then the record and alert when
 // this employee was not already linked to it. Returns true if a record was created.
+type Notify = {
+  recipients: string[]
+  webhooks: Awaited<ReturnType<typeof loadActiveWebhooks>>
+}
+
 async function persistFinding(
   companyId: string,
   employee: EmployeeWithRecords,
   finding: Finding,
   source: BreachSource,
   known: Set<string>,
-  recipients: string[]
+  notify: Notify
 ): Promise<boolean> {
   const breach = await prisma.breach.upsert({
     where: { name: finding.name },
@@ -84,12 +90,11 @@ async function persistFinding(
       message: `${employeeName} found in ${finding.name} breach.`,
     },
   })
-  await sendBreachAlert(recipients, {
-    employeeName,
-    breachName: finding.name,
-    dataTypes: finding.dataTypes,
-    severity,
-  })
+
+  const event = { employeeName, breachName: finding.name, dataTypes: finding.dataTypes, severity }
+  await sendBreachAlert(notify.recipients, event)
+  await dispatchWebhooks(notify.webhooks, event)
+
   known.add(breach.id)
   return true
 }
@@ -113,7 +118,10 @@ export async function runScan(
     where: { companyId },
     include: { breachRecords: { select: { breachId: true } } },
   })
-  const recipients = await notifyRecipients(companyId)
+  const notify: Notify = {
+    recipients: await notifyRecipients(companyId),
+    webhooks: await loadActiveWebhooks(companyId),
+  }
 
   let newRecords = 0
   for (const employee of employees) {
@@ -126,7 +134,7 @@ export async function runScan(
         continue
       }
       for (const finding of findings) {
-        if (await persistFinding(companyId, employee, finding, provider.source, known, recipients)) {
+        if (await persistFinding(companyId, employee, finding, provider.source, known, notify)) {
           newRecords++
         }
       }
