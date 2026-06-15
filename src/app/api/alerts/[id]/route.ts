@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { auth } from "@/auth"
+import { requireAuth } from "@/lib/apiAuth"
 import { prisma } from "@/lib/prisma"
 import { AlertStatus } from "@prisma/client"
 
@@ -7,8 +7,8 @@ export async function PATCH(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const session = await auth()
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  const { session, error } = await requireAuth()
+  if (error) return error
 
   const { id } = await params
   const body = await req.json()

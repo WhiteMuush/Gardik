@@ -1,14 +1,12 @@
 import { NextResponse } from "next/server"
-import { auth } from "@/auth"
+import { requireAdmin } from "@/lib/apiAuth"
 import { prisma } from "@/lib/prisma"
 import { decryptConfig } from "@/lib/directory/crypto"
 import { sendTestWebhook } from "@/lib/webhooks"
 
 export async function POST(_req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const session = await auth()
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  if (session.user.role !== "ADMIN")
-    return NextResponse.json({ error: "Admin only" }, { status: 403 })
+  const { session, error } = await requireAdmin()
+  if (error) return error
 
   const { id } = await params
   const webhook = await prisma.webhook.findFirst({
