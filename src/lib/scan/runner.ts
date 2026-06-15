@@ -1,5 +1,6 @@
 import { prisma } from "@/lib/prisma"
 import { decryptConfig } from "@/lib/directory/crypto"
+import { emailEnabled, sendBreachAlert } from "@/lib/email"
 import { providerById } from "./registry"
 import { sleep } from "./normalize"
 import type { BreachProvider, Finding } from "./types"
@@ -52,7 +53,8 @@ async function persistFinding(
   employee: EmployeeWithRecords,
   finding: Finding,
   source: BreachSource,
-  known: Set<string>
+  known: Set<string>,
+  recipients: string[]
 ): Promise<boolean> {
   const breach = await prisma.breach.upsert({
     where: { name: finding.name },
@@ -66,6 +68,9 @@ async function persistFinding(
   })
   if (known.has(breach.id)) return false
 
+  const severity = severityFor(finding.dataTypes)
+  const employeeName = `${employee.firstName} ${employee.lastName}`
+
   await prisma.breachRecord.create({
     data: { employeeId: employee.id, breachId: breach.id, exposedData: finding.dataTypes },
   })
@@ -74,13 +79,28 @@ async function persistFinding(
       companyId,
       employeeId: employee.id,
       breachId: breach.id,
-      severity: severityFor(finding.dataTypes),
+      severity,
       status: "OPEN",
-      message: `${employee.firstName} ${employee.lastName} found in ${finding.name} breach.`,
+      message: `${employeeName} found in ${finding.name} breach.`,
     },
+  })
+  await sendBreachAlert(recipients, {
+    employeeName,
+    breachName: finding.name,
+    dataTypes: finding.dataTypes,
+    severity,
   })
   known.add(breach.id)
   return true
+}
+
+async function notifyRecipients(companyId: string): Promise<string[]> {
+  if (!emailEnabled()) return []
+  const admins = await prisma.user.findMany({
+    where: { companyId, role: "ADMIN" },
+    select: { email: true },
+  })
+  return admins.map((a) => a.email)
 }
 
 // Scan every employee against every active provider. A provider error is isolated
@@ -93,6 +113,7 @@ export async function runScan(
     where: { companyId },
     include: { breachRecords: { select: { breachId: true } } },
   })
+  const recipients = await notifyRecipients(companyId)
 
   let newRecords = 0
   for (const employee of employees) {
@@ -105,7 +126,7 @@ export async function runScan(
         continue
       }
       for (const finding of findings) {
-        if (await persistFinding(companyId, employee, finding, provider.source, known)) {
+        if (await persistFinding(companyId, employee, finding, provider.source, known, recipients)) {
           newRecords++
         }
       }
