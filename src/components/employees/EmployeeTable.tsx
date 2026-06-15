@@ -11,10 +11,11 @@ import {
   createColumnHelper,
   type SortingState,
 } from "@tanstack/react-table"
-import { ChevronUp, ChevronDown, ChevronsUpDown, ChevronLeft, ChevronRight, Search } from "lucide-react"
+import { ChevronUp, ChevronDown, ChevronsUpDown, ChevronLeft, ChevronRight, Search, Download } from "lucide-react"
 import { RiskBadge } from "@/components/ui/RiskBadge"
 import { EmployeeDrawer } from "@/components/employees/EmployeeDrawer"
 import type { EmployeeRow, RiskLevel } from "@/lib/employees"
+import { downloadCsv } from "@/lib/csv"
 import { cn } from "@/lib/utils"
 
 const col = createColumnHelper<EmployeeRow>()
@@ -82,6 +83,22 @@ export function EmployeeTable({ data }: { data: EmployeeRow[] }) {
     })
   }, [data, search, department, riskFilter])
 
+  function exportCsv() {
+    downloadCsv(
+      "datashield-employees.csv",
+      ["name", "email", "department", "risk", "breaches", "exposed data", "last detected"],
+      filtered.map((e) => [
+        `${e.firstName} ${e.lastName}`,
+        e.email,
+        e.department ?? "",
+        e.riskLevel,
+        e.breachCount,
+        e.exposedDataTypes.join("; "),
+        e.lastDetectedAt ? new Date(e.lastDetectedAt).toISOString().slice(0, 10) : "",
+      ])
+    )
+  }
+
   const table = useReactTable({
     data: filtered,
     columns,
@@ -123,6 +140,14 @@ export function EmployeeTable({ data }: { data: EmployeeRow[] }) {
           <option value="">All risk levels</option>
           {RISK_LEVELS.map((r) => <option key={r} value={r}>{r}</option>)}
         </select>
+        <button
+          onClick={exportCsv}
+          disabled={filtered.length === 0}
+          className="ml-auto flex items-center gap-1.5 rounded-lg border border-input bg-card px-3 py-2 text-sm text-foreground transition-colors hover:bg-muted disabled:opacity-40"
+        >
+          <Download className="size-4" />
+          Export CSV
+        </button>
       </div>
 
       {/* Table */}

@@ -2,10 +2,11 @@
 
 import { useState, useMemo } from "react"
 import { useRouter } from "next/navigation"
-import { Search, Check, CheckCheck, Loader2 } from "lucide-react"
+import { Search, Check, CheckCheck, Loader2, Download } from "lucide-react"
 import { RiskBadge } from "@/components/ui/RiskBadge"
 import type { AlertRow } from "@/lib/alerts"
 import type { RiskLevel } from "@/lib/employees"
+import { downloadCsv } from "@/lib/csv"
 import { cn } from "@/lib/utils"
 
 const SEVERITIES = ["CRITICAL", "HIGH", "MEDIUM", "LOW"] as const
@@ -56,6 +57,21 @@ export function AlertTable({ data }: { data: AlertRow[] }) {
     })
   }, [data, search, severity, status])
 
+  function exportCsv() {
+    downloadCsv(
+      "datashield-alerts.csv",
+      ["severity", "status", "employee", "breach", "message", "created"],
+      filtered.map((a) => [
+        a.severity,
+        a.status,
+        a.employeeEmail ?? "",
+        a.breachName ?? "",
+        a.message,
+        new Date(a.createdAt).toISOString(),
+      ])
+    )
+  }
+
   async function updateStatus(id: string, next: string) {
     setPending(id)
     const res = await fetch(`/api/alerts/${id}`, {
@@ -95,6 +111,14 @@ export function AlertTable({ data }: { data: AlertRow[] }) {
           <option value="">All statuses</option>
           {STATUSES.map((s) => <option key={s} value={s}>{statusLabel[s]}</option>)}
         </select>
+        <button
+          onClick={exportCsv}
+          disabled={filtered.length === 0}
+          className="ml-auto flex items-center gap-1.5 rounded-lg border border-input bg-card px-3 py-2 text-sm text-foreground transition-colors hover:bg-muted disabled:opacity-40"
+        >
+          <Download className="size-4" />
+          Export CSV
+        </button>
       </div>
 
       {filtered.length === 0 ? (
