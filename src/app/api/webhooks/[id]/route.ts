@@ -1,13 +1,11 @@
 import { NextResponse } from "next/server"
-import { auth } from "@/auth"
+import { requireAdmin } from "@/lib/apiAuth"
 import { prisma } from "@/lib/prisma"
 import { Severity } from "@prisma/client"
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const session = await auth()
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  if (session.user.role !== "ADMIN")
-    return NextResponse.json({ error: "Admin only" }, { status: 403 })
+  const { session, error } = await requireAdmin()
+  if (error) return error
 
   const { id } = await params
   const body = (await req.json()) as { enabled?: boolean; minSeverity?: string }
@@ -26,10 +24,8 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 }
 
 export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const session = await auth()
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-  if (session.user.role !== "ADMIN")
-    return NextResponse.json({ error: "Admin only" }, { status: 403 })
+  const { session, error } = await requireAdmin()
+  if (error) return error
 
   const { id } = await params
   const { count } = await prisma.webhook.deleteMany({

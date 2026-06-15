@@ -1,13 +1,13 @@
 import { NextResponse } from "next/server"
-import { auth } from "@/auth"
+import { requireAuth } from "@/lib/apiAuth"
 import { rateLimit } from "@/lib/rateLimit"
 import { loadActiveProviders, runScan } from "@/lib/scan/runner"
 
 const runningScans = new Set<string>()
 
 export async function POST() {
-  const session = await auth()
-  if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
+  const { session, error } = await requireAuth()
+  if (error) return error
 
   const companyId = session.user.companyId
 
