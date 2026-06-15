@@ -1,5 +1,7 @@
 import { prisma } from "@/lib/prisma"
 import { decryptConfig } from "@/lib/directory/crypto"
+import { emailEnabled, sendBreachAlert } from "@/lib/email"
+import { dispatchWebhooks, loadActiveWebhooks } from "@/lib/webhooks"
 import { providerById } from "./registry"
 import { sleep } from "./normalize"
 import type { BreachProvider, Finding } from "./types"
@@ -47,12 +49,18 @@ function severityFor(dataTypes: string[]): Severity {
 
 // Persist a finding: create the breach if needed, then the record and alert when
 // this employee was not already linked to it. Returns true if a record was created.
+type Notify = {
+  recipients: string[]
+  webhooks: Awaited<ReturnType<typeof loadActiveWebhooks>>
+}
+
 async function persistFinding(
   companyId: string,
   employee: EmployeeWithRecords,
   finding: Finding,
   source: BreachSource,
-  known: Set<string>
+  known: Set<string>,
+  notify: Notify
 ): Promise<boolean> {
   const breach = await prisma.breach.upsert({
     where: { name: finding.name },
@@ -66,6 +74,9 @@ async function persistFinding(
   })
   if (known.has(breach.id)) return false
 
+  const severity = severityFor(finding.dataTypes)
+  const employeeName = `${employee.firstName} ${employee.lastName}`
+
   await prisma.breachRecord.create({
     data: { employeeId: employee.id, breachId: breach.id, exposedData: finding.dataTypes },
   })
@@ -74,13 +85,27 @@ async function persistFinding(
       companyId,
       employeeId: employee.id,
       breachId: breach.id,
-      severity: severityFor(finding.dataTypes),
+      severity,
       status: "OPEN",
-      message: `${employee.firstName} ${employee.lastName} found in ${finding.name} breach.`,
+      message: `${employeeName} found in ${finding.name} breach.`,
     },
   })
+
+  const event = { employeeName, breachName: finding.name, dataTypes: finding.dataTypes, severity }
+  await sendBreachAlert(notify.recipients, event)
+  await dispatchWebhooks(notify.webhooks, event)
+
   known.add(breach.id)
   return true
+}
+
+async function notifyRecipients(companyId: string): Promise<string[]> {
+  if (!emailEnabled()) return []
+  const admins = await prisma.user.findMany({
+    where: { companyId, role: "ADMIN" },
+    select: { email: true },
+  })
+  return admins.map((a) => a.email)
 }
 
 // Scan every employee against every active provider. A provider error is isolated
@@ -93,6 +118,10 @@ export async function runScan(
     where: { companyId },
     include: { breachRecords: { select: { breachId: true } } },
   })
+  const notify: Notify = {
+    recipients: await notifyRecipients(companyId),
+    webhooks: await loadActiveWebhooks(companyId),
+  }
 
   let newRecords = 0
   for (const employee of employees) {
@@ -105,7 +134,7 @@ export async function runScan(
         continue
       }
       for (const finding of findings) {
-        if (await persistFinding(companyId, employee, finding, provider.source, known)) {
+        if (await persistFinding(companyId, employee, finding, provider.source, known, notify)) {
           newRecords++
         }
       }
