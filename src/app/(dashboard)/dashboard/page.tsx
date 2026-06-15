@@ -21,10 +21,27 @@ import { BreachTimeline } from "@/components/dashboard/BreachTimeline"
 import { TopBreaches } from "@/components/dashboard/TopBreaches"
 import { DataTypeRadar } from "@/components/dashboard/DataTypeRadar"
 import { AlertVelocity } from "@/components/dashboard/AlertVelocity"
+import { SetupChecklist } from "@/components/dashboard/SetupChecklist"
 import type { DashboardPreset } from "@/types/dashboard"
 
 export default async function DashboardPage() {
   const session = await auth()
+
+  const [employeeCount, apiKeyCount] = await Promise.all([
+    prisma.employee.count({ where: { companyId: session!.user.companyId } }),
+    prisma.apiCredential.count({ where: { companyId: session!.user.companyId } }),
+  ])
+
+  if (employeeCount === 0 || apiKeyCount === 0) {
+    return (
+      <SetupChecklist
+        hasEmployees={employeeCount > 0}
+        hasApiKey={apiKeyCount > 0}
+        isAdmin={session!.user.role === "ADMIN"}
+      />
+    )
+  }
+
   const [data, presets, user] = await Promise.all([
     getDashboardData(session!.user.companyId),
     prisma.dashboardPreset.findMany({
