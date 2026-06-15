@@ -5,19 +5,24 @@ import { getEmployeeBreakdown } from "./by-employee"
 import { getTrends } from "./trends"
 import { getCompliance } from "./compliance"
 import { buildFindings } from "./findings"
+import { EMPTY_FILTERS, type ReportFilters } from "./filters"
 import type { ReportData } from "./types"
 
 export type { ReportData } from "./types"
+export type { ReportFilters } from "./filters"
 
-export async function getReportData(companyId: string): Promise<ReportData> {
+export async function getReportData(
+  companyId: string,
+  filters: ReportFilters = EMPTY_FILTERS,
+): Promise<ReportData> {
   const [exposure, dataTypes, departments, employees, trends, compliance] =
     await Promise.all([
-      getExposureSummary(companyId),
-      getDataTypeExposure(companyId),
-      getDepartmentBreakdown(companyId),
-      getEmployeeBreakdown(companyId),
-      getTrends(companyId),
-      getCompliance(companyId),
+      getExposureSummary(companyId, filters),
+      getDataTypeExposure(companyId, filters),
+      getDepartmentBreakdown(companyId, filters),
+      getEmployeeBreakdown(companyId, filters),
+      getTrends(companyId, filters),
+      getCompliance(companyId, filters),
     ])
 
   return {

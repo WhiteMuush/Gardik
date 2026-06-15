@@ -1,22 +1,30 @@
 import { prisma } from "@/lib/prisma"
 import { calculateRiskScore, getRiskLevel } from "@/lib/risk"
 import { rate } from "./utils"
+import {
+  alertWhere,
+  breachRecordSome,
+  employeeWhere,
+  exposedEmployeeWhere,
+  type ReportFilters,
+} from "./filters"
 import type { ExposureSummary, TopBreach } from "./types"
 
 type Severity = "CRITICAL" | "HIGH" | "MEDIUM" | "LOW"
 
-function countOpenAlerts(companyId: string, severity: Severity): Promise<number> {
-  return prisma.alert.count({ where: { companyId, status: "OPEN", severity } })
+function countOpenAlerts(companyId: string, f: ReportFilters, severity: Severity): Promise<number> {
+  return prisma.alert.count({ where: { ...alertWhere(companyId, f), status: "OPEN", severity } })
 }
 
-async function getTopBreaches(companyId: string): Promise<TopBreach[]> {
+async function getTopBreaches(companyId: string, f: ReportFilters): Promise<TopBreach[]> {
+  const recordFilter = { employee: employeeWhere(companyId, f), ...breachRecordSome(f) }
   const breaches = await prisma.breach.findMany({
-    where: { records: { some: { employee: { companyId } } } },
+    where: { records: { some: recordFilter } },
     select: {
       name: true,
       source: true,
       breachDate: true,
-      records: { where: { employee: { companyId } }, select: { employeeId: true } },
+      records: { where: recordFilter, select: { employeeId: true } },
     },
   })
 
@@ -31,22 +39,23 @@ async function getTopBreaches(companyId: string): Promise<TopBreach[]> {
     .slice(0, 10)
 }
 
-export async function getExposureSummary(companyId: string): Promise<ExposureSummary> {
+export async function getExposureSummary(companyId: string, f: ReportFilters): Promise<ExposureSummary> {
   const thirtyDaysAgo = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
+  const recentRecord = { ...breachRecordSome(f), detectedAt: { gte: thirtyDaysAgo } }
 
   const [total, exposed, breaches, critical, high, medium, low, recent, topBreaches] =
     await Promise.all([
-      prisma.employee.count({ where: { companyId } }),
-      prisma.employee.count({ where: { companyId, breachRecords: { some: {} } } }),
-      prisma.breach.count({ where: { records: { some: { employee: { companyId } } } } }),
-      countOpenAlerts(companyId, "CRITICAL"),
-      countOpenAlerts(companyId, "HIGH"),
-      countOpenAlerts(companyId, "MEDIUM"),
-      countOpenAlerts(companyId, "LOW"),
-      prisma.breachRecord.count({
-        where: { employee: { companyId }, detectedAt: { gte: thirtyDaysAgo } },
+      prisma.employee.count({ where: employeeWhere(companyId, f) }),
+      prisma.employee.count({ where: exposedEmployeeWhere(companyId, f) }),
+      prisma.breach.count({
+        where: { records: { some: { employee: employeeWhere(companyId, f), ...breachRecordSome(f) } } },
       }),
-      getTopBreaches(companyId),
+      countOpenAlerts(companyId, f, "CRITICAL"),
+      countOpenAlerts(companyId, f, "HIGH"),
+      countOpenAlerts(companyId, f, "MEDIUM"),
+      countOpenAlerts(companyId, f, "LOW"),
+      prisma.breachRecord.count({ where: { employee: employeeWhere(companyId, f), ...recentRecord } }),
+      getTopBreaches(companyId, f),
     ])
 
   const riskScore = calculateRiskScore({
