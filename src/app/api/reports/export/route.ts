@@ -1,4 +1,4 @@
-import { auth } from "@/auth"
+import { requireAuth } from "@/lib/apiAuth"
 import { getReportData } from "@/lib/reports"
 import { parseReportFilters } from "@/lib/reports/filters"
 import { reportCsv, type CsvSection } from "@/lib/reports/csv"
@@ -18,8 +18,8 @@ function isSection(value: string): value is CsvSection {
 }
 
 export async function GET(request: Request): Promise<Response> {
-  const session = await auth()
-  if (!session) return new Response("Unauthorized", { status: 401 })
+  const { session, error } = await requireAuth()
+  if (error) return error
 
   const sp = new URL(request.url).searchParams
   const section = sp.get("section") ?? "all"
