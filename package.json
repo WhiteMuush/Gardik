@@ -14,6 +14,7 @@
   "author": "Melvin PETIT (WhiteMuush)",
   "type": "module",
   "scripts": {
+    "predev": "prisma migrate status || echo '\\n[!] Pending migrations or DB unreachable. If the app errors on a missing table, run: npm run db:migrate\\n'",
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
@@ -23,6 +24,7 @@
     "db:up": "docker compose up -d db",
     "db:down": "docker compose down",
     "db:init": "sh scripts/db-init.sh",
+    "db:migrate": "prisma migrate deploy",
     "postinstall": "prisma generate",
     "prepare": "sh .githooks/install.sh",
     "seed:dev": "dotenv -e .env.local -- tsx prisma/seed.dev.ts"

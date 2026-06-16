@@ -70,11 +70,29 @@ Open http://localhost:3000 and sign in with the seeded admin account:
 admin@datashield.local / ChangeMe123!
 ```
 
+### Switching machines / after `git pull`
+
+The Prisma client is regenerated automatically on `npm install` (`postinstall`).
+The database is **not** migrated automatically: `npm run dev` only *warns* if
+migrations are pending (it never applies them on boot). After pulling changes
+that add a migration, apply it explicitly before running the app:
+
+```bash
+npm run db:migrate   # prisma migrate deploy, applies pending migrations
+```
+
+When you edit `prisma/schema.prisma` yourself, create the migration instead:
+
+```bash
+npx prisma migrate dev --name <change>
+```
+
 ### Database commands
 
 - `npm run db:init` starts a Postgres container (`compose.yml`), applies all
   migrations and seeds demo data (breaches, employees, alerts).
 - `npm run db:up` / `npm run db:down` start and stop the container.
+- `npm run db:migrate` applies pending migrations to the current database.
 - `npm run seed:dev` reseeds the demo data; `npm run seed` seeds only the admin.
 
 No Docker? Point `DATABASE_URL` at your own PostgreSQL, then run
