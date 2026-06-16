@@ -47,8 +47,8 @@ Early development. Things move fast and not everything listed below is finished.
 
 ## Getting started
 
-Prerequisites: Node.js 20 or later, and Docker (for the local database) or your
-own PostgreSQL instance.
+Prerequisites: Node.js 22 (pinned via `.nvmrc` and `engines`; run `nvm use`),
+and Docker (for the local database) or your own PostgreSQL instance.
 
 ```bash
 # 1. Install dependencies
