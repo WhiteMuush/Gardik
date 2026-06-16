@@ -1,10 +1,14 @@
 #!/usr/bin/env node
-// Block major-version bumps of frozen dependencies.
+// Enforce the pinned major version of frozen dependencies.
 // Usage: node check-frozen-deps.mjs <old-pkg-ref> <new-pkg-ref>
 // Refs are `git show` targets, e.g. "origin/main:package.json" or ":package.json".
+// The new ref's frozen majors must match the canonical baseline below. This
+// rejects bumps in either direction, so an accidental major upgrade (e.g. a
+// Dependabot PR) is blocked even once it has landed on the baseline branch.
 import { execFileSync } from "node:child_process";
 
-const FROZEN = ["next", "tailwindcss", "typescript", "eslint"];
+// Canonical major version each frozen dependency is pinned to.
+const CANONICAL = { next: "15", tailwindcss: "3", typescript: "5", eslint: "9" };
 
 function load(ref) {
   try {
@@ -24,17 +28,15 @@ function deps(pkg) {
   return { ...(pkg?.dependencies || {}), ...(pkg?.devDependencies || {}) };
 }
 
-const [, , oldRef, newRef] = process.argv;
-const oldDeps = deps(load(oldRef));
+const [, , , newRef] = process.argv;
 const newDeps = deps(load(newRef));
 
 let failed = false;
-for (const name of FROZEN) {
-  const before = major(oldDeps[name]);
+for (const [name, pinned] of Object.entries(CANONICAL)) {
   const after = major(newDeps[name]);
-  if (before && after && before !== after) {
+  if (after && after !== pinned) {
     console.error(
-      `Frozen dependency "${name}" major bump ${oldDeps[name]} -> ${newDeps[name]} is forbidden.`
+      `Frozen dependency "${name}" must stay on major ${pinned}, found ${newDeps[name]}.`
     );
     failed = true;
   }
