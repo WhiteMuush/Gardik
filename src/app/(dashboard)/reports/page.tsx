@@ -45,12 +45,12 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
 
   const sections: ReportSectionEntry[] = [
     { id: "findings", title: "Key Findings", defaultSpan: 12, content: <KeyFindingsSection findings={data.findings} /> },
-    { id: "exposure", title: "Exposure", defaultSpan: 12, content: <ExposureSection data={data.exposure} /> },
+    { id: "exposure", title: "Exposure", defaultSpan: 12, content: <ExposureSection data={data.exposure} deltas={data.deltas} /> },
     { id: "datatypes", title: "Data Types", defaultSpan: 6, content: <DataTypeSection rows={data.dataTypes} /> },
     { id: "departments", title: "Departments", defaultSpan: 6, content: <DepartmentSection rows={data.departments} /> },
     { id: "trends", title: "Trends", defaultSpan: 12, content: <TrendsSection data={data.trends} /> },
     { id: "employees", title: "Employees", defaultSpan: 12, content: <EmployeeSection rows={data.employees} /> },
-    { id: "compliance", title: "Compliance", defaultSpan: 12, content: <ComplianceSection data={data.compliance} /> },
+    { id: "compliance", title: "Compliance", defaultSpan: 12, content: <ComplianceSection data={data.compliance} deltas={data.deltas} /> },
   ]
 
   return (

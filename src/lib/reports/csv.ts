@@ -38,7 +38,16 @@ function exposureCsv(d: ReportData): string {
     ["breach", "source", "breach date", "affected employees"],
     e.topBreaches.map((b) => [b.name, b.source, b.breachDate, b.affectedEmployees])
   )
-  return `${summary}\n\nTop breaches\n${breaches}`
+  const dl = d.deltas
+  const deltas = toCsv(
+    ["change", "current", "previous"],
+    [
+      ["Newly exposed employees", dl.newlyExposed.current, dl.newlyExposed.previous],
+      ["Breaches with new detections", dl.newBreaches.current, dl.newBreaches.previous],
+      ["New alerts", dl.newAlerts.current, dl.newAlerts.previous],
+    ]
+  )
+  return `${summary}\n\nTop breaches\n${breaches}\n\nPeriod change (${dl.windowLabel})\n${deltas}`
 }
 
 function dataTypesCsv(d: ReportData): string {

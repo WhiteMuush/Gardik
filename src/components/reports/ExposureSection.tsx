@@ -2,9 +2,9 @@ import { Users, ShieldAlert, Database, Activity } from "lucide-react"
 import { StatCard } from "@/components/dashboard/StatCard"
 import { getRiskLevel } from "@/lib/risk"
 import { ReportSection } from "./ReportSection"
-import type { ExposureSummary } from "@/lib/reports/types"
+import type { ExposureSummary, ReportDeltas } from "@/lib/reports/types"
 
-export function ExposureSection({ data }: { data: ExposureSummary }) {
+export function ExposureSection({ data, deltas }: { data: ExposureSummary; deltas: ReportDeltas }) {
   const riskVariant = getRiskLevel(data.riskScore).variant
 
   return (
@@ -20,8 +20,14 @@ export function ExposureSection({ data }: { data: ExposureSummary }) {
           description={`${data.exposureRate}% of workforce`}
           icon={ShieldAlert}
           variant="high"
+          delta={{ value: deltas.newlyExposed.current, label: deltas.windowLabel, goodWhen: "down" }}
         />
-        <StatCard label="Breaches" value={data.totalBreaches} icon={Database} />
+        <StatCard
+          label="Breaches"
+          value={data.totalBreaches}
+          icon={Database}
+          delta={{ value: deltas.newBreaches.current, label: deltas.windowLabel, goodWhen: "down" }}
+        />
         <StatCard
           label="Risk score"
           value={data.riskScore}

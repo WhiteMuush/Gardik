@@ -4,6 +4,7 @@ import type {
   DataTypeExposure,
   ExposureSummary,
   Finding,
+  ReportDeltas,
 } from "./types"
 
 const ORDER: Record<Finding["severity"], number> = {
@@ -85,14 +86,41 @@ function dataFindings(types: DataTypeExposure[]): Finding[] {
   return out
 }
 
+function trendWord(current: number, previous: number): string {
+  if (current > previous) return `up from ${previous}`
+  if (current < previous) return `down from ${previous}`
+  return `unchanged from ${previous}`
+}
+
+function deltaFindings(d: ReportDeltas): Finding[] {
+  const out: Finding[] = []
+  const { newlyExposed, newBreaches } = d
+
+  if (newlyExposed.current > 0)
+    out.push({
+      severity: newlyExposed.current > newlyExposed.previous ? "high" : "medium",
+      message: `${plural(newlyExposed.current, "employee")} newly exposed in the latest period (${trendWord(newlyExposed.current, newlyExposed.previous)}).`,
+    })
+
+  if (newBreaches.current > 0)
+    out.push({
+      severity: newBreaches.current > newBreaches.previous ? "medium" : "info",
+      message: `${plural(newBreaches.current, "breach")} with new detections in the latest period (${trendWord(newBreaches.current, newBreaches.previous)}).`,
+    })
+
+  return out
+}
+
 export function buildFindings(
   exposure: ExposureSummary,
   compliance: ComplianceSummary,
-  dataTypes: DataTypeExposure[]
+  dataTypes: DataTypeExposure[],
+  deltas: ReportDeltas
 ): Finding[] {
   return [
     ...alertFindings(compliance),
     ...exposureFindings(exposure),
     ...dataFindings(dataTypes),
+    ...deltaFindings(deltas),
   ].sort((a, b) => ORDER[a.severity] - ORDER[b.severity])
 }

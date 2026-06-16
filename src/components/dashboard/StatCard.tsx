@@ -1,5 +1,12 @@
 import { cn } from "@/lib/utils"
-import type { LucideIcon } from "lucide-react"
+import { ArrowUp, ArrowDown, Minus, type LucideIcon } from "lucide-react"
+
+export type StatDelta = {
+  value: number
+  label?: string
+  // Which direction is "good" (green). Security metrics usually want "down".
+  goodWhen?: "up" | "down"
+}
 
 interface StatCardProps {
   label: string
@@ -7,6 +14,7 @@ interface StatCardProps {
   description?: string
   icon: LucideIcon
   variant?: "default" | "critical" | "high" | "medium" | "ok"
+  delta?: StatDelta
 }
 
 const variants = {
@@ -43,6 +51,7 @@ export function StatCard({
   description,
   icon: Icon,
   variant = "default",
+  delta,
 }: StatCardProps) {
   const v = variants[variant]
 
@@ -57,11 +66,33 @@ export function StatCard({
           {description && (
             <p className="text-xs text-muted-foreground">{description}</p>
           )}
+          {delta && <DeltaPill delta={delta} />}
         </div>
         <div className={cn("flex size-9 shrink-0 items-center justify-center rounded-lg", v.iconBg)}>
           <Icon className={cn("size-5", v.icon)} />
         </div>
       </div>
     </div>
+  )
+}
+
+function DeltaPill({ delta }: { delta: StatDelta }) {
+  const { value, label, goodWhen = "up" } = delta
+  const Icon = value > 0 ? ArrowUp : value < 0 ? ArrowDown : Minus
+  const direction = value > 0 ? "up" : value < 0 ? "down" : "flat"
+  const tone =
+    direction === "flat"
+      ? "text-muted-foreground"
+      : direction === goodWhen
+        ? "text-severity-ok"
+        : "text-severity-high"
+
+  return (
+    <p className={cn("flex items-center gap-1 text-xs font-medium tabular-nums", tone)}>
+      <Icon className="size-3" />
+      {value > 0 ? "+" : ""}
+      {value}
+      {label && <span className="font-normal text-muted-foreground">{label}</span>}
+    </p>
   )
 }

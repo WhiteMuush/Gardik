@@ -1,9 +1,9 @@
 import { ShieldCheck, BellRing, CheckCircle2, AlertTriangle } from "lucide-react"
 import { StatCard } from "@/components/dashboard/StatCard"
 import { ReportSection } from "./ReportSection"
-import type { ComplianceSummary } from "@/lib/reports/types"
+import type { ComplianceSummary, ReportDeltas } from "@/lib/reports/types"
 
-export function ComplianceSection({ data }: { data: ComplianceSummary }) {
+export function ComplianceSection({ data, deltas }: { data: ComplianceSummary; deltas: ReportDeltas }) {
   return (
     <ReportSection
       title="Compliance and audit"
@@ -16,7 +16,13 @@ export function ComplianceSection({ data }: { data: ComplianceSummary }) {
           description={`${data.exposedEmployees} exposed`}
           icon={ShieldCheck}
         />
-        <StatCard label="Open alerts" value={data.alertsOpen} icon={BellRing} variant="high" />
+        <StatCard
+          label="Open alerts"
+          value={data.alertsOpen}
+          icon={BellRing}
+          variant="high"
+          delta={{ value: deltas.newAlerts.current, label: `new ${deltas.windowLabel}`, goodWhen: "down" }}
+        />
         <StatCard
           label="Resolved"
           value={data.alertsResolved}
