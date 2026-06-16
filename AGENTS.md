@@ -26,7 +26,7 @@ Rules for AI assistants contributing to this project.
 
 ## Commits
 
-Follow [Conventional Commits](https://www.conventionalcommits.org/), same rules as in [CONTRIBUTING.md](CONTRIBUTING.md).
+Follow [Conventional Commits](https://www.conventionalcommits.org/), same rules as in [CONTRIBUTING.md](.github/CONTRIBUTING.md).
 
 - Subject 50 characters or fewer.
 - No `Co-Authored-By` lines.

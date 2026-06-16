@@ -109,7 +109,7 @@ Every push and pull request runs an automated pipeline: ESLint (zero warnings
 allowed), strict type checking, Prisma schema validation and a production build,
 plus CodeQL static analysis, dependency auditing, dependency review and secret
 scanning. See [`.github/workflows`](.github/workflows). Security policy and
-reporting: [SECURITY.md](SECURITY.md).
+reporting: [SECURITY.md](.github/SECURITY.md).
 
 ## Contributing
 
@@ -117,7 +117,7 @@ Contributions are welcome.
 
 > **Contribution rules are enforced automatically by Git hooks (`.githooks/`) and CI (`.github/workflows/compliance.yml`). Non-compliant PR titles are rejected: invalid conventional commit format, AI attribution trailers, secrets, non-English text, frozen-dependency major bumps, and forbidden code patterns. The hooks activate on `npm install`.**
 
-Please also read [CONTRIBUTING.md](CONTRIBUTING.md) and [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md).
+Please also read [CONTRIBUTING.md](.github/CONTRIBUTING.md) and [CODE_OF_CONDUCT.md](.github/CODE_OF_CONDUCT.md).
 
 ## License
 
