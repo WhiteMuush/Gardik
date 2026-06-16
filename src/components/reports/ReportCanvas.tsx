@@ -22,7 +22,7 @@ import { Settings2, Check, GripVertical, Eye, EyeOff, RotateCcw } from "lucide-r
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
-const STORAGE_KEY = "datashield:reports:layout:v2"
+const STORAGE_KEY = "datashield:reports:layout:v4"
 
 export type Span = 4 | 6 | 12
 
@@ -68,7 +68,7 @@ function SortableSection({
       style={{ transform: CSS.Transform.toString(transform), transition }}
       className={cn(
         SPAN_CLASS[span],
-        "relative",
+        "relative h-full",
         isDragging && "opacity-0",
         editing && "rounded-xl outline outline-2 outline-primary/30",
       )}
@@ -260,7 +260,8 @@ export function ReportCanvas({ sections }: { sections: ReportSectionEntry[] }) {
         )}
       </div>
 
-      {/* Flow grid (screen) */}
+      {/* Flow grid (screen). Rows stretch and dense flow backfills holes, so 1/3 and
+          1/2 tiles fill empty space instead of leaving gaps. */}
       <DndContext
         sensors={sensors}
         collisionDetection={closestCenter}
@@ -269,7 +270,7 @@ export function ReportCanvas({ sections }: { sections: ReportSectionEntry[] }) {
         onDragCancel={() => setActiveId(null)}
       >
         <SortableContext items={visibleOrder} strategy={rectSortingStrategy}>
-          <div ref={gridRef} className="no-print grid grid-cols-12 items-start gap-4">
+          <div ref={gridRef} className="no-print grid grid-cols-12 gap-4 [grid-auto-flow:row_dense]">
             {visibleOrder.map((id) => {
               const section = byId.get(id)
               if (!section) return null

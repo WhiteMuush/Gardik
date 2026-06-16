@@ -80,6 +80,18 @@ export type Finding = {
   message: string
 }
 
+export type Delta = {
+  current: number
+  previous: number
+}
+
+export type ReportDeltas = {
+  windowLabel: string
+  newlyExposed: Delta
+  newBreaches: Delta
+  newAlerts: Delta
+}
+
 export type ReportData = {
   generatedAt: string
   findings: Finding[]
@@ -89,4 +101,5 @@ export type ReportData = {
   employees: EmployeeReportRow[]
   trends: Trends
   compliance: ComplianceSummary
+  deltas: ReportDeltas
 }
