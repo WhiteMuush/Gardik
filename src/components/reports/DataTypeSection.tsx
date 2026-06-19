@@ -16,7 +16,7 @@ export function DataTypeSection({ rows }: { rows: DataTypeExposure[] }) {
               <tr>
                 <th className="px-3 py-2 font-medium">Data type</th>
                 <th className="px-3 py-2 text-right font-medium">Records</th>
-                <th className="px-3 py-2 font-medium">Share</th>
+                <th className="hidden px-3 py-2 font-medium @[480px]:table-cell">Share</th>
               </tr>
             </thead>
             <tbody>
@@ -25,13 +25,13 @@ export function DataTypeSection({ rows }: { rows: DataTypeExposure[] }) {
                   <td className="px-3 py-2">
                     <span className="text-foreground">{t.label}</span>
                     {t.critical && (
-                      <span className="ml-2 rounded-md bg-severity-high/10 px-1.5 py-0.5 text-xs font-medium text-severity-high">
+                      <span className="ml-2 hidden rounded-md bg-severity-high/10 px-1.5 py-0.5 text-xs font-medium text-severity-high @[400px]:inline">
                         Sensitive
                       </span>
                     )}
                   </td>
                   <td className="px-3 py-2 text-right tabular-nums text-foreground">{t.count}</td>
-                  <td className="px-3 py-2">
+                  <td className="hidden px-3 py-2 @[480px]:table-cell">
                     <div className="flex items-center gap-2">
                       <div className="h-1.5 w-24 overflow-hidden rounded-full bg-muted">
                         <div

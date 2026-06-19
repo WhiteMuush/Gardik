@@ -16,7 +16,7 @@ export function DepartmentSection({ rows }: { rows: DepartmentRow[] }) {
             <thead className="bg-muted/50 text-left text-xs text-muted-foreground">
               <tr>
                 <th className="px-3 py-2 font-medium">Department</th>
-                <th className="px-3 py-2 text-right font-medium">Employees</th>
+                <th className="hidden px-3 py-2 text-right font-medium @[520px]:table-cell">Employees</th>
                 <th className="px-3 py-2 text-right font-medium">Exposed</th>
                 <th className="px-3 py-2 font-medium">Exposure rate</th>
               </tr>
@@ -25,11 +25,11 @@ export function DepartmentSection({ rows }: { rows: DepartmentRow[] }) {
               {rows.map((r) => (
                 <tr key={r.department} className="border-t border-border">
                   <td className="px-3 py-2 text-foreground">{r.department}</td>
-                  <td className="px-3 py-2 text-right tabular-nums text-foreground">{r.total}</td>
+                  <td className="hidden px-3 py-2 text-right tabular-nums text-foreground @[520px]:table-cell">{r.total}</td>
                   <td className="px-3 py-2 text-right tabular-nums text-foreground">{r.exposed}</td>
                   <td className="px-3 py-2">
                     <div className="flex items-center gap-2">
-                      <div className="h-1.5 w-24 overflow-hidden rounded-full bg-muted">
+                      <div className="hidden h-1.5 w-24 overflow-hidden rounded-full bg-muted @[420px]:block">
                         <div
                           className={cn(
                             "h-full rounded-full",

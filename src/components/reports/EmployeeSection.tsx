@@ -40,9 +40,9 @@ export function EmployeeSection({ rows }: { rows: EmployeeReportRow[] }) {
               <thead className="bg-muted/50 text-left text-xs text-muted-foreground">
                 <tr>
                   <th className="px-3 py-2 font-medium">Employee</th>
-                  <th className="px-3 py-2 font-medium">Department</th>
+                  <th className="hidden px-3 py-2 font-medium @[640px]:table-cell">Department</th>
                   <th className="px-3 py-2 text-right font-medium">Breaches</th>
-                  <th className="px-3 py-2 font-medium">Last detected</th>
+                  <th className="hidden px-3 py-2 font-medium @[520px]:table-cell">Last detected</th>
                   <th className="px-3 py-2 font-medium">Risk</th>
                 </tr>
               </thead>
@@ -51,15 +51,15 @@ export function EmployeeSection({ rows }: { rows: EmployeeReportRow[] }) {
                   <tr key={e.email} className="border-t border-border">
                     <td className="px-3 py-2">
                       <span className="text-foreground">{e.name}</span>
-                      <span className="block text-xs text-muted-foreground">{e.email}</span>
+                      <span className="hidden text-xs text-muted-foreground @[440px]:block">{e.email}</span>
                     </td>
-                    <td className="px-3 py-2 text-muted-foreground">
+                    <td className="hidden px-3 py-2 text-muted-foreground @[640px]:table-cell">
                       {e.department ?? "Unknown"}
                     </td>
                     <td className="px-3 py-2 text-right tabular-nums text-foreground">
                       {e.breachCount}
                     </td>
-                    <td className="px-3 py-2 text-muted-foreground">
+                    <td className="hidden px-3 py-2 text-muted-foreground @[520px]:table-cell">
                       {formatDate(e.lastDetectedAt)}
                     </td>
                     <td className="px-3 py-2">
