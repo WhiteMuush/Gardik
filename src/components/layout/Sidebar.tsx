@@ -39,6 +39,7 @@ export function Sidebar({ companyName, userEmail, openAlerts }: SidebarProps) {
   const pathname = usePathname()
   const { open, toggle, close } = useSidebar()
   const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const asideRef = useRef<HTMLElement>(null)
 
   const clearTimer = () => {
     if (timer.current) clearTimeout(timer.current)
@@ -57,8 +58,20 @@ export function Sidebar({ companyName, userEmail, openAlerts }: SidebarProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [open])
 
+  // Close when clicking anywhere outside the panel.
+  useEffect(() => {
+    if (!open) return
+    const handler = (e: MouseEvent) => {
+      if (!asideRef.current?.contains(e.target as Node)) close()
+    }
+    document.addEventListener("mousedown", handler)
+    return () => document.removeEventListener("mousedown", handler)
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [open])
+
   return (
     <aside
+      ref={asideRef}
       onMouseEnter={clearTimer}
       onMouseLeave={startTimer}
       className={cn(
