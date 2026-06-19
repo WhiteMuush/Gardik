@@ -1,28 +1,27 @@
 "use client"
 
 import { useState, useCallback, useEffect, useRef, type ReactNode } from "react"
-import {
-  DndContext,
-  DragOverlay,
-  closestCenter,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  type DragEndEvent,
-  type DragStartEvent,
-} from "@dnd-kit/core"
-import {
-  SortableContext,
-  rectSortingStrategy,
-  useSortable,
-  arrayMove,
-} from "@dnd-kit/sortable"
-import { CSS } from "@dnd-kit/utilities"
-import { Settings2, Check, GripVertical, Eye, EyeOff, RotateCcw } from "lucide-react"
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const { ResponsiveGridLayout, verticalCompactor } = require("react-grid-layout")
+import "react-grid-layout/css/styles.css"
+import "react-resizable/css/styles.css"
+import { Settings2, Check, GripHorizontal, Eye, EyeOff, RotateCcw } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
-const STORAGE_KEY = "datashield:reports:layout:v4"
+const STORAGE_KEY = "datashield:reports:layout:v5"
+const COLS = 12
+const ROW_H = 50
+const MARGIN_Y = 16
+const DEFAULT_H = 5
+const MIN_W = 3
+const MIN_H = 3
+
+// Rows needed to show `px` of content without clipping (RGL cells are fixed
+// height: row n spans n*ROW_H + (n-1)*MARGIN_Y).
+function rowsForPx(px: number): number {
+  return Math.max(MIN_H, Math.ceil((px + MARGIN_Y) / (ROW_H + MARGIN_Y)))
+}
 
 export type Span = 4 | 6 | 12
 
@@ -33,96 +32,40 @@ export type ReportSectionEntry = {
   defaultSpan?: Span
 }
 
-type Saved = { order: string[]; spans: Record<string, Span>; hidden: string[] }
+type RglItem = { i: string; x: number; y: number; w: number; h: number; minW?: number; minH?: number }
+type Saved = { layout: RglItem[]; hidden: string[] }
 
-const SPAN_CLASS: Record<Span, string> = {
-  4: "col-span-12 md:col-span-4",
-  6: "col-span-12 md:col-span-6",
-  12: "col-span-12",
-}
-
-const SPAN_OPTIONS: { value: Span; label: string }[] = [
-  { value: 4, label: "1/3" },
-  { value: 6, label: "1/2" },
-  { value: 12, label: "Full" },
-]
-
-function SortableSection({
-  section,
-  span,
-  editing,
-  onSpan,
-}: {
-  section: ReportSectionEntry
-  span: Span
-  editing: boolean
-  onSpan: (span: Span) => void
-}) {
-  const { attributes, listeners, setNodeRef, setActivatorNodeRef, transform, transition, isDragging } =
-    useSortable({ id: section.id, disabled: !editing })
-
-  return (
-    <div
-      ref={setNodeRef}
-      data-section-id={section.id}
-      style={{ transform: CSS.Transform.toString(transform), transition }}
-      className={cn(
-        SPAN_CLASS[span],
-        "relative h-full",
-        isDragging && "opacity-0",
-        editing && "rounded-xl outline outline-2 outline-primary/30",
-      )}
-    >
-      {editing && (
-        <div className="absolute right-2 top-2 z-30 flex items-center gap-1">
-          <div className="flex items-center overflow-hidden rounded-md border border-border bg-card/95 shadow-sm backdrop-blur-sm">
-            {SPAN_OPTIONS.map((o) => (
-              <button
-                key={o.value}
-                type="button"
-                onClick={() => onSpan(o.value)}
-                className={cn(
-                  "px-2 py-1 text-[10px] font-medium transition-colors",
-                  span === o.value ? "bg-primary text-primary-foreground" : "text-muted-foreground hover:bg-muted",
-                )}
-                title={`Width: ${o.label}`}
-              >
-                {o.label}
-              </button>
-            ))}
-          </div>
-          <button
-            ref={setActivatorNodeRef}
-            type="button"
-            {...attributes}
-            {...listeners}
-            className="flex cursor-grab items-center gap-1 rounded-md border border-primary/40 bg-card/95 px-2 py-1 text-[10px] font-medium text-muted-foreground shadow-sm backdrop-blur-sm transition-colors hover:text-foreground active:cursor-grabbing"
-            title="Drag to reorder"
-          >
-            <GripVertical className="size-3" />
-            Move
-          </button>
-        </div>
-      )}
-      {section.content}
-    </div>
-  )
+// Pack sections into 12-col rows for the first-run layout.
+function buildDefaultLayout(sections: ReportSectionEntry[]): RglItem[] {
+  let x = 0
+  let y = 0
+  const out: RglItem[] = []
+  for (const s of sections) {
+    const w = s.defaultSpan ?? 12
+    if (x + w > COLS) {
+      x = 0
+      y += DEFAULT_H
+    }
+    out.push({ i: s.id, x, y, w, h: DEFAULT_H, minW: MIN_W, minH: MIN_H })
+    x += w
+    if (x >= COLS) {
+      x = 0
+      y += DEFAULT_H
+    }
+  }
+  return out
 }
 
 export function ReportCanvas({ sections }: { sections: ReportSectionEntry[] }) {
   const [editing, setEditing] = useState(false)
-  const [order, setOrder] = useState<string[]>(() => sections.map((s) => s.id))
-  const [spans, setSpans] = useState<Record<string, Span>>(
-    () => Object.fromEntries(sections.map((s) => [s.id, s.defaultSpan ?? 12])),
-  )
+  const [containerW, setContainerW] = useState(0)
+  const [layout, setLayout] = useState<RglItem[]>(() => buildDefaultLayout(sections))
   const [hidden, setHidden] = useState<string[]>([])
   const [sectionsMenuOpen, setSectionsMenuOpen] = useState(false)
-  const [activeId, setActiveId] = useState<string | null>(null)
-  const [overlayW, setOverlayW] = useState<number>()
+  const [minHeights, setMinHeights] = useState<Record<string, number>>({})
+  const containerRef = useRef<HTMLDivElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
-  const gridRef = useRef<HTMLDivElement>(null)
-
-  const sensors = useSensors(useSensor(PointerSensor, { activationConstraint: { distance: 4 } }))
+  const contentEls = useRef(new Map<string, HTMLDivElement>())
 
   // Hydrate from localStorage after mount (avoids SSR mismatch).
   useEffect(() => {
@@ -131,16 +74,80 @@ export function ReportCanvas({ sections }: { sections: ReportSectionEntry[] }) {
       if (!raw) return
       const saved: Saved = JSON.parse(raw)
       const ids = new Set(sections.map((s) => s.id))
-      const savedOrder = (saved.order ?? []).filter((id) => ids.has(id))
-      const missing = sections.map((s) => s.id).filter((id) => !savedOrder.includes(id))
-      setOrder([...savedOrder, ...missing])
-      setSpans((prev) => ({ ...prev, ...saved.spans }))
+      if (saved.layout?.length) {
+        const known = saved.layout.filter((l) => ids.has(l.i))
+        const missing = sections
+          .filter((s) => !known.some((l) => l.i === s.id))
+          .map((s) => ({ i: s.id, x: 0, y: Infinity, w: s.defaultSpan ?? 12, h: DEFAULT_H, minW: MIN_W, minH: MIN_H }))
+        setLayout([...known, ...missing])
+      }
       setHidden((saved.hidden ?? []).filter((id) => ids.has(id)))
     } catch {
       /* ignore corrupt storage */
     }
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
+
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el) return
+    const ro = new ResizeObserver((entries) => setContainerW(entries[0].contentRect.width))
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+
+  // Grow each tile to fit its content so nothing is clipped (RGL cells are
+  // fixed height). Only grows: a user resize larger than the content is kept.
+  // Also records each section's content-fit row count so it becomes a hard
+  // resize floor (minH): the handle stops at content height, no snap-back.
+  const fitHeights = useCallback(() => {
+    const neededH = new Map<string, number>()
+    contentEls.current.forEach((node, id) => {
+      // Measure the natural-height probe, not the cell-filling node, so the
+      // floor reflects the intrinsic content height and a manual grow does not
+      // raise the floor (which would block shrinking back down).
+      const probe = (node.querySelector("[data-measure]") as HTMLElement | null) ?? node
+      neededH.set(id, rowsForPx(probe.scrollHeight))
+    })
+    setMinHeights((prev) => {
+      let changed = false
+      const next = { ...prev }
+      neededH.forEach((n, id) => {
+        if (next[id] !== n) {
+          next[id] = n
+          changed = true
+        }
+      })
+      return changed ? next : prev
+    })
+    setLayout((prev) => {
+      let changed = false
+      const next = prev.map((l) => {
+        const nh = neededH.get(l.i)
+        // Height auto-fits content (grow and shrink) so there is never dead
+        // space below short content. Safe from feedback loops because the
+        // measurement reads the intrinsic probe, not the cell-sized node.
+        if (nh !== undefined && nh !== l.h) {
+          changed = true
+          return { ...l, h: nh }
+        }
+        return l
+      })
+      return changed ? next : prev
+    })
+  }, [])
+
+  useEffect(() => {
+    const ro = new ResizeObserver(() => fitHeights())
+    // Observe the intrinsic probe, not the cell-sized node: the cell height is
+    // driven by fitHeights, so observing it would feed an infinite loop.
+    contentEls.current.forEach((node) => {
+      const probe = node.querySelector("[data-measure]")
+      if (probe) ro.observe(probe)
+    })
+    fitHeights()
+    return () => ro.disconnect()
+  }, [fitHeights, hidden, containerW, sections.length])
 
   useEffect(() => {
     if (!sectionsMenuOpen) return
@@ -151,67 +158,72 @@ export function ReportCanvas({ sections }: { sections: ReportSectionEntry[] }) {
     return () => document.removeEventListener("mousedown", handler)
   }, [sectionsMenuOpen])
 
-  const persist = useCallback((next: Partial<Saved>) => {
+  const persist = useCallback((next: Saved) => {
     try {
-      const cur: Saved = { order, spans, hidden, ...next }
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(cur))
+      localStorage.setItem(STORAGE_KEY, JSON.stringify(next))
     } catch {
       /* storage unavailable */
     }
-  }, [order, spans, hidden])
+  }, [])
 
-  const byId = new Map(sections.map((s) => [s.id, s]))
-  const visibleOrder = order.filter((id) => !hidden.includes(id))
+  const visibleSections = sections.filter((s) => !hidden.includes(s.id))
 
-  const onDragStart = (e: DragStartEvent) => {
-    setActiveId(e.active.id as string)
-    const el = gridRef.current?.querySelector(`[data-section-id="${e.active.id}"]`)
-    setOverlayW(el?.getBoundingClientRect().width)
-  }
+  // Controlled layout for the grid; only visible sections are rendered, so a
+  // section with no saved position flows into free space (y: Infinity).
+  const rglLayout = visibleSections.map((s) => {
+    const base =
+      layout.find((l) => l.i === s.id) ?? {
+        i: s.id,
+        x: 0,
+        y: Infinity,
+        w: s.defaultSpan ?? 12,
+        h: DEFAULT_H,
+        minW: MIN_W,
+        minH: MIN_H,
+      }
+    // Content-fit height floor blocks shrinking below what the content needs,
+    // while still allowing manual grow. Width has no reliable intrinsic min
+    // (content reflows), so it stays freely resizable down to MIN_W.
+    const floorH = Math.max(MIN_H, minHeights[s.id] ?? MIN_H)
+    return {
+      ...base,
+      minH: floorH,
+      minW: MIN_W,
+      h: Math.max(base.h, floorH),
+    }
+  })
 
-  const onDragEnd = (e: DragEndEvent) => {
-    setActiveId(null)
-    const { active, over } = e
-    if (!over || active.id === over.id) return
-    setOrder((prev) => {
-      const next = arrayMove(prev, prev.indexOf(active.id as string), prev.indexOf(over.id as string))
-      persist({ order: next })
-      return next
-    })
-  }
-
-  const setSpan = (id: string, span: Span) => {
-    setSpans((prev) => {
-      const next = { ...prev, [id]: span }
-      persist({ spans: next })
-      return next
-    })
+  const onLayoutChange = (current: RglItem[]) => {
+    // Keep hidden sections' saved positions so toggling them back never loses placement.
+    const visibleIds = new Set(current.map((l) => l.i))
+    const preserved = layout.filter((l) => !visibleIds.has(l.i))
+    const next = [...current.map((l) => ({ ...l })), ...preserved]
+    setLayout(next)
+    if (editing) persist({ layout: next, hidden })
   }
 
   const toggleHidden = (id: string) => {
     setHidden((prev) => {
       const next = prev.includes(id) ? prev.filter((h) => h !== id) : [...prev, id]
-      persist({ hidden: next })
+      persist({ layout, hidden: next })
       return next
     })
   }
 
   const reset = () => {
-    const o = sections.map((s) => s.id)
-    const sp = Object.fromEntries(sections.map((s) => [s.id, s.defaultSpan ?? 12])) as Record<string, Span>
-    setOrder(o)
-    setSpans(sp)
+    const l = buildDefaultLayout(sections)
+    setLayout(l)
     setHidden([])
-    persist({ order: o, spans: sp, hidden: [] })
+    persist({ layout: l, hidden: [] })
   }
 
   return (
-    <div className="flex flex-col">
+    <div className="flex flex-1 flex-col">
       {/* Toolbar */}
       <div className="no-print mb-3 flex shrink-0 items-center justify-end gap-2">
         {editing && (
           <>
-            <p className="mr-auto text-xs text-muted-foreground">Drag to reorder, set width, toggle sections</p>
+            <p className="mr-auto text-xs text-muted-foreground">Drag to move, resize, toggle sections</p>
             <div ref={menuRef} className="relative">
               <button
                 onClick={() => setSectionsMenuOpen((o) => !o)}
@@ -260,40 +272,54 @@ export function ReportCanvas({ sections }: { sections: ReportSectionEntry[] }) {
         )}
       </div>
 
-      {/* Flow grid (screen). Rows stretch and dense flow backfills holes, so 1/3 and
-          1/2 tiles fill empty space instead of leaving gaps. */}
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCenter}
-        onDragStart={onDragStart}
-        onDragEnd={onDragEnd}
-        onDragCancel={() => setActiveId(null)}
-      >
-        <SortableContext items={visibleOrder} strategy={rectSortingStrategy}>
-          <div ref={gridRef} className="no-print grid grid-cols-12 gap-4 [grid-auto-flow:row_dense]">
-            {visibleOrder.map((id) => {
-              const section = byId.get(id)
-              if (!section) return null
-              return (
-                <SortableSection
-                  key={id}
-                  section={section}
-                  span={spans[id] ?? section.defaultSpan ?? 12}
-                  editing={editing}
-                  onSpan={(span) => setSpan(id, span)}
-                />
-              )
-            })}
-          </div>
-        </SortableContext>
-        <DragOverlay>
-          {activeId ? (
-            <div style={{ width: overlayW }} className="rounded-xl outline outline-2 outline-primary/50">
-              {byId.get(activeId)?.content}
-            </div>
-          ) : null}
-        </DragOverlay>
-      </DndContext>
+      {/* Grid. react-grid-layout (same engine as the dashboard): drag is bounded
+          to the container, vertical compaction backfills holes, and tiles keep
+          their real size. Drag is limited to the explicit handle. */}
+      <div ref={containerRef} className={cn("no-print", editing && "select-none [&_.react-resizable-handle]:block")}>
+        {containerW > 0 && (
+          <ResponsiveGridLayout
+            className="layout"
+            width={containerW}
+            breakpoints={{ lg: 0 }}
+            cols={{ lg: COLS }}
+            layouts={{ lg: rglLayout }}
+            rowHeight={50}
+            compactor={verticalCompactor}
+            dragConfig={{ enabled: editing, handle: ".widget-drag-handle" }}
+            resizeConfig={{ enabled: editing }}
+            onLayoutChange={onLayoutChange}
+            margin={[16, 16]}
+            containerPadding={[0, 0]}
+          >
+            {visibleSections.map((s) => (
+              <div
+                key={s.id}
+                className={cn("relative h-full overflow-hidden", editing && "rounded-xl outline outline-2 outline-primary/30")}
+              >
+                {editing && (
+                  <button
+                    type="button"
+                    className="widget-drag-handle absolute right-2 top-2 z-30 flex cursor-grab items-center gap-1 rounded-md border border-primary/40 bg-card/95 px-2 py-1 text-[10px] font-medium text-muted-foreground shadow-sm backdrop-blur-sm transition-colors hover:text-foreground active:cursor-grabbing"
+                    title="Drag to move"
+                  >
+                    <GripHorizontal className="size-3" />
+                    Move
+                  </button>
+                )}
+                <div
+                  ref={(node) => {
+                    if (node) contentEls.current.set(s.id, node)
+                    else contentEls.current.delete(s.id)
+                  }}
+                  className="h-full overflow-auto"
+                >
+                  {s.content}
+                </div>
+              </div>
+            ))}
+          </ResponsiveGridLayout>
+        )}
+      </div>
     </div>
   )
 }

@@ -12,7 +12,7 @@ export function ExposureSection({ data, deltas }: { data: ExposureSummary; delta
       title="Company exposure"
       description="Overall breach exposure across the workforce"
     >
-      <div className="grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <div className="grid grid-cols-1 gap-4 @lg:grid-cols-2 @4xl:grid-cols-4">
         <StatCard label="Employees" value={data.totalEmployees} icon={Users} />
         <StatCard
           label="Exposed"
@@ -47,7 +47,7 @@ export function ExposureSection({ data, deltas }: { data: ExposureSummary; delta
               <thead className="bg-muted/50 text-left text-xs text-muted-foreground">
                 <tr>
                   <th className="px-3 py-2 font-medium">Breach</th>
-                  <th className="px-3 py-2 font-medium">Source</th>
+                  <th className="hidden px-3 py-2 font-medium @[420px]:table-cell">Source</th>
                   <th className="px-3 py-2 text-right font-medium">Affected</th>
                 </tr>
               </thead>
@@ -55,7 +55,7 @@ export function ExposureSection({ data, deltas }: { data: ExposureSummary; delta
                 {data.topBreaches.map((b) => (
                   <tr key={b.name} className="border-t border-border">
                     <td className="px-3 py-2 text-foreground">{b.name}</td>
-                    <td className="px-3 py-2 text-muted-foreground">{b.source}</td>
+                    <td className="hidden px-3 py-2 text-muted-foreground @[420px]:table-cell">{b.source}</td>
                     <td className="px-3 py-2 text-right tabular-nums text-foreground">
                       {b.affectedEmployees}
                     </td>
