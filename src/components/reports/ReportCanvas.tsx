@@ -91,7 +91,14 @@ export function ReportCanvas({ sections }: { sections: ReportSectionEntry[] }) {
   useEffect(() => {
     const el = containerRef.current
     if (!el) return
-    const ro = new ResizeObserver((entries) => setContainerW(entries[0].contentRect.width))
+    // Round and dedupe: contentRect.width is fractional and jitters by
+    // sub-pixels as tiles auto-fit, and containerW is a dependency of the
+    // fitHeights effect. An unrounded value changes every render and feeds an
+    // endless update loop (Maximum update depth exceeded).
+    const ro = new ResizeObserver((entries) => {
+      const w = Math.round(entries[0].contentRect.width)
+      setContainerW((prev) => (prev === w ? prev : w))
+    })
     ro.observe(el)
     return () => ro.disconnect()
   }, [])
@@ -194,6 +201,19 @@ export function ReportCanvas({ sections }: { sections: ReportSectionEntry[] }) {
   })
 
   const onLayoutChange = (current: RglItem[]) => {
+    // RGL fires this on every layout-prop change (which we recreate each
+    // render). Bail out when nothing actually moved/resized, otherwise the
+    // setLayout -> re-render -> new layout prop -> onLayoutChange cycle never
+    // settles (Maximum update depth exceeded).
+    const prevById = new Map(layout.map((l) => [l.i, l]))
+    const unchanged =
+      current.length > 0 &&
+      current.every((c) => {
+        const p = prevById.get(c.i)
+        return p && p.x === c.x && p.y === c.y && p.w === c.w && p.h === c.h
+      })
+    if (unchanged) return
+
     // Keep hidden sections' saved positions so toggling them back never loses placement.
     const visibleIds = new Set(current.map((l) => l.i))
     const preserved = layout.filter((l) => !visibleIds.has(l.i))
