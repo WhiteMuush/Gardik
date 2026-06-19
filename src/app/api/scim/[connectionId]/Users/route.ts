@@ -1,6 +1,6 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
-import { authenticateScim } from "@/lib/directory/scim-auth"
+import { authenticateScim, checkScimRateLimit } from "@/lib/directory/scim-auth"
 
 const SCHEMA_USER = "urn:ietf:params:scim:schemas:core:2.0:User"
 const SCHEMA_LIST = "urn:ietf:params:scim:api:messages:2.0:ListResponse"
@@ -28,6 +28,8 @@ export async function POST(
   { params }: { params: Promise<{ connectionId: string }> }
 ) {
   const { connectionId } = await params
+  if (!checkScimRateLimit(connectionId))
+    return NextResponse.json({ status: 429, detail: "Too many requests" }, { status: 429 })
   const ctx = await authenticateScim(req, connectionId)
   if (!ctx) return NextResponse.json({ status: 401, detail: "Unauthorized" }, { status: 401 })
 
@@ -68,6 +70,8 @@ export async function GET(
   { params }: { params: Promise<{ connectionId: string }> }
 ) {
   const { connectionId } = await params
+  if (!checkScimRateLimit(connectionId))
+    return NextResponse.json({ status: 429, detail: "Too many requests" }, { status: 429 })
   const ctx = await authenticateScim(req, connectionId)
   if (!ctx) return NextResponse.json({ status: 401, detail: "Unauthorized" }, { status: 401 })
 
