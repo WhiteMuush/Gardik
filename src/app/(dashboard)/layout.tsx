@@ -1,7 +1,6 @@
 import { auth } from "@/auth"
 import { redirect } from "next/navigation"
-import { Sidebar } from "@/components/layout/Sidebar"
-import { Topbar } from "@/components/layout/Topbar"
+import { DashboardShell } from "@/components/layout/DashboardShell"
 import { RoutePrefetcher } from "@/components/layout/RoutePrefetcher"
 import { Providers } from "@/components/providers"
 import { getOpenAlertCount } from "@/lib/alerts"
@@ -19,17 +18,13 @@ export default async function DashboardLayout({
   return (
     <Providers>
       <RoutePrefetcher />
-      <div className="flex h-screen overflow-hidden">
-        <Sidebar
-          companyName={session.user.name ?? ""}
-          userEmail={session.user.email ?? ""}
-          openAlerts={openAlerts}
-        />
-        <div className="flex flex-1 flex-col overflow-hidden">
-          <Topbar />
-          <main className="flex flex-1 flex-col min-h-0 overflow-hidden">{children}</main>
-        </div>
-      </div>
+      <DashboardShell
+        companyName={session.user.name ?? ""}
+        userEmail={session.user.email ?? ""}
+        openAlerts={openAlerts}
+      >
+        {children}
+      </DashboardShell>
     </Providers>
   )
 }
