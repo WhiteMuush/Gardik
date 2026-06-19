@@ -11,6 +11,10 @@ model Company {
   name      String
   domain    String   @unique
   logoUrl   String?
+  // Auto-scan cadence in minutes (null = disabled); lastScanAt tracks the last
+  // scheduler-triggered scan so the next one is only due after the interval.
+  scanIntervalMinutes Int?
+  lastScanAt          DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -33,6 +37,9 @@ model DirectoryConnection {
   lastSyncAt      DateTime?
   lastSyncCount   Int?
   errorMessage    String?
+  // Auto-sync cadence in minutes (null = disabled). The scheduler enqueues a
+  // SyncJob once lastSyncAt is older than this interval.
+  autoSyncIntervalMinutes Int?
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 
