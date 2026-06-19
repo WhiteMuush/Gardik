@@ -54,7 +54,7 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
   ]
 
   return (
-    <div id="report-root" className="flex h-full flex-col overflow-y-auto p-6 [scrollbar-gutter:stable]">
+    <div id="report-root" className="flex h-full flex-col overflow-y-scroll p-6 [scrollbar-gutter:stable]">
       <div className="mb-6 hidden print:block">
         <h1 className="text-xl font-semibold text-foreground">DataShield Security Report</h1>
         <p className="text-sm text-muted-foreground">
