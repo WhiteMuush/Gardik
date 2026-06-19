@@ -40,7 +40,7 @@ export async function loadActiveProviders(companyId: string): Promise<ActiveProv
   return active
 }
 
-function severityFor(dataTypes: string[]): Severity {
+export function severityFor(dataTypes: string[]): Severity {
   const critical = dataTypes.filter((d) => CRITICAL_TYPES.includes(d)).length
   if (critical >= 2) return "CRITICAL"
   if (critical === 1) return "HIGH"
