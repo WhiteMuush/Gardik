@@ -63,6 +63,8 @@ export function ReportCanvas({ sections }: { sections: ReportSectionEntry[] }) {
   const [hidden, setHidden] = useState<string[]>([])
   const [sectionsMenuOpen, setSectionsMenuOpen] = useState(false)
   const [minHeights, setMinHeights] = useState<Record<string, number>>({})
+  // Bumped to force a re-measure even when widths are unchanged (e.g. Reset).
+  const [measureNonce, setMeasureNonce] = useState(0)
   const containerRef = useRef<HTMLDivElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
   const contentEls = useRef(new Map<string, HTMLDivElement>())
@@ -96,8 +98,12 @@ export function ReportCanvas({ sections }: { sections: ReportSectionEntry[] }) {
     // fitHeights effect. An unrounded value changes every render and feeds an
     // endless update loop (Maximum update depth exceeded).
     const ro = new ResizeObserver((entries) => {
-      const w = Math.round(entries[0].contentRect.width)
-      setContainerW((prev) => (prev === w ? prev : w))
+      // Floor (never round up): the grid is rendered at width=containerW, and a
+      // value 1px wider than the container overflows horizontally, toggling a
+      // scrollbar that shrinks the container, which feeds an endless loop.
+      const w = Math.floor(entries[0].contentRect.width)
+      // Ignore sub-2px wobble so a 1px layout ping-pong cannot drive a loop.
+      setContainerW((prev) => (Math.abs(prev - w) < 2 ? prev : w))
     })
     ro.observe(el)
     return () => ro.disconnect()
@@ -144,17 +150,16 @@ export function ReportCanvas({ sections }: { sections: ReportSectionEntry[] }) {
     })
   }, [])
 
+  // Content height only changes with width (container queries reflow on the
+  // tile width). Re-measure when widths change, never via a continuous
+  // ResizeObserver: height is intentionally NOT a dependency, so fitHeights
+  // setting h cannot retrigger this effect. That makes the auto-fit
+  // loop-free by construction (previous versions oscillated forever).
+  const widthSig = layout.map((l) => `${l.i}:${l.w}`).join("|")
+  const hiddenSig = hidden.join(",")
   useEffect(() => {
-    const ro = new ResizeObserver(() => fitHeights())
-    // Observe the intrinsic probe, not the cell-sized node: the cell height is
-    // driven by fitHeights, so observing it would feed an infinite loop.
-    contentEls.current.forEach((node) => {
-      const probe = node.querySelector("[data-measure]")
-      if (probe) ro.observe(probe)
-    })
     fitHeights()
-    return () => ro.disconnect()
-  }, [fitHeights, hidden, containerW, sections.length])
+  }, [fitHeights, widthSig, containerW, hiddenSig, sections.length, measureNonce])
 
   useEffect(() => {
     if (!sectionsMenuOpen) return
@@ -192,12 +197,10 @@ export function ReportCanvas({ sections }: { sections: ReportSectionEntry[] }) {
     // while still allowing manual grow. Width has no reliable intrinsic min
     // (content reflows), so it stays freely resizable down to MIN_W.
     const floorH = Math.max(MIN_H, minHeights[s.id] ?? MIN_H)
-    return {
-      ...base,
-      minH: floorH,
-      minW: MIN_W,
-      h: Math.max(base.h, floorH),
-    }
+    // h comes straight from layout state (fitHeights keeps it at the content
+    // floor); do not override it here, or the rendered h differs from stored h
+    // and RGL keeps echoing the difference back through onLayoutChange.
+    return { ...base, minH: floorH, minW: MIN_W }
   })
 
   const onLayoutChange = (current: RglItem[]) => {
@@ -234,6 +237,11 @@ export function ReportCanvas({ sections }: { sections: ReportSectionEntry[] }) {
     const l = buildDefaultLayout(sections)
     setLayout(l)
     setHidden([])
+    // Drop stale content-fit floors (they may have been measured at a different
+    // zoom/width) and force a fresh measure, otherwise default heights can be
+    // wrong and tiles overlap.
+    setMinHeights({})
+    setMeasureNonce((n) => n + 1)
     persist({ layout: l, hidden: [] })
   }
 
@@ -331,7 +339,7 @@ export function ReportCanvas({ sections }: { sections: ReportSectionEntry[] }) {
                     if (node) contentEls.current.set(s.id, node)
                     else contentEls.current.delete(s.id)
                   }}
-                  className="h-full overflow-auto"
+                  className="h-full overflow-hidden"
                 >
                   {s.content}
                 </div>
