@@ -1,7 +1,7 @@
 import { NextResponse } from "next/server"
 import { requireAdmin } from "@/lib/apiAuth"
 import { prisma } from "@/lib/prisma"
-import { syncDirectoryConnection } from "@/lib/directory/sync"
+import { enqueueSyncJob, processSyncJobs } from "@/lib/directory/jobs"
 
 export async function POST(
   _req: Request,
@@ -12,23 +12,21 @@ export async function POST(
 
   const { id } = await params
 
-  // Shared Postgres advisory lock: survives multi-replica, unlike an
-  // in-memory Set. xact_lock auto-releases on commit/rollback, so no stale
-  // lock is left behind if the process crashes during the sync.
-  try {
-    const result = await prisma.$transaction(async (tx) => {
-      const [{ locked }] = await tx.$queryRaw<{ locked: boolean }[]>`
-        SELECT pg_try_advisory_xact_lock(hashtextextended(${id}, 0)) AS locked
-      `
-      if (!locked) return { conflict: true as const }
-      const synced = await syncDirectoryConnection(id, session.user.companyId)
-      return { conflict: false as const, synced }
-    })
+  // Scope the connection to the caller's company before enqueueing.
+  const connection = await prisma.directoryConnection.findFirst({
+    where: { id, companyId: session.user.companyId },
+    select: { id: true },
+  })
+  if (!connection)
+    return NextResponse.json({ error: "Connection not found" }, { status: 404 })
 
-    if (result.conflict)
-      return NextResponse.json({ error: "Sync already running" }, { status: 409 })
-    return NextResponse.json(result.synced)
-  } catch (e: unknown) {
-    return NextResponse.json({ error: (e as Error).message }, { status: 500 })
-  }
+  const job = await enqueueSyncJob(id)
+
+  // Kick the queue without blocking the response. The sync runs outside the
+  // request cycle (no timeout risk on large directories); a scheduler also
+  // drains the queue, so a dropped fire-and-forget here is only a delay, not a
+  // lost job. Concurrency is handled by the job claim, not this call.
+  void processSyncJobs().catch(() => {})
+
+  return NextResponse.json({ jobId: job.id, status: job.status }, { status: 202 })
 }

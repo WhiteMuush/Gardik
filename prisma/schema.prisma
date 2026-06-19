@@ -36,9 +36,36 @@ model DirectoryConnection {
   createdAt       DateTime      @default(now())
   updatedAt       DateTime      @updatedAt
 
-  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  company  Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  syncJobs SyncJob[]
 
   @@index([companyId])
+}
+
+model SyncJob {
+  id           String        @id @default(cuid())
+  connectionId String
+  status       SyncJobStatus @default(PENDING)
+  attempts     Int           @default(0)
+  maxAttempts  Int           @default(3)
+  lastError    String?
+  runAfter     DateTime      @default(now())
+  startedAt    DateTime?
+  finishedAt   DateTime?
+  createdAt    DateTime      @default(now())
+  updatedAt    DateTime      @updatedAt
+
+  connection DirectoryConnection @relation(fields: [connectionId], references: [id], onDelete: Cascade)
+
+  @@index([status, runAfter])
+  @@index([connectionId])
+}
+
+enum SyncJobStatus {
+  PENDING
+  RUNNING
+  SUCCEEDED
+  FAILED
 }
 
 enum DirectoryType {
