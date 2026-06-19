@@ -19,6 +19,7 @@
   "scripts": {
     "predev": "prisma migrate status || echo '\\n[!] Pending migrations or DB unreachable. If the app errors on a missing table, run: npm run db:migrate\\n'",
     "dev": "next dev",
+    "dev:turbo": "next dev --turbopack",
     "build": "next build",
     "start": "next start",
     "lint": "eslint .",
