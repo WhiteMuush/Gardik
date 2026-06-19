@@ -32,7 +32,8 @@
     "db:migrate": "prisma migrate deploy",
     "postinstall": "prisma generate",
     "prepare": "sh .githooks/install.sh",
-    "seed:dev": "dotenv -e .env.local -- tsx prisma/seed.dev.ts"
+    "seed:dev": "dotenv -e .env.local -- tsx prisma/seed.dev.ts",
+    "reencrypt:directory": "dotenv -e .env.local -- tsx scripts/reencrypt-directory-configs.ts"
   },
   "dependencies": {
     "@aws-sdk/client-identitystore": "^3.1069.0",
