@@ -1,15 +1,17 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
 
 const requireAdmin = vi.fn()
-const queryRaw = vi.fn()
-const transaction = vi.fn()
-const syncDirectoryConnection = vi.fn()
+const findFirst = vi.fn()
+const enqueueSyncJob = vi.fn()
+const processSyncJobs = vi.fn()
 
 vi.mock("@/lib/apiAuth", () => ({ requireAdmin: () => requireAdmin() }))
-vi.mock("@/lib/prisma", () => ({ prisma: { $transaction: (cb: unknown) => transaction(cb) } }))
-vi.mock("@/lib/directory/sync", () => ({
-  syncDirectoryConnection: (id: string, companyId: string) =>
-    syncDirectoryConnection(id, companyId),
+vi.mock("@/lib/prisma", () => ({
+  prisma: { directoryConnection: { findFirst: (a: unknown) => findFirst(a) } },
+}))
+vi.mock("@/lib/directory/jobs", () => ({
+  enqueueSyncJob: (id: string) => enqueueSyncJob(id),
+  processSyncJobs: () => processSyncJobs(),
 }))
 
 import { POST } from "./route"
@@ -17,62 +19,46 @@ import { POST } from "./route"
 const params = Promise.resolve({ id: "conn-1" })
 const req = new Request("http://localhost/api/directory/conn-1/sync", { method: "POST" })
 
-// $transaction runs the callback with a tx whose $queryRaw yields the lock result.
-function withLock(locked: boolean) {
-  queryRaw.mockResolvedValue([{ locked }])
-  transaction.mockImplementation((cb: (tx: unknown) => unknown) =>
-    cb({ $queryRaw: () => queryRaw() })
-  )
-}
-
 beforeEach(() => {
   vi.clearAllMocks()
   requireAdmin.mockResolvedValue({ session: { user: { companyId: "co-1" } }, error: null })
+  findFirst.mockResolvedValue({ id: "conn-1" })
+  enqueueSyncJob.mockResolvedValue({ id: "job-1", status: "PENDING" })
+  processSyncJobs.mockResolvedValue({ processed: 1 })
 })
 
 describe("POST /api/directory/[id]/sync", () => {
-  it("returns 401-style error from requireAdmin without touching the lock", async () => {
-    const error = NextResponseLike(401)
+  it("propagates the auth error without enqueueing", async () => {
+    const error = { status: 401 } as unknown
     requireAdmin.mockResolvedValue({ session: null, error })
 
     const res = await POST(req, { params })
 
     expect(res).toBe(error)
-    expect(transaction).not.toHaveBeenCalled()
+    expect(enqueueSyncJob).not.toHaveBeenCalled()
   })
 
-  it("runs the sync when the advisory lock is acquired", async () => {
-    withLock(true)
-    syncDirectoryConnection.mockResolvedValue({ synced: 42 })
+  it("returns 404 when the connection is not in the caller's company", async () => {
+    findFirst.mockResolvedValue(null)
 
     const res = await POST(req, { params })
 
-    expect(syncDirectoryConnection).toHaveBeenCalledWith("conn-1", "co-1")
-    expect(res.status).toBe(200)
-    expect(await res.json()).toEqual({ synced: 42 })
+    expect(res.status).toBe(404)
+    expect(enqueueSyncJob).not.toHaveBeenCalled()
   })
 
-  it("returns 409 and skips the sync when the lock is held elsewhere", async () => {
-    withLock(false)
-
+  it("enqueues a job and returns 202 with the job id", async () => {
     const res = await POST(req, { params })
 
-    expect(syncDirectoryConnection).not.toHaveBeenCalled()
-    expect(res.status).toBe(409)
-    expect(await res.json()).toEqual({ error: "Sync already running" })
+    expect(enqueueSyncJob).toHaveBeenCalledWith("conn-1")
+    expect(res.status).toBe(202)
+    expect(await res.json()).toEqual({ jobId: "job-1", status: "PENDING" })
   })
 
-  it("returns 500 when the sync throws", async () => {
-    withLock(true)
-    syncDirectoryConnection.mockRejectedValue(new Error("boom"))
-
-    const res = await POST(req, { params })
-
-    expect(res.status).toBe(500)
-    expect(await res.json()).toEqual({ error: "boom" })
+  it("scopes the lookup to the caller's company", async () => {
+    await POST(req, { params })
+    expect(findFirst).toHaveBeenCalledWith(
+      expect.objectContaining({ where: { id: "conn-1", companyId: "co-1" } })
+    )
   })
 })
-
-function NextResponseLike(status: number) {
-  return { status, body: "auth" } as unknown
-}
