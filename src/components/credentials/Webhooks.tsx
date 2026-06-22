@@ -6,6 +6,12 @@ import { Button } from "@/components/ui/button"
 import type { WebhookRow } from "@/lib/webhooks"
 
 const SEVERITIES = ["CRITICAL", "HIGH", "MEDIUM", "LOW"] as const
+const CHANNELS = [
+  { id: "WEBHOOK", label: "Webhook", placeholder: "https://example.com/hook" },
+  { id: "SLACK", label: "Slack", placeholder: "https://hooks.slack.com/..." },
+  { id: "TEAMS", label: "Teams", placeholder: "https://outlook.office.com/webhook/..." },
+  { id: "EMAIL", label: "Email", placeholder: "alerts@company.com" },
+] as const
 
 type Props = {
   initial: WebhookRow[]
@@ -16,6 +22,7 @@ export function Webhooks({ initial, isAdmin }: Props) {
   const [hooks, setHooks] = useState(initial)
   const [label, setLabel] = useState("")
   const [url, setUrl] = useState("")
+  const [channel, setChannel] = useState<string>("WEBHOOK")
   const [minSeverity, setMinSeverity] = useState<string>("MEDIUM")
   const [busy, setBusy] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -27,7 +34,7 @@ export function Webhooks({ initial, isAdmin }: Props) {
     const res = await fetch("/api/webhooks", {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ label, url, minSeverity }),
+      body: JSON.stringify({ label, url, channel, minSeverity }),
     })
     const data = await res.json()
     setBusy(null)
@@ -70,7 +77,7 @@ export function Webhooks({ initial, isAdmin }: Props) {
         <h3 className="text-sm font-semibold text-foreground">Notification webhooks</h3>
       </div>
       <p className="mb-4 text-xs text-muted-foreground">
-        POST a JSON payload to Slack, Teams or any HTTPS endpoint when a new exposure is detected.
+        Notify Slack, Microsoft Teams, an email address or any HTTPS endpoint when a new exposure is detected.
       </p>
 
       <div className="space-y-2">
@@ -82,7 +89,7 @@ export function Webhooks({ initial, isAdmin }: Props) {
             <div className="min-w-0 flex-1">
               <p className="truncate text-sm font-medium text-foreground">{w.label}</p>
               <p className="truncate text-xs text-muted-foreground">
-                {w.urlHint} - min {w.minSeverity}
+                {w.channel} - {w.urlHint} - min {w.minSeverity}
               </p>
             </div>
             {tested[w.id] !== undefined &&
@@ -131,8 +138,17 @@ export function Webhooks({ initial, isAdmin }: Props) {
             onChange={(e) => setLabel(e.target.value)}
             className="w-32 rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none"
           />
+          <select
+            value={channel}
+            onChange={(e) => setChannel(e.target.value)}
+            className="rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground focus:border-ring focus:outline-none"
+          >
+            {CHANNELS.map((c) => (
+              <option key={c.id} value={c.id}>{c.label}</option>
+            ))}
+          </select>
           <input
-            placeholder="https://hooks.slack.com/..."
+            placeholder={CHANNELS.find((c) => c.id === channel)?.placeholder}
             value={url}
             onChange={(e) => setUrl(e.target.value)}
             className="min-w-0 flex-1 rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none"
