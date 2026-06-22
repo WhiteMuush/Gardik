@@ -2,6 +2,7 @@ import { plural } from "./utils"
 import type {
   ComplianceSummary,
   DataTypeExposure,
+  EmployeeReportRow,
   ExposureSummary,
   Finding,
   ReportDeltas,
@@ -111,14 +112,29 @@ function deltaFindings(d: ReportDeltas): Finding[] {
   return out
 }
 
+// An exposed employee without MFA is the highest-leverage account to fix: a
+// leaked credential is directly usable. Flag the cohort when it is non-empty.
+function mfaFindings(employees: EmployeeReportRow[]): Finding[] {
+  const gap = employees.filter((e) => e.breachCount > 0 && e.mfaEnabled === false).length
+  if (gap === 0) return []
+  return [
+    {
+      severity: "critical",
+      message: `${plural(gap, "exposed employee")} lack MFA. Prioritize enrollment for these accounts.`,
+    },
+  ]
+}
+
 export function buildFindings(
   exposure: ExposureSummary,
   compliance: ComplianceSummary,
   dataTypes: DataTypeExposure[],
-  deltas: ReportDeltas
+  deltas: ReportDeltas,
+  employees: EmployeeReportRow[]
 ): Finding[] {
   return [
     ...alertFindings(compliance),
+    ...mfaFindings(employees),
     ...exposureFindings(exposure),
     ...dataFindings(dataTypes),
     ...deltaFindings(deltas),

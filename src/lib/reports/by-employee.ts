@@ -17,5 +17,6 @@ export async function getEmployeeBreakdown(companyId: string, f: ReportFilters):
     lastDetectedAt: e.lastDetectedAt ? e.lastDetectedAt.toISOString() : null,
     riskScore: e.riskScore,
     riskLevel: e.riskLevel,
+    mfaEnabled: e.mfaEnabled,
   }))
 }

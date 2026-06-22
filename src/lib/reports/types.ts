@@ -34,6 +34,7 @@ export type EmployeeReportRow = {
   lastDetectedAt: string | null
   riskScore: number
   riskLevel: RiskLevel
+  mfaEnabled: boolean | null
 }
 
 export type MonthlyPoint = {

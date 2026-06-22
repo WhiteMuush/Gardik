@@ -129,6 +129,19 @@ export async function getDashboardData(companyId: string) {
   const weights = resolveRiskWeights(company?.riskWeights)
   const companyDomain = company?.domain ?? ""
 
+  const [mfaEnabledCount, mfaDisabledCount, exposedWithoutMfa] = await Promise.all([
+    prisma.employee.count({ where: { companyId, mfaEnabled: true } }),
+    prisma.employee.count({ where: { companyId, mfaEnabled: false } }),
+    prisma.employee.count({ where: { companyId, mfaEnabled: false, breachRecords: { some: {} } } }),
+  ])
+  const mfaCoverage = {
+    enabled: mfaEnabledCount,
+    disabled: mfaDisabledCount,
+    unknown: Math.max(0, totalEmployees - mfaEnabledCount - mfaDisabledCount),
+    exposedWithoutMfa,
+    total: totalEmployees,
+  }
+
   return {
     totalEmployees,
     compromisedEmployees,
@@ -147,6 +160,7 @@ export async function getDashboardData(companyId: string) {
       affectedEmployees: new Set(b.records.map((r) => r.employeeId)).size,
     })),
     departmentRisk: buildDepartmentRisk(departmentEmployees),
+    mfaCoverage,
     topRiskyEmployees: buildTopRiskyEmployees(topRiskyEmployees, companyDomain, weights),
     recentAlerts: recentAlerts.map((a) => ({
       id: a.id,
