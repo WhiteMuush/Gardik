@@ -15,6 +15,7 @@ vi.mock("@/lib/prisma", () => ({
 vi.mock("@/lib/reports", () => ({ getReportData: () => Promise.resolve({ generatedAt: "now" }) }))
 vi.mock("@/lib/reports/csv", () => ({ reportCsv: () => "csv" }))
 vi.mock("@/lib/reports/html", () => ({ reportHtml: () => "<html></html>" }))
+vi.mock("@/lib/reports/pdf", () => ({ reportPdf: () => Promise.resolve(Buffer.from("pdf")) }))
 vi.mock("@/lib/email", () => ({ sendEmail: (...a: unknown[]) => sendEmail(...a) }))
 vi.mock("@/lib/scheduler", () => ({
   isDue: (last: Date | null, mins: number, now: Date) =>

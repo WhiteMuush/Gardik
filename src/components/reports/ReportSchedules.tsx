@@ -73,8 +73,8 @@ export function ReportSchedules({ initial, isAdmin }: { initial: ScheduleRow[]; 
         <h3 className="text-sm font-semibold text-foreground">Scheduled report delivery</h3>
       </div>
       <p className="mb-4 text-xs text-muted-foreground">
-        Email a periodic report (HTML summary plus a full CSV attachment) to stakeholders without
-        anyone logging in. Requires email to be configured.
+        Email a periodic report (PDF and CSV attachments) to stakeholders without anyone logging in.
+        Requires email to be configured.
       </p>
 
       <div className="space-y-2">

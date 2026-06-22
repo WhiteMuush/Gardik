@@ -2,6 +2,7 @@ import { prisma } from "@/lib/prisma"
 import { getReportData } from "@/lib/reports"
 import { reportCsv } from "@/lib/reports/csv"
 import { reportHtml, type ReportSection } from "@/lib/reports/html"
+import { reportPdf } from "@/lib/reports/pdf"
 import { sendEmail } from "@/lib/email"
 import { isDue } from "@/lib/scheduler"
 import type { ScheduleFrequency } from "@prisma/client"
@@ -42,9 +43,11 @@ export async function sendScheduledReport(schedule: Schedule): Promise<boolean> 
   const data = await getReportData(schedule.companyId)
   const html = reportHtml(sections, data)
   const csv = reportCsv("all", data)
+  const pdf = await reportPdf(sections, data)
   const date = new Date().toISOString().slice(0, 10)
 
   return sendEmail(schedule.recipients, `DataShield report - ${date}`, html, [
+    { filename: `datashield-report-${date}.pdf`, content: pdf.toString("base64") },
     { filename: `datashield-report-${date}.csv`, content: Buffer.from(csv).toString("base64") },
   ])
 }
