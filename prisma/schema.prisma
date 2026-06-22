@@ -38,6 +38,29 @@ model Company {
   webhooks             Webhook[]
   remediationActions   RemediationAction[]
   exposureRegister     ExposureRegisterEntry[]
+  reportSchedules      ReportSchedule[]
+}
+
+// A recurring report emailed to a recipient list (driven by the scheduler).
+model ReportSchedule {
+  id         String            @id @default(cuid())
+  companyId  String
+  frequency  ScheduleFrequency
+  recipients String[]
+  sections   String[]
+  enabled    Boolean           @default(true)
+  lastSentAt DateTime?
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+}
+
+enum ScheduleFrequency {
+  WEEKLY
+  MONTHLY
 }
 
 // GDPR Article 33/30 exposure register: a documented record of each confirmed

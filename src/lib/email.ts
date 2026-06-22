@@ -42,3 +42,26 @@ export async function sendBreachAlert(recipients: string[], alert: BreachAlert):
     // Notification failures must never abort a scan.
   }
 }
+
+export type EmailAttachment = { filename: string; content: string } // content: base64
+
+// Generic transactional send (HTML body plus optional attachments). Returns
+// whether it was dispatched; never throws so a scheduled job is not aborted.
+export async function sendEmail(
+  recipients: string[],
+  subject: string,
+  html: string,
+  attachments: EmailAttachment[] = []
+): Promise<boolean> {
+  if (!emailEnabled() || recipients.length === 0) return false
+  try {
+    const res = await fetch("https://api.resend.com/emails", {
+      method: "POST",
+      headers: { Authorization: `Bearer ${KEY}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ from: FROM, to: recipients, subject, html, attachments }),
+    })
+    return res.ok
+  } catch {
+    return false
+  }
+}
