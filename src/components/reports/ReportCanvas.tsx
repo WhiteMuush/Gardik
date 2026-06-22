@@ -35,22 +35,34 @@ export type ReportSectionEntry = {
 type RglItem = { i: string; x: number; y: number; w: number; h: number; minW?: number; minH?: number }
 type Saved = { layout: RglItem[]; hidden: string[] }
 
-// Pack sections into 12-col rows for the first-run layout.
-function buildDefaultLayout(sections: ReportSectionEntry[]): RglItem[] {
+// Pack sections into 12-col rows for the first-run / reset layout. Each row
+// advances by the tallest tile in that row (not a fixed DEFAULT_H), so tiles
+// whose content needs more than DEFAULT_H rows never overlap the next row.
+// `heightFor` lets the caller seed already-measured content heights (Reset),
+// avoiding a collapse-to-default then regrow flicker.
+function buildDefaultLayout(
+  sections: ReportSectionEntry[],
+  heightFor?: (id: string) => number | undefined,
+): RglItem[] {
   let x = 0
   let y = 0
+  let rowH = 0
   const out: RglItem[] = []
   for (const s of sections) {
     const w = s.defaultSpan ?? 12
+    const h = Math.max(MIN_H, heightFor?.(s.id) ?? DEFAULT_H)
     if (x + w > COLS) {
       x = 0
-      y += DEFAULT_H
+      y += rowH
+      rowH = 0
     }
-    out.push({ i: s.id, x, y, w, h: DEFAULT_H, minW: MIN_W, minH: MIN_H })
+    out.push({ i: s.id, x, y, w, h, minW: MIN_W, minH: MIN_H })
     x += w
+    rowH = Math.max(rowH, h)
     if (x >= COLS) {
       x = 0
-      y += DEFAULT_H
+      y += rowH
+      rowH = 0
     }
   }
   return out
@@ -234,13 +246,15 @@ export function ReportCanvas({ sections }: { sections: ReportSectionEntry[] }) {
   }
 
   const reset = () => {
-    const l = buildDefaultLayout(sections)
+    // Seed the default layout with the heights already measured for each
+    // section so rows are packed at their true height from the start (no
+    // collapse-to-DEFAULT_H then regrow, no transient overlap that RGL would
+    // resolve by shoving tiles around). Keep minHeights as-is and bump the
+    // nonce so fitHeights still re-measures and corrects any width-dependent
+    // drift on the next frame.
+    const l = buildDefaultLayout(sections, (id) => minHeights[id])
     setLayout(l)
     setHidden([])
-    // Drop stale content-fit floors (they may have been measured at a different
-    // zoom/width) and force a fresh measure, otherwise default heights can be
-    // wrong and tiles overlap.
-    setMinHeights({})
     setMeasureNonce((n) => n + 1)
     persist({ layout: l, hidden: [] })
   }
