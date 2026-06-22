@@ -66,7 +66,7 @@ function departmentsCsv(d: ReportData): string {
 
 function employeesCsv(d: ReportData): string {
   return toCsv(
-    ["name", "email", "department", "breaches", "exposed data", "last detected", "risk"],
+    ["name", "email", "department", "breaches", "exposed data", "last detected", "risk score", "risk"],
     d.employees.map((e) => [
       e.name,
       e.email,
@@ -74,6 +74,7 @@ function employeesCsv(d: ReportData): string {
       e.breachCount,
       e.exposedDataTypes.join("; "),
       e.lastDetectedAt ?? "",
+      e.riskScore,
       e.riskLevel,
     ])
   )

@@ -32,6 +32,7 @@ export type EmployeeReportRow = {
   breachCount: number
   exposedDataTypes: string[]
   lastDetectedAt: string | null
+  riskScore: number
   riskLevel: RiskLevel
 }
 
