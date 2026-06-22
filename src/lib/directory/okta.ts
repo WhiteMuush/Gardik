@@ -47,6 +47,29 @@ export async function fetchOktaUsers(config: OktaConfig): Promise<DirectoryUser[
   return users
 }
 
+function oktaBase(config: OktaConfig): string {
+  return `https://${config.domain.replace(/\/$/, "")}`
+}
+
+// Clear all of a user's active sessions. Okta resolves the login/email as the
+// user id in the path.
+export async function oktaRevokeSessions(config: OktaConfig, email: string): Promise<void> {
+  const res = await fetch(`${oktaBase(config)}/api/v1/users/${encodeURIComponent(email)}/sessions`, {
+    method: "DELETE",
+    headers: { Authorization: `SSWS ${config.apiToken}`, Accept: "application/json" },
+  })
+  if (!res.ok) throw new Error(`Okta clear sessions failed (${res.status})`)
+}
+
+// Expire the user's password, forcing a change at next sign-in.
+export async function oktaExpirePassword(config: OktaConfig, email: string): Promise<void> {
+  const res = await fetch(
+    `${oktaBase(config)}/api/v1/users/${encodeURIComponent(email)}/lifecycle/expire_password`,
+    { method: "POST", headers: { Authorization: `SSWS ${config.apiToken}`, Accept: "application/json" } }
+  )
+  if (!res.ok) throw new Error(`Okta expire password failed (${res.status})`)
+}
+
 export async function testOktaConnection(config: OktaConfig): Promise<TestResult> {
   try {
     const base = `https://${config.domain.replace(/\/$/, "")}`

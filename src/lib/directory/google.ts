@@ -1,7 +1,11 @@
 import { createSign } from "crypto"
 import type { GoogleWorkspaceConfig, DirectoryUser, TestResult } from "./types"
 
-async function getToken(config: GoogleWorkspaceConfig): Promise<string> {
+const READONLY_SCOPE = "https://www.googleapis.com/auth/admin.directory.user.readonly"
+const WRITE_SCOPE = "https://www.googleapis.com/auth/admin.directory.user"
+const SECURITY_SCOPE = "https://www.googleapis.com/auth/admin.directory.user.security"
+
+async function getToken(config: GoogleWorkspaceConfig, scope: string = READONLY_SCOPE): Promise<string> {
   const now = Math.floor(Date.now() / 1000)
 
   const header = Buffer.from(JSON.stringify({ alg: "RS256", typ: "JWT" })).toString("base64url")
@@ -9,7 +13,7 @@ async function getToken(config: GoogleWorkspaceConfig): Promise<string> {
     JSON.stringify({
       iss: config.serviceAccountEmail,
       sub: config.delegatedAdminEmail,
-      scope: "https://www.googleapis.com/auth/admin.directory.user.readonly",
+      scope,
       aud: "https://oauth2.googleapis.com/token",
       iat: now,
       exp: now + 3600,
@@ -75,6 +79,30 @@ export async function fetchGoogleUsers(config: GoogleWorkspaceConfig): Promise<D
   } while (pageToken)
 
   return users
+}
+
+// Revoke all of a user's active sessions (sign them out everywhere).
+export async function googleSignOut(config: GoogleWorkspaceConfig, email: string): Promise<void> {
+  const token = await getToken(config, SECURITY_SCOPE)
+  const res = await fetch(
+    `https://admin.googleapis.com/admin/directory/v1/users/${encodeURIComponent(email)}/signOut`,
+    { method: "POST", headers: { Authorization: `Bearer ${token}` } }
+  )
+  if (!res.ok) throw new Error(`Google signOut failed (${res.status})`)
+}
+
+// Force the user to change their password at the next sign-in.
+export async function googleForcePasswordReset(config: GoogleWorkspaceConfig, email: string): Promise<void> {
+  const token = await getToken(config, WRITE_SCOPE)
+  const res = await fetch(
+    `https://admin.googleapis.com/admin/directory/v1/users/${encodeURIComponent(email)}`,
+    {
+      method: "PUT",
+      headers: { Authorization: `Bearer ${token}`, "Content-Type": "application/json" },
+      body: JSON.stringify({ changePasswordAtNextLogin: true }),
+    }
+  )
+  if (!res.ok) throw new Error(`Google force reset failed (${res.status})`)
 }
 
 export async function testGoogleConnection(config: GoogleWorkspaceConfig): Promise<TestResult> {

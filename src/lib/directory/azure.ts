@@ -83,6 +83,17 @@ export async function fetchAzureUsers(config: AzureADConfig): Promise<DirectoryU
   return users
 }
 
+// Revoke a user's refresh tokens, invalidating their active sessions. The user
+// key accepts the userPrincipalName/email. Requires User.ReadWrite.All.
+export async function revokeAzureSessions(config: AzureADConfig, email: string): Promise<void> {
+  const token = await getToken(config)
+  const res = await fetch(
+    `https://graph.microsoft.com/v1.0/users/${encodeURIComponent(email)}/revokeSignInSessions`,
+    { method: "POST", headers: { Authorization: `Bearer ${token}` } }
+  )
+  if (!res.ok) throw new Error(`Graph revokeSignInSessions failed (${res.status})`)
+}
+
 export async function testAzureConnection(config: AzureADConfig): Promise<TestResult> {
   try {
     const token = await getToken(config)

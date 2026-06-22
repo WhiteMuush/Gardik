@@ -18,8 +18,16 @@ export async function PATCH(req: Request) {
   const { session, error } = await requireAdmin()
   if (error) return error
 
-  const body = (await req.json()) as { scanIntervalMinutes?: unknown; riskWeights?: unknown }
-  const data: { scanIntervalMinutes?: number | null; riskWeights?: RiskWeights } = {}
+  const body = (await req.json()) as {
+    scanIntervalMinutes?: unknown
+    riskWeights?: unknown
+    remediationEnabled?: unknown
+  }
+  const data: {
+    scanIntervalMinutes?: number | null
+    riskWeights?: RiskWeights
+    remediationEnabled?: boolean
+  } = {}
 
   if ("scanIntervalMinutes" in body) {
     const interval = parseInterval(body.scanIntervalMinutes)
@@ -35,6 +43,12 @@ export async function PATCH(req: Request) {
     if (!body.riskWeights || typeof body.riskWeights !== "object")
       return NextResponse.json({ error: "riskWeights must be an object" }, { status: 400 })
     data.riskWeights = resolveRiskWeights(body.riskWeights)
+  }
+
+  if ("remediationEnabled" in body) {
+    if (typeof body.remediationEnabled !== "boolean")
+      return NextResponse.json({ error: "remediationEnabled must be a boolean" }, { status: 400 })
+    data.remediationEnabled = body.remediationEnabled
   }
 
   if (Object.keys(data).length === 0)

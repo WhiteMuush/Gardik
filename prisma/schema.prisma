@@ -18,6 +18,10 @@ model Company {
   // Per-company override of the per-employee risk weights (see lib/risk.ts).
   // Null falls back to DEFAULT_RISK_WEIGHTS.
   riskWeights Json?
+  // Master switch for live remediation (force reset / revoke sessions) against
+  // the connected directory. Off by default: actions on the customer's IdP must
+  // be deliberately enabled in settings before they can run.
+  remediationEnabled Boolean @default(false)
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -28,6 +32,35 @@ model Company {
   directoryConnections DirectoryConnection[]
   apiCredentials       ApiCredential[]
   webhooks             Webhook[]
+  remediationActions   RemediationAction[]
+}
+
+// Append-only audit of remediation actions taken against the directory.
+model RemediationAction {
+  id          String            @id @default(cuid())
+  companyId   String
+  employeeId  String?
+  alertId     String?
+  action      RemediationType
+  status      RemediationStatus
+  target      String
+  detail      String?
+  performedBy String?
+  createdAt   DateTime          @default(now())
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+}
+
+enum RemediationType {
+  REVOKE_SESSIONS
+  FORCE_PASSWORD_RESET
+}
+
+enum RemediationStatus {
+  SUCCESS
+  FAILED
 }
 
 model DirectoryConnection {
