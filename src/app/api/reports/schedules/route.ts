@@ -2,9 +2,8 @@ import { NextResponse } from "next/server"
 import { requireAuth, requireAdmin } from "@/lib/apiAuth"
 import { prisma } from "@/lib/prisma"
 import { isReportSection } from "@/lib/reportSchedules"
+import { isEmail } from "@/lib/validators"
 import { ScheduleFrequency } from "@prisma/client"
-
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 const SELECT = {
   id: true,
@@ -41,7 +40,7 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Invalid frequency" }, { status: 400 })
 
   const recipients = (body.recipients ?? []).map((r) => r.trim().toLowerCase()).filter(Boolean)
-  if (recipients.length === 0 || !recipients.every((r) => EMAIL_RE.test(r)))
+  if (recipients.length === 0 || !recipients.every(isEmail))
     return NextResponse.json({ error: "Provide at least one valid recipient email" }, { status: 400 })
 
   const sections = (body.sections ?? []).filter(isReportSection)
