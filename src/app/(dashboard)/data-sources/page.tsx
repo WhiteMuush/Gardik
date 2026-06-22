@@ -2,6 +2,7 @@ import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { DirectoryConnections } from "@/components/settings/DirectoryConnections"
 import { RemediationSettings } from "@/components/settings/RemediationSettings"
+import { SiemExport } from "@/components/settings/SiemExport"
 import { SetupGuides } from "@/components/settings/SetupGuides"
 
 export default async function SettingsPage() {
@@ -24,7 +25,10 @@ export default async function SettingsPage() {
         createdAt: true,
       },
     }),
-    prisma.company.findUnique({ where: { id: companyId }, select: { remediationEnabled: true } }),
+    prisma.company.findUnique({
+      where: { id: companyId },
+      select: { remediationEnabled: true, siemTokenHint: true },
+    }),
     prisma.remediationAction.findMany({
       where: { companyId },
       orderBy: { createdAt: "desc" },
@@ -60,6 +64,7 @@ export default async function SettingsPage() {
           isAdmin={isAdmin}
           recent={remediationRecent}
         />
+        <SiemExport companyId={companyId} tokenHint={company?.siemTokenHint ?? null} isAdmin={isAdmin} />
         <SetupGuides />
       </div>
     </div>

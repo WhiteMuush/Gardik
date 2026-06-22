@@ -22,6 +22,10 @@ model Company {
   // the connected directory. Off by default: actions on the customer's IdP must
   // be deliberately enabled in settings before they can run.
   remediationEnabled Boolean @default(false)
+  // Encrypted bearer token for the SIEM pull feed, plus a non-secret hint shown
+  // in settings. Null when no SIEM export is configured.
+  siemTokenEnc  String?
+  siemTokenHint String?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
