@@ -2,8 +2,10 @@ import { NextResponse } from "next/server"
 import { requireAdmin } from "@/lib/apiAuth"
 import { prisma } from "@/lib/prisma"
 import { resolveRiskWeights, type RiskWeights } from "@/lib/risk"
+import { encryptConfig } from "@/lib/directory/crypto"
 
 const MIN_INTERVAL_MINUTES = 5
+const MIN_SIEM_TOKEN = 16
 
 function parseInterval(value: unknown): number | null | undefined {
   if (value === null) return null
@@ -22,11 +24,14 @@ export async function PATCH(req: Request) {
     scanIntervalMinutes?: unknown
     riskWeights?: unknown
     remediationEnabled?: unknown
+    siemToken?: unknown
   }
   const data: {
     scanIntervalMinutes?: number | null
     riskWeights?: RiskWeights
     remediationEnabled?: boolean
+    siemTokenEnc?: string | null
+    siemTokenHint?: string | null
   } = {}
 
   if ("scanIntervalMinutes" in body) {
@@ -51,9 +56,28 @@ export async function PATCH(req: Request) {
     data.remediationEnabled = body.remediationEnabled
   }
 
+  if ("siemToken" in body) {
+    if (body.siemToken === null) {
+      data.siemTokenEnc = null
+      data.siemTokenHint = null
+    } else if (typeof body.siemToken === "string" && body.siemToken.length >= MIN_SIEM_TOKEN) {
+      data.siemTokenEnc = encryptConfig({ token: body.siemToken })
+      data.siemTokenHint = `...${body.siemToken.slice(-4)}`
+    } else {
+      return NextResponse.json(
+        { error: `siemToken must be null or a string of at least ${MIN_SIEM_TOKEN} characters` },
+        { status: 400 }
+      )
+    }
+  }
+
   if (Object.keys(data).length === 0)
     return NextResponse.json({ error: "Nothing to update" }, { status: 400 })
 
   await prisma.company.update({ where: { id: session.user.companyId }, data })
-  return NextResponse.json(data)
+
+  // Never echo the encrypted token back; surface the hint instead.
+  const { siemTokenEnc: _omit, ...safe } = data
+  void _omit
+  return NextResponse.json(safe)
 }
