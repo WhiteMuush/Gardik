@@ -27,7 +27,7 @@ export default async function SettingsPage() {
     }),
     prisma.company.findUnique({
       where: { id: companyId },
-      select: { remediationEnabled: true, siemTokenHint: true },
+      select: { remediationEnabled: true, siemTokenHint: true, siemPushHint: true, siemPushFormat: true },
     }),
     prisma.remediationAction.findMany({
       where: { companyId },
@@ -64,7 +64,13 @@ export default async function SettingsPage() {
           isAdmin={isAdmin}
           recent={remediationRecent}
         />
-        <SiemExport companyId={companyId} tokenHint={company?.siemTokenHint ?? null} isAdmin={isAdmin} />
+        <SiemExport
+          companyId={companyId}
+          tokenHint={company?.siemTokenHint ?? null}
+          pushHint={company?.siemPushHint ?? null}
+          pushFormat={company?.siemPushFormat ?? null}
+          isAdmin={isAdmin}
+        />
         <SetupGuides />
       </div>
     </div>

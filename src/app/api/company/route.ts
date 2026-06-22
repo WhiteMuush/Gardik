@@ -25,6 +25,7 @@ export async function PATCH(req: Request) {
     riskWeights?: unknown
     remediationEnabled?: unknown
     siemToken?: unknown
+    siemPush?: unknown
   }
   const data: {
     scanIntervalMinutes?: number | null
@@ -32,6 +33,10 @@ export async function PATCH(req: Request) {
     remediationEnabled?: boolean
     siemTokenEnc?: string | null
     siemTokenHint?: string | null
+    siemPushUrlEnc?: string | null
+    siemPushHint?: string | null
+    siemPushFormat?: string | null
+    siemPushSince?: Date | null
   } = {}
 
   if ("scanIntervalMinutes" in body) {
@@ -71,13 +76,38 @@ export async function PATCH(req: Request) {
     }
   }
 
+  if ("siemPush" in body) {
+    if (body.siemPush === null) {
+      data.siemPushUrlEnc = null
+      data.siemPushHint = null
+      data.siemPushFormat = null
+      data.siemPushSince = null
+    } else {
+      const push = body.siemPush as { url?: string; format?: string }
+      let parsed: URL
+      try {
+        parsed = new URL(push.url ?? "")
+      } catch {
+        return NextResponse.json({ error: "Invalid push URL" }, { status: 400 })
+      }
+      if (parsed.protocol !== "https:")
+        return NextResponse.json({ error: "Push URL must use https" }, { status: 400 })
+      data.siemPushUrlEnc = encryptConfig({ url: parsed.toString() })
+      data.siemPushHint = parsed.host
+      data.siemPushFormat = push.format === "syslog" ? "syslog" : "cef"
+      // Start the watermark now so the first push does not replay history.
+      data.siemPushSince = new Date()
+    }
+  }
+
   if (Object.keys(data).length === 0)
     return NextResponse.json({ error: "Nothing to update" }, { status: 400 })
 
   await prisma.company.update({ where: { id: session.user.companyId }, data })
 
-  // Never echo the encrypted token back; surface the hint instead.
-  const { siemTokenEnc: _omit, ...safe } = data
-  void _omit
+  // Never echo encrypted secrets back; surface the hints instead.
+  const { siemTokenEnc: _t, siemPushUrlEnc: _p, ...safe } = data
+  void _t
+  void _p
   return NextResponse.json(safe)
 }

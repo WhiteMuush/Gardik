@@ -2,8 +2,10 @@ import { describe, it, expect, vi, beforeEach } from "vitest"
 
 const runDueSchedules = vi.fn()
 const runDueReportSchedules = vi.fn()
+const runDueSiemPush = vi.fn()
 vi.mock("@/lib/scheduler", () => ({ runDueSchedules: () => runDueSchedules() }))
 vi.mock("@/lib/reportSchedules", () => ({ runDueReportSchedules: () => runDueReportSchedules() }))
+vi.mock("@/lib/siem", () => ({ runDueSiemPush: () => runDueSiemPush() }))
 
 import { POST } from "./route"
 
@@ -17,6 +19,7 @@ beforeEach(() => {
   vi.clearAllMocks()
   runDueSchedules.mockResolvedValue({ syncsEnqueued: 1, scansStarted: 0, jobsProcessed: 1 })
   runDueReportSchedules.mockResolvedValue({ sent: 0 })
+  runDueSiemPush.mockResolvedValue({ pushed: 0 })
 })
 
 describe("POST /api/cron", () => {
@@ -39,9 +42,16 @@ describe("POST /api/cron", () => {
     process.env.CRON_SECRET = "right"
     const res = await POST(req("Bearer right"))
     expect(res.status).toBe(200)
-    expect(await res.json()).toEqual({ syncsEnqueued: 1, scansStarted: 0, jobsProcessed: 1, reportsSent: 0 })
+    expect(await res.json()).toEqual({
+      syncsEnqueued: 1,
+      scansStarted: 0,
+      jobsProcessed: 1,
+      reportsSent: 0,
+      alertsPushed: 0,
+    })
     expect(runDueSchedules).toHaveBeenCalled()
     expect(runDueReportSchedules).toHaveBeenCalled()
+    expect(runDueSiemPush).toHaveBeenCalled()
     delete process.env.CRON_SECRET
   })
 })
