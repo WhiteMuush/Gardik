@@ -6,6 +6,8 @@ import { Radio, Loader2, Copy } from "lucide-react"
 type Props = {
   companyId: string
   tokenHint: string | null
+  pushHint: string | null
+  pushFormat: string | null
   isAdmin: boolean
 }
 
@@ -15,10 +17,39 @@ function generateToken(): string {
   return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("")
 }
 
-export function SiemExport({ companyId, tokenHint: initialHint, isAdmin }: Props) {
+export function SiemExport({ companyId, tokenHint: initialHint, pushHint: initialPushHint, pushFormat, isAdmin }: Props) {
   const [hint, setHint] = useState(initialHint)
   const [token, setToken] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
+  const [pushHint, setPushHint] = useState(initialPushHint)
+  const [pushUrl, setPushUrl] = useState("")
+  const [pushFmt, setPushFmt] = useState(pushFormat ?? "cef")
+  const [pushBusy, setPushBusy] = useState(false)
+
+  async function savePush() {
+    setPushBusy(true)
+    const res = await fetch("/api/company", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ siemPush: { url: pushUrl, format: pushFmt } }),
+    })
+    setPushBusy(false)
+    if (res.ok) {
+      setPushHint(new URL(pushUrl).host)
+      setPushUrl("")
+    }
+  }
+
+  async function clearPush() {
+    setPushBusy(true)
+    const res = await fetch("/api/company", {
+      method: "PATCH",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ siemPush: null }),
+    })
+    setPushBusy(false)
+    if (res.ok) setPushHint(null)
+  }
 
   const origin = typeof window !== "undefined" ? window.location.origin : ""
   const feedUrl = `${origin}/api/integrations/siem/${companyId}?format=cef`
@@ -86,6 +117,56 @@ export function SiemExport({ companyId, tokenHint: initialHint, isAdmin }: Props
           Copy now, it will not be shown again: <span className="font-mono">{token}</span>
         </p>
       )}
+
+      <div className="mt-5 border-t border-border pt-4">
+        <p className="mb-1 text-xs font-medium text-foreground">Push delivery (optional)</p>
+        <p className="mb-3 text-xs text-muted-foreground">
+          POST new alerts to an HTTPS collector (Splunk HEC, Sentinel, generic) on each scheduler
+          tick. Raw UDP/TCP syslog sockets are not supported.
+        </p>
+        {pushHint ? (
+          <div className="flex items-center justify-between rounded-lg border border-border px-3 py-2">
+            <span className="text-sm text-foreground">
+              Pushing {pushFmt.toUpperCase()} to {pushHint}
+            </span>
+            {isAdmin && (
+              <button
+                onClick={clearPush}
+                disabled={pushBusy}
+                className="text-xs font-medium text-muted-foreground underline-offset-2 hover:underline disabled:opacity-40"
+              >
+                {pushBusy ? <Loader2 className="size-3.5 animate-spin" /> : "Remove"}
+              </button>
+            )}
+          </div>
+        ) : (
+          isAdmin && (
+            <div className="flex flex-wrap items-center gap-2">
+              <select
+                value={pushFmt}
+                onChange={(e) => setPushFmt(e.target.value)}
+                className="rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground focus:border-ring focus:outline-none"
+              >
+                <option value="cef">CEF</option>
+                <option value="syslog">Syslog</option>
+              </select>
+              <input
+                placeholder="https://collector.example.com/ingest"
+                value={pushUrl}
+                onChange={(e) => setPushUrl(e.target.value)}
+                className="min-w-0 flex-1 rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none"
+              />
+              <button
+                onClick={savePush}
+                disabled={pushBusy || !pushUrl.trim()}
+                className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-40"
+              >
+                {pushBusy ? <Loader2 className="size-4 animate-spin" /> : "Save"}
+              </button>
+            </div>
+          )
+        )}
+      </div>
     </div>
   )
 }

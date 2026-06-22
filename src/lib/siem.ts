@@ -2,7 +2,7 @@ import { timingSafeEqual } from "crypto"
 import { prisma } from "@/lib/prisma"
 import { decryptConfig } from "@/lib/directory/crypto"
 import { rateLimit } from "@/lib/rateLimit"
-import type { SiemAlert } from "@/lib/integrations"
+import { CONTENT_TYPE, formatAlerts, type SiemAlert, type SiemFormat } from "@/lib/integrations"
 
 const SIEM_RATE_LIMIT = 60
 const SIEM_RATE_WINDOW_MS = 60_000
@@ -37,6 +37,47 @@ export async function authenticateSiem(req: Request, companyId: string): Promise
   } catch {
     return false
   }
+}
+
+// Push every company's new alerts to its configured HTTPS collector in batches.
+// The watermark (siemPushSince) advances only after a successful POST, so a
+// failed delivery is retried on the next tick. Raw UDP/TCP syslog sockets are
+// not used here; this targets HTTP collectors (Splunk HEC, Sentinel, generic).
+export async function runDueSiemPush(now: Date = new Date()): Promise<{ pushed: number }> {
+  const companies = await prisma.company.findMany({
+    where: { siemPushUrlEnc: { not: null } },
+    select: { id: true, siemPushUrlEnc: true, siemPushFormat: true, siemPushSince: true },
+  })
+
+  let pushed = 0
+  for (const c of companies) {
+    const alerts = await getSiemAlerts(c.id, c.siemPushSince ?? undefined)
+    if (alerts.length === 0) {
+      await prisma.company.update({ where: { id: c.id }, data: { siemPushSince: now } })
+      continue
+    }
+    let url: string
+    try {
+      url = decryptConfig<{ url: string }>(c.siemPushUrlEnc!).url
+    } catch {
+      continue
+    }
+    const format: SiemFormat = c.siemPushFormat === "syslog" ? "syslog" : "cef"
+    try {
+      const res = await fetch(url, {
+        method: "POST",
+        headers: { "Content-Type": CONTENT_TYPE[format] },
+        body: formatAlerts(alerts, format),
+      })
+      if (res.ok) {
+        await prisma.company.update({ where: { id: c.id }, data: { siemPushSince: now } })
+        pushed += alerts.length
+      }
+    } catch {
+      // Leave the watermark; retry next tick.
+    }
+  }
+  return { pushed }
 }
 
 // Most recent alerts for a company, newest first, capped for a bounded payload.

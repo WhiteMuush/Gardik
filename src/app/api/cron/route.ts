@@ -2,6 +2,7 @@ import { timingSafeEqual } from "crypto"
 import { NextResponse } from "next/server"
 import { runDueSchedules } from "@/lib/scheduler"
 import { runDueReportSchedules } from "@/lib/reportSchedules"
+import { runDueSiemPush } from "@/lib/siem"
 
 function safeEqual(a: string, b: string): boolean {
   const bufA = Buffer.from(a)
@@ -24,5 +25,6 @@ export async function POST(req: Request) {
 
   const result = await runDueSchedules()
   const { sent } = await runDueReportSchedules()
-  return NextResponse.json({ ...result, reportsSent: sent })
+  const { pushed } = await runDueSiemPush()
+  return NextResponse.json({ ...result, reportsSent: sent, alertsPushed: pushed })
 }

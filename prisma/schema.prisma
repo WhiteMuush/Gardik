@@ -26,6 +26,12 @@ model Company {
   // in settings. Null when no SIEM export is configured.
   siemTokenEnc  String?
   siemTokenHint String?
+  // Optional SIEM push: alerts are POSTed in batches to this HTTPS endpoint by
+  // the scheduler. siemPushSince tracks the last delivered alert.
+  siemPushUrlEnc  String?
+  siemPushHint    String?
+  siemPushFormat  String?
+  siemPushSince   DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
