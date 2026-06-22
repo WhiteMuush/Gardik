@@ -182,6 +182,9 @@ model Employee {
   lastName   String
   department String?
   companyId  String
+  // MFA enrollment from the directory sync: true/false when the provider
+  // reports it, null when unknown (provider has no capability or not synced).
+  mfaEnabled Boolean?
   createdAt  DateTime @default(now())
 
   company       Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)

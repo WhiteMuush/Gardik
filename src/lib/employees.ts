@@ -37,6 +37,7 @@ export type EmployeeRow = {
   exposedDataTypes: string[]
   riskScore: number
   riskLevel: RiskLevel
+  mfaEnabled: boolean | null
   breachRecords: BreachRecordDetail[]
 }
 
@@ -82,6 +83,7 @@ export async function getEmployees(companyId: string, opts?: GetEmployeesOpts): 
       exposedDataTypes: [...new Set(records.flatMap((r) => r.exposedData))],
       riskScore,
       riskLevel: riskScore === 0 ? "OK" : getRiskLevel(riskScore).level,
+      mfaEnabled: emp.mfaEnabled,
       breachRecords: records.map((r) => ({
         id: r.id,
         breachName: r.breach.name,

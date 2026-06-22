@@ -44,6 +44,7 @@ export type DirectoryUser = {
   firstName: string
   lastName: string
   department?: string
+  mfaEnabled?: boolean // strong-auth enrollment, when the provider reports it
 }
 
 export type TestResult = {

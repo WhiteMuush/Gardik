@@ -4,6 +4,12 @@ import type { EmployeeReportRow } from "@/lib/reports/types"
 
 const MAX_ROWS = 50
 
+function mfaLabel(mfaEnabled: boolean | null): { text: string; className: string } {
+  if (mfaEnabled === null) return { text: "Unknown", className: "text-muted-foreground" }
+  if (mfaEnabled) return { text: "On", className: "text-severity-ok" }
+  return { text: "Off", className: "text-severity-critical" }
+}
+
 function formatDate(iso: string | null): string {
   if (!iso) return "Never"
   return new Date(iso).toLocaleDateString("en-US", {
@@ -39,6 +45,7 @@ export function EmployeeSection({ rows }: { rows: EmployeeReportRow[] }) {
                   <th className="px-3 py-2 text-right font-medium">Breaches</th>
                   <th className="hidden px-3 py-2 font-medium @[520px]:table-cell">Last detected</th>
                   <th className="px-3 py-2 text-right font-medium">Score</th>
+                  <th className="hidden px-3 py-2 font-medium @[640px]:table-cell">MFA</th>
                   <th className="px-3 py-2 font-medium">Risk</th>
                 </tr>
               </thead>
@@ -60,6 +67,9 @@ export function EmployeeSection({ rows }: { rows: EmployeeReportRow[] }) {
                     </td>
                     <td className="px-3 py-2 text-right tabular-nums text-foreground">
                       {e.riskScore}
+                    </td>
+                    <td className={`hidden px-3 py-2 @[640px]:table-cell ${mfaLabel(e.mfaEnabled).className}`}>
+                      {mfaLabel(e.mfaEnabled).text}
                     </td>
                     <td className="px-3 py-2">
                       <RiskBadge level={e.riskLevel} />
