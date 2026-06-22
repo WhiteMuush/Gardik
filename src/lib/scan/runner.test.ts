@@ -45,6 +45,14 @@ describe("severityFor", () => {
     expect(severityFor(["email", "username"])).toBe("MEDIUM")
     expect(severityFor([])).toBe("MEDIUM")
   })
+  it("is CRITICAL when a session cookie or token leaks, whatever the data types", () => {
+    expect(severityFor([], ["COOKIE"])).toBe("CRITICAL")
+    expect(severityFor(["email"], ["TOKEN"])).toBe("CRITICAL")
+  })
+  it("ignores non-session artifacts for the override", () => {
+    expect(severityFor(["email"], ["PASSWORD"])).toBe("MEDIUM")
+    expect(severityFor(["password"], ["AUTOFILL"])).toBe("HIGH")
+  })
 })
 
 function provider(lookup: ReturnType<typeof vi.fn>) {
