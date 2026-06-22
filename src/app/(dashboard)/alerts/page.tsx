@@ -1,10 +1,15 @@
 import { auth } from "@/auth"
+import { prisma } from "@/lib/prisma"
 import { getAlerts } from "@/lib/alerts"
 import { AlertTable } from "@/components/alerts/AlertTable"
 
 export default async function AlertsPage() {
   const session = await auth()
-  const alerts = await getAlerts(session!.user.companyId)
+  const companyId = session!.user.companyId
+  const [alerts, company] = await Promise.all([
+    getAlerts(companyId),
+    prisma.company.findUnique({ where: { id: companyId }, select: { remediationEnabled: true } }),
+  ])
 
   return (
     <div className="h-full overflow-y-auto p-6">
@@ -14,7 +19,11 @@ export default async function AlertsPage() {
           Triage breach detections, acknowledge and resolve incidents
         </p>
       </div>
-      <AlertTable data={alerts} />
+      <AlertTable
+        data={alerts}
+        remediationEnabled={company?.remediationEnabled ?? false}
+        isAdmin={session!.user.role === "ADMIN"}
+      />
     </div>
   )
 }
