@@ -22,7 +22,7 @@ jobs:
       security-events: write # upload findings to the Security tab
       actions: read
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Initialize CodeQL
         uses: github/codeql-action/init@v4

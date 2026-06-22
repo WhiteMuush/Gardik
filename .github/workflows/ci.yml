@@ -24,7 +24,7 @@ jobs:
       # Dummy value so loading prisma.config.ts never fails on a missing var.
       DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
@@ -52,7 +52,7 @@ jobs:
       # Dummy value so loading prisma.config.ts never fails on a missing var.
       DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
@@ -76,7 +76,7 @@ jobs:
       DIRECTORY_ENCRYPTION_KEY: ci-placeholder-encryption-key-32-chars-minimum
       AUTH_SECRET: ci-placeholder-auth-secret
     steps:
-      - uses: actions/checkout@v6
+      - uses: actions/checkout@v7
 
       - name: Setup Node.js
         uses: actions/setup-node@v6
