@@ -110,6 +110,7 @@ model ApiCredential {
 
 enum ApiProvider {
   HIBP
+  HIBP_STEALER
   DEHASHED
   LEAKCHECK
   INTELX
@@ -204,13 +205,29 @@ enum BreachSource {
   HIBP
   MANUAL
   DARK_WEB
+  STEALER_LOG
+}
+
+// Stolen artifact captured in a stealer log. Session cookies and tokens bypass
+// MFA, so they outrank a plaintext password, which outranks an autofill entry.
+enum ArtifactKind {
+  PASSWORD
+  COOKIE
+  TOKEN
+  AUTOFILL
 }
 
 model BreachRecord {
-  id          String   @id @default(cuid())
+  id          String         @id @default(cuid())
   employeeId  String
   breachId    String
   exposedData String[]
+  artifacts   ArtifactKind[]
+  // Infection metadata, present only for stealer-log findings whose feed
+  // exposes it (machine identifier, malware family, capture time).
+  machineId     String?
+  malwareFamily String?
+  capturedAt    DateTime?
   detectedAt  DateTime @default(now())
 
   employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)

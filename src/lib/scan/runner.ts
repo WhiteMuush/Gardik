@@ -5,7 +5,7 @@ import { dispatchWebhooks, loadActiveWebhooks } from "@/lib/webhooks"
 import { providerById } from "./registry"
 import { sleep } from "./normalize"
 import type { BreachProvider, Finding } from "./types"
-import type { BreachSource, Severity } from "@prisma/client"
+import type { ArtifactKind, BreachSource, Severity } from "@prisma/client"
 
 const RATE_LIMIT_MS = 1500
 const CRITICAL_TYPES = ["password", "hashed_password", "credit_card", "ssn", "bank_account"]
@@ -40,11 +40,31 @@ export async function loadActiveProviders(companyId: string): Promise<ActiveProv
   return active
 }
 
-export function severityFor(dataTypes: string[]): Severity {
+export function severityFor(dataTypes: string[], artifacts: ArtifactKind[] = []): Severity {
+  // A live session cookie or token bypasses MFA, so it is always CRITICAL
+  // regardless of how many classic data types leaked alongside it.
+  if (artifacts.includes("COOKIE") || artifacts.includes("TOKEN")) return "CRITICAL"
   const critical = dataTypes.filter((d) => CRITICAL_TYPES.includes(d)).length
   if (critical >= 2) return "CRITICAL"
   if (critical === 1) return "HIGH"
   return "MEDIUM"
+}
+
+// Stealer-log findings read differently from breach-dump findings: name them as
+// an infostealer exposure and call out a captured session when present, since
+// that is the part a responder must rotate first.
+function alertMessage(
+  employeeName: string,
+  finding: Finding,
+  source: BreachSource,
+  artifacts: ArtifactKind[]
+): string {
+  if (source !== "STEALER_LOG") {
+    return `${employeeName} found in ${finding.name} breach.`
+  }
+  const session = artifacts.includes("COOKIE") || artifacts.includes("TOKEN")
+  const what = session ? "active session token" : "credentials"
+  return `${employeeName} ${what} exposed in stealer log (${finding.name}).`
 }
 
 // Persist a finding: create the breach if needed, then the record and alert when
@@ -74,11 +94,20 @@ async function persistFinding(
   })
   if (known.has(breach.id)) return false
 
-  const severity = severityFor(finding.dataTypes)
+  const artifacts = finding.artifacts ?? []
+  const severity = severityFor(finding.dataTypes, artifacts)
   const employeeName = `${employee.firstName} ${employee.lastName}`
 
   await prisma.breachRecord.create({
-    data: { employeeId: employee.id, breachId: breach.id, exposedData: finding.dataTypes },
+    data: {
+      employeeId: employee.id,
+      breachId: breach.id,
+      exposedData: finding.dataTypes,
+      artifacts,
+      machineId: finding.machineId,
+      malwareFamily: finding.malwareFamily,
+      capturedAt: finding.capturedAt,
+    },
   })
   await prisma.alert.create({
     data: {
@@ -87,7 +116,7 @@ async function persistFinding(
       breachId: breach.id,
       severity,
       status: "OPEN",
-      message: `${employeeName} found in ${finding.name} breach.`,
+      message: alertMessage(employeeName, finding, source, artifacts),
     },
   })
 

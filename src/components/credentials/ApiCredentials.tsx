@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { API_PROVIDERS } from "@/lib/credentials/providers"
 
-type ApiProvider = "HIBP" | "DEHASHED" | "LEAKCHECK" | "INTELX" | "SNUSBASE"
+type ApiProvider = "HIBP" | "HIBP_STEALER" | "DEHASHED" | "LEAKCHECK" | "INTELX" | "SNUSBASE"
 
 export type Credential = {
   id: string
