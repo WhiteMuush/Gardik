@@ -3,16 +3,15 @@ import { requireAuth, requireAdmin } from "@/lib/apiAuth"
 import { prisma } from "@/lib/prisma"
 import { encryptConfig } from "@/lib/directory/crypto"
 import { listWebhooks, urlHint } from "@/lib/webhooks"
+import { isEmail } from "@/lib/validators"
 import { NotificationChannel, Severity } from "@prisma/client"
-
-const EMAIL_RE = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
 // Resolve the encrypted delivery target and its display hint for a channel.
 // EMAIL targets a recipient address; every other channel targets an HTTPS URL.
 function resolveTarget(channel: NotificationChannel, raw: string): { target: string; hint: string } | { error: string } {
   if (channel === "EMAIL") {
     const addr = raw.trim().toLowerCase()
-    if (!EMAIL_RE.test(addr)) return { error: "Invalid email address" }
+    if (!isEmail(addr)) return { error: "Invalid email address" }
     return { target: addr, hint: addr }
   }
   let parsed: URL
