@@ -37,6 +37,33 @@ model Company {
   apiCredentials       ApiCredential[]
   webhooks             Webhook[]
   remediationActions   RemediationAction[]
+  exposureRegister     ExposureRegisterEntry[]
+}
+
+// GDPR Article 33/30 exposure register: a documented record of each confirmed
+// personal-data exposure, whether or not it required notification.
+model ExposureRegisterEntry {
+  id             String         @id @default(cuid())
+  companyId      String
+  title          String
+  detectedAt     DateTime
+  status         RegisterStatus @default(ASSESSING)
+  affectedCount  Int            @default(0)
+  dataCategories String[]
+  assessment     String?
+  notifiedAt     DateTime?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+}
+
+enum RegisterStatus {
+  ASSESSING
+  NOTIFIED
+  NOT_REQUIRED
 }
 
 // Append-only audit of remediation actions taken against the directory.
