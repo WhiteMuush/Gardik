@@ -2,6 +2,8 @@ import { requireAuth } from "@/lib/apiAuth"
 import { getReportData } from "@/lib/reports"
 import { parseReportFilters } from "@/lib/reports/filters"
 import { reportCsv, type CsvSection } from "@/lib/reports/csv"
+import { reportPdf } from "@/lib/reports/pdf"
+import type { ReportSection } from "@/lib/reports/html"
 
 const SECTIONS: CsvSection[] = [
   "all",
@@ -11,6 +13,15 @@ const SECTIONS: CsvSection[] = [
   "employees",
   "trends",
   "compliance",
+]
+
+const PDF_SECTIONS: ReportSection[] = [
+  "exposure",
+  "compliance",
+  "datatypes",
+  "departments",
+  "employees",
+  "trends",
 ]
 
 function isSection(value: string): value is CsvSection {
@@ -27,8 +38,19 @@ export async function GET(request: Request): Promise<Response> {
 
   const filters = parseReportFilters(sp)
   const data = await getReportData(session.user.companyId, filters)
-  const csv = reportCsv(section, data)
 
+  if (sp.get("format") === "pdf") {
+    const pdf = await reportPdf(PDF_SECTIONS, data)
+    return new Response(new Uint8Array(pdf), {
+      status: 200,
+      headers: {
+        "Content-Type": "application/pdf",
+        "Content-Disposition": `attachment; filename="datashield-report.pdf"`,
+      },
+    })
+  }
+
+  const csv = reportCsv(section, data)
   return new Response(csv, {
     status: 200,
     headers: {

@@ -15,6 +15,23 @@ model Company {
   // scheduler-triggered scan so the next one is only due after the interval.
   scanIntervalMinutes Int?
   lastScanAt          DateTime?
+  // Per-company override of the per-employee risk weights (see lib/risk.ts).
+  // Null falls back to DEFAULT_RISK_WEIGHTS.
+  riskWeights Json?
+  // Master switch for live remediation (force reset / revoke sessions) against
+  // the connected directory. Off by default: actions on the customer's IdP must
+  // be deliberately enabled in settings before they can run.
+  remediationEnabled Boolean @default(false)
+  // Encrypted bearer token for the SIEM pull feed, plus a non-secret hint shown
+  // in settings. Null when no SIEM export is configured.
+  siemTokenEnc  String?
+  siemTokenHint String?
+  // Optional SIEM push: alerts are POSTed in batches to this HTTPS endpoint by
+  // the scheduler. siemPushSince tracks the last delivered alert.
+  siemPushUrlEnc  String?
+  siemPushHint    String?
+  siemPushFormat  String?
+  siemPushSince   DateTime?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
@@ -25,6 +42,85 @@ model Company {
   directoryConnections DirectoryConnection[]
   apiCredentials       ApiCredential[]
   webhooks             Webhook[]
+  remediationActions   RemediationAction[]
+  exposureRegister     ExposureRegisterEntry[]
+  reportSchedules      ReportSchedule[]
+}
+
+// A recurring report emailed to a recipient list (driven by the scheduler).
+model ReportSchedule {
+  id         String            @id @default(cuid())
+  companyId  String
+  frequency  ScheduleFrequency
+  recipients String[]
+  sections   String[]
+  enabled    Boolean           @default(true)
+  lastSentAt DateTime?
+  createdAt  DateTime          @default(now())
+  updatedAt  DateTime          @updatedAt
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+}
+
+enum ScheduleFrequency {
+  WEEKLY
+  MONTHLY
+}
+
+// GDPR Article 33/30 exposure register: a documented record of each confirmed
+// personal-data exposure, whether or not it required notification.
+model ExposureRegisterEntry {
+  id             String         @id @default(cuid())
+  companyId      String
+  title          String
+  detectedAt     DateTime
+  status         RegisterStatus @default(ASSESSING)
+  affectedCount  Int            @default(0)
+  dataCategories String[]
+  assessment     String?
+  notifiedAt     DateTime?
+  createdAt      DateTime       @default(now())
+  updatedAt      DateTime       @updatedAt
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+}
+
+enum RegisterStatus {
+  ASSESSING
+  NOTIFIED
+  NOT_REQUIRED
+}
+
+// Append-only audit of remediation actions taken against the directory.
+model RemediationAction {
+  id          String            @id @default(cuid())
+  companyId   String
+  employeeId  String?
+  alertId     String?
+  action      RemediationType
+  status      RemediationStatus
+  target      String
+  detail      String?
+  performedBy String?
+  createdAt   DateTime          @default(now())
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+
+  @@index([companyId])
+}
+
+enum RemediationType {
+  REVOKE_SESSIONS
+  FORCE_PASSWORD_RESET
+}
+
+enum RemediationStatus {
+  SUCCESS
+  FAILED
 }
 
 model DirectoryConnection {
@@ -110,6 +206,7 @@ model ApiCredential {
 
 enum ApiProvider {
   HIBP
+  HIBP_STEALER
   DEHASHED
   LEAKCHECK
   INTELX
@@ -178,6 +275,9 @@ model Employee {
   lastName   String
   department String?
   companyId  String
+  // MFA enrollment from the directory sync: true/false when the provider
+  // reports it, null when unknown (provider has no capability or not synced).
+  mfaEnabled Boolean?
   createdAt  DateTime @default(now())
 
   company       Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
@@ -204,13 +304,29 @@ enum BreachSource {
   HIBP
   MANUAL
   DARK_WEB
+  STEALER_LOG
+}
+
+// Stolen artifact captured in a stealer log. Session cookies and tokens bypass
+// MFA, so they outrank a plaintext password, which outranks an autofill entry.
+enum ArtifactKind {
+  PASSWORD
+  COOKIE
+  TOKEN
+  AUTOFILL
 }
 
 model BreachRecord {
-  id          String   @id @default(cuid())
+  id          String         @id @default(cuid())
   employeeId  String
   breachId    String
   exposedData String[]
+  artifacts   ArtifactKind[]
+  // Infection metadata, present only for stealer-log findings whose feed
+  // exposes it (machine identifier, malware family, capture time).
+  machineId     String?
+  malwareFamily String?
+  capturedAt    DateTime?
   detectedAt  DateTime @default(now())
 
   employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
@@ -236,19 +352,29 @@ model Alert {
 }
 
 model Webhook {
-  id           String   @id @default(cuid())
+  id           String              @id @default(cuid())
   companyId    String
   label        String
+  channel      NotificationChannel @default(WEBHOOK)
+  // Encrypted delivery target: an HTTPS URL for WEBHOOK/SLACK/TEAMS, a recipient
+  // address for EMAIL.
   encryptedUrl String
   urlHint      String
-  minSeverity  Severity @default(MEDIUM)
-  enabled      Boolean  @default(true)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  minSeverity  Severity            @default(MEDIUM)
+  enabled      Boolean             @default(true)
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
 
   company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
   @@index([companyId])
+}
+
+enum NotificationChannel {
+  WEBHOOK
+  SLACK
+  TEAMS
+  EMAIL
 }
 
 enum Severity {

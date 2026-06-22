@@ -176,6 +176,15 @@ const WIDGETS: WidgetDef[] = [
     category: "breaches",
     defaultVisible: false,
   },
+  {
+    type: "mfa-coverage",
+    defaultTitle: "MFA Coverage",
+    description: "MFA enrollment across the directory and exposed accounts that lack it",
+    defaultSize: { w: 4, h: 5 },
+    minSize: { w: 3, h: 3 },
+    category: "employees",
+    defaultVisible: false,
+  },
 ]
 
 export function getWidgetDef(type: string): WidgetDef | undefined {

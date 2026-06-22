@@ -19,6 +19,13 @@ export const API_PROVIDERS: ProviderMeta[] = [
     wired: true,
   },
   {
+    id: "HIBP_STEALER",
+    label: "Have I Been Pwned (Stealer Logs)",
+    description: "Infostealer-log exposure by email. Uses a Pwned 5 key.",
+    docsUrl: "https://haveibeenpwned.com/API/Key",
+    wired: true,
+  },
+  {
     id: "DEHASHED",
     label: "DeHashed",
     description: "Search engine for compromised data.",
