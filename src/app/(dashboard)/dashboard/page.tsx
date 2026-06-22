@@ -21,6 +21,7 @@ import { BreachTimeline } from "@/components/dashboard/BreachTimeline"
 import { TopBreaches } from "@/components/dashboard/TopBreaches"
 import { DataTypeRadar } from "@/components/dashboard/DataTypeRadar"
 import { AlertVelocity } from "@/components/dashboard/AlertVelocity"
+import { MfaCoverage } from "@/components/dashboard/MfaCoverage"
 import { redirect } from "next/navigation"
 import type { DashboardPreset } from "@/types/dashboard"
 
@@ -258,6 +259,15 @@ export default async function DashboardPage() {
       minSize: { w: 3, h: 4 },
       defaultVisible: false,
       content: <DataTypeRadar data={data.dataTypes} />,
+    },
+    {
+      instanceId: "mfa-coverage",
+      type: "mfa-coverage",
+      defaultTitle: "MFA Coverage",
+      defaultSize: { w: 4, h: 5 },
+      minSize: { w: 3, h: 3 },
+      defaultVisible: false,
+      content: <MfaCoverage data={data.mfaCoverage} />,
     },
   ]
 

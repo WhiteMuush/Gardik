@@ -1,5 +1,12 @@
 import { prisma } from "@/lib/prisma"
-import { calculateRiskScore, getRiskLevel } from "@/lib/risk"
+import {
+  buildEmployeeRiskInput,
+  calculateRiskScore,
+  employeeRiskScore,
+  getRiskLevel,
+  resolveRiskWeights,
+  type RiskWeights,
+} from "@/lib/risk"
 
 export { calculateRiskScore, getRiskLevel }
 
@@ -74,8 +81,8 @@ export async function getDashboardData(companyId: string) {
     prisma.employee.findMany({
       where: { companyId, breachRecords: { some: {} } },
       select: {
-        id: true, firstName: true, lastName: true, department: true,
-        breachRecords: { select: { detectedAt: true, exposedData: true } },
+        id: true, firstName: true, lastName: true, department: true, email: true,
+        breachRecords: { select: { detectedAt: true, exposedData: true, artifacts: true } },
         alerts: { where: { status: "OPEN" }, select: { severity: true } },
       },
     }),
@@ -115,6 +122,26 @@ export async function getDashboardData(companyId: string) {
     recentBreaches,
   })
 
+  const company = await prisma.company.findUnique({
+    where: { id: companyId },
+    select: { domain: true, riskWeights: true },
+  })
+  const weights = resolveRiskWeights(company?.riskWeights)
+  const companyDomain = company?.domain ?? ""
+
+  const [mfaEnabledCount, mfaDisabledCount, exposedWithoutMfa] = await Promise.all([
+    prisma.employee.count({ where: { companyId, mfaEnabled: true } }),
+    prisma.employee.count({ where: { companyId, mfaEnabled: false } }),
+    prisma.employee.count({ where: { companyId, mfaEnabled: false, breachRecords: { some: {} } } }),
+  ])
+  const mfaCoverage = {
+    enabled: mfaEnabledCount,
+    disabled: mfaDisabledCount,
+    unknown: Math.max(0, totalEmployees - mfaEnabledCount - mfaDisabledCount),
+    exposedWithoutMfa,
+    total: totalEmployees,
+  }
+
   return {
     totalEmployees,
     compromisedEmployees,
@@ -133,7 +160,8 @@ export async function getDashboardData(companyId: string) {
       affectedEmployees: new Set(b.records.map((r) => r.employeeId)).size,
     })),
     departmentRisk: buildDepartmentRisk(departmentEmployees),
-    topRiskyEmployees: buildTopRiskyEmployees(topRiskyEmployees, thirtyDaysAgo),
+    mfaCoverage,
+    topRiskyEmployees: buildTopRiskyEmployees(topRiskyEmployees, companyDomain, weights),
     recentAlerts: recentAlerts.map((a) => ({
       id: a.id,
       severity: a.severity,
@@ -183,22 +211,23 @@ type EmployeeRaw = {
   firstName: string
   lastName: string
   department: string | null
-  breachRecords: { detectedAt: Date; exposedData: string[] }[]
+  email: string
+  breachRecords: { detectedAt: Date; exposedData: string[]; artifacts: string[] }[]
   alerts: { severity: string }[]
 }
 
-function buildTopRiskyEmployees(employees: EmployeeRaw[], thirtyDaysAgo: Date) {
+function buildTopRiskyEmployees(employees: EmployeeRaw[], companyDomain: string, weights: RiskWeights) {
   return employees
     .map((e) => {
-      const recentBreaches = e.breachRecords.filter((r) => r.detectedAt >= thirtyDaysAgo).length
-      const score = calculateRiskScore({
-        totalEmployees: 1,
-        compromisedEmployees: 1,
-        criticalAlerts: e.alerts.filter((a) => a.severity === "CRITICAL").length,
-        highAlerts: e.alerts.filter((a) => a.severity === "HIGH").length,
-        mediumAlerts: e.alerts.filter((a) => a.severity === "MEDIUM").length,
-        recentBreaches,
-      })
+      const score = employeeRiskScore(
+        buildEmployeeRiskInput({
+          email: e.email,
+          companyDomain,
+          records: e.breachRecords,
+          openAlerts: e.alerts.length,
+        }),
+        weights
+      )
       return {
         id: e.id,
         name: `${e.firstName} ${e.lastName}`,

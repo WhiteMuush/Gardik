@@ -14,6 +14,7 @@ import {
   Users,
   Bell,
   FileText,
+  ScrollText,
   Database,
   KeyRound,
   LogOut,
@@ -25,6 +26,7 @@ const navItems = [
   { href: "/employees", label: "Employees", icon: Users },
   { href: "/alerts", label: "Alerts", icon: Bell },
   { href: "/reports", label: "Reports", icon: FileText },
+  { href: "/register", label: "Exposure Register", icon: ScrollText },
   { href: "/data-sources", label: "Data Sources", icon: Database },
   { href: "/data-api", label: "Data API", icon: KeyRound },
 ]

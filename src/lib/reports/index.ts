@@ -29,7 +29,7 @@ export async function getReportData(
 
   return {
     generatedAt: new Date().toISOString(),
-    findings: buildFindings(exposure, compliance, dataTypes, deltas),
+    findings: buildFindings(exposure, compliance, dataTypes, deltas, employees),
     exposure,
     dataTypes,
     departments,

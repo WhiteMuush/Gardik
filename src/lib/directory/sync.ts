@@ -39,11 +39,12 @@ async function getUsersForConnection(
 }
 
 // Ne met à jour que les champs réellement fournis : évite d'écraser des données existantes par "".
-function buildUpdate(user: DirectoryUser): Record<string, string> {
-  const update: Record<string, string> = {}
+function buildUpdate(user: DirectoryUser): Record<string, string | boolean> {
+  const update: Record<string, string | boolean> = {}
   if (user.firstName) update.firstName = user.firstName
   if (user.lastName) update.lastName = user.lastName
   if (user.department !== undefined) update.department = user.department
+  if (user.mfaEnabled !== undefined) update.mfaEnabled = user.mfaEnabled
   return update
 }
 
@@ -56,6 +57,7 @@ function upsertEmployee(user: DirectoryUser, companyId: string) {
       firstName: user.firstName,
       lastName: user.lastName,
       department: user.department,
+      mfaEnabled: user.mfaEnabled,
       companyId,
     },
   })

@@ -1,6 +1,10 @@
 import { prisma } from "@/lib/prisma"
 import type { Severity, AlertStatus } from "@prisma/client"
 
+// Triage order: unresolved before resolved, then most dangerous, then recent.
+const STATUS_RANK: Record<AlertStatus, number> = { OPEN: 0, ACKNOWLEDGED: 1, RESOLVED: 2 }
+const SEVERITY_RANK: Record<Severity, number> = { CRITICAL: 0, HIGH: 1, MEDIUM: 2, LOW: 3 }
+
 export type AlertRow = {
   id: string
   severity: Severity
@@ -22,6 +26,13 @@ export async function getAlerts(companyId: string): Promise<AlertRow[]> {
     include: { employee: true, breach: true },
     orderBy: { createdAt: "desc" },
   })
+
+  alerts.sort(
+    (a, b) =>
+      STATUS_RANK[a.status] - STATUS_RANK[b.status] ||
+      SEVERITY_RANK[a.severity] - SEVERITY_RANK[b.severity] ||
+      b.createdAt.getTime() - a.createdAt.getTime()
+  )
 
   return alerts.map((a) => ({
     id: a.id,

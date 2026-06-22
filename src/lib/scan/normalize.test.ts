@@ -1,11 +1,24 @@
 import { describe, it, expect, vi } from "vitest"
-import { normalizeType, parseBreachDate, sleep } from "./normalize"
+import { normalizeArtifact, normalizeType, parseBreachDate, sleep } from "./normalize"
 
 describe("normalizeType", () => {
   it("lowercases, trims, and snake_cases whitespace runs", () => {
     expect(normalizeType("  Hashed Password ")).toBe("hashed_password")
     expect(normalizeType("Credit   Card")).toBe("credit_card")
     expect(normalizeType("EMAIL")).toBe("email")
+  })
+})
+
+describe("normalizeArtifact", () => {
+  it("maps known stealer artifact labels to a kind", () => {
+    expect(normalizeArtifact("Session Cookie")).toBe("COOKIE")
+    expect(normalizeArtifact("auth token")).toBe("TOKEN")
+    expect(normalizeArtifact("JWT")).toBe("TOKEN")
+    expect(normalizeArtifact("Autofill data")).toBe("AUTOFILL")
+    expect(normalizeArtifact("Saved password")).toBe("PASSWORD")
+  })
+  it("returns null for an unrecognized label", () => {
+    expect(normalizeArtifact("screenshot")).toBeNull()
   })
 })
 

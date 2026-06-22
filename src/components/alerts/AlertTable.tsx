@@ -2,7 +2,7 @@
 
 import { useState, useMemo } from "react"
 import { useRouter } from "next/navigation"
-import { Search, Check, CheckCheck, Loader2, Download } from "lucide-react"
+import { Search, Check, CheckCheck, Loader2, Download, LogOut, KeyRound } from "lucide-react"
 import { RiskBadge } from "@/components/ui/RiskBadge"
 import type { AlertRow } from "@/lib/alerts"
 import type { RiskLevel } from "@/lib/employees"
@@ -36,7 +36,15 @@ function timeAgo(date: Date): string {
   return `${d}d ago`
 }
 
-export function AlertTable({ data }: { data: AlertRow[] }) {
+export function AlertTable({
+  data,
+  remediationEnabled = false,
+  isAdmin = false,
+}: {
+  data: AlertRow[]
+  remediationEnabled?: boolean
+  isAdmin?: boolean
+}) {
   const router = useRouter()
   const [search, setSearch] = useState("")
   const [severity, setSeverity] = useState("")
@@ -81,6 +89,21 @@ export function AlertTable({ data }: { data: AlertRow[] }) {
     })
     setPending(null)
     if (res.ok) router.refresh()
+  }
+
+  async function remediate(id: string, action: string, label: string) {
+    if (!window.confirm(`${label} for this employee on the connected directory? This cannot be undone.`))
+      return
+    setPending(id)
+    const res = await fetch(`/api/alerts/${id}/remediate`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ action }),
+    })
+    const body = await res.json().catch(() => ({}))
+    setPending(null)
+    if (res.ok) router.refresh()
+    else window.alert(body.error ?? body.detail ?? "Remediation failed")
   }
 
   return (
@@ -146,6 +169,26 @@ export function AlertTable({ data }: { data: AlertRow[] }) {
               </div>
               <span className="shrink-0 text-xs text-muted-foreground">{statusLabel[a.status]}</span>
               <div className="flex shrink-0 items-center gap-1">
+                {remediationEnabled && isAdmin && a.employeeEmail && (
+                  <>
+                    <button
+                      onClick={() => remediate(a.id, "REVOKE_SESSIONS", "Revoke all sessions")}
+                      disabled={pending === a.id}
+                      title="Revoke sessions"
+                      className="flex size-7 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:bg-muted hover:text-severity-critical disabled:opacity-30"
+                    >
+                      <LogOut className="size-3.5" />
+                    </button>
+                    <button
+                      onClick={() => remediate(a.id, "FORCE_PASSWORD_RESET", "Force a password reset")}
+                      disabled={pending === a.id}
+                      title="Force password reset"
+                      className="flex size-7 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:bg-muted hover:text-severity-critical disabled:opacity-30"
+                    >
+                      <KeyRound className="size-3.5" />
+                    </button>
+                  </>
+                )}
                 {a.status === "OPEN" && (
                   <button
                     onClick={() => updateStatus(a.id, "ACKNOWLEDGED")}
