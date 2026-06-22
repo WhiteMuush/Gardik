@@ -15,6 +15,7 @@ export async function getEmployeeBreakdown(companyId: string, f: ReportFilters):
     breachCount: e.breachCount,
     exposedDataTypes: e.exposedDataTypes,
     lastDetectedAt: e.lastDetectedAt ? e.lastDetectedAt.toISOString() : null,
+    riskScore: e.riskScore,
     riskLevel: e.riskLevel,
   }))
 }

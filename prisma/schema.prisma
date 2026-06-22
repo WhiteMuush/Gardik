@@ -15,6 +15,9 @@ model Company {
   // scheduler-triggered scan so the next one is only due after the interval.
   scanIntervalMinutes Int?
   lastScanAt          DateTime?
+  // Per-company override of the per-employee risk weights (see lib/risk.ts).
+  // Null falls back to DEFAULT_RISK_WEIGHTS.
+  riskWeights Json?
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 

@@ -1,5 +1,14 @@
 import { prisma } from "@/lib/prisma"
+import {
+  buildEmployeeRiskInput,
+  CRITICAL_DATA,
+  employeeRiskScore,
+  getRiskLevel,
+  resolveRiskWeights,
+} from "@/lib/risk"
 import type { Prisma } from "@prisma/client"
+
+export { CRITICAL_DATA }
 
 export type GetEmployeesOpts = {
   where?: Prisma.EmployeeWhereInput
@@ -26,25 +35,42 @@ export type EmployeeRow = {
   breachCount: number
   lastDetectedAt: Date | null
   exposedDataTypes: string[]
+  riskScore: number
   riskLevel: RiskLevel
   breachRecords: BreachRecordDetail[]
 }
 
 export async function getEmployees(companyId: string, opts?: GetEmployeesOpts): Promise<EmployeeRow[]> {
-  const employees = await prisma.employee.findMany({
-    where: { companyId, ...opts?.where },
-    include: {
-      breachRecords: {
-        where: opts?.recordWhere,
-        include: { breach: true },
-        orderBy: { detectedAt: "desc" },
+  const [company, employees] = await Promise.all([
+    prisma.company.findUnique({ where: { id: companyId }, select: { domain: true, riskWeights: true } }),
+    prisma.employee.findMany({
+      where: { companyId, ...opts?.where },
+      include: {
+        breachRecords: {
+          where: opts?.recordWhere,
+          include: { breach: true },
+          orderBy: { detectedAt: "desc" },
+        },
+        alerts: { where: { status: { not: "RESOLVED" } }, select: { id: true } },
       },
-    },
-    orderBy: { createdAt: "desc" },
-  })
+      orderBy: { createdAt: "desc" },
+    }),
+  ])
+
+  const weights = resolveRiskWeights(company?.riskWeights)
+  const companyDomain = company?.domain ?? ""
 
   return employees.map((emp) => {
     const records = emp.breachRecords
+    const riskScore = employeeRiskScore(
+      buildEmployeeRiskInput({
+        email: emp.email,
+        companyDomain,
+        records,
+        openAlerts: emp.alerts.length,
+      }),
+      weights
+    )
     return {
       id: emp.id,
       email: emp.email,
@@ -54,7 +80,8 @@ export async function getEmployees(companyId: string, opts?: GetEmployeesOpts): 
       breachCount: records.length,
       lastDetectedAt: records[0]?.detectedAt ?? null,
       exposedDataTypes: [...new Set(records.flatMap((r) => r.exposedData))],
-      riskLevel: calculateRisk(records.flatMap((r) => r.exposedData), records.length),
+      riskScore,
+      riskLevel: riskScore === 0 ? "OK" : getRiskLevel(riskScore).level,
       breachRecords: records.map((r) => ({
         id: r.id,
         breachName: r.breach.name,
@@ -65,16 +92,4 @@ export async function getEmployees(companyId: string, opts?: GetEmployeesOpts): 
       })),
     }
   })
-}
-
-export const CRITICAL_DATA = ["password", "credit_card", "ssn", "bank_account", "financial"]
-
-function calculateRisk(dataTypes: string[], breachCount: number): RiskLevel {
-  if (breachCount === 0) return "OK"
-  const hasCritical = dataTypes.some((d) => CRITICAL_DATA.includes(d.toLowerCase()))
-  if (hasCritical && breachCount > 1) return "CRITICAL"
-  if (hasCritical) return "HIGH"
-  if (breachCount > 3) return "HIGH"
-  if (breachCount > 1) return "MEDIUM"
-  return "LOW"
 }
