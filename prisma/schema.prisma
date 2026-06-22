@@ -253,19 +253,29 @@ model Alert {
 }
 
 model Webhook {
-  id           String   @id @default(cuid())
+  id           String              @id @default(cuid())
   companyId    String
   label        String
+  channel      NotificationChannel @default(WEBHOOK)
+  // Encrypted delivery target: an HTTPS URL for WEBHOOK/SLACK/TEAMS, a recipient
+  // address for EMAIL.
   encryptedUrl String
   urlHint      String
-  minSeverity  Severity @default(MEDIUM)
-  enabled      Boolean  @default(true)
-  createdAt    DateTime @default(now())
-  updatedAt    DateTime @updatedAt
+  minSeverity  Severity            @default(MEDIUM)
+  enabled      Boolean             @default(true)
+  createdAt    DateTime            @default(now())
+  updatedAt    DateTime            @updatedAt
 
   company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
   @@index([companyId])
+}
+
+enum NotificationChannel {
+  WEBHOOK
+  SLACK
+  TEAMS
+  EMAIL
 }
 
 enum Severity {
