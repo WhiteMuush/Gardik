@@ -5,13 +5,16 @@ import { useState, useCallback, useEffect, useRef, type ReactNode } from "react"
 const { ResponsiveGridLayout, verticalCompactor } = require("react-grid-layout")
 import "react-grid-layout/css/styles.css"
 import "react-resizable/css/styles.css"
-import { Settings2, Check, Plus, Building2, User, LayoutGrid, GripHorizontal } from "lucide-react"
+import { Settings2, Check, Plus, Building2, User, LayoutGrid, GripHorizontal, Filter } from "lucide-react"
 import Link from "next/link"
+import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { DashboardEditContext } from "@/contexts/DashboardEditContext"
 import { DashboardConfigContext } from "@/contexts/DashboardConfigContext"
-import type { GridItemLayout, WidgetMeta, DashboardPreset } from "@/types/dashboard"
+import { type GridItemLayout, type WidgetMeta, type DashboardPreset, SOURCE_FILTERABLE_WIDGETS } from "@/types/dashboard"
+
+export type SourceOption = { id: string; label: string }
 import { buildDefaultLayout, buildDefaultMeta, mergeLayout, mergeMeta } from "./dashboardLayoutUtils"
 import { PresetTab } from "./PresetTab"
 import { RenameOverlay } from "./RenameOverlay"
@@ -39,12 +42,15 @@ export function DashboardCanvas({
   presets: initialPresets,
   activePresetId: initialActivePresetId,
   userRole,
+  sourceOptions = [],
 }: {
   widgets: WidgetEntry[]
   presets: DashboardPreset[]
   activePresetId: string | null
   userRole: string
+  sourceOptions?: SourceOption[]
 }) {
+  const router = useRouter()
   const [editing, setEditing] = useState(false)
   const [containerW, setContainerW] = useState(0)
   const containerRef = useRef<HTMLDivElement>(null)
@@ -175,6 +181,25 @@ export function DashboardCanvas({
     const m = meta.find((m) => m.instanceId === instanceId)
     return m?.title ?? defaultTitle
   }, [meta])
+
+  const getSource = useCallback((instanceId: string) => {
+    return meta.find((m) => m.instanceId === instanceId)?.source ?? null
+  }, [meta])
+
+  // Changing a widget's provider scope must re-run the server (the slice is
+  // computed there), so we save immediately and refresh rather than debounce.
+  const setSource = useCallback(async (instanceId: string, source: string | null) => {
+    const next = meta.map((m) => m.instanceId === instanceId ? { ...m, source } : m)
+    setMeta(next)
+    if (!activePreset) return
+    setPresets((prev) => prev.map((p) => p.id === activePreset.id ? { ...p, widgets: next } : p))
+    await fetch(`/api/dashboard/presets/${activePreset.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ layout, widgets: next }),
+    })
+    router.refresh()
+  }, [meta, layout, activePreset, router])
 
   const visibleWidgets = widgets.filter((w) => {
     const m = meta.find((m) => m.instanceId === w.instanceId)
@@ -324,6 +349,11 @@ export function DashboardCanvas({
               >
                 {visibleWidgets.map((w) => {
                   const title = getTitle(w.instanceId, w.defaultTitle)
+                  const filterable = SOURCE_FILTERABLE_WIDGETS.has(w.type)
+                  const source = filterable ? getSource(w.instanceId) : null
+                  const sourceLabel = source
+                    ? sourceOptions.find((o) => o.id === source)?.label ?? source
+                    : null
                   return (
                     <div
                       key={w.instanceId}
@@ -333,6 +363,28 @@ export function DashboardCanvas({
                         draggingId === w.instanceId && "drag-glow"
                       )}
                     >
+                      {/* Provider scope: a quiet badge when set, an editable
+                          dropdown in Customize mode. */}
+                      {filterable && !editing && sourceLabel && (
+                        <span className="absolute right-2 top-2 z-20 flex items-center gap-1 rounded-full border border-border bg-card/95 px-2 py-0.5 text-[10px] font-medium text-muted-foreground shadow-sm backdrop-blur-sm">
+                          <Filter className="size-2.5" />
+                          {sourceLabel}
+                        </span>
+                      )}
+                      {filterable && editing && (
+                        <select
+                          value={source ?? ""}
+                          onChange={(e) => setSource(w.instanceId, e.target.value || null)}
+                          onMouseDown={(e) => e.stopPropagation()}
+                          className="absolute right-2 top-2 z-40 max-w-[55%] truncate rounded-md border border-primary/40 bg-card/95 px-2 py-1 text-[10px] font-medium text-foreground shadow-sm backdrop-blur-sm focus:outline-none"
+                          title="Filter this widget by API source"
+                        >
+                          <option value="">All sources</option>
+                          {sourceOptions.map((o) => (
+                            <option key={o.id} value={o.id}>{o.label}</option>
+                          ))}
+                        </select>
+                      )}
                       {editing && (
                         <>
                           {/* Dedicated drag handle — the only place that starts a drag,
