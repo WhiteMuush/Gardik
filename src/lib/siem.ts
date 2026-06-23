@@ -91,6 +91,7 @@ export async function getSiemAlerts(companyId: string, since?: Date): Promise<Si
   return alerts.map((a) => ({
     id: a.id,
     severity: a.severity,
+    confidence: a.confidence,
     status: a.status,
     message: a.message,
     employeeEmail: a.employee?.email ?? null,

@@ -25,6 +25,8 @@ export function toCef(alert: SiemAlert): string {
     cs1: alert.breachName ?? "",
     cs2Label: "status",
     cs2: alert.status,
+    cs3Label: "confidence",
+    cs3: alert.confidence,
     rt: String(alert.createdAt.getTime()),
   }
   const extension = Object.entries(ext)

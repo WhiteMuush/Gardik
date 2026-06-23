@@ -20,7 +20,7 @@ export function toSyslog(alert: SiemAlert, hostname = "datashield"): string {
   const timestamp = alert.createdAt.toISOString()
   const sd =
     `[datashield@0 alertId="${sdValue(alert.id)}"` +
-    ` severity="${alert.severity}" status="${alert.status}"` +
+    ` severity="${alert.severity}" confidence="${alert.confidence}" status="${alert.status}"` +
     ` employee="${sdValue(alert.employeeEmail ?? "")}"` +
     ` breach="${sdValue(alert.breachName ?? "")}"]`
   return `<${pri}>1 ${timestamp} ${hostname} ${APP_NAME} - breach-exposure ${sd} ${alert.message}`

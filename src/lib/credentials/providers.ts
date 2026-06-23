@@ -1,4 +1,4 @@
-import type { ApiProvider } from "@prisma/client"
+import type { AlertConfidence, ApiProvider } from "@prisma/client"
 
 // Confidence tier of a breach intelligence provider, from most to least
 // reliable. Tier 1 sources are curated and verified (rare false positives);
@@ -74,4 +74,19 @@ export const PROVIDER_IDS = new Set(API_PROVIDERS.map((p) => p.id))
 
 export function providerMeta(id: ApiProvider): ProviderMeta | undefined {
   return API_PROVIDERS.find((p) => p.id === id)
+}
+
+// Base alert confidence implied by a provider tier. Tier 1 sources are trusted
+// (HIGH), tier 2 structured aggregators (MEDIUM), tier 3 noisy OSINT (LOW).
+const TIER_CONFIDENCE: Record<ProviderTier, AlertConfidence> = {
+  1: "HIGH",
+  2: "MEDIUM",
+  3: "LOW",
+}
+
+// Confidence to stamp on an alert raised from a given provider. Unknown
+// providers fall back to MEDIUM rather than over- or under-stating reliability.
+export function confidenceForProvider(id: ApiProvider): AlertConfidence {
+  const tier = providerMeta(id)?.tier ?? 2
+  return TIER_CONFIDENCE[tier]
 }

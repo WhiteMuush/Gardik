@@ -11,12 +11,28 @@ import { cn } from "@/lib/utils"
 
 const SEVERITIES = ["CRITICAL", "HIGH", "MEDIUM", "LOW"] as const
 const STATUSES = ["OPEN", "ACKNOWLEDGED", "RESOLVED"] as const
+const CONFIDENCES = ["HIGH", "MEDIUM", "LOW"] as const
 
 const borderBySeverity: Record<string, string> = {
   CRITICAL: "border-l-severity-critical",
   HIGH: "border-l-severity-high",
   MEDIUM: "border-l-severity-medium",
   LOW: "border-l-severity-low",
+}
+
+// Confidence is the reliability of the reporting source, not the impact. A
+// low-confidence hit (noisy OSINT feed) is muted/amber so a responder verifies
+// it before acting on it.
+const confidenceChip: Record<string, string> = {
+  HIGH: "border-border text-muted-foreground",
+  MEDIUM: "border-border text-muted-foreground",
+  LOW: "border-severity-medium/40 text-severity-medium",
+}
+
+const confidenceLabel: Record<string, string> = {
+  HIGH: "High confidence",
+  MEDIUM: "Medium confidence",
+  LOW: "Low confidence",
 }
 
 const statusLabel: Record<string, string> = {
@@ -49,6 +65,7 @@ export function AlertTable({
   const [search, setSearch] = useState("")
   const [severity, setSeverity] = useState("")
   const [status, setStatus] = useState("")
+  const [confidence, setConfidence] = useState("")
   const [pending, setPending] = useState<string | null>(null)
 
   const filtered = useMemo(() => {
@@ -61,16 +78,18 @@ export function AlertTable({
         (a.breachName?.toLowerCase().includes(q) ?? false)
       const matchSeverity = !severity || a.severity === severity
       const matchStatus = !status || a.status === status
-      return matchSearch && matchSeverity && matchStatus
+      const matchConfidence = !confidence || a.confidence === confidence
+      return matchSearch && matchSeverity && matchStatus && matchConfidence
     })
-  }, [data, search, severity, status])
+  }, [data, search, severity, status, confidence])
 
   function exportCsv() {
     downloadCsv(
       "datashield-alerts.csv",
-      ["severity", "status", "employee", "breach", "message", "created"],
+      ["severity", "confidence", "status", "employee", "breach", "message", "created"],
       filtered.map((a) => [
         a.severity,
+        a.confidence,
         a.status,
         a.employeeEmail ?? "",
         a.breachName ?? "",
@@ -134,6 +153,14 @@ export function AlertTable({
           <option value="">All statuses</option>
           {STATUSES.map((s) => <option key={s} value={s}>{statusLabel[s]}</option>)}
         </select>
+        <select
+          value={confidence}
+          onChange={(e) => setConfidence(e.target.value)}
+          className="rounded-lg border border-input bg-card px-3 py-2 text-sm text-foreground focus:border-ring focus:outline-none"
+        >
+          <option value="">All confidence</option>
+          {CONFIDENCES.map((c) => <option key={c} value={c}>{confidenceLabel[c]}</option>)}
+        </select>
         <button
           onClick={exportCsv}
           disabled={filtered.length === 0}
@@ -167,6 +194,15 @@ export function AlertTable({
                   {a.breachName ? ` - ${a.breachName}` : ""} - {timeAgo(a.createdAt)}
                 </p>
               </div>
+              <span
+                title={confidenceLabel[a.confidence]}
+                className={cn(
+                  "shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide",
+                  confidenceChip[a.confidence]
+                )}
+              >
+                {a.confidence}
+              </span>
               <span className="shrink-0 text-xs text-muted-foreground">{statusLabel[a.status]}</span>
               <div className="flex shrink-0 items-center gap-1">
                 {remediationEnabled && isAdmin && a.employeeEmail && (

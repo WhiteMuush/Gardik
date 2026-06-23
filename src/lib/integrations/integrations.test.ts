@@ -4,6 +4,7 @@ import { formatAlerts, toCef, toSyslog, type SiemAlert } from "./index"
 const alert: SiemAlert = {
   id: "al_1",
   severity: "CRITICAL",
+  confidence: "LOW",
   status: "OPEN",
   message: "Jane Doe found in Acme breach",
   employeeEmail: "jane@acme.com",
@@ -17,6 +18,7 @@ describe("toCef", () => {
     expect(line.startsWith("CEF:0|DataShield|DataShield|1.0|breach-exposure|Jane Doe found in Acme breach|10|")).toBe(true)
     expect(line).toContain("suser=jane@acme.com")
     expect(line).toContain("cs1=Acme")
+    expect(line).toContain("cs3=LOW")
   })
 
   it("escapes pipes in the name and equals in extensions", () => {
@@ -32,6 +34,7 @@ describe("toSyslog", () => {
     // facility 10 * 8 + severity 2 (crit) = 82
     expect(line.startsWith("<82>1 2026-06-22T10:00:00.000Z datashield datashield - breach-exposure ")).toBe(true)
     expect(line).toContain('alertId="al_1"')
+    expect(line).toContain('confidence="LOW"')
     expect(line).toContain('employee="jane@acme.com"')
     expect(line.endsWith("Jane Doe found in Acme breach")).toBe(true)
   })
@@ -44,6 +47,6 @@ describe("formatAlerts", () => {
 
   it("emits a json array for the json format", () => {
     const parsed = JSON.parse(formatAlerts([alert], "json"))
-    expect(parsed[0]).toMatchObject({ id: "al_1", employee: "jane@acme.com", breach: "Acme" })
+    expect(parsed[0]).toMatchObject({ id: "al_1", confidence: "LOW", employee: "jane@acme.com", breach: "Acme" })
   })
 })
