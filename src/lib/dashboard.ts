@@ -7,8 +7,27 @@ import {
   resolveRiskWeights,
   type RiskWeights,
 } from "@/lib/risk"
+import type { ApiProvider } from "@prisma/client"
 
 export { calculateRiskScore, getRiskLevel }
+
+// Raw, provider-tagged datasets the source-filterable widgets are derived from.
+// A record/breach "belongs" to a provider when that provider reported it
+// (BreachRecord.sources). Legacy records with no source tag only appear under
+// the unfiltered "all" view.
+export type BreachRecordRaw = { detectedAt: Date; exposedData: string[]; sources: ApiProvider[] }
+export type BreachCatalogEntry = {
+  id: string
+  name: string
+  source: string
+  breachDate: Date
+  dataTypes: string[]
+  records: { employeeId: string; sources: ApiProvider[] }[]
+}
+
+function matchesProvider(sources: ApiProvider[], provider?: ApiProvider): boolean {
+  return !provider || sources.includes(provider)
+}
 
 export async function getDashboardData(companyId: string) {
   const twelveMonthsAgo = new Date()
@@ -25,9 +44,8 @@ export async function getDashboardData(companyId: string) {
     mediumAlerts,
     lowAlerts,
     recentBreaches,
-    trendRecords,
-    allBreachRecords,
-    breachSources,
+    breachRecordsRaw,
+    breachCatalog,
     departmentEmployees,
     recentAlerts,
     topRiskyEmployees,
@@ -49,18 +67,14 @@ export async function getDashboardData(companyId: string) {
       where: { employee: { companyId }, detectedAt: { gte: thirtyDaysAgo } },
     }),
     prisma.breachRecord.findMany({
-      where: { employee: { companyId }, detectedAt: { gte: twelveMonthsAgo } },
-      select: { detectedAt: true },
-    }),
-    prisma.breachRecord.findMany({
       where: { employee: { companyId } },
-      select: { exposedData: true },
+      select: { detectedAt: true, exposedData: true, sources: true },
     }),
     prisma.breach.findMany({
       where: { records: { some: { employee: { companyId } } } },
       select: {
         id: true, name: true, source: true, breachDate: true, dataTypes: true,
-        records: { where: { employee: { companyId } }, select: { employeeId: true } },
+        records: { where: { employee: { companyId } }, select: { employeeId: true, sources: true } },
       },
       orderBy: { breachDate: "desc" },
     }),
@@ -148,17 +162,14 @@ export async function getDashboardData(companyId: string) {
     openAlerts,
     recentBreaches,
     riskScore,
-    trendData: buildTrendData(trendRecords),
-    dataTypes: buildDataTypes(allBreachRecords),
+    // Raw datasets so the page can re-derive the filterable widgets per provider.
+    breachRecordsRaw,
+    breachCatalog,
+    // Default ("all providers") slices.
+    trendData: buildTrendData(breachRecordsRaw),
+    dataTypes: buildDataTypes(breachRecordsRaw),
     alertSeverity: { critical: criticalAlerts, high: highAlerts, medium: mediumAlerts, low: lowAlerts },
-    breachSources: breachSources.map((b) => ({
-      id: b.id,
-      name: b.name,
-      source: b.source,
-      breachDate: b.breachDate.toISOString(),
-      dataTypes: b.dataTypes,
-      affectedEmployees: new Set(b.records.map((r) => r.employeeId)).size,
-    })),
+    breachSources: buildBreachSources(breachCatalog),
     departmentRisk: buildDepartmentRisk(departmentEmployees),
     mfaCoverage,
     topRiskyEmployees: buildTopRiskyEmployees(topRiskyEmployees, companyDomain, weights),
@@ -188,7 +199,7 @@ export async function getDashboardData(companyId: string) {
   }
 }
 
-function buildTrendData(records: { detectedAt: Date }[]) {
+export function buildTrendData(records: BreachRecordRaw[], provider?: ApiProvider) {
   const months: Record<string, number> = {}
 
   for (let i = 11; i >= 0; i--) {
@@ -198,12 +209,35 @@ function buildTrendData(records: { detectedAt: Date }[]) {
     months[key] = 0
   }
 
-  records.forEach(({ detectedAt }) => {
+  records.forEach(({ detectedAt, sources }) => {
+    if (!matchesProvider(sources, provider)) return
     const key = new Date(detectedAt).toLocaleString("en-US", { month: "short", year: "2-digit" })
     if (key in months) months[key]++
   })
 
   return Object.entries(months).map(([month, count]) => ({ month, count }))
+}
+
+// Breaches affecting the company, optionally scoped to a single provider: a
+// breach only appears when at least one of its records was reported by that
+// provider, and the affected-employee count is computed over matching records.
+export function buildBreachSources(catalog: BreachCatalogEntry[], provider?: ApiProvider) {
+  return catalog
+    .map((b) => ({
+      entry: b,
+      employees: new Set(
+        b.records.filter((r) => matchesProvider(r.sources, provider)).map((r) => r.employeeId)
+      ),
+    }))
+    .filter((x) => x.employees.size > 0)
+    .map(({ entry, employees }) => ({
+      id: entry.id,
+      name: entry.name,
+      source: entry.source,
+      breachDate: entry.breachDate.toISOString(),
+      dataTypes: entry.dataTypes,
+      affectedEmployees: employees.size,
+    }))
 }
 
 type EmployeeRaw = {
@@ -264,11 +298,12 @@ function buildDepartmentRisk(employees: { department: string | null; breachRecor
     .slice(0, 8)
 }
 
-function buildDataTypes(records: { exposedData: string[] }[]) {
+export function buildDataTypes(records: BreachRecordRaw[], provider?: ApiProvider) {
   const counts: Record<string, number> = {}
-  const total = records.reduce((sum, r) => sum + r.exposedData.length, 0)
+  const matching = records.filter((r) => matchesProvider(r.sources, provider))
+  const total = matching.reduce((sum, r) => sum + r.exposedData.length, 0)
 
-  records.forEach(({ exposedData }) => {
+  matching.forEach(({ exposedData }) => {
     exposedData.forEach((type) => {
       counts[type] = (counts[type] || 0) + 1
     })
