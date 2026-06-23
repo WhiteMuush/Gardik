@@ -18,6 +18,7 @@ const NOW = new Date("2026-06-22T00:00:00Z")
 const alertRow = {
   id: "al1",
   severity: "CRITICAL",
+  confidence: "HIGH",
   status: "OPEN",
   message: "m",
   createdAt: NOW,

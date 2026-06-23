@@ -10,6 +10,7 @@ function toJsonRecord(a: SiemAlert) {
   return {
     id: a.id,
     severity: a.severity,
+    confidence: a.confidence,
     status: a.status,
     message: a.message,
     employee: a.employeeEmail,

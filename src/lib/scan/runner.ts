@@ -2,10 +2,11 @@ import { prisma } from "@/lib/prisma"
 import { decryptConfig } from "@/lib/directory/crypto"
 import { emailEnabled, sendBreachAlert } from "@/lib/email"
 import { dispatchWebhooks, loadActiveWebhooks } from "@/lib/webhooks"
+import { confidenceForProvider } from "@/lib/credentials/providers"
 import { providerById } from "./registry"
 import { sleep } from "./normalize"
 import type { BreachProvider, Finding } from "./types"
-import type { ArtifactKind, BreachSource, Severity } from "@prisma/client"
+import type { AlertConfidence, ArtifactKind, BreachSource, Severity } from "@prisma/client"
 
 const RATE_LIMIT_MS = 1500
 const CRITICAL_TYPES = ["password", "hashed_password", "credit_card", "ssn", "bank_account"]
@@ -98,6 +99,7 @@ async function persistFinding(
   employee: EmployeeWithRecords,
   finding: Finding,
   source: BreachSource,
+  confidence: AlertConfidence,
   known: Set<string>,
   notify: Notify
 ): Promise<boolean> {
@@ -134,6 +136,7 @@ async function persistFinding(
       employeeId: employee.id,
       breachId: breach.id,
       severity,
+      confidence,
       status: "OPEN",
       message: alertMessage(employeeName, finding, source, artifacts),
     },
@@ -175,6 +178,7 @@ export async function runScan(
   for (const employee of employees) {
     const known = new Set(employee.breachRecords.map((r) => r.breachId))
     for (const { provider, key } of providers) {
+      const confidence = confidenceForProvider(provider.id)
       let findings: Finding[]
       try {
         findings = await provider.lookup(employee.email, key)
@@ -182,7 +186,9 @@ export async function runScan(
         continue
       }
       for (const finding of findings) {
-        if (await persistFinding(companyId, employee, finding, provider.source, known, notify)) {
+        if (
+          await persistFinding(companyId, employee, finding, provider.source, confidence, known, notify)
+        ) {
           newRecords++
         }
       }

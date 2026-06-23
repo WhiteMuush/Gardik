@@ -341,6 +341,11 @@ model Alert {
   employeeId String?
   breachId   String?
   severity   Severity
+  // How reliable the reporting source is, derived from the provider tier (see
+  // lib/credentials/providers.ts). Orthogonal to severity: a real exposure stays
+  // severe whoever reported it, but a low-confidence hit (noisy OSINT feed) is
+  // flagged so a responder verifies before acting.
+  confidence AlertConfidence @default(MEDIUM)
   status     AlertStatus @default(OPEN)
   message    String
   createdAt  DateTime    @default(now())
@@ -388,4 +393,10 @@ enum AlertStatus {
   OPEN
   ACKNOWLEDGED
   RESOLVED
+}
+
+enum AlertConfidence {
+  HIGH
+  MEDIUM
+  LOW
 }
