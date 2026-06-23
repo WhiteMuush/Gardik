@@ -40,11 +40,30 @@ export async function loadActiveProviders(companyId: string): Promise<ActiveProv
   return active
 }
 
-export function severityFor(dataTypes: string[], artifacts: ArtifactKind[] = []): Severity {
+export function severityFor(
+  dataTypes: string[],
+  artifacts: ArtifactKind[] = [],
+  source: BreachSource = "MANUAL"
+): Severity {
   // A live session cookie or token bypasses MFA, so it is always CRITICAL
-  // regardless of how many classic data types leaked alongside it.
+  // regardless of source or how many classic data types leaked alongside it.
   if (artifacts.includes("COOKIE") || artifacts.includes("TOKEN")) return "CRITICAL"
+
   const critical = dataTypes.filter((d) => CRITICAL_TYPES.includes(d)).length
+
+  // A stealer log proves an active malware infection on the endpoint: the
+  // machine is owned right now. That raises the floor a full tier above an
+  // equivalent breach dump. A stolen plaintext password (or any critical data)
+  // off an infected host is CRITICAL; bare infection is still at least HIGH.
+  if (source === "STEALER_LOG") {
+    return critical >= 1 || artifacts.includes("PASSWORD") ? "CRITICAL" : "HIGH"
+  }
+
+  // Dark-web sources mean the data is actively traded, but they often carry no
+  // structured data types (an email merely seen in a bucket). Without a
+  // per-provider confidence axis, bare dark-web presence stays MEDIUM to avoid
+  // flooding HIGH alerts from noisy aggregators; a known credential still lifts
+  // it. Curated dumps (HIBP) and manual entries share the same data-type logic.
   if (critical >= 2) return "CRITICAL"
   if (critical === 1) return "HIGH"
   return "MEDIUM"
@@ -95,7 +114,7 @@ async function persistFinding(
   if (known.has(breach.id)) return false
 
   const artifacts = finding.artifacts ?? []
-  const severity = severityFor(finding.dataTypes, artifacts)
+  const severity = severityFor(finding.dataTypes, artifacts, source)
   const employeeName = `${employee.firstName} ${employee.lastName}`
 
   await prisma.breachRecord.create({
