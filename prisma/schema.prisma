@@ -322,6 +322,11 @@ model BreachRecord {
   breachId    String
   exposedData String[]
   artifacts   ArtifactKind[]
+  // Intelligence providers that reported this exposure. The scan merges hits
+  // for the same canonical breach into one record, so two tools confirming the
+  // same data appear here together instead of producing duplicate records and
+  // alerts. Corroboration by independent tools raises the alert confidence.
+  sources     ApiProvider[]
   // Infection metadata, present only for stealer-log findings whose feed
   // exposes it (machine identifier, malware family, capture time).
   machineId     String?

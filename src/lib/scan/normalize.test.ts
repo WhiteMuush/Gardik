@@ -1,5 +1,5 @@
 import { describe, it, expect, vi } from "vitest"
-import { normalizeArtifact, normalizeType, parseBreachDate, sleep } from "./normalize"
+import { canonicalBreachKey, normalizeArtifact, normalizeType, parseBreachDate, sleep } from "./normalize"
 
 describe("normalizeType", () => {
   it("lowercases, trims, and snake_cases whitespace runs", () => {
@@ -19,6 +19,23 @@ describe("normalizeArtifact", () => {
   })
   it("returns null for an unrecognized label", () => {
     expect(normalizeArtifact("screenshot")).toBeNull()
+  })
+})
+
+describe("canonicalBreachKey", () => {
+  it("folds case, whitespace, punctuation and a trailing TLD", () => {
+    expect(canonicalBreachKey("LinkedIn")).toBe("linkedin")
+    expect(canonicalBreachKey("  linkedin ")).toBe("linkedin")
+    expect(canonicalBreachKey("LinkedIn.com")).toBe("linkedin")
+    expect(canonicalBreachKey("Linked-In")).toBe("linkedin")
+  })
+  it("keeps digits so numbered collections stay distinct", () => {
+    expect(canonicalBreachKey("Collection #1")).toBe("collection1")
+    expect(canonicalBreachKey("Collection #2")).toBe("collection2")
+    expect(canonicalBreachKey("Collection #1")).not.toBe(canonicalBreachKey("Collection #2"))
+  })
+  it("does not collapse different namespaces onto the same key", () => {
+    expect(canonicalBreachKey("leaks.public.general")).not.toBe(canonicalBreachKey("LinkedIn"))
   })
 })
 
