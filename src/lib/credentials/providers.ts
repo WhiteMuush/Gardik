@@ -1,5 +1,13 @@
 import type { ApiProvider } from "@prisma/client"
 
+// Confidence tier of a breach intelligence provider, from most to least
+// reliable. Tier 1 sources are curated and verified (rare false positives);
+// tier 2 are structured aggregators; tier 3 are broad OSINT feeds that are
+// noisier and often return no structured data. The tier feeds alert confidence,
+// it never lowers severity on its own (a real exposure stays severe whoever
+// reported it).
+export type ProviderTier = 1 | 2 | 3
+
 // Metadata for the breach/leak intelligence API providers.
 // `wired` indicates whether the code actually consumes the key today.
 export interface ProviderMeta {
@@ -8,6 +16,7 @@ export interface ProviderMeta {
   description: string
   docsUrl: string
   wired: boolean
+  tier: ProviderTier
 }
 
 export const API_PROVIDERS: ProviderMeta[] = [
@@ -17,6 +26,7 @@ export const API_PROVIDERS: ProviderMeta[] = [
     description: "Breach lookup by email or domain.",
     docsUrl: "https://haveibeenpwned.com/API/Key",
     wired: true,
+    tier: 1,
   },
   {
     id: "HIBP_STEALER",
@@ -24,6 +34,7 @@ export const API_PROVIDERS: ProviderMeta[] = [
     description: "Infostealer-log exposure by email. Uses a Pwned 5 key.",
     docsUrl: "https://haveibeenpwned.com/API/Key",
     wired: true,
+    tier: 1,
   },
   {
     id: "DEHASHED",
@@ -31,6 +42,7 @@ export const API_PROVIDERS: ProviderMeta[] = [
     description: "Search engine for compromised data.",
     docsUrl: "https://www.dehashed.com/",
     wired: true,
+    tier: 2,
   },
   {
     id: "LEAKCHECK",
@@ -38,6 +50,7 @@ export const API_PROVIDERS: ProviderMeta[] = [
     description: "Data breach verification API.",
     docsUrl: "https://leakcheck.io/",
     wired: true,
+    tier: 2,
   },
   {
     id: "INTELX",
@@ -45,6 +58,7 @@ export const API_PROVIDERS: ProviderMeta[] = [
     description: "OSINT, leaks and dark web search.",
     docsUrl: "https://intelx.io/",
     wired: true,
+    tier: 3,
   },
   {
     id: "SNUSBASE",
@@ -52,6 +66,7 @@ export const API_PROVIDERS: ProviderMeta[] = [
     description: "Indexed breach database.",
     docsUrl: "https://snusbase.com/",
     wired: true,
+    tier: 2,
   },
 ]
 
