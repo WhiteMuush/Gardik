@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { findSwapTarget, sameGeometry } from "./dashboardLayoutUtils"
+import { findSwapTarget, sameGeometry, squeezeResize } from "./dashboardLayoutUtils"
 
 const pool = [
   { i: "a", x: 0, y: 0, w: 6, h: 4, minW: 2, minH: 2 },
@@ -33,6 +33,45 @@ describe("findSwapTarget", () => {
     const small = { i: "small", x: 8, y: 0, w: 2, h: 2, minW: 1, minH: 1 }
     const dragged = { ...wide, x: 8, y: 0 } // footprint overlaps small
     expect(findSwapTarget(dragged, [wide, small])?.i).toBe("small")
+  })
+})
+
+describe("squeezeResize", () => {
+  const cols = 12
+  // Two widgets sharing the row, 6 + 6.
+  const pre = [
+    { i: "a", x: 0, y: 0, w: 6, h: 4, minW: 2, minH: 2 },
+    { i: "b", x: 6, y: 0, w: 6, h: 4, minW: 2, minH: 2 },
+  ]
+
+  it("shrinks the right neighbour to reclaim the grown columns", () => {
+    const items = [{ ...pre[0], w: 8 }, pre[1]]
+    const out = squeezeResize(items, "a", cols, pre)
+    expect(out.find((l) => l.i === "a")).toMatchObject({ x: 0, w: 8 })
+    expect(out.find((l) => l.i === "b")).toMatchObject({ x: 8, w: 4, y: 0 })
+  })
+
+  it("evicts the neighbour below when it can't shrink past minW", () => {
+    const items = [{ ...pre[0], w: 11 }, pre[1]] // leaves 1 col, b.minW = 2
+    const out = squeezeResize(items, "a", cols, pre)
+    expect(out.find((l) => l.i === "b")).toMatchObject({ x: 6, w: 6, y: 4 })
+  })
+
+  it("trims a left neighbour when the resized widget grows from its left edge", () => {
+    const items = [pre[0], { ...pre[1], x: 4, w: 8 }] // b's left handle dragged left
+    const out = squeezeResize(items, "b", cols, pre)
+    expect(out.find((l) => l.i === "a")).toMatchObject({ x: 0, w: 4 })
+    expect(out.find((l) => l.i === "b")).toMatchObject({ x: 4, w: 8 })
+  })
+
+  it("leaves widgets that don't overlap the new footprint untouched", () => {
+    const stacked = [
+      { i: "a", x: 0, y: 0, w: 6, h: 4, minW: 2, minH: 2 },
+      { i: "c", x: 0, y: 4, w: 6, h: 4, minW: 2, minH: 2 },
+    ]
+    const items = [{ ...stacked[0], w: 8 }, stacked[1]]
+    const out = squeezeResize(items, "a", cols, stacked)
+    expect(out.find((l) => l.i === "c")).toMatchObject({ x: 0, y: 4, w: 6 })
   })
 })
 
