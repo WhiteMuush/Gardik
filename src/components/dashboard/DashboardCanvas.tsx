@@ -210,10 +210,13 @@ export function DashboardCanvas({
     if (Object.keys(extraRows).length > 0 || pre.length === 0 || !id || !item) return
     const origin = pre.find((l) => l.i === id)
     const target = findSwapTarget(item, pre)
+    // Each widget takes the other's slot and size, clamped to its own min so the
+    // persisted layout stays valid (mergeLayout would otherwise grow it on reload
+    // and shift things). Compaction below resolves any overlap the clamp creates.
     const base = target && origin
       ? pre.map((l) => {
-          if (l.i === id) return { ...l, x: target.x, y: target.y, w: target.w, h: target.h }
-          if (l.i === target.i) return { ...l, x: origin.x, y: origin.y, w: origin.w, h: origin.h }
+          if (l.i === id) return { ...l, x: target.x, y: target.y, w: Math.max(target.w, l.minW ?? 1), h: Math.max(target.h, l.minH ?? 1) }
+          if (l.i === target.i) return { ...l, x: origin.x, y: origin.y, w: Math.max(origin.w, l.minW ?? 1), h: Math.max(origin.h, l.minH ?? 1) }
           return l
         })
       : pre.map((l) => (l.i === id ? { ...l, x: item.x, y: item.y } : l))
