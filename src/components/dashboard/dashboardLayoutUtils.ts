@@ -98,17 +98,24 @@ export function squeezeResize<T extends SwapItem>(items: SwapItem[], id: string,
   const map = new Map(pre.map((l) => [l.i, { ...l }]))
   const resized = map.get(id)
   if (!next || !resized) return [...map.values()]
+  // A pusher only squeezes widgets sitting alongside this row band. For the resized
+  // widget the band is its ORIGINAL rows (pre-grow height) so a taller widget never
+  // squeezes the widget stacked below it; that one is left for vertical compaction
+  // to push straight down. An evicted widget instead uses its new full span as the
+  // band, so it reflows the row it lands on.
+  const queue: { id: string; top: number; bottom: number }[] = [
+    { id, top: resized.y, bottom: resized.y + resized.h },
+  ]
   resized.x = next.x
   resized.y = next.y
   resized.w = next.w
   resized.h = next.h
-  // Breadth-first reflow: a "pusher" squeezes every widget it overlaps; any widget
-  // it has to evict downward joins the queue and squeezes its own landing row in
-  // turn. Each id pushes at most once (guard set), so this always terminates.
-  const queue = [id]
+  // Breadth-first reflow: a "pusher" squeezes every side widget it overlaps; any
+  // widget it has to evict downward joins the queue and reflows its own landing row
+  // in turn. Each id pushes at most once (guard set), so this always terminates.
   const pushed = new Set<string>()
   while (queue.length > 0) {
-    const pid = queue.shift() as string
+    const { id: pid, top, bottom } = queue.shift() as { id: string; top: number; bottom: number }
     if (pushed.has(pid)) continue
     pushed.add(pid)
     const p = map.get(pid)
@@ -120,6 +127,10 @@ export function squeezeResize<T extends SwapItem>(items: SwapItem[], id: string,
       const vOverlap = l.y < pBottom && p.y < l.y + l.h
       const hOverlap = l.x < pRight && p.x < l.x + l.w
       if (!vOverlap || !hOverlap) continue
+      // Beside the band, not stacked below it. A widget below the band is a vertical
+      // collision (taller widget), left untouched so compaction pushes it down.
+      const beside = l.y < bottom && top < l.y + l.h
+      if (!beside) continue
       const minW = l.minW ?? 1
       // Right neighbour: slide it to the pusher's right edge and clamp its width to
       // the columns left over. Left neighbour: trim its right edge back to the
@@ -135,7 +146,7 @@ export function squeezeResize<T extends SwapItem>(items: SwapItem[], id: string,
         if (w >= minW) { l.w = w; continue }
       }
       l.y = pBottom
-      queue.push(l.i)
+      queue.push({ id: l.i, top: l.y, bottom: l.y + l.h })
     }
   }
   return [...map.values()]
