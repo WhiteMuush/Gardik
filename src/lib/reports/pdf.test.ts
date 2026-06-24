@@ -39,10 +39,54 @@ const data: ReportData = {
   findings: [],
 }
 
+const rich: ReportData = {
+  ...data,
+  findings: [
+    { severity: "critical", message: "1 critical alert open" },
+    { severity: "ok", message: "MFA enabled for most staff" },
+  ],
+  dataTypes: [
+    { type: "password", label: "Passwords", count: 120, percentage: 60, critical: true },
+    { type: "email", label: "Emails", count: 80, percentage: 40, critical: false },
+  ],
+  departments: [{ department: "Engineering", total: 8, exposed: 5, exposureRate: 63 }],
+  employees: [
+    {
+      name: "Ada Lovelace",
+      email: "ada@example.com",
+      department: "Engineering",
+      breachCount: 3,
+      exposedDataTypes: ["password"],
+      lastDetectedAt: null,
+      riskScore: 70,
+      riskLevel: "HIGH",
+      mfaEnabled: false,
+    },
+  ],
+  trends: { monthly: [{ month: "2026-05", breaches: 1, alerts: 2 }] },
+  deltas: {
+    windowLabel: "30d",
+    newlyExposed: { current: 2, previous: 1 },
+    newBreaches: { current: 1, previous: 1 },
+    newAlerts: { current: 0, previous: 3 },
+  },
+}
+
 describe("reportPdf", () => {
   it("renders a non-empty PDF buffer with the PDF magic header", async () => {
     const buf = await reportPdf(["exposure", "compliance"], data)
     expect(buf.length).toBeGreaterThan(500)
     expect(buf.subarray(0, 5).toString("latin1")).toBe("%PDF-")
+  })
+
+  it("renders every section with rich data without throwing", async () => {
+    const buf = await reportPdf(
+      ["exposure", "compliance", "datatypes", "departments", "employees", "trends"],
+      rich,
+    )
+    expect(buf.subarray(0, 5).toString("latin1")).toBe("%PDF-")
+    // The richer document is materially larger than the empty-data baseline.
+    const baseline = await reportPdf(["exposure"], data)
+    expect(buf.length).toBeGreaterThan(baseline.length)
   })
 })
