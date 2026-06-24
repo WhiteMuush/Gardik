@@ -1,5 +1,5 @@
 import { describe, it, expect } from "vitest"
-import { findSwapTarget } from "./dashboardLayoutUtils"
+import { findSwapTarget, sameGeometry } from "./dashboardLayoutUtils"
 
 const pool = [
   { i: "a", x: 0, y: 0, w: 6, h: 4, minW: 2, minH: 2 },
@@ -29,5 +29,21 @@ describe("findSwapTarget", () => {
     const small = { i: "small", x: 8, y: 0, w: 2, h: 2, minW: 1, minH: 1 }
     const dragged = { ...wide, x: 8, y: 0 } // centre inside small
     expect(findSwapTarget(dragged, [wide, small])).toBeNull()
+  })
+})
+
+describe("sameGeometry", () => {
+  const layout = [
+    { i: "a", x: 0, y: 0, w: 6, h: 4 },
+    { i: "b", x: 6, y: 0, w: 6, h: 8 },
+  ]
+  it("true for the same widgets at the same slots, order-independent", () => {
+    expect(sameGeometry(layout, [layout[1], layout[0]])).toBe(true)
+  })
+  it("false when any widget moved or resized", () => {
+    expect(sameGeometry(layout, [{ ...layout[0], x: 1 }, layout[1]])).toBe(false)
+  })
+  it("false when the widget set differs", () => {
+    expect(sameGeometry(layout, [layout[0]])).toBe(false)
   })
 })

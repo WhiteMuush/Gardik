@@ -76,6 +76,18 @@ export function findSwapTarget<T extends SwapItem>(dragged: SwapItem, pool: T[])
   return fits ? target : null
 }
 
+// True when two layouts place the same widgets at the same x/y/w/h. Used to
+// skip redundant state writes so the grid's onLayoutChange -> setState -> grid
+// re-derive cycle can't ping-pong into "Maximum update depth exceeded".
+export function sameGeometry(a: SwapItem[], b: SwapItem[]): boolean {
+  if (a.length !== b.length) return false
+  const by = new Map(b.map((l) => [l.i, l]))
+  return a.every((l) => {
+    const o = by.get(l.i)
+    return !!o && o.x === l.x && o.y === l.y && o.w === l.w && o.h === l.h
+  })
+}
+
 export function mergeMeta(saved: WidgetMeta[], widgets: WidgetEntry[]): WidgetMeta[] {
   return widgets.map((w) => {
     const s = saved.find((m) => m.instanceId === w.instanceId)
