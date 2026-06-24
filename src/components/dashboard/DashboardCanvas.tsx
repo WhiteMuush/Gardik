@@ -73,6 +73,9 @@ export function DashboardCanvas({
   const [layout, setLayout] = useState<GridItemLayout[]>(() => initLayout(activePreset))
   const [meta, setMeta] = useState<WidgetMeta[]>(() => initMeta(activePreset))
   const [draggingId, setDraggingId] = useState<string | null>(null)
+  // Temporary per-widget extra grid rows while an in-widget editor is open.
+  // Not persisted: it only inflates the live layout so RGL pushes neighbours.
+  const [extraRows, setExtraRows] = useState<Record<string, number>>({})
   const [addMenuOpen, setAddMenuOpen] = useState(false)
   const addMenuRef = useRef<HTMLDivElement>(null)
   const saveTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
@@ -104,6 +107,16 @@ export function DashboardCanvas({
         body: JSON.stringify({ layout: nextLayout, widgets: nextMeta }),
       })
     }, 800)
+  }, [])
+
+  const requestRows = useCallback((instanceId: string, rows: number) => {
+    setExtraRows((prev) => {
+      if ((prev[instanceId] ?? 0) === rows) return prev
+      const next = { ...prev }
+      if (rows > 0) next[instanceId] = rows
+      else delete next[instanceId]
+      return next
+    })
   }, [])
 
   const switchPreset = useCallback((preset: DashboardPreset) => {
@@ -150,6 +163,9 @@ export function DashboardCanvas({
   }, [activePresetId, initLayout, initMeta])
 
   const onLayoutChange = (current: RglItem[]) => {
+    // While a widget is temporarily expanded its editor pushes neighbours; that
+    // reflow is transient, so never capture or persist it.
+    if (Object.keys(extraRows).length > 0) return
     const next = current.map((item) => ({
       i: item.i, x: item.x, y: item.y, w: item.w, h: item.h, minW: item.minW, minH: item.minH,
     }))
@@ -231,7 +247,7 @@ export function DashboardCanvas({
   // handled by isDraggable/isResizable={editing}. A `static` item is excluded from
   // compaction, which would make newly-added widgets overlap instead of flowing in.
   const rglLayout = visibleWidgets.map((w) => {
-    return layout.find((l) => l.i === w.instanceId) ?? {
+    const base = layout.find((l) => l.i === w.instanceId) ?? {
       i: w.instanceId,
       x: 0,
       y: Infinity,
@@ -240,6 +256,8 @@ export function DashboardCanvas({
       minW: w.minSize.w,
       minH: w.minSize.h,
     }
+    const extra = extraRows[w.instanceId] ?? 0
+    return extra ? { ...base, h: base.h + extra } : base
   })
 
   const isAdmin = userRole === "ADMIN"
@@ -249,7 +267,7 @@ export function DashboardCanvas({
 
   return (
     <DashboardEditContext.Provider value={editing}>
-      <DashboardConfigContext.Provider value={{ getTitle, setTitle, editing }}>
+      <DashboardConfigContext.Provider value={{ getTitle, setTitle, editing, requestRows }}>
         <div className="flex flex-1 flex-col min-h-0">
 
           {/* ── Toolbar ─────────────────────────────────────────────────── */}
