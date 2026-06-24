@@ -313,9 +313,15 @@ export function DashboardCanvas({
       allowOverlap: false,
       compact(items: RglItem[], cols: number) {
         const pre = preDragLayout.current
-        const dragged = items.find((l) => l.moved)
-        if (!dragged || pre.length === 0) return verticalCompactor.compact(items, cols)
-        return pre.map((l) => (l.i === dragged.i ? { ...l, x: dragged.x, y: dragged.y } : { ...l }))
+        const id = draggedId.current
+        if (!id || pre.length === 0) return verticalCompactor.compact(items, cols)
+        // Identify the dragged widget by id, not the `moved` flag: collision
+        // resolution marks every pushed widget as moved too, so the flag would
+        // sometimes pick a neighbour and float the wrong one. Pin every other
+        // widget to its frozen slot; only the dragged one tracks the cursor.
+        const dragged = items.find((l) => l.i === id)
+        if (!dragged) return verticalCompactor.compact(items, cols)
+        return pre.map((l) => (l.i === id ? { ...l, x: dragged.x, y: dragged.y } : { ...l }))
       },
     }),
     [],
