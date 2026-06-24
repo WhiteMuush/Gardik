@@ -64,6 +64,20 @@ describe("squeezeResize", () => {
     expect(out.find((l) => l.i === "b")).toMatchObject({ x: 4, w: 8 })
   })
 
+  it("makes the evicted widget squeeze its landing row instead of pushing it down", () => {
+    // a + b on top, c spans the full width below. Growing a evicts b (minW 4
+    // won't fit the 3 leftover cols); b lands on c's row, so c must shrink to share.
+    const stacked = [
+      { i: "a", x: 0, y: 0, w: 6, h: 4, minW: 2, minH: 2 },
+      { i: "b", x: 6, y: 0, w: 6, h: 4, minW: 4, minH: 2 },
+      { i: "c", x: 0, y: 4, w: 12, h: 4, minW: 2, minH: 2 },
+    ]
+    const items = [{ ...stacked[0], w: 9 }, stacked[1], stacked[2]]
+    const out = squeezeResize(items, "a", cols, stacked)
+    expect(out.find((l) => l.i === "b")).toMatchObject({ x: 6, y: 4, w: 6 })
+    expect(out.find((l) => l.i === "c")).toMatchObject({ x: 0, y: 4, w: 6 })
+  })
+
   it("leaves widgets that don't overlap the new footprint untouched", () => {
     const stacked = [
       { i: "a", x: 0, y: 0, w: 6, h: 4, minW: 2, minH: 2 },
