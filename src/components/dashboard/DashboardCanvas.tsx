@@ -79,6 +79,8 @@ export function DashboardCanvas({
   const [addMenuOpen, setAddMenuOpen] = useState(false)
   const addMenuRef = useRef<HTMLDivElement>(null)
   const saveTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
+  // Layout captured when a drag starts, used to compute same-size swaps.
+  const preDragLayout = useRef<GridItemLayout[]>([])
 
   useEffect(() => {
     if (!addMenuOpen) return
@@ -162,29 +164,73 @@ export function DashboardCanvas({
     })
   }, [activePresetId, initLayout, initMeta])
 
+  const normalize = (items: RglItem[]): GridItemLayout[] =>
+    items.map((item) => ({
+      i: item.i, x: item.x, y: item.y, w: item.w, h: item.h, minW: item.minW, minH: item.minH,
+    }))
+
+  // Save a layout, re-attaching hidden widgets' saved positions (the grid only
+  // renders visible widgets, so `next` omits them) so toggling them off never
+  // loses placement.
+  const persistMerged = (next: GridItemLayout[]) => {
+    if (!activePreset) return
+    const savedLayout = activePreset.layout ?? []
+    const visibleIds = new Set(next.map((l) => l.i))
+    const preserved = savedLayout.filter((l) => !visibleIds.has(l.i))
+    persistPreset(activePreset.id, [...next, ...preserved], meta)
+  }
+
   const onLayoutChange = (current: RglItem[]) => {
     // While a widget is temporarily expanded its editor pushes neighbours; that
     // reflow is transient, so never capture or persist it.
     if (Object.keys(extraRows).length > 0) return
-    const next = current.map((item) => ({
-      i: item.i, x: item.x, y: item.y, w: item.w, h: item.h, minW: item.minW, minH: item.minH,
-    }))
+    const next = normalize(current)
     setLayout(next)
 
     // HARD RULE: the dashboard is only ever modified in Customize mode.
     // Outside editing we never write — not on mount, not on compaction, never.
-    // New widgets still flow into free space visually (y:Infinity + vertical
-    // compaction on render); that placement is baked into the DB the next time
-    // the user arranges things in Customize.
     if (!editing || !activePreset) return
 
-    // The grid only renders visible widgets, so `next` omits hidden ones.
-    // Preserve hidden widgets' saved positions so toggling them off never loses placement.
-    const savedLayout = activePreset.layout ?? []
-    const visibleIds = new Set(next.map((l) => l.i))
-    const preserved = savedLayout.filter((l) => !visibleIds.has(l.i))
-    const merged = [...next, ...preserved]
-    persistPreset(activePreset.id, merged, meta)
+    // During a drag we keep live preview but defer the write to onDragStop,
+    // which may turn a same-size drop into a swap instead of a push.
+    if (draggingId) return
+
+    persistMerged(next)
+  }
+
+  // Swap two equally-sized widgets when one is dropped onto the other; any other
+  // drop keeps the grid's default push/compaction. Worked out from the pre-drag
+  // snapshot so RGL's transient push during the drag doesn't interfere.
+  const onDragStop = (finalLayout: RglItem[], _old: RglItem | null, dropped: RglItem | null) => {
+    setDraggingId(null)
+    if (!editing || !activePreset) return
+    const before = preDragLayout.current
+    const origin = dropped && before.find((l) => l.i === dropped.i)
+    if (dropped && origin) {
+      const cx = dropped.x + dropped.w / 2
+      const cy = dropped.y + dropped.h / 2
+      const target = before.find(
+        (l) =>
+          l.i !== dropped.i &&
+          l.w === dropped.w &&
+          l.h === dropped.h &&
+          cx >= l.x && cx < l.x + l.w &&
+          cy >= l.y && cy < l.y + l.h,
+      )
+      if (target) {
+        const swapped = before.map((l) => {
+          if (l.i === dropped.i) return { ...l, x: target.x, y: target.y }
+          if (l.i === target.i) return { ...l, x: origin.x, y: origin.y }
+          return l
+        })
+        setLayout(swapped)
+        persistMerged(swapped)
+        return
+      }
+    }
+    const next = normalize(finalLayout)
+    setLayout(next)
+    persistMerged(next)
   }
 
   const setTitle = useCallback((instanceId: string, title: string) => {
@@ -388,8 +434,11 @@ export function DashboardCanvas({
                 dragConfig={{ enabled: editing, handle: ".widget-drag-handle" }}
                 resizeConfig={{ enabled: editing }}
                 onLayoutChange={onLayoutChange}
-                onDragStart={(_layout: unknown, oldItem: RglItem | null) => setDraggingId(oldItem?.i ?? null)}
-                onDragStop={() => setDraggingId(null)}
+                onDragStart={(_layout: unknown, oldItem: RglItem | null) => {
+                  preDragLayout.current = layout
+                  setDraggingId(oldItem?.i ?? null)
+                }}
+                onDragStop={onDragStop}
                 margin={[16, 16]}
                 containerPadding={[16, 16]}
               >
