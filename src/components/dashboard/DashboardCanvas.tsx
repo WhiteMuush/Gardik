@@ -484,11 +484,13 @@ export function DashboardCanvas({
                         // neighbouring widget. Lift the whole item on hover in
                         // Customize, and lift the dragged one above everything.
                         editing && "rounded-xl outline outline-2 outline-primary/30 hover:z-20",
-                        // The widget the drop would replace: accent (orange) glow,
-                        // distinct from the dragged widget's primary (violet) glow.
-                        swapTargetId === w.instanceId && "z-20 outline-accent swap-glow",
-                        // The dragged widget floats above everything, including its target.
-                        draggingId === w.instanceId && "z-50 drag-glow"
+                        // The widget the drop would replace: red glow + outline so it
+                        // reads as "this one gets pushed out".
+                        swapTargetId === w.instanceId && "z-30 swap-glow outline-[oklch(var(--severity-critical))]",
+                        // The dragged widget floats above everything. !z-50 beats RGL's
+                        // own `.react-draggable-dragging { z-index: 3 }` (2-class rule that
+                        // a plain z-50 utility loses to on specificity).
+                        draggingId === w.instanceId && "!z-50 drag-glow"
                       )}
                     >
                       {/* Provider scope: a quiet badge when set, an editable
