@@ -17,6 +17,7 @@ import {
   ScrollText,
   Database,
   KeyRound,
+  Send,
   LogOut,
   PanelLeftClose,
 } from "lucide-react"
@@ -29,6 +30,7 @@ const navItems = [
   { href: "/register", label: "Exposure Register", icon: ScrollText },
   { href: "/data-sources", label: "Data Sources", icon: Database },
   { href: "/data-api", label: "Data API", icon: KeyRound },
+  { href: "/notifications", label: "Notifications", icon: Send },
 ]
 
 interface SidebarProps {

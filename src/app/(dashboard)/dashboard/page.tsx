@@ -1,6 +1,8 @@
 import { auth } from "@/auth"
-import { getDashboardData } from "@/lib/dashboard"
+import { getDashboardData, buildTrendData, buildBreachSources, buildDataTypes } from "@/lib/dashboard"
+import { providerMeta } from "@/lib/credentials/providers"
 import { prisma } from "@/lib/prisma"
+import type { ApiProvider } from "@prisma/client"
 import { DashboardCanvas, type WidgetEntry } from "@/components/dashboard/DashboardCanvas"
 import { StatsRow } from "@/components/dashboard/StatsRow"
 import { TrendChart } from "@/components/dashboard/TrendChart"
@@ -85,6 +87,34 @@ export default async function DashboardPage() {
     updatedAt: p.updatedAt.toISOString(),
   }))
 
+  const credentials = await prisma.apiCredential.findMany({
+    where: { companyId: session!.user.companyId },
+    select: { provider: true },
+  })
+  const sourceOptions = credentials.map((c) => ({
+    id: c.provider as string,
+    label: providerMeta(c.provider)?.label ?? c.provider,
+  }))
+
+  // Gate breach data to the providers the company actually connected: a record
+  // only counts if one of its reporting sources has a stored API credential.
+  // "All sources" therefore means the union of connected providers, and with no
+  // API connected the breach widgets show nothing.
+  const connected = new Set(credentials.map((c) => c.provider))
+  const isConnected = (sources: ApiProvider[]) => sources.some((s) => connected.has(s))
+  const gatedRecords = data.breachRecordsRaw.filter((r) => isConnected(r.sources))
+  const gatedCatalog = data.breachCatalog
+    .map((b) => ({ ...b, records: b.records.filter((r) => isConnected(r.sources)) }))
+    .filter((b) => b.records.length > 0)
+
+  // Per-instance provider scope, read from the active preset. Source-filterable
+  // widgets re-derive their slice from the raw datasets for the chosen provider.
+  const activeWidgets = typedPresets.find((p) => p.id === activePresetId)?.widgets ?? []
+  const sourceFor = (instanceId: string): ApiProvider | undefined => {
+    const s = activeWidgets.find((w) => w.instanceId === instanceId)?.source
+    return (s ?? undefined) as ApiProvider | undefined
+  }
+
   const widgets: WidgetEntry[] = [
     // ── Default visible ─────────────────────────────────────────────
     {
@@ -95,7 +125,15 @@ export default async function DashboardPage() {
       defaultPosition: { x: 0, y: 0 },
       minSize: { w: 6, h: 3 },
       centerContent: true,
-      content: <StatsRow {...data} />,
+      content: (
+        <StatsRow
+          compromisedEmployees={data.compromisedEmployees}
+          totalEmployees={data.totalEmployees}
+          openAlerts={data.openAlerts}
+          recentBreaches={data.recentBreaches}
+          riskScore={data.riskScore}
+        />
+      ),
     },
     {
       instanceId: "trend-chart",
@@ -104,7 +142,7 @@ export default async function DashboardPage() {
       defaultSize: { w: 7, h: 8 },
       defaultPosition: { x: 0, y: 4 },
       minSize: { w: 4, h: 5 },
-      content: <TrendChart data={data.trendData} />,
+      content: <TrendChart data={buildTrendData(gatedRecords, sourceFor("trend-chart"))} />,
     },
     {
       instanceId: "breach-sources",
@@ -113,7 +151,7 @@ export default async function DashboardPage() {
       defaultSize: { w: 5, h: 8 },
       defaultPosition: { x: 7, y: 4 },
       minSize: { w: 3, h: 4 },
-      content: <BreachSourcesList data={data.breachSources} />,
+      content: <BreachSourcesList data={buildBreachSources(gatedCatalog, sourceFor("breach-sources"))} />,
     },
     {
       instanceId: "top-risky-employees",
@@ -149,7 +187,7 @@ export default async function DashboardPage() {
       defaultSize: { w: 6, h: 6 },
       defaultPosition: { x: 0, y: 19 },
       minSize: { w: 3, h: 4 },
-      content: <DataTypeBreakdown data={data.dataTypes} />,
+      content: <DataTypeBreakdown data={buildDataTypes(gatedRecords, sourceFor("data-type-breakdown"))} />,
     },
     {
       instanceId: "alerts-feed",
@@ -231,7 +269,7 @@ export default async function DashboardPage() {
       defaultSize: { w: 3, h: 6 },
       minSize: { w: 2, h: 4 },
       defaultVisible: false,
-      content: <BreachSourceDonut data={data.breachSources} />,
+      content: <BreachSourceDonut data={buildBreachSources(gatedCatalog, sourceFor("breach-source-donut"))} />,
     },
     {
       instanceId: "breach-timeline",
@@ -240,7 +278,7 @@ export default async function DashboardPage() {
       defaultSize: { w: 4, h: 8 },
       minSize: { w: 3, h: 5 },
       defaultVisible: false,
-      content: <BreachTimeline data={data.breachSources} />,
+      content: <BreachTimeline data={buildBreachSources(gatedCatalog, sourceFor("breach-timeline"))} />,
     },
     {
       instanceId: "top-breaches",
@@ -249,7 +287,7 @@ export default async function DashboardPage() {
       defaultSize: { w: 5, h: 6 },
       minSize: { w: 3, h: 4 },
       defaultVisible: false,
-      content: <TopBreaches data={data.breachSources} />,
+      content: <TopBreaches data={buildBreachSources(gatedCatalog, sourceFor("top-breaches"))} />,
     },
     {
       instanceId: "data-type-radar",
@@ -258,7 +296,7 @@ export default async function DashboardPage() {
       defaultSize: { w: 4, h: 6 },
       minSize: { w: 3, h: 4 },
       defaultVisible: false,
-      content: <DataTypeRadar data={data.dataTypes} />,
+      content: <DataTypeRadar data={buildDataTypes(gatedRecords, sourceFor("data-type-radar"))} />,
     },
     {
       instanceId: "mfa-coverage",
@@ -277,6 +315,7 @@ export default async function DashboardPage() {
       presets={typedPresets}
       activePresetId={activePresetId}
       userRole={user?.role ?? "VIEWER"}
+      sourceOptions={sourceOptions}
     />
   )
 }
