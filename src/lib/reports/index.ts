@@ -7,6 +7,7 @@ import { getCompliance } from "./compliance"
 import { buildFindings } from "./findings"
 import { getDeltas } from "./deltas"
 import { EMPTY_FILTERS, type ReportFilters } from "./filters"
+import { prisma } from "@/lib/prisma"
 import type { ReportData } from "./types"
 
 export type { ReportData } from "./types"
@@ -16,8 +17,9 @@ export async function getReportData(
   companyId: string,
   filters: ReportFilters = EMPTY_FILTERS,
 ): Promise<ReportData> {
-  const [exposure, dataTypes, departments, employees, trends, compliance, deltas] =
+  const [company, exposure, dataTypes, departments, employees, trends, compliance, deltas] =
     await Promise.all([
+      prisma.company.findUnique({ where: { id: companyId }, select: { name: true, domain: true } }),
       getExposureSummary(companyId, filters),
       getDataTypeExposure(companyId, filters),
       getDepartmentBreakdown(companyId, filters),
@@ -29,6 +31,7 @@ export async function getReportData(
 
   return {
     generatedAt: new Date().toISOString(),
+    org: { name: company?.name ?? "Unknown organisation", domain: company?.domain ?? "" },
     findings: buildFindings(exposure, compliance, dataTypes, deltas, employees),
     exposure,
     dataTypes,

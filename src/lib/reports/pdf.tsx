@@ -7,6 +7,7 @@ const C = {
   brand: "#1d4ed8",
   brandDark: "#172554",
   ink: "#111827",
+  body: "#1f2937",
   muted: "#6b7280",
   faint: "#9ca3af",
   border: "#e5e7eb",
@@ -15,7 +16,6 @@ const C = {
   white: "#ffffff",
 }
 
-// Severity / risk colours shared by findings, alert bars and the risk badge.
 const SEVERITY: Record<FindingSeverity, string> = {
   critical: "#dc2626",
   high: "#ea580c",
@@ -31,71 +31,71 @@ function riskColor(score: number): string {
   return SEVERITY.ok
 }
 
+// - Formatting helpers -
 const nf = new Intl.NumberFormat("en-US")
 const num = (v: number) => nf.format(v)
+const plural = (n: number, one: string, many: string) => (n === 1 ? one : many)
+const were = (n: number) => (n === 1 ? "was" : "were")
+
+function longDate(iso: string): string {
+  const d = new Date(iso)
+  if (Number.isNaN(d.getTime())) return iso
+  return new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }).format(d)
+}
+const stamp = (iso: string) => new Date(iso).toUTCString()
 
 // - Styles -
 const s = StyleSheet.create({
-  page: { paddingTop: 36, paddingBottom: 56, paddingHorizontal: 40, fontSize: 9.5, color: C.ink, fontFamily: "Helvetica" },
+  // Cover page
+  coverPage: { fontFamily: "Helvetica", color: C.ink },
+  coverBand: { backgroundColor: C.brandDark, paddingHorizontal: 48, paddingTop: 64, paddingBottom: 40 },
+  coverKicker: { fontSize: 11, color: "#93c5fd", fontFamily: "Helvetica-Bold", letterSpacing: 3 },
+  coverTitle: { fontSize: 30, color: C.white, fontFamily: "Helvetica-Bold", marginTop: 14, lineHeight: 1.1 },
+  coverBody: { paddingHorizontal: 48, paddingTop: 44, flexGrow: 1 },
+  coverForLabel: { fontSize: 9, color: C.muted, textTransform: "uppercase", letterSpacing: 1.5 },
+  coverOrg: { fontSize: 26, fontFamily: "Helvetica-Bold", color: C.ink, marginTop: 8 },
+  coverDomain: { fontSize: 12, color: C.brand, marginTop: 4 },
+  metaTable: { marginTop: 40, borderTopWidth: 1, borderTopColor: C.border },
+  metaRow: { flexDirection: "row", borderBottomWidth: 1, borderBottomColor: C.border, paddingVertical: 9 },
+  metaKey: { width: 150, fontSize: 9.5, color: C.muted, textTransform: "uppercase", letterSpacing: 0.6 },
+  metaVal: { flex: 1, fontSize: 11, color: C.ink, fontFamily: "Helvetica-Bold" },
+  coverFoot: { paddingHorizontal: 48, paddingBottom: 40 },
+  coverFootText: { fontSize: 8.5, color: C.faint },
+  coverFootRule: { borderTopWidth: 2, borderTopColor: C.brand, width: 60, marginBottom: 10 },
 
-  // Header band (first page)
-  band: { backgroundColor: C.brandDark, marginHorizontal: -40, marginTop: -36, paddingHorizontal: 40, paddingTop: 28, paddingBottom: 22, marginBottom: 18 },
-  brandRow: { flexDirection: "row", justifyContent: "space-between", alignItems: "flex-start" },
-  brand: { fontSize: 22, fontFamily: "Helvetica-Bold", color: C.white, letterSpacing: 0.5 },
-  brandSub: { fontSize: 11, color: "#c7d2fe", marginTop: 3 },
-  confidential: { fontSize: 7.5, color: "#c7d2fe", borderWidth: 1, borderColor: "#4f5fb0", borderRadius: 3, paddingVertical: 2, paddingHorizontal: 6 },
-  bandMeta: { fontSize: 8.5, color: "#a5b4fc", marginTop: 14 },
+  // Content pages
+  page: { paddingTop: 60, paddingBottom: 54, paddingHorizontal: 48, fontSize: 10, color: C.body, fontFamily: "Helvetica" },
+  runHead: { position: "absolute", top: 24, left: 48, right: 48, flexDirection: "row", justifyContent: "space-between", borderBottomWidth: 1, borderBottomColor: C.border, paddingBottom: 6 },
+  runHeadOrg: { fontSize: 8.5, fontFamily: "Helvetica-Bold", color: C.brandDark },
+  runHeadDoc: { fontSize: 8.5, color: C.muted },
 
-  // Section heading with an accent rule
-  section: { marginTop: 16 },
-  sectionHead: { flexDirection: "row", alignItems: "center", marginBottom: 7 },
-  accent: { width: 3, height: 13, backgroundColor: C.brand, marginRight: 7, borderRadius: 2 },
-  h2: { fontSize: 12.5, fontFamily: "Helvetica-Bold", color: C.brandDark },
-  lead: { fontSize: 9, color: C.muted, marginBottom: 4 },
+  section: { marginTop: 18 },
+  sectionHead: { flexDirection: "row", alignItems: "center", marginBottom: 8 },
+  accent: { width: 3, height: 13, backgroundColor: C.brand, marginRight: 8, borderRadius: 2 },
+  h2: { fontSize: 13, fontFamily: "Helvetica-Bold", color: C.brandDark },
+  lead: { fontSize: 9, color: C.muted, marginBottom: 6 },
 
-  // KPI cards
-  kpiRow: { flexDirection: "row", marginHorizontal: -4 },
-  kpi: { flex: 1, marginHorizontal: 4, borderWidth: 1, borderColor: C.border, borderRadius: 6, paddingVertical: 9, paddingHorizontal: 10 },
-  kpiLabel: { fontSize: 7.5, color: C.muted, textTransform: "uppercase", letterSpacing: 0.4 },
-  kpiValue: { fontSize: 18, fontFamily: "Helvetica-Bold", marginTop: 3 },
-  kpiFoot: { fontSize: 7.5, color: C.faint, marginTop: 2 },
+  // Narrative prose
+  para: { fontSize: 10, lineHeight: 1.5, color: C.body, marginBottom: 6, textAlign: "justify" },
+  strong: { fontFamily: "Helvetica-Bold", color: C.ink },
 
   // Findings
-  finding: { flexDirection: "row", alignItems: "flex-start", marginBottom: 4 },
-  findingText: { flex: 1, fontSize: 9.5 },
-  badge: { fontSize: 6.5, fontFamily: "Helvetica-Bold", color: C.white, borderRadius: 2, paddingVertical: 1, paddingHorizontal: 4, marginRight: 7, marginTop: 1, textTransform: "uppercase" },
-
-  // Delta cards
-  deltaCard: { flex: 1, marginHorizontal: 4, borderWidth: 1, borderColor: C.border, borderRadius: 6, padding: 9 },
-  deltaLabel: { fontSize: 7.5, color: C.muted, textTransform: "uppercase", letterSpacing: 0.4 },
-  deltaValue: { fontSize: 16, fontFamily: "Helvetica-Bold", marginTop: 3 },
-  deltaChange: { fontSize: 8, marginTop: 2 },
-
-  // Stacked severity bar
-  sevBar: { flexDirection: "row", height: 12, borderRadius: 3, overflow: "hidden", marginTop: 4 },
-  sevLegend: { flexDirection: "row", marginTop: 6, flexWrap: "wrap" },
-  legendItem: { flexDirection: "row", alignItems: "center", marginRight: 14, marginBottom: 2 },
-  legendDot: { width: 6, height: 6, borderRadius: 3, marginRight: 4 },
-  legendText: { fontSize: 7.5, color: C.muted },
+  finding: { flexDirection: "row", alignItems: "flex-start", marginBottom: 5 },
+  findingText: { flex: 1, fontSize: 10, lineHeight: 1.4 },
+  badge: { fontSize: 6.5, fontFamily: "Helvetica-Bold", color: C.white, borderRadius: 2, paddingVertical: 1.5, paddingHorizontal: 5, marginRight: 8, marginTop: 1, textTransform: "uppercase" },
 
   // Tables
-  table: { borderWidth: 1, borderColor: C.border, borderRadius: 5 },
+  table: { borderWidth: 1, borderColor: C.border, borderRadius: 4 },
   headRow: { flexDirection: "row", backgroundColor: C.head },
   row: { flexDirection: "row", borderTopWidth: 1, borderTopColor: C.border },
   rowZebra: { backgroundColor: C.zebra },
-  headCell: { padding: 5, fontFamily: "Helvetica-Bold", fontSize: 8, color: C.brandDark },
-  cell: { padding: 5, fontSize: 8.5 },
-
-  // Inline percentage bar inside a cell
-  cellBarWrap: { flexDirection: "row", alignItems: "center" },
-  barTrack: { flex: 1, height: 5, backgroundColor: C.border, borderRadius: 3, marginRight: 5 },
-  barFill: { height: 5, borderRadius: 3, backgroundColor: C.brand },
-  barLabel: { width: 30, fontSize: 8, textAlign: "right" },
+  headCell: { paddingVertical: 5, paddingHorizontal: 6, fontFamily: "Helvetica-Bold", fontSize: 8, color: C.brandDark },
+  cell: { paddingVertical: 5, paddingHorizontal: 6, fontSize: 8.5, color: C.body },
+  empty: { fontSize: 9, color: C.faint },
 
   // Footer
-  footer: { position: "absolute", bottom: 24, left: 40, right: 40, flexDirection: "row", justifyContent: "space-between", borderTopWidth: 1, borderTopColor: C.border, paddingTop: 6 },
+  footer: { position: "absolute", bottom: 26, left: 48, right: 48, flexDirection: "row", justifyContent: "space-between", borderTopWidth: 1, borderTopColor: C.border, paddingTop: 6 },
   footText: { fontSize: 7.5, color: C.faint },
-  empty: { fontSize: 8.5, color: C.faint },
 })
 
 // - Building blocks -
@@ -111,25 +111,12 @@ function SectionHead({ title, lead }: { title: string; lead?: string }) {
   )
 }
 
-function Kpi({ label, value, foot, color }: { label: string; value: string; foot?: string; color?: string }) {
-  return (
-    <View style={s.kpi}>
-      <Text style={s.kpiLabel}>{label}</Text>
-      <Text style={[s.kpiValue, color ? { color } : {}]}>{value}</Text>
-      {foot ? <Text style={s.kpiFoot}>{foot}</Text> : null}
-    </View>
-  )
-}
-
 type Col = { label: string; flex: number; align?: "left" | "right" }
-type Cell = string | number | { bar: number; label: string; color?: string }
 
-function Table({ cols, rows }: { cols: Col[]; rows: Cell[][] }) {
-  if (rows.length === 0) return <Text style={s.empty}>No data for this period.</Text>
-  // Short tables stay whole so a page break can't orphan their header; long ones
-  // must wrap (react-pdf has no native per-table header repeat).
+function Table({ cols, rows }: { cols: Col[]; rows: (string | number)[][] }) {
+  if (rows.length === 0) return <Text style={s.empty}>No records for this period.</Text>
   return (
-    <View style={s.table} wrap={rows.length > 14}>
+    <View style={s.table} wrap={rows.length > 16}>
       <View style={s.headRow}>
         {cols.map((c, i) => (
           <Text key={i} style={[s.headCell, { flex: c.flex, textAlign: c.align ?? "left" }]}>
@@ -139,50 +126,87 @@ function Table({ cols, rows }: { cols: Col[]; rows: Cell[][] }) {
       </View>
       {rows.map((row, ri) => (
         <View key={ri} style={[s.row, ri % 2 === 1 ? s.rowZebra : {}]} wrap={false}>
-          {row.map((cell, ci) => {
-            const col = cols[ci]
-            if (cell !== null && typeof cell === "object") {
-              const width = `${Math.max(2, Math.min(100, cell.bar))}%`
-              return (
-                <View key={ci} style={[s.cell, { flex: col.flex }]}>
-                  <View style={s.cellBarWrap}>
-                    <View style={s.barTrack}>
-                      <View style={[s.barFill, { width }, cell.color ? { backgroundColor: cell.color } : {}]} />
-                    </View>
-                    <Text style={s.barLabel}>{cell.label}</Text>
-                  </View>
-                </View>
-              )
-            }
-            return (
-              <Text key={ci} style={[s.cell, { flex: col.flex, textAlign: col.align ?? "left" }]}>
-                {String(cell)}
-              </Text>
-            )
-          })}
+          {row.map((cell, ci) => (
+            <Text key={ci} style={[s.cell, { flex: cols[ci].flex, textAlign: cols[ci].align ?? "left" }]}>
+              {String(cell)}
+            </Text>
+          ))}
         </View>
       ))}
     </View>
   )
 }
 
-// - Report-wide sections (always rendered) -
-function ExecutiveSummary({ d }: { d: ReportData }) {
+// - Cover page -
+function Cover({ d }: { d: ReportData }) {
+  return (
+    <Page size="A4" style={s.coverPage}>
+      <View style={s.coverBand}>
+        <Text style={s.coverKicker}>DATASHIELD</Text>
+        <Text style={s.coverTitle}>Security Exposure{"\n"}Report</Text>
+      </View>
+      <View style={s.coverBody}>
+        <Text style={s.coverForLabel}>Prepared for</Text>
+        <Text style={s.coverOrg}>{d.org.name}</Text>
+        {d.org.domain ? <Text style={s.coverDomain}>{d.org.domain}</Text> : null}
+        <View style={s.metaTable}>
+          <View style={s.metaRow}>
+            <Text style={s.metaKey}>Reporting period</Text>
+            <Text style={s.metaVal}>{d.deltas.windowLabel}</Text>
+          </View>
+          <View style={s.metaRow}>
+            <Text style={s.metaKey}>Date generated</Text>
+            <Text style={s.metaVal}>{longDate(d.generatedAt)}</Text>
+          </View>
+          <View style={s.metaRow}>
+            <Text style={s.metaKey}>Overall risk score</Text>
+            <Text style={[s.metaVal, { color: riskColor(d.exposure.riskScore) }]}>
+              {`${d.exposure.riskScore} / 100  (${d.exposure.riskLabel})`}
+            </Text>
+          </View>
+          <View style={s.metaRow}>
+            <Text style={s.metaKey}>Classification</Text>
+            <Text style={s.metaVal}>Confidential</Text>
+          </View>
+        </View>
+      </View>
+      <View style={s.coverFoot}>
+        <View style={s.coverFootRule} />
+        <Text style={s.coverFootText}>
+          {`Generated ${stamp(d.generatedAt)}. This document contains confidential security information and is intended solely for ${d.org.name}.`}
+        </Text>
+      </View>
+    </Page>
+  )
+}
+
+// - Narrative sections (information-led) -
+function ExecutiveOverview({ d }: { d: ReportData }) {
   const e = d.exposure
+  const c = d.compliance
+  const critical = e.openAlerts.critical
   return (
     <View style={s.section}>
-      <SectionHead title="Executive summary" />
-      <View style={s.kpiRow}>
-        <Kpi label="Risk score" value={`${e.riskScore}`} foot={e.riskLabel} color={riskColor(e.riskScore)} />
-        <Kpi label="Exposure rate" value={`${e.exposureRate}%`} foot={`${num(e.exposedEmployees)} of ${num(e.totalEmployees)} staff`} />
-        <Kpi label="Breaches" value={num(e.totalBreaches)} foot="known incidents" />
-        <Kpi label="Critical alerts" value={num(e.openAlerts.critical)} foot="open, unresolved" color={e.openAlerts.critical > 0 ? SEVERITY.critical : undefined} />
-      </View>
+      <SectionHead title="Executive overview" />
+      <Text style={s.para}>
+        <Text style={s.strong}>{`${num(e.exposedEmployees)} of ${num(e.totalEmployees)} `}</Text>
+        {`monitored ${plural(e.totalEmployees, "employee", "employees")} (${e.exposureRate}%) ${were(e.exposedEmployees)} found in at least one known data breach. A total of `}
+        <Text style={s.strong}>{`${num(e.totalBreaches)} ${plural(e.totalBreaches, "breach", "breaches")} `}</Text>
+        {`${were(e.totalBreaches)} recorded against the organisation. The overall risk score stands at `}
+        <Text style={[s.strong, { color: riskColor(e.riskScore) }]}>{`${e.riskScore} out of 100 (${e.riskLabel})`}</Text>
+        {"."}
+      </Text>
+      <Text style={s.para}>
+        {critical > 0
+          ? `${num(critical)} critical ${plural(critical, "alert", "alerts")} remain open and require immediate attention. `
+          : "No critical alerts are currently open. "}
+        {`Of ${num(c.alertsTotal)} alerts raised in total, ${num(c.alertsResolved)} (${c.resolutionRate}%) have been resolved, with ${num(c.alertsOpen)} still open${c.staleCriticalOpen > 0 ? `, including ${num(c.staleCriticalOpen)} critical ${plural(c.staleCriticalOpen, "alert", "alerts")} open for more than seven days` : ""}.`}
+      </Text>
     </View>
   )
 }
 
-function Findings({ findings }: { findings: Finding[] }) {
+function KeyFindings({ findings }: { findings: Finding[] }) {
   if (findings.length === 0) return null
   return (
     <View style={s.section} wrap={false}>
@@ -197,74 +221,90 @@ function Findings({ findings }: { findings: Finding[] }) {
   )
 }
 
-function changeLine(cur: number, prev: number): { text: string; color: string } {
+function changePhrase(cur: number, prev: number): string {
   const diff = cur - prev
-  if (diff === 0) return { text: "no change vs previous", color: C.muted }
-  const pct = prev === 0 ? null : Math.round((diff / prev) * 100)
-  const sign = diff > 0 ? "+" : ""
-  const tail = pct === null ? "" : ` (${sign}${pct}%)`
-  // These are adverse counts (new breaches/alerts/exposed), so a rise is bad.
-  return { text: `${sign}${num(diff)} vs previous${tail}`, color: diff > 0 ? SEVERITY.high : SEVERITY.ok }
+  if (diff === 0) return "unchanged from the previous period"
+  const dir = diff > 0 ? "up" : "down"
+  const pct = prev === 0 ? null : Math.abs(Math.round((diff / prev) * 100))
+  return pct === null ? `${dir} from ${num(prev)}` : `${dir} ${pct}% from ${num(prev)}`
 }
 
-function PeriodDeltas({ d }: { d: ReportData }) {
+function PeriodActivity({ d }: { d: ReportData }) {
   const dl = d.deltas
-  const items = [
-    { label: "Newly exposed", v: dl.newlyExposed },
-    { label: "New breaches", v: dl.newBreaches },
-    { label: "New alerts", v: dl.newAlerts },
-  ]
   return (
     <View style={s.section} wrap={false}>
-      <SectionHead title="Period activity" lead={`Change over the ${dl.windowLabel} window.`} />
-      <View style={s.kpiRow}>
-        {items.map((it, i) => {
-          const ch = changeLine(it.v.current, it.v.previous)
-          return (
-            <View key={i} style={s.deltaCard}>
-              <Text style={s.deltaLabel}>{it.label}</Text>
-              <Text style={s.deltaValue}>{num(it.v.current)}</Text>
-              <Text style={[s.deltaChange, { color: ch.color }]}>{ch.text}</Text>
-            </View>
-          )
-        })}
-      </View>
+      <SectionHead title="What changed this period" lead={`Activity across the ${dl.windowLabel} reporting window.`} />
+      <Text style={s.para}>
+        {`During this window, `}
+        <Text style={s.strong}>{`${num(dl.newlyExposed.current)} ${plural(dl.newlyExposed.current, "employee", "employees")}`}</Text>
+        {` ${were(dl.newlyExposed.current)} newly exposed (${changePhrase(dl.newlyExposed.current, dl.newlyExposed.previous)}), `}
+        <Text style={s.strong}>{`${num(dl.newBreaches.current)} new ${plural(dl.newBreaches.current, "breach", "breaches")}`}</Text>
+        {` ${were(dl.newBreaches.current)} detected (${changePhrase(dl.newBreaches.current, dl.newBreaches.previous)}), and `}
+        <Text style={s.strong}>{`${num(dl.newAlerts.current)} ${plural(dl.newAlerts.current, "alert", "alerts")}`}</Text>
+        {` ${were(dl.newAlerts.current)} raised (${changePhrase(dl.newAlerts.current, dl.newAlerts.previous)}).`}
+      </Text>
+      <Table
+        cols={[
+          { label: "Activity", flex: 4 },
+          { label: "This period", flex: 2, align: "right" },
+          { label: "Previous", flex: 2, align: "right" },
+        ]}
+        rows={[
+          ["Newly exposed employees", num(dl.newlyExposed.current), num(dl.newlyExposed.previous)],
+          ["New breaches detected", num(dl.newBreaches.current), num(dl.newBreaches.previous)],
+          ["New alerts raised", num(dl.newAlerts.current), num(dl.newAlerts.previous)],
+        ]}
+      />
     </View>
   )
 }
 
-function AlertSeverity({ d }: { d: ReportData }) {
+function NotableIncidents({ d }: { d: ReportData }) {
+  const breaches = d.exposure.topBreaches
+  if (breaches.length === 0) return null
+  return (
+    <View style={s.section}>
+      <SectionHead title="Notable incidents" lead="Breaches with the greatest impact on the organisation." />
+      <Table
+        cols={[
+          { label: "Breach", flex: 4 },
+          { label: "Source", flex: 3 },
+          { label: "Date", flex: 3 },
+          { label: "Affected", flex: 2, align: "right" },
+        ]}
+        rows={breaches.slice(0, 12).map((b) => [b.name, b.source, longDate(b.breachDate), num(b.affectedEmployees)])}
+      />
+    </View>
+  )
+}
+
+function AlertBreakdown({ d }: { d: ReportData }) {
   const a = d.exposure.openAlerts
-  const parts: { key: FindingSeverity; label: string; n: number }[] = [
-    { key: "critical", label: "Critical", n: a.critical },
-    { key: "high", label: "High", n: a.high },
-    { key: "medium", label: "Medium", n: a.medium },
-    { key: "info", label: "Low", n: a.low },
-  ]
-  const total = parts.reduce((t, p) => t + p.n, 0)
+  const total = a.critical + a.high + a.medium + a.low
   if (total === 0) return null
+  const share = (n: number) => `${Math.round((n / total) * 100)}%`
   return (
     <View style={s.section} wrap={false}>
       <SectionHead title="Open alerts by severity" lead={`${num(total)} alerts awaiting action.`} />
-      <View style={s.sevBar}>
-        {parts.filter((p) => p.n > 0).map((p) => (
-          <View key={p.key} style={{ width: `${(p.n / total) * 100}%`, backgroundColor: SEVERITY[p.key] }} />
-        ))}
-      </View>
-      <View style={s.sevLegend}>
-        {parts.map((p) => (
-          <View key={p.key} style={s.legendItem}>
-            <View style={[s.legendDot, { backgroundColor: SEVERITY[p.key] }]} />
-            <Text style={s.legendText}>{`${p.label} ${num(p.n)}`}</Text>
-          </View>
-        ))}
-      </View>
+      <Table
+        cols={[
+          { label: "Severity", flex: 4 },
+          { label: "Open alerts", flex: 2, align: "right" },
+          { label: "Share", flex: 2, align: "right" },
+        ]}
+        rows={[
+          ["Critical", num(a.critical), share(a.critical)],
+          ["High", num(a.high), share(a.high)],
+          ["Medium", num(a.medium), share(a.medium)],
+          ["Low", num(a.low), share(a.low)],
+        ]}
+      />
     </View>
   )
 }
 
-// - Optional detail tables (gated by `sections`) -
-type Block = { title: string; lead?: string; cols: Col[]; rows: Cell[][] }
+// - Detail tables (gated by `sections`) -
+type Block = { title: string; lead?: string; cols: Col[]; rows: (string | number)[][] }
 
 function detailBlock(section: ReportSection, d: ReportData): Block | null {
   switch (section) {
@@ -300,25 +340,20 @@ function detailBlock(section: ReportSection, d: ReportData): Block | null {
     case "datatypes":
       return {
         title: "Exposed data types",
-        lead: "Top categories of leaked records.",
-        cols: [{ label: "Data type", flex: 4 }, { label: "Records", flex: 2, align: "right" }, { label: "Share", flex: 3 }],
+        lead: "Categories of leaked records, most exposed first.",
+        cols: [{ label: "Data type", flex: 5 }, { label: "Records", flex: 2, align: "right" }, { label: "Share", flex: 2, align: "right" }],
         rows: d.dataTypes.slice(0, 15).map((t) => [
           t.critical ? `${t.label} (sensitive)` : t.label,
           num(t.count),
-          { bar: t.percentage, label: `${t.percentage}%`, color: t.critical ? SEVERITY.critical : C.brand },
+          `${t.percentage}%`,
         ]),
       }
     case "departments":
       return {
         title: "Departments",
         lead: "Exposure concentration across the organisation.",
-        cols: [{ label: "Department", flex: 4 }, { label: "Staff", flex: 2, align: "right" }, { label: "Exposed", flex: 2, align: "right" }, { label: "Rate", flex: 3 }],
-        rows: d.departments.map((r) => [
-          r.department,
-          num(r.total),
-          num(r.exposed),
-          { bar: r.exposureRate, label: `${r.exposureRate}%`, color: r.exposureRate >= 50 ? SEVERITY.high : C.brand },
-        ]),
+        cols: [{ label: "Department", flex: 5 }, { label: "Staff", flex: 2, align: "right" }, { label: "Exposed", flex: 2, align: "right" }, { label: "Rate", flex: 2, align: "right" }],
+        rows: d.departments.map((r) => [r.department, num(r.total), num(r.exposed), `${r.exposureRate}%`]),
       }
     case "employees":
       return {
@@ -359,7 +394,7 @@ function DetailSection({ section, d }: { section: ReportSection; d: ReportData }
   // Keep the heading glued to a short table so a page break can't strand it; let
   // long tables (and their heading) flow across pages.
   return (
-    <View style={s.section} wrap={b.rows.length > 14}>
+    <View style={s.section} wrap={b.rows.length > 16}>
       <SectionHead title={b.title} lead={b.lead} />
       <Table cols={b.cols} rows={b.rows} />
     </View>
@@ -369,42 +404,37 @@ function DetailSection({ section, d }: { section: ReportSection; d: ReportData }
 // - Document -
 const SECTION_ORDER: ReportSection[] = ["exposure", "compliance", "datatypes", "departments", "employees", "trends"]
 
-// Render a professional, multi-section PDF report: a branded cover band, an
-// executive KPI summary, key findings, period activity, an alert-severity
-// breakdown and the requested detail tables, with a paginated footer. Returns a
-// Buffer suitable for an email attachment or an HTTP download.
+// Render a professional, multi-page PDF report: a dedicated cover page naming the
+// organisation, followed by information-led content (executive narrative, key
+// findings, period activity, notable incidents, alert breakdown) and the
+// requested detail tables. Running header and paginated footer on content pages.
+// Returns a Buffer suitable for an email attachment or an HTTP download.
 export function reportPdf(sections: ReportSection[], data: ReportData): Promise<Buffer> {
   const want = new Set(sections)
   const details = SECTION_ORDER.filter((sec) => want.has(sec))
-  const generated = new Date(data.generatedAt)
 
   const doc = (
-    <Document title="DataShield security report" author="DataShield" subject="Security exposure report">
+    <Document title={`DataShield report - ${data.org.name}`} author="DataShield" subject="Security exposure report">
+      <Cover d={data} />
+
       <Page size="A4" style={s.page}>
-        <View style={s.band}>
-          <View style={s.brandRow}>
-            <View>
-              <Text style={s.brand}>DataShield</Text>
-              <Text style={s.brandSub}>Security Exposure Report</Text>
-            </View>
-            <Text style={s.confidential}>CONFIDENTIAL</Text>
-          </View>
-          <Text style={s.bandMeta}>
-            {`Generated ${generated.toUTCString()}  |  Reporting window ${data.deltas.windowLabel}`}
-          </Text>
+        <View style={s.runHead} fixed>
+          <Text style={s.runHeadOrg}>{data.org.name}</Text>
+          <Text style={s.runHeadDoc}>Security Exposure Report</Text>
         </View>
 
-        <ExecutiveSummary d={data} />
-        <Findings findings={data.findings} />
-        <PeriodDeltas d={data} />
-        <AlertSeverity d={data} />
+        <ExecutiveOverview d={data} />
+        <KeyFindings findings={data.findings} />
+        <PeriodActivity d={data} />
+        <NotableIncidents d={data} />
+        <AlertBreakdown d={data} />
 
         {details.map((sec) => (
           <DetailSection key={sec} section={sec} d={data} />
         ))}
 
         <View style={s.footer} fixed>
-          <Text style={s.footText}>DataShield - confidential security report</Text>
+          <Text style={s.footText}>{`${data.org.name} - confidential`}</Text>
           <Text style={s.footText} render={({ pageNumber, totalPages }) => `Page ${pageNumber} of ${totalPages}`} />
         </View>
       </Page>

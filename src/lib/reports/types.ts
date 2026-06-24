@@ -94,8 +94,14 @@ export type ReportDeltas = {
   newAlerts: Delta
 }
 
+export type OrgInfo = {
+  name: string
+  domain: string
+}
+
 export type ReportData = {
   generatedAt: string
+  org: OrgInfo
   findings: Finding[]
   exposure: ExposureSummary
   dataTypes: DataTypeExposure[]
