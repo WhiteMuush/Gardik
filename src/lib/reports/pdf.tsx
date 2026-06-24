@@ -2,26 +2,30 @@ import { Document, Page, Text, View, StyleSheet, renderToBuffer } from "@react-p
 import type { ReportData, Finding, FindingSeverity } from "./types"
 import type { ReportSection } from "./html"
 
-// - Palette -
+// - Palette (DataShield brand: violet primary, orange accent, warm cream) -
 const C = {
-  brand: "#1d4ed8",
-  brandDark: "#172554",
-  ink: "#111827",
-  body: "#1f2937",
-  muted: "#6b7280",
-  faint: "#9ca3af",
-  border: "#e5e7eb",
-  zebra: "#f9fafb",
-  head: "#eef2ff",
+  brand: "#7F27FF", // primary violet
+  brandDark: "#1B1037", // deep violet (cover band, headings)
+  brandSoft: "#C4A8FF", // light violet (on dark)
+  orange: "#FF8911", // accent
+  cream: "#FFF5E5", // warm page background
+  ink: "#18122B",
+  body: "#2B2440",
+  muted: "#6B6480",
+  faint: "#9A93AD",
+  border: "#E7E0F0",
+  zebra: "#FAF7FF",
+  head: "#F3EDFF",
   white: "#ffffff",
 }
 
+// Severity colours mirror the app's --severity-* tokens (oklch) as hex.
 const SEVERITY: Record<FindingSeverity, string> = {
-  critical: "#dc2626",
-  high: "#ea580c",
-  medium: "#d97706",
-  info: "#2563eb",
-  ok: "#16a34a",
+  critical: "#E03131",
+  high: "#FF8911",
+  medium: "#E8A20C",
+  info: "#7F27FF",
+  ok: "#1FA45B",
 }
 
 function riskColor(score: number): string {
@@ -47,20 +51,19 @@ const stamp = (iso: string) => new Date(iso).toUTCString()
 // - Styles -
 const s = StyleSheet.create({
   // Cover page
-  coverPage: { fontFamily: "Helvetica", color: C.ink },
-  coverBand: { backgroundColor: C.brandDark, paddingHorizontal: 48, paddingTop: 64, paddingBottom: 40 },
-  coverKicker: { fontSize: 11, color: "#93c5fd", fontFamily: "Helvetica-Bold", letterSpacing: 3 },
-  coverTitle: { fontSize: 30, color: C.white, fontFamily: "Helvetica-Bold", marginTop: 14, lineHeight: 1.1 },
-  coverBody: { paddingHorizontal: 48, paddingTop: 44, flexGrow: 1 },
-  coverForLabel: { fontSize: 9, color: C.muted, textTransform: "uppercase", letterSpacing: 1.5 },
-  coverOrg: { fontSize: 26, fontFamily: "Helvetica-Bold", color: C.ink, marginTop: 8 },
-  coverDomain: { fontSize: 12, color: C.brand, marginTop: 4 },
-  metaTable: { marginTop: 40, borderTopWidth: 1, borderTopColor: C.border },
-  metaRow: { flexDirection: "row", borderBottomWidth: 1, borderBottomColor: C.border, paddingVertical: 9 },
-  metaKey: { width: 150, fontSize: 9.5, color: C.muted, textTransform: "uppercase", letterSpacing: 0.6 },
+  coverPage: { fontFamily: "Helvetica", color: C.ink, backgroundColor: C.cream },
+  coverBand: { backgroundColor: C.brandDark, paddingHorizontal: 48, paddingTop: 70, paddingBottom: 44 },
+  coverAccent: { width: 46, height: 4, backgroundColor: C.orange, borderRadius: 2, marginBottom: 18 },
+  coverKicker: { fontSize: 10, color: C.brandSoft, fontFamily: "Helvetica-Bold", letterSpacing: 3 },
+  coverOrg: { fontSize: 30, color: C.white, fontFamily: "Helvetica-Bold", marginTop: 12, lineHeight: 1.1 },
+  coverDomain: { fontSize: 12, color: C.brandSoft, marginTop: 8 },
+  coverBody: { paddingHorizontal: 48, paddingTop: 40, flexGrow: 1 },
+  metaTable: { borderTopWidth: 1, borderTopColor: C.border },
+  metaRow: { flexDirection: "row", borderBottomWidth: 1, borderBottomColor: C.border, paddingVertical: 10 },
+  metaKey: { width: 160, fontSize: 9.5, color: C.muted, textTransform: "uppercase", letterSpacing: 0.6 },
   metaVal: { flex: 1, fontSize: 11, color: C.ink, fontFamily: "Helvetica-Bold" },
   coverFoot: { paddingHorizontal: 48, paddingBottom: 40 },
-  coverFootText: { fontSize: 8.5, color: C.faint },
+  coverFootText: { fontSize: 8.5, color: C.muted, lineHeight: 1.5 },
   coverFootRule: { borderTopWidth: 2, borderTopColor: C.brand, width: 60, marginBottom: 10 },
 
   // Content pages
@@ -142,13 +145,12 @@ function Cover({ d }: { d: ReportData }) {
   return (
     <Page size="A4" style={s.coverPage}>
       <View style={s.coverBand}>
-        <Text style={s.coverKicker}>DATASHIELD</Text>
-        <Text style={s.coverTitle}>Security Exposure{"\n"}Report</Text>
-      </View>
-      <View style={s.coverBody}>
-        <Text style={s.coverForLabel}>Prepared for</Text>
+        <View style={s.coverAccent} />
+        <Text style={s.coverKicker}>SECURITY EXPOSURE REPORT</Text>
         <Text style={s.coverOrg}>{d.org.name}</Text>
         {d.org.domain ? <Text style={s.coverDomain}>{d.org.domain}</Text> : null}
+      </View>
+      <View style={s.coverBody}>
         <View style={s.metaTable}>
           <View style={s.metaRow}>
             <Text style={s.metaKey}>Reporting period</Text>
@@ -173,8 +175,9 @@ function Cover({ d }: { d: ReportData }) {
       <View style={s.coverFoot}>
         <View style={s.coverFootRule} />
         <Text style={s.coverFootText}>
-          {`Generated ${stamp(d.generatedAt)}. This document contains confidential security information and is intended solely for ${d.org.name}.`}
+          {`Confidential. This document contains security information intended solely for ${d.org.name}.`}
         </Text>
+        <Text style={s.coverFootText}>{`Generated ${stamp(d.generatedAt)} by DataShield.`}</Text>
       </View>
     </Page>
   )
