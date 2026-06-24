@@ -5,7 +5,7 @@ import { useState, useCallback, useEffect, useRef, type ReactNode } from "react"
 const { ResponsiveGridLayout, verticalCompactor } = require("react-grid-layout")
 import "react-grid-layout/css/styles.css"
 import "react-resizable/css/styles.css"
-import { Settings2, Check, Plus, Building2, User, LayoutGrid, GripHorizontal, Filter } from "lucide-react"
+import { Settings2, Check, Plus, Building2, User, LayoutGrid, GripHorizontal, Filter, RotateCcw } from "lucide-react"
 import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
@@ -201,6 +201,24 @@ export function DashboardCanvas({
     router.refresh()
   }, [meta, layout, activePreset, router])
 
+  // Restore the active preset to the built-in default layout, visibility, titles
+  // and source scopes. Save immediately and refresh because clearing per-widget
+  // source filters changes the server-computed slices (same path as setSource).
+  const reset = useCallback(async () => {
+    if (!activePreset) return
+    const l = buildDefaultLayout(widgets)
+    const m = buildDefaultMeta(widgets)
+    setLayout(l)
+    setMeta(m)
+    setPresets((prev) => prev.map((p) => p.id === activePreset.id ? { ...p, layout: l, widgets: m } : p))
+    await fetch(`/api/dashboard/presets/${activePreset.id}`, {
+      method: "PUT",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ layout: l, widgets: m }),
+    })
+    router.refresh()
+  }, [activePreset, widgets, router])
+
   const visibleWidgets = widgets.filter((w) => {
     const m = meta.find((m) => m.instanceId === w.instanceId)
     return m?.visible !== false
@@ -296,6 +314,14 @@ export function DashboardCanvas({
                     <LayoutGrid className="size-3.5" />
                     Library
                   </Link>
+                  <button
+                    onClick={reset}
+                    disabled={!canEditPreset}
+                    className="flex h-8 items-center gap-1.5 rounded-md border border-border px-3 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground disabled:opacity-50"
+                  >
+                    <RotateCcw className="size-3.5" />
+                    Reset
+                  </button>
                 </>
               )}
               {editing ? (
@@ -323,7 +349,9 @@ export function DashboardCanvas({
             ref={containerRef}
             className={cn(
               "flex-1 overflow-y-auto overflow-x-hidden",
-              editing ? "select-none" : "[&_.react-resizable-handle]:hidden"
+              // Extra top room in Customize so the first row's floating controls
+              // (Rename / Move / source filter, pinned at top-2) clear the toolbar.
+              editing ? "select-none pt-6" : "[&_.react-resizable-handle]:hidden"
             )}
             style={{
               backgroundImage: "radial-gradient(circle, oklch(var(--border)) 1px, transparent 1px)",
