@@ -87,36 +87,58 @@ export function findSwapTarget<T extends SwapItem>(dragged: SwapItem, pool: T[])
 // Resize behaviour: instead of letting a growing widget shove its row neighbour
 // straight down, shrink that neighbour to reclaim the columns the resize ate.
 // Only when the neighbour can't shrink past its minW do we evict it below the
-// resized widget. `items` is RGL's live layout (the resized widget already at its
-// new geometry); every other widget is rebuilt from `pre` (the pre-resize
+// resized widget, and the evicted widget then squeezes its own landing row the
+// same way, so an eviction reflows the zone underneath rather than just pushing
+// the whole page down. `items` is RGL's live layout (the resized widget already
+// at its new geometry); every other widget is rebuilt from `pre` (the pre-resize
 // snapshot) so the engine's own push never leaks in. The caller runs a vertical
-// compaction on the result to settle evicted widgets and close any gaps.
+// compaction on the result to close any gaps the reflow leaves.
 export function squeezeResize<T extends SwapItem>(items: SwapItem[], id: string, cols: number, pre: T[]): T[] {
   const next = items.find((l) => l.i === id)
-  if (!next) return pre.map((l) => ({ ...l }))
-  const rRight = next.x + next.w
-  const rBottom = next.y + next.h
-  return pre.map((l) => {
-    if (l.i === id) return { ...l, x: next.x, y: next.y, w: next.w, h: next.h }
-    const vOverlap = l.y < rBottom && next.y < l.y + l.h
-    const hOverlap = l.x < rRight && next.x < l.x + l.w
-    if (!vOverlap || !hOverlap) return { ...l }
-    const minW = l.minW ?? 1
-    // Right neighbour: slide it to the resized widget's new right edge and clamp
-    // its width to the columns left over. Left neighbour: trim its right edge back
-    // to the resized widget's left edge. Either way, if the surviving width drops
-    // below minW the widget can't share the row, so drop it under the resized one.
-    const onRight = l.x + l.w / 2 >= next.x + next.w / 2
-    if (onRight) {
-      const x = rRight
-      const w = Math.min(l.w, cols - x)
-      if (w >= minW) return { ...l, x, w }
-    } else {
-      const w = next.x - l.x
-      if (w >= minW) return { ...l, w }
+  const map = new Map(pre.map((l) => [l.i, { ...l }]))
+  const resized = map.get(id)
+  if (!next || !resized) return [...map.values()]
+  resized.x = next.x
+  resized.y = next.y
+  resized.w = next.w
+  resized.h = next.h
+  // Breadth-first reflow: a "pusher" squeezes every widget it overlaps; any widget
+  // it has to evict downward joins the queue and squeezes its own landing row in
+  // turn. Each id pushes at most once (guard set), so this always terminates.
+  const queue = [id]
+  const pushed = new Set<string>()
+  while (queue.length > 0) {
+    const pid = queue.shift() as string
+    if (pushed.has(pid)) continue
+    pushed.add(pid)
+    const p = map.get(pid)
+    if (!p) continue
+    const pRight = p.x + p.w
+    const pBottom = p.y + p.h
+    for (const l of map.values()) {
+      if (l.i === pid) continue
+      const vOverlap = l.y < pBottom && p.y < l.y + l.h
+      const hOverlap = l.x < pRight && p.x < l.x + l.w
+      if (!vOverlap || !hOverlap) continue
+      const minW = l.minW ?? 1
+      // Right neighbour: slide it to the pusher's right edge and clamp its width to
+      // the columns left over. Left neighbour: trim its right edge back to the
+      // pusher's left edge. If the surviving width drops below minW it can't share
+      // the row, so evict it just below the pusher and let it reflow what's there.
+      const onRight = l.x + l.w / 2 >= p.x + p.w / 2
+      if (onRight) {
+        const x = pRight
+        const w = Math.min(l.w, cols - x)
+        if (w >= minW) { l.x = x; l.w = w; continue }
+      } else {
+        const w = p.x - l.x
+        if (w >= minW) { l.w = w; continue }
+      }
+      l.y = pBottom
+      queue.push(l.i)
     }
-    return { ...l, y: rBottom }
-  })
+  }
+  return [...map.values()]
 }
 
 // True when two layouts place the same widgets at the same x/y/w/h. Used to
