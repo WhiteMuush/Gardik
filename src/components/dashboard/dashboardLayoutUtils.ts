@@ -84,6 +84,41 @@ export function findSwapTarget<T extends SwapItem>(dragged: SwapItem, pool: T[])
   return best
 }
 
+// Resize behaviour: instead of letting a growing widget shove its row neighbour
+// straight down, shrink that neighbour to reclaim the columns the resize ate.
+// Only when the neighbour can't shrink past its minW do we evict it below the
+// resized widget. `items` is RGL's live layout (the resized widget already at its
+// new geometry); every other widget is rebuilt from `pre` (the pre-resize
+// snapshot) so the engine's own push never leaks in. The caller runs a vertical
+// compaction on the result to settle evicted widgets and close any gaps.
+export function squeezeResize<T extends SwapItem>(items: SwapItem[], id: string, cols: number, pre: T[]): T[] {
+  const next = items.find((l) => l.i === id)
+  if (!next) return pre.map((l) => ({ ...l }))
+  const rRight = next.x + next.w
+  const rBottom = next.y + next.h
+  return pre.map((l) => {
+    if (l.i === id) return { ...l, x: next.x, y: next.y, w: next.w, h: next.h }
+    const vOverlap = l.y < rBottom && next.y < l.y + l.h
+    const hOverlap = l.x < rRight && next.x < l.x + l.w
+    if (!vOverlap || !hOverlap) return { ...l }
+    const minW = l.minW ?? 1
+    // Right neighbour: slide it to the resized widget's new right edge and clamp
+    // its width to the columns left over. Left neighbour: trim its right edge back
+    // to the resized widget's left edge. Either way, if the surviving width drops
+    // below minW the widget can't share the row, so drop it under the resized one.
+    const onRight = l.x + l.w / 2 >= next.x + next.w / 2
+    if (onRight) {
+      const x = rRight
+      const w = Math.min(l.w, cols - x)
+      if (w >= minW) return { ...l, x, w }
+    } else {
+      const w = next.x - l.x
+      if (w >= minW) return { ...l, w }
+    }
+    return { ...l, y: rBottom }
+  })
+}
+
 // True when two layouts place the same widgets at the same x/y/w/h. Used to
 // skip redundant state writes so the grid's onLayoutChange -> setState -> grid
 // re-derive cycle can't ping-pong into "Maximum update depth exceeded".

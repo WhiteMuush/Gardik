@@ -15,7 +15,7 @@ import { DashboardConfigContext } from "@/contexts/DashboardConfigContext"
 import { type GridItemLayout, type WidgetMeta, type DashboardPreset, SOURCE_FILTERABLE_WIDGETS } from "@/types/dashboard"
 
 export type SourceOption = { id: string; label: string }
-import { buildDefaultLayout, buildDefaultMeta, mergeLayout, mergeMeta, findSwapTarget, sameGeometry } from "./dashboardLayoutUtils"
+import { buildDefaultLayout, buildDefaultMeta, mergeLayout, mergeMeta, findSwapTarget, sameGeometry, squeezeResize } from "./dashboardLayoutUtils"
 import { PresetTab } from "./PresetTab"
 import { RenameOverlay } from "./RenameOverlay"
 
@@ -82,6 +82,10 @@ export function DashboardCanvas({
   // Id of the widget being dragged, read in onLayoutChange (which fires after
   // onDragStop has already cleared the draggingId state).
   const draggedId = useRef<string | null>(null)
+  // Resize counterparts of the drag refs: the layout frozen when a resize starts
+  // and the id of the widget being resized, both read by the squeeze compactor.
+  const preResizeLayout = useRef<RglItem[]>([])
+  const resizingId = useRef<string | null>(null)
   // Temporary per-widget extra grid rows while an in-widget editor is open.
   // Not persisted: it only inflates the live layout so RGL pushes neighbours.
   const [extraRows, setExtraRows] = useState<Record<string, number>>({})
@@ -223,8 +227,19 @@ export function DashboardCanvas({
     commitLayout(verticalCompactor.compact(base, COLS))
   }
 
+  // Rebuild the squeezed result from the frozen snapshot (the engine's finalLayout
+  // already pushed neighbours down, which is exactly what we override). Then a
+  // vertical compaction settles any evicted widget and closes gaps.
   const onResizeStop = (finalLayout: RglItem[]) => {
+    const id = resizingId.current
+    const pre = preResizeLayout.current
+    resizingId.current = null
+    preResizeLayout.current = []
     if (Object.keys(extraRows).length > 0) return
+    if (id && pre.length > 0) {
+      commitLayout(verticalCompactor.compact(squeezeResize(finalLayout, id, COLS, pre), COLS))
+      return
+    }
     commitLayout(finalLayout)
   }
 
@@ -315,6 +330,13 @@ export function DashboardCanvas({
       type: "vertical" as const,
       allowOverlap: false,
       compact(items: RglItem[], cols: number) {
+        // Live resize: squeeze the row neighbour instead of the engine's downward
+        // push, then vertical-compact so an evicted widget flows in below.
+        const rid = resizingId.current
+        const preR = preResizeLayout.current
+        if (rid && preR.length > 0) {
+          return verticalCompactor.compact(squeezeResize(items, rid, cols, preR), cols)
+        }
         const pre = preDragLayout.current
         const id = draggedId.current
         if (!id || pre.length === 0) return verticalCompactor.compact(items, cols)
@@ -466,6 +488,10 @@ export function DashboardCanvas({
                   setSwapTargetId(item ? findSwapTarget(item, preDragLayout.current)?.i ?? null : null)
                 }}
                 onDragStop={(_finalLayout: RglItem[], _oldItem: RglItem | null, item: RglItem | null) => onDragStop(item)}
+                onResizeStart={(currentLayout: RglItem[], oldItem: RglItem | null) => {
+                  preResizeLayout.current = currentLayout.map((l) => ({ ...l }))
+                  resizingId.current = oldItem?.i ?? null
+                }}
                 onResizeStop={(finalLayout: RglItem[]) => onResizeStop(finalLayout)}
                 margin={[16, 16]}
                 containerPadding={[16, 16]}
