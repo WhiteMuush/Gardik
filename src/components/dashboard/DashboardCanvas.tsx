@@ -20,6 +20,9 @@ import { PresetTab } from "./PresetTab"
 import { RenameOverlay } from "./RenameOverlay"
 
 const COLS = 12
+const ROW_HEIGHT = 50
+const GRID_MARGIN = 16
+const GRID_PADDING = 16
 
 // Max per-dimension grid-unit gap (cols/rows) still treated as a swap: dropping
 // a widget onto another within this size difference exchanges both position and
@@ -86,10 +89,17 @@ export function DashboardCanvas({
   const saveTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
   // Layout captured when a drag starts, used to compute same-size swaps.
   const preDragLayout = useRef<GridItemLayout[]>([])
-  // Id of the widget being dragged and the latest live layout, read on drag stop
-  // (the grid fork's onDragStop arg shape is unreliable, so we use refs).
+  // Id of the widget being dragged, used to defer persistence to onDragStop.
   const draggingIdRef = useRef<string | null>(null)
-  const liveLayout = useRef<GridItemLayout[]>([])
+  // After a swap, the grid still fires one onLayoutChange with its own push
+  // result (it runs setLayout + onLayoutChange right after our onDragStop hook);
+  // skip that single call so it doesn't clobber the swap we just applied.
+  const skipNextLayoutChange = useRef(false)
+  // Bumped after a swap to remount the grid so it adopts our layout instead of
+  // keeping the push it computed during the drag.
+  const [swapNonce, setSwapNonce] = useState(0)
+  // Widget highlighted as the swap target while another is dragged over it.
+  const [swapTargetId, setSwapTargetId] = useState<string | null>(null)
 
   useEffect(() => {
     if (!addMenuOpen) return
@@ -190,11 +200,15 @@ export function DashboardCanvas({
   }
 
   const onLayoutChange = (current: RglItem[]) => {
+    // Drop the grid's own push result emitted right after a swap (see ref docs).
+    if (skipNextLayoutChange.current) {
+      skipNextLayoutChange.current = false
+      return
+    }
     // While a widget is temporarily expanded its editor pushes neighbours; that
     // reflow is transient, so never capture or persist it.
     if (Object.keys(extraRows).length > 0) return
     const next = normalize(current)
-    liveLayout.current = next
     setLayout(next)
 
     // HARD RULE: the dashboard is only ever modified in Customize mode.
@@ -208,52 +222,65 @@ export function DashboardCanvas({
     persistMerged(next)
   }
 
-  // Swap two equally-sized widgets when one is dropped onto the other; any other
-  // drop keeps the grid's default push/compaction. Worked out from the pre-drag
-  // snapshot so RGL's transient push during the drag doesn't interfere. The
-  // fork's onDragStop args are unreliable, so read the dragged id and final
-  // position from refs instead.
-  const onDragStop = () => {
-    const id = draggingIdRef.current
+  // Swap two similarly-sized widgets when one is dropped onto the other; any
+  // other drop keeps the grid's default push/compaction. The grid passes the
+  // pre-drag layout to onDragStart and the dragged item to onDrag/onDragStop, so
+  // we compute the swap straight from those.
+
+  // The widget (from the pre-drag snapshot) the dragged item would swap with at
+  // its current position, or null. Identical sizes always qualify; near-equal
+  // sizes qualify when within tolerance and neither min size breaks.
+  const findSwapTarget = (item: RglItem): GridItemLayout | null => {
+    const before = preDragLayout.current
+    const origin = before.find((l) => l.i === item.i)
+    if (!origin) return null
+    const cx = item.x + item.w / 2
+    const cy = item.y + item.h / 2
+    const target = before.find(
+      (l) =>
+        l.i !== item.i &&
+        cx >= l.x && cx < l.x + l.w &&
+        cy >= l.y && cy < l.y + l.h,
+    )
+    if (!target) return null
+    const sameSize = target.w === origin.w && target.h === origin.h
+    const within =
+      Math.abs(target.w - origin.w) <= SWAP_SIZE_TOLERANCE &&
+      Math.abs(target.h - origin.h) <= SWAP_SIZE_TOLERANCE
+    const fits =
+      target.w >= (origin.minW ?? 1) && target.h >= (origin.minH ?? 1) &&
+      origin.w >= (target.minW ?? 1) && origin.h >= (target.minH ?? 1)
+    return sameSize || (within && fits) ? target : null
+  }
+
+  // Live feedback: highlight the widget the drop would swap with.
+  const onDrag = (_l: RglItem[], _old: RglItem | null, item: RglItem | null) => {
+    setSwapTargetId(item ? findSwapTarget(item)?.i ?? null : null)
+  }
+
+  const onDragStop = (finalLayout: RglItem[], _old: RglItem | null, dropped: RglItem | null) => {
     draggingIdRef.current = null
     setDraggingId(null)
-    if (!editing || !activePreset || !id) return
+    setSwapTargetId(null)
+    if (!editing || !activePreset) return
     const before = preDragLayout.current
-    const dropped = liveLayout.current.find((l) => l.i === id)
-    const origin = dropped && before.find((l) => l.i === id)
-    if (dropped && origin) {
-      const cx = dropped.x + dropped.w / 2
-      const cy = dropped.y + dropped.h / 2
-      const target = before.find(
-        (l) =>
-          l.i !== dropped.i &&
-          cx >= l.x && cx < l.x + l.w &&
-          cy >= l.y && cy < l.y + l.h,
-      )
-      // Identical sizes swap position only; near-identical sizes (within the
-      // tolerance, and without breaking either widget's min size) also exchange
-      // sizes so A fully takes B's slot and vice versa. Anything larger pushes.
-      if (target) {
-        const sameSize = target.w === origin.w && target.h === origin.h
-        const within =
-          Math.abs(target.w - origin.w) <= SWAP_SIZE_TOLERANCE &&
-          Math.abs(target.h - origin.h) <= SWAP_SIZE_TOLERANCE
-        const fits =
-          target.w >= (origin.minW ?? 1) && target.h >= (origin.minH ?? 1) &&
-          origin.w >= (target.minW ?? 1) && origin.h >= (target.minH ?? 1)
-        if (sameSize || (within && fits)) {
-          const swapped = before.map((l) => {
-            if (l.i === dropped.i) return { ...l, x: target.x, y: target.y, w: target.w, h: target.h }
-            if (l.i === target.i) return { ...l, x: origin.x, y: origin.y, w: origin.w, h: origin.h }
-            return l
-          })
-          setLayout(swapped)
-          persistMerged(swapped)
-          return
-        }
-      }
+    const origin = dropped && before.find((l) => l.i === dropped.i)
+    const target = dropped && findSwapTarget(dropped)
+    if (dropped && origin && target) {
+      const swapped = before.map((l) => {
+        if (l.i === dropped.i) return { ...l, x: target.x, y: target.y, w: target.w, h: target.h }
+        if (l.i === target.i) return { ...l, x: origin.x, y: origin.y, w: origin.w, h: origin.h }
+        return l
+      })
+      skipNextLayoutChange.current = true
+      setLayout(swapped)
+      setSwapNonce((n) => n + 1)
+      persistMerged(swapped)
+      return
     }
-    persistMerged(liveLayout.current)
+    const next = normalize(finalLayout)
+    setLayout(next)
+    persistMerged(next)
   }
 
   const setTitle = useCallback((instanceId: string, title: string) => {
@@ -447,29 +474,32 @@ export function DashboardCanvas({
           >
             {containerW > 0 && (
               <ResponsiveGridLayout
+                key={swapNonce}
                 className="layout"
                 width={containerW}
                 breakpoints={{ lg: 0 }}
                 cols={{ lg: COLS }}
                 layouts={{ lg: rglLayout }}
-                rowHeight={50}
+                rowHeight={ROW_HEIGHT}
                 compactor={verticalCompactor}
                 dragConfig={{ enabled: editing, handle: ".widget-drag-handle" }}
                 resizeConfig={{ enabled: editing }}
                 onLayoutChange={onLayoutChange}
-                onDragStart={(a: unknown, b: unknown) => {
-                  preDragLayout.current = layout
-                  liveLayout.current = layout
-                  // New API passes the id first; legacy passes (layout, oldItem).
-                  const id = typeof a === "string"
-                    ? a
-                    : (b && typeof b === "object" ? (b as RglItem).i : null)
-                  draggingIdRef.current = id
-                  setDraggingId(id)
+                onDragStart={(...args: unknown[]) => {
+                  const currentLayout = args[0] as RglItem[]
+                  const oldItem = args[1] as RglItem | null
+                  preDragLayout.current = Array.isArray(currentLayout) ? normalize(currentLayout) : []
+                  draggingIdRef.current = oldItem?.i ?? null
+                  setDraggingId(oldItem?.i ?? null)
                 }}
-                onDragStop={onDragStop}
-                margin={[16, 16]}
-                containerPadding={[16, 16]}
+                onDrag={(...args: unknown[]) => {
+                  onDrag(args[0] as RglItem[], args[1] as RglItem | null, args[2] as RglItem | null)
+                }}
+                onDragStop={(...args: unknown[]) => {
+                  onDragStop(args[0] as RglItem[], args[1] as RglItem | null, args[2] as RglItem | null)
+                }}
+                margin={[GRID_MARGIN, GRID_MARGIN]}
+                containerPadding={[GRID_PADDING, GRID_PADDING]}
               >
                 {visibleWidgets.map((w) => {
                   const title = getTitle(w.instanceId, w.defaultTitle)
@@ -488,7 +518,9 @@ export function DashboardCanvas({
                         // neighbouring widget. Lift the whole item on hover in
                         // Customize, and lift the dragged one above everything.
                         editing && "rounded-xl outline outline-2 outline-primary/30 hover:z-20",
-                        draggingId === w.instanceId && "z-30 drag-glow"
+                        draggingId === w.instanceId && "z-30 drag-glow",
+                        // Live swap-target highlight while another widget is dragged over it.
+                        swapTargetId === w.instanceId && "z-20 outline-primary outline-4 ring-4 ring-primary/30"
                       )}
                     >
                       {/* Provider scope: a quiet badge when set, an editable
