@@ -1,13 +1,18 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Settings2, Check } from "lucide-react"
 import { StatCard } from "@/components/dashboard/StatCard"
 import { getRiskLevel } from "@/lib/risk"
 import { Users, Bell, Database, ShieldAlert } from "lucide-react"
 import { useWidgetConfig } from "@/hooks/useWidgetConfig"
 import { useDashboardEditing } from "@/contexts/DashboardEditContext"
+import { useDashboardConfig } from "@/contexts/DashboardConfigContext"
 import { cn } from "@/lib/utils"
+
+// Extra grid rows the cell needs to fit the open Visible cards panel so it
+// pushes neighbours instead of overflowing onto them.
+const SETTINGS_EXTRA_ROWS = 2
 
 type CardKey = "employees" | "alerts" | "detections" | "risk"
 
@@ -40,7 +45,16 @@ export function StatsRow({
     visibleCards: ["employees", "alerts", "detections", "risk"],
   })
   const [showSettings, setShowSettings] = useState(false)
+  const { requestRows } = useDashboardConfig()
   const risk = getRiskLevel(riskScore)
+
+  // Grow the grid cell while the panel is open (and on unmount / leaving edit
+  // mode), so the in-flow panel pushes the rows above and below.
+  const open = editing && showSettings
+  useEffect(() => {
+    requestRows("stats-row", open ? SETTINGS_EXTRA_ROWS : 0)
+    return () => requestRows("stats-row", 0)
+  }, [open, requestRows])
 
   const toggle = (key: CardKey) => {
     const visible = config.visibleCards.includes(key)
@@ -91,7 +105,7 @@ export function StatsRow({
   const cols = Math.max(1, visible.length)
 
   return (
-    <div className="relative space-y-3">
+    <div className="space-y-3">
       {editing && <div className="flex justify-end">
         <button
           onClick={() => setShowSettings((s) => !s)}
@@ -105,10 +119,7 @@ export function StatsRow({
       </div>}
 
       {showSettings && (
-        // Floating popover: kept out of flow so opening it never grows the
-        // widget past its grid cell (which would clip the top and overlap the
-        // row below). The parent item's hover z-index lifts it over neighbours.
-        <div className="absolute right-0 top-9 z-50 w-72 rounded-lg border border-border bg-card p-4 shadow-lg">
+        <div className="rounded-lg border border-border bg-card p-4">
           <p className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
             Visible cards
           </p>
