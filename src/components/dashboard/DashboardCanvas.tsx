@@ -293,17 +293,19 @@ export function DashboardCanvas({
     return extra ? { ...base, h: base.h + extra } : base
   })
 
-  // Custom RGL compactor that keeps a stable swap preview. During a drag every
-  // other widget stays pinned to its frozen slot (allowOverlap stops the engine
-  // pushing them) so the swap target never flees downward and the detection,
-  // run against that fixed snapshot, can't oscillate; only the dragged widget
-  // floats at the cursor while a highlight marks the target. The actual exchange
-  // is applied on drop in onLayoutChange. Outside a drag (mount, resize, sync)
-  // preDragLayout is empty and we just compact what RGL hands us.
+  // Custom RGL compactor that keeps a stable swap preview. During a drag we
+  // rebuild every frame from the frozen snapshot with all other widgets pinned
+  // to their slot and only the dragged widget floating at the cursor; we ignore
+  // the engine's push entirely, so the swap target never flees downward and the
+  // detection run against that fixed snapshot can't oscillate. The actual
+  // exchange is applied on drop in onLayoutChange. Outside a drag (mount, resize,
+  // sync) preDragLayout is empty and we just compact what RGL hands us. Keep
+  // allowOverlap false: true changes the engine's mount/sync path and made the
+  // controlled layout thrash in a setState loop.
   const compactor = useMemo(
     () => ({
       type: "vertical" as const,
-      allowOverlap: true,
+      allowOverlap: false,
       compact(items: RglItem[], cols: number) {
         const pre = preDragLayout.current
         const dragged = items.find((l) => l.moved)
