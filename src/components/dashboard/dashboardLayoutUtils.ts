@@ -51,6 +51,31 @@ export function mergeLayout(saved: GridItemLayout[], widgets: WidgetEntry[]): Gr
   })
 }
 
+type SwapItem = { i: string; x: number; y: number; w: number; h: number; minW?: number; minH?: number }
+
+// Pick the widget a dragged item should fully swap with (position + size), or
+// null when it covers no other widget or the exchange would break either side's
+// min size. `pool` is the pre-drag layout: during a swap drag every other widget
+// stays where it began (the swap compactor never pushes them), so the pool also
+// gives the target's real slot.
+export function findSwapTarget<T extends SwapItem>(dragged: SwapItem, pool: T[]): T | null {
+  const origin = pool.find((l) => l.i === dragged.i)
+  if (!origin) return null
+  const cx = dragged.x + dragged.w / 2
+  const cy = dragged.y + dragged.h / 2
+  const target = pool.find(
+    (l) =>
+      l.i !== dragged.i &&
+      cx >= l.x && cx < l.x + l.w &&
+      cy >= l.y && cy < l.y + l.h,
+  )
+  if (!target) return null
+  const fits =
+    target.w >= (origin.minW ?? 1) && target.h >= (origin.minH ?? 1) &&
+    origin.w >= (target.minW ?? 1) && origin.h >= (target.minH ?? 1)
+  return fits ? target : null
+}
+
 export function mergeMeta(saved: WidgetMeta[], widgets: WidgetEntry[]): WidgetMeta[] {
   return widgets.map((w) => {
     const s = saved.find((m) => m.instanceId === w.instanceId)
