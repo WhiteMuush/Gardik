@@ -180,8 +180,8 @@ export function DashboardCanvas({
     const next = items.map((item) => ({
       i: item.i, x: item.x, y: item.y, w: item.w, h: item.h, minW: item.minW, minH: item.minH,
     }))
-    // Skip no-op writes: the grid re-emits onLayoutChange after we feed a layout
-    // back, so without this guard setState would re-render in an endless cycle.
+    // Skip no-op writes (e.g. a resize that snapped back) so we never re-render
+    // for an unchanged layout.
     if (sameGeometry(next, layout)) return
     setLayout(next)
     if (!editing || !activePreset) return
@@ -191,36 +191,38 @@ export function DashboardCanvas({
     persistPreset(activePreset.id, [...next, ...preserved], meta)
   }
 
-  const onLayoutChange = (current: RglItem[]) => {
-    // While a widget is temporarily expanded its editor pushes neighbours; that
-    // reflow is transient, so never capture or persist it.
-    if (Object.keys(extraRows).length > 0) return
-
-    // Fires once when a drag ends. The live layout only floated the dragged
-    // widget over a still target, so rebuild the real result from the frozen
-    // snapshot: exchange the two slots fully (position + size) when the drop
-    // landed on a compatible widget, otherwise drop it where the cursor left it
-    // and let vertical compaction tidy the rest.
+  // Capture the result of a finished drag. We deliberately do NOT use the grid's
+  // onLayoutChange: this fork re-emits it for its own compaction echoes, and
+  // feeding our state back through the controlled `layouts` prop ping-pongs into
+  // "Maximum update depth exceeded". Instead we only write on explicit user
+  // gestures (drag/resize stop). The live drag only floated the dragged widget
+  // over a still target, so rebuild the real result from the frozen snapshot:
+  // exchange the two slots fully (position + size) when the drop landed on a
+  // compatible widget, otherwise drop it where the cursor left it and let
+  // vertical compaction tidy the rest.
+  const onDragStop = (item: RglItem | null) => {
+    setDraggingId(null)
+    setSwapTargetId(null)
     const pre = preDragLayout.current
     const id = draggedId.current
-    if (pre.length > 0 && id) {
-      preDragLayout.current = []
-      draggedId.current = null
-      const dragged = current.find((l) => l.i === id)
-      const origin = pre.find((l) => l.i === id)
-      const target = dragged ? findSwapTarget(dragged, pre) : null
-      const base = target && origin
-        ? pre.map((l) => {
-            if (l.i === id) return { ...l, x: target.x, y: target.y, w: target.w, h: target.h }
-            if (l.i === target.i) return { ...l, x: origin.x, y: origin.y, w: origin.w, h: origin.h }
-            return l
-          })
-        : pre.map((l) => (dragged && l.i === id ? { ...l, x: dragged.x, y: dragged.y } : l))
-      commitLayout(verticalCompactor.compact(base, COLS))
-      return
-    }
+    preDragLayout.current = []
+    draggedId.current = null
+    if (Object.keys(extraRows).length > 0 || pre.length === 0 || !id || !item) return
+    const origin = pre.find((l) => l.i === id)
+    const target = findSwapTarget(item, pre)
+    const base = target && origin
+      ? pre.map((l) => {
+          if (l.i === id) return { ...l, x: target.x, y: target.y, w: target.w, h: target.h }
+          if (l.i === target.i) return { ...l, x: origin.x, y: origin.y, w: origin.w, h: origin.h }
+          return l
+        })
+      : pre.map((l) => (l.i === id ? { ...l, x: item.x, y: item.y } : l))
+    commitLayout(verticalCompactor.compact(base, COLS))
+  }
 
-    commitLayout(current)
+  const onResizeStop = (finalLayout: RglItem[]) => {
+    if (Object.keys(extraRows).length > 0) return
+    commitLayout(finalLayout)
   }
 
   const setTitle = useCallback((instanceId: string, title: string) => {
@@ -446,7 +448,6 @@ export function DashboardCanvas({
                 compactor={compactor}
                 dragConfig={{ enabled: editing, handle: ".widget-drag-handle" }}
                 resizeConfig={{ enabled: editing }}
-                onLayoutChange={onLayoutChange}
                 onDragStart={(currentLayout: RglItem[], oldItem: RglItem | null) => {
                   preDragLayout.current = currentLayout.map((l) => ({ ...l }))
                   draggedId.current = oldItem?.i ?? null
@@ -455,17 +456,8 @@ export function DashboardCanvas({
                 onDrag={(_layout: RglItem[], _oldItem: RglItem | null, item: RglItem | null) => {
                   setSwapTargetId(item ? findSwapTarget(item, preDragLayout.current)?.i ?? null : null)
                 }}
-                onDragStop={() => {
-                  setDraggingId(null)
-                  setSwapTargetId(null)
-                  // onLayoutChange fires synchronously right after this and needs the
-                  // snapshot to build the swap; clear it on the next tick so a drop
-                  // that produced no layout change can't leave a stale snapshot.
-                  queueMicrotask(() => {
-                    preDragLayout.current = []
-                    draggedId.current = null
-                  })
-                }}
+                onDragStop={(_finalLayout: RglItem[], _oldItem: RglItem | null, item: RglItem | null) => onDragStop(item)}
+                onResizeStop={(finalLayout: RglItem[]) => onResizeStop(finalLayout)}
                 margin={[16, 16]}
                 containerPadding={[16, 16]}
               >
