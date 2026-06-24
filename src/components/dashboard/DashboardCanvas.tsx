@@ -387,8 +387,12 @@ export function DashboardCanvas({
                       key={w.instanceId}
                       className={cn(
                         "relative h-full",
-                        editing && "rounded-xl outline outline-2 outline-primary/30",
-                        draggingId === w.instanceId && "drag-glow"
+                        // Each grid item is its own stacking context (RGL sets a
+                        // transform), so the floating controls can't out-z a
+                        // neighbouring widget. Lift the whole item on hover in
+                        // Customize, and lift the dragged one above everything.
+                        editing && "rounded-xl outline outline-2 outline-primary/30 hover:z-20",
+                        draggingId === w.instanceId && "z-30 drag-glow"
                       )}
                     >
                       {/* Provider scope: a quiet badge when set, an editable
