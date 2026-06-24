@@ -1,6 +1,6 @@
 "use client"
 
-import { useState, useCallback, useEffect, useRef, type ReactNode } from "react"
+import { useState, useCallback, useEffect, useMemo, useRef, type ReactNode } from "react"
 // eslint-disable-next-line @typescript-eslint/no-require-imports
 const { ResponsiveGridLayout, verticalCompactor } = require("react-grid-layout")
 import "react-grid-layout/css/styles.css"
@@ -15,7 +15,7 @@ import { DashboardConfigContext } from "@/contexts/DashboardConfigContext"
 import { type GridItemLayout, type WidgetMeta, type DashboardPreset, SOURCE_FILTERABLE_WIDGETS } from "@/types/dashboard"
 
 export type SourceOption = { id: string; label: string }
-import { buildDefaultLayout, buildDefaultMeta, mergeLayout, mergeMeta } from "./dashboardLayoutUtils"
+import { buildDefaultLayout, buildDefaultMeta, mergeLayout, mergeMeta, findSwapTarget } from "./dashboardLayoutUtils"
 import { PresetTab } from "./PresetTab"
 import { RenameOverlay } from "./RenameOverlay"
 
@@ -34,7 +34,7 @@ export type WidgetEntry = {
 }
 
 type RglItem = {
-  i: string; x: number; y: number; w: number; h: number; minW?: number; minH?: number
+  i: string; x: number; y: number; w: number; h: number; minW?: number; minH?: number; moved?: boolean
 }
 
 export function DashboardCanvas({
@@ -73,6 +73,11 @@ export function DashboardCanvas({
   const [layout, setLayout] = useState<GridItemLayout[]>(() => initLayout(activePreset))
   const [meta, setMeta] = useState<WidgetMeta[]>(() => initMeta(activePreset))
   const [draggingId, setDraggingId] = useState<string | null>(null)
+  // Widget the drop would swap with, highlighted live during the drag.
+  const [swapTargetId, setSwapTargetId] = useState<string | null>(null)
+  // Layout frozen when a drag starts. The swap compactor reads it to learn the
+  // dragged item's origin slot and where every other (immobile) widget sits.
+  const preDragLayout = useRef<RglItem[]>([])
   // Temporary per-widget extra grid rows while an in-widget editor is open.
   // Not persisted: it only inflates the live layout so RGL pushes neighbours.
   const [extraRows, setExtraRows] = useState<Record<string, number>>({})
@@ -260,6 +265,33 @@ export function DashboardCanvas({
     return extra ? { ...base, h: base.h + extra } : base
   })
 
+  // Custom RGL compactor giving full-slot swap with a live preview. `allowOverlap`
+  // stops the engine's default push so the dragged widget floats over its target
+  // instead of shoving it down; we then either exchange the two widgets' slots
+  // (position + size) when the drag covers a compatible target, or fall back to
+  // normal vertical compaction. Runs every drag frame and on drop, so the swap is
+  // visible while dragging and persists through onLayoutChange with no remount.
+  const compactor = useMemo(
+    () => ({
+      type: "vertical" as const,
+      allowOverlap: true,
+      compact(items: RglItem[], cols: number) {
+        const pre = preDragLayout.current
+        const dragged = items.find((l) => l.moved)
+        if (!dragged || pre.length === 0) return verticalCompactor.compact(items, cols)
+        const target = findSwapTarget(dragged, pre)
+        const origin = pre.find((l) => l.i === dragged.i)
+        if (!target || !origin) return verticalCompactor.compact(items, cols)
+        return items.map((l) => {
+          if (l.i === dragged.i) return { ...l, x: target.x, y: target.y, w: target.w, h: target.h, moved: false }
+          if (l.i === target.i) return { ...l, x: origin.x, y: origin.y, w: origin.w, h: origin.h, moved: false }
+          return l.moved ? { ...l, moved: false } : l
+        })
+      },
+    }),
+    [],
+  )
+
   const isAdmin = userRole === "ADMIN"
   const canEditPreset = activePreset
     ? activePreset.scope === "PERSONAL" || isAdmin
@@ -384,12 +416,22 @@ export function DashboardCanvas({
                 cols={{ lg: COLS }}
                 layouts={{ lg: rglLayout }}
                 rowHeight={50}
-                compactor={verticalCompactor}
+                compactor={compactor}
                 dragConfig={{ enabled: editing, handle: ".widget-drag-handle" }}
                 resizeConfig={{ enabled: editing }}
                 onLayoutChange={onLayoutChange}
-                onDragStart={(_layout: unknown, oldItem: RglItem | null) => setDraggingId(oldItem?.i ?? null)}
-                onDragStop={() => setDraggingId(null)}
+                onDragStart={(currentLayout: RglItem[], oldItem: RglItem | null) => {
+                  preDragLayout.current = currentLayout.map((l) => ({ ...l }))
+                  setDraggingId(oldItem?.i ?? null)
+                }}
+                onDrag={(_layout: RglItem[], _oldItem: RglItem | null, item: RglItem | null) => {
+                  setSwapTargetId(item ? findSwapTarget(item, preDragLayout.current)?.i ?? null : null)
+                }}
+                onDragStop={() => {
+                  preDragLayout.current = []
+                  setDraggingId(null)
+                  setSwapTargetId(null)
+                }}
                 margin={[16, 16]}
                 containerPadding={[16, 16]}
               >
@@ -410,6 +452,8 @@ export function DashboardCanvas({
                         // neighbouring widget. Lift the whole item on hover in
                         // Customize, and lift the dragged one above everything.
                         editing && "rounded-xl outline outline-2 outline-primary/30 hover:z-20",
+                        // The widget the drop would land on: solid outline + glow.
+                        swapTargetId === w.instanceId && "z-10 outline-primary drag-glow",
                         draggingId === w.instanceId && "z-30 drag-glow"
                       )}
                     >
