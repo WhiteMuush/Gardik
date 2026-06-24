@@ -484,9 +484,11 @@ export function DashboardCanvas({
                         // neighbouring widget. Lift the whole item on hover in
                         // Customize, and lift the dragged one above everything.
                         editing && "rounded-xl outline outline-2 outline-primary/30 hover:z-20",
-                        // The widget the drop would land on: solid outline + glow.
-                        swapTargetId === w.instanceId && "z-10 outline-primary drag-glow",
-                        draggingId === w.instanceId && "z-30 drag-glow"
+                        // The widget the drop would replace: accent (orange) glow,
+                        // distinct from the dragged widget's primary (violet) glow.
+                        swapTargetId === w.instanceId && "z-20 outline-accent swap-glow",
+                        // The dragged widget floats above everything, including its target.
+                        draggingId === w.instanceId && "z-50 drag-glow"
                       )}
                     >
                       {/* Provider scope: a quiet badge when set, an editable

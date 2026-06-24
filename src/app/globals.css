@@ -92,6 +92,27 @@
     animation: drag-glow 1.2s ease-in-out infinite;
     border-radius: 0.75rem;
   }
+
+  /* Glow for the widget a drop would replace: accent (orange) to read as
+     distinct from the dragged widget's primary (violet) glow. */
+  @keyframes swap-glow {
+    0%, 100% {
+      box-shadow:
+        0 0 0 2px oklch(var(--accent) / 0.6),
+        0 0 24px oklch(var(--accent) / 0.2);
+    }
+    50% {
+      box-shadow:
+        0 0 0 2px oklch(var(--accent) / 1),
+        0 0 48px oklch(var(--accent) / 0.45),
+        0 0 80px oklch(var(--accent) / 0.2);
+    }
+  }
+
+  .swap-glow {
+    animation: swap-glow 1.2s ease-in-out infinite;
+    border-radius: 0.75rem;
+  }
   body {
     @apply bg-background text-foreground;
   }
