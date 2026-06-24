@@ -4,6 +4,7 @@ import type { ReportData } from "./types"
 
 const data: ReportData = {
   generatedAt: "2026-06-22T00:00:00.000Z",
+  org: { name: "Acme Corp", domain: "acme.example" },
   exposure: {
     totalEmployees: 10,
     exposedEmployees: 3,
