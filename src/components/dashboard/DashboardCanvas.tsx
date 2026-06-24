@@ -86,6 +86,10 @@ export function DashboardCanvas({
   const saveTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
   // Layout captured when a drag starts, used to compute same-size swaps.
   const preDragLayout = useRef<GridItemLayout[]>([])
+  // Id of the widget being dragged and the latest live layout, read on drag stop
+  // (the grid fork's onDragStop arg shape is unreliable, so we use refs).
+  const draggingIdRef = useRef<string | null>(null)
+  const liveLayout = useRef<GridItemLayout[]>([])
 
   useEffect(() => {
     if (!addMenuOpen) return
@@ -190,6 +194,7 @@ export function DashboardCanvas({
     // reflow is transient, so never capture or persist it.
     if (Object.keys(extraRows).length > 0) return
     const next = normalize(current)
+    liveLayout.current = next
     setLayout(next)
 
     // HARD RULE: the dashboard is only ever modified in Customize mode.
@@ -198,19 +203,24 @@ export function DashboardCanvas({
 
     // During a drag we keep live preview but defer the write to onDragStop,
     // which may turn a same-size drop into a swap instead of a push.
-    if (draggingId) return
+    if (draggingIdRef.current) return
 
     persistMerged(next)
   }
 
   // Swap two equally-sized widgets when one is dropped onto the other; any other
   // drop keeps the grid's default push/compaction. Worked out from the pre-drag
-  // snapshot so RGL's transient push during the drag doesn't interfere.
-  const onDragStop = (finalLayout: RglItem[], _old: RglItem | null, dropped: RglItem | null) => {
+  // snapshot so RGL's transient push during the drag doesn't interfere. The
+  // fork's onDragStop args are unreliable, so read the dragged id and final
+  // position from refs instead.
+  const onDragStop = () => {
+    const id = draggingIdRef.current
+    draggingIdRef.current = null
     setDraggingId(null)
-    if (!editing || !activePreset) return
+    if (!editing || !activePreset || !id) return
     const before = preDragLayout.current
-    const origin = dropped && before.find((l) => l.i === dropped.i)
+    const dropped = liveLayout.current.find((l) => l.i === id)
+    const origin = dropped && before.find((l) => l.i === id)
     if (dropped && origin) {
       const cx = dropped.x + dropped.w / 2
       const cy = dropped.y + dropped.h / 2
@@ -243,9 +253,7 @@ export function DashboardCanvas({
         }
       }
     }
-    const next = normalize(finalLayout)
-    setLayout(next)
-    persistMerged(next)
+    persistMerged(liveLayout.current)
   }
 
   const setTitle = useCallback((instanceId: string, title: string) => {
@@ -449,9 +457,15 @@ export function DashboardCanvas({
                 dragConfig={{ enabled: editing, handle: ".widget-drag-handle" }}
                 resizeConfig={{ enabled: editing }}
                 onLayoutChange={onLayoutChange}
-                onDragStart={(_layout: unknown, oldItem: RglItem | null) => {
+                onDragStart={(a: unknown, b: unknown) => {
                   preDragLayout.current = layout
-                  setDraggingId(oldItem?.i ?? null)
+                  liveLayout.current = layout
+                  // New API passes the id first; legacy passes (layout, oldItem).
+                  const id = typeof a === "string"
+                    ? a
+                    : (b && typeof b === "object" ? (b as RglItem).i : null)
+                  draggingIdRef.current = id
+                  setDraggingId(id)
                 }}
                 onDragStop={onDragStop}
                 margin={[16, 16]}
