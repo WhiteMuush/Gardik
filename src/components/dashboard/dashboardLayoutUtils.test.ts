@@ -78,6 +78,20 @@ describe("squeezeResize", () => {
     expect(out.find((l) => l.i === "c")).toMatchObject({ x: 0, y: 4, w: 6 })
   })
 
+  it("leaves a stacked widget for vertical compaction on vertical grow, no squeeze", () => {
+    // a taller; c is stacked directly below it, b sits beside. Neither width changes,
+    // c keeps its slot here (the caller's vertical compaction pushes it down).
+    const col = [
+      { i: "a", x: 0, y: 0, w: 6, h: 4, minW: 2, minH: 2 },
+      { i: "b", x: 6, y: 0, w: 6, h: 4, minW: 2, minH: 2 },
+      { i: "c", x: 0, y: 4, w: 6, h: 4, minW: 2, minH: 2 },
+    ]
+    const items = [{ ...col[0], h: 6 }, col[1], col[2]]
+    const out = squeezeResize(items, "a", cols, col)
+    expect(out.find((l) => l.i === "c")).toMatchObject({ x: 0, y: 4, w: 6 })
+    expect(out.find((l) => l.i === "b")).toMatchObject({ x: 6, y: 0, w: 6 })
+  })
+
   it("leaves widgets that don't overlap the new footprint untouched", () => {
     const stacked = [
       { i: "a", x: 0, y: 0, w: 6, h: 4, minW: 2, minH: 2 },
