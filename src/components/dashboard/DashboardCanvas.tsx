@@ -75,9 +75,13 @@ export function DashboardCanvas({
   const [draggingId, setDraggingId] = useState<string | null>(null)
   // Widget the drop would swap with, highlighted live during the drag.
   const [swapTargetId, setSwapTargetId] = useState<string | null>(null)
-  // Layout frozen when a drag starts. The swap compactor reads it to learn the
-  // dragged item's origin slot and where every other (immobile) widget sits.
+  // Layout frozen when a drag starts. The swap compactor keeps every other
+  // widget pinned to its slot here (so the swap target never flees) and the drop
+  // handler rebuilds the final layout from it.
   const preDragLayout = useRef<RglItem[]>([])
+  // Id of the widget being dragged, read in onLayoutChange (which fires after
+  // onDragStop has already cleared the draggingId state).
+  const draggedId = useRef<string | null>(null)
   // Temporary per-widget extra grid rows while an in-widget editor is open.
   // Not persisted: it only inflates the live layout so RGL pushes neighbours.
   const [extraRows, setExtraRows] = useState<Record<string, number>>({})
@@ -167,29 +171,53 @@ export function DashboardCanvas({
     })
   }, [activePresetId, initLayout, initMeta])
 
+  // Adopt a layout as the new state and, in Customize mode, persist it. Hidden
+  // widgets aren't rendered (so they're absent from `items`); their saved slots
+  // are merged back so toggling one off never loses its placement.
+  // HARD RULE: the dashboard is only ever written in Customize mode, never on
+  // mount or plain compaction.
+  const commitLayout = (items: RglItem[]) => {
+    const next = items.map((item) => ({
+      i: item.i, x: item.x, y: item.y, w: item.w, h: item.h, minW: item.minW, minH: item.minH,
+    }))
+    setLayout(next)
+    if (!editing || !activePreset) return
+    const savedLayout = activePreset.layout ?? []
+    const visibleIds = new Set(next.map((l) => l.i))
+    const preserved = savedLayout.filter((l) => !visibleIds.has(l.i))
+    persistPreset(activePreset.id, [...next, ...preserved], meta)
+  }
+
   const onLayoutChange = (current: RglItem[]) => {
     // While a widget is temporarily expanded its editor pushes neighbours; that
     // reflow is transient, so never capture or persist it.
     if (Object.keys(extraRows).length > 0) return
-    const next = current.map((item) => ({
-      i: item.i, x: item.x, y: item.y, w: item.w, h: item.h, minW: item.minW, minH: item.minH,
-    }))
-    setLayout(next)
 
-    // HARD RULE: the dashboard is only ever modified in Customize mode.
-    // Outside editing we never write — not on mount, not on compaction, never.
-    // New widgets still flow into free space visually (y:Infinity + vertical
-    // compaction on render); that placement is baked into the DB the next time
-    // the user arranges things in Customize.
-    if (!editing || !activePreset) return
+    // Fires once when a drag ends. The live layout only floated the dragged
+    // widget over a still target, so rebuild the real result from the frozen
+    // snapshot: exchange the two slots fully (position + size) when the drop
+    // landed on a compatible widget, otherwise drop it where the cursor left it
+    // and let vertical compaction tidy the rest.
+    const pre = preDragLayout.current
+    const id = draggedId.current
+    if (pre.length > 0 && id) {
+      preDragLayout.current = []
+      draggedId.current = null
+      const dragged = current.find((l) => l.i === id)
+      const origin = pre.find((l) => l.i === id)
+      const target = dragged ? findSwapTarget(dragged, pre) : null
+      const base = target && origin
+        ? pre.map((l) => {
+            if (l.i === id) return { ...l, x: target.x, y: target.y, w: target.w, h: target.h }
+            if (l.i === target.i) return { ...l, x: origin.x, y: origin.y, w: origin.w, h: origin.h }
+            return l
+          })
+        : pre.map((l) => (dragged && l.i === id ? { ...l, x: dragged.x, y: dragged.y } : l))
+      commitLayout(verticalCompactor.compact(base, COLS))
+      return
+    }
 
-    // The grid only renders visible widgets, so `next` omits hidden ones.
-    // Preserve hidden widgets' saved positions so toggling them off never loses placement.
-    const savedLayout = activePreset.layout ?? []
-    const visibleIds = new Set(next.map((l) => l.i))
-    const preserved = savedLayout.filter((l) => !visibleIds.has(l.i))
-    const merged = [...next, ...preserved]
-    persistPreset(activePreset.id, merged, meta)
+    commitLayout(current)
   }
 
   const setTitle = useCallback((instanceId: string, title: string) => {
@@ -265,33 +293,22 @@ export function DashboardCanvas({
     return extra ? { ...base, h: base.h + extra } : base
   })
 
-  // Custom RGL compactor giving full-slot swap with a live preview. Every drag
-  // frame (and the drop) is rebuilt from `preDragLayout`, the snapshot frozen at
-  // drag start, so the result is deterministic and never accumulates: starting
-  // from every widget at rest we either exchange the dragged widget and the one
-  // under it (position + size), or drop the dragged widget at the cursor and let
-  // vertical compaction push neighbours. Both paths end in a clean, overlap-free
-  // compaction, so the swap shows while dragging and persists through
-  // onLayoutChange with no remount. Outside a drag (mount, resize, post-drop
-  // sync) preDragLayout is empty and we just compact what RGL hands us.
+  // Custom RGL compactor that keeps a stable swap preview. During a drag every
+  // other widget stays pinned to its frozen slot (allowOverlap stops the engine
+  // pushing them) so the swap target never flees downward and the detection,
+  // run against that fixed snapshot, can't oscillate; only the dragged widget
+  // floats at the cursor while a highlight marks the target. The actual exchange
+  // is applied on drop in onLayoutChange. Outside a drag (mount, resize, sync)
+  // preDragLayout is empty and we just compact what RGL hands us.
   const compactor = useMemo(
     () => ({
       type: "vertical" as const,
-      allowOverlap: false,
+      allowOverlap: true,
       compact(items: RglItem[], cols: number) {
         const pre = preDragLayout.current
         const dragged = items.find((l) => l.moved)
-        const origin = dragged && pre.find((l) => l.i === dragged.i)
-        if (!dragged || !origin) return verticalCompactor.compact(items, cols)
-        const target = findSwapTarget(dragged, pre)
-        const base = target
-          ? pre.map((l) => {
-              if (l.i === dragged.i) return { ...l, x: target.x, y: target.y, w: target.w, h: target.h }
-              if (l.i === target.i) return { ...l, x: origin.x, y: origin.y, w: origin.w, h: origin.h }
-              return l
-            })
-          : pre.map((l) => (l.i === dragged.i ? { ...l, x: dragged.x, y: dragged.y } : l))
-        return verticalCompactor.compact(base, cols)
+        if (!dragged || pre.length === 0) return verticalCompactor.compact(items, cols)
+        return pre.map((l) => (l.i === dragged.i ? { ...l, x: dragged.x, y: dragged.y } : { ...l }))
       },
     }),
     [],
@@ -427,15 +444,22 @@ export function DashboardCanvas({
                 onLayoutChange={onLayoutChange}
                 onDragStart={(currentLayout: RglItem[], oldItem: RglItem | null) => {
                   preDragLayout.current = currentLayout.map((l) => ({ ...l }))
+                  draggedId.current = oldItem?.i ?? null
                   setDraggingId(oldItem?.i ?? null)
                 }}
                 onDrag={(_layout: RglItem[], _oldItem: RglItem | null, item: RglItem | null) => {
                   setSwapTargetId(item ? findSwapTarget(item, preDragLayout.current)?.i ?? null : null)
                 }}
                 onDragStop={() => {
-                  preDragLayout.current = []
                   setDraggingId(null)
                   setSwapTargetId(null)
+                  // onLayoutChange fires synchronously right after this and needs the
+                  // snapshot to build the swap; clear it on the next tick so a drop
+                  // that produced no layout change can't leave a stale snapshot.
+                  queueMicrotask(() => {
+                    preDragLayout.current = []
+                    draggedId.current = null
+                  })
                 }}
                 margin={[16, 16]}
                 containerPadding={[16, 16]}
