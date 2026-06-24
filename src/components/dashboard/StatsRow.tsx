@@ -1,13 +1,18 @@
 "use client"
 
-import { useState } from "react"
+import { useState, useEffect } from "react"
 import { Settings2, Check } from "lucide-react"
 import { StatCard } from "@/components/dashboard/StatCard"
 import { getRiskLevel } from "@/lib/risk"
 import { Users, Bell, Database, ShieldAlert } from "lucide-react"
 import { useWidgetConfig } from "@/hooks/useWidgetConfig"
 import { useDashboardEditing } from "@/contexts/DashboardEditContext"
+import { useDashboardConfig } from "@/contexts/DashboardConfigContext"
 import { cn } from "@/lib/utils"
+
+// Extra grid rows the cell needs to fit the open Visible cards panel so it
+// pushes neighbours instead of overflowing onto them.
+const SETTINGS_EXTRA_ROWS = 2
 
 type CardKey = "employees" | "alerts" | "detections" | "risk"
 
@@ -40,7 +45,16 @@ export function StatsRow({
     visibleCards: ["employees", "alerts", "detections", "risk"],
   })
   const [showSettings, setShowSettings] = useState(false)
+  const { requestRows } = useDashboardConfig()
   const risk = getRiskLevel(riskScore)
+
+  // Grow the grid cell while the panel is open (and on unmount / leaving edit
+  // mode), so the in-flow panel pushes the rows above and below.
+  const open = editing && showSettings
+  useEffect(() => {
+    requestRows("stats-row", open ? SETTINGS_EXTRA_ROWS : 0)
+    return () => requestRows("stats-row", 0)
+  }, [open, requestRows])
 
   const toggle = (key: CardKey) => {
     const visible = config.visibleCards.includes(key)

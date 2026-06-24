@@ -1,9 +1,6 @@
 import { auth } from "@/auth"
 import { prisma } from "@/lib/prisma"
 import { ApiCredentials } from "@/components/credentials/ApiCredentials"
-import { Webhooks } from "@/components/credentials/Webhooks"
-import { ReportSchedules } from "@/components/reports/ReportSchedules"
-import { listWebhooks } from "@/lib/webhooks"
 
 export default async function DataApiPage() {
   const session = await auth()
@@ -20,15 +17,6 @@ export default async function DataApiPage() {
     lastUsedAt: c.lastUsedAt?.toISOString() ?? null,
   }))
 
-  const webhooks = await listWebhooks(session!.user.companyId)
-
-  const schedules = await prisma.reportSchedule.findMany({
-    where: { companyId: session!.user.companyId },
-    orderBy: { createdAt: "desc" },
-    select: { id: true, frequency: true, recipients: true, sections: true, enabled: true, lastSentAt: true },
-  })
-  const scheduleRows = schedules.map((s) => ({ ...s, lastSentAt: s.lastSentAt?.toISOString() ?? null }))
-
   return (
     <div className="h-full overflow-y-auto p-6">
       <div className="mb-8">
@@ -40,8 +28,6 @@ export default async function DataApiPage() {
 
       <div className="mx-auto max-w-3xl space-y-6">
         <ApiCredentials initial={serialized} isAdmin={isAdmin} />
-        <Webhooks initial={webhooks} isAdmin={isAdmin} />
-        <ReportSchedules initial={scheduleRows} isAdmin={isAdmin} />
       </div>
     </div>
   )
