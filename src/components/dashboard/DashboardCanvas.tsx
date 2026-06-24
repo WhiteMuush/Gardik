@@ -21,6 +21,11 @@ import { RenameOverlay } from "./RenameOverlay"
 
 const COLS = 12
 
+// Max per-dimension grid-unit gap (cols/rows) still treated as a swap: dropping
+// a widget onto another within this size difference exchanges both position and
+// size. Larger gaps fall back to the default push.
+const SWAP_SIZE_TOLERANCE = 3
+
 export type WidgetEntry = {
   instanceId: string
   type: string
@@ -212,20 +217,30 @@ export function DashboardCanvas({
       const target = before.find(
         (l) =>
           l.i !== dropped.i &&
-          l.w === dropped.w &&
-          l.h === dropped.h &&
           cx >= l.x && cx < l.x + l.w &&
           cy >= l.y && cy < l.y + l.h,
       )
+      // Identical sizes swap position only; near-identical sizes (within the
+      // tolerance, and without breaking either widget's min size) also exchange
+      // sizes so A fully takes B's slot and vice versa. Anything larger pushes.
       if (target) {
-        const swapped = before.map((l) => {
-          if (l.i === dropped.i) return { ...l, x: target.x, y: target.y }
-          if (l.i === target.i) return { ...l, x: origin.x, y: origin.y }
-          return l
-        })
-        setLayout(swapped)
-        persistMerged(swapped)
-        return
+        const sameSize = target.w === origin.w && target.h === origin.h
+        const within =
+          Math.abs(target.w - origin.w) <= SWAP_SIZE_TOLERANCE &&
+          Math.abs(target.h - origin.h) <= SWAP_SIZE_TOLERANCE
+        const fits =
+          target.w >= (origin.minW ?? 1) && target.h >= (origin.minH ?? 1) &&
+          origin.w >= (target.minW ?? 1) && origin.h >= (target.minH ?? 1)
+        if (sameSize || (within && fits)) {
+          const swapped = before.map((l) => {
+            if (l.i === dropped.i) return { ...l, x: target.x, y: target.y, w: target.w, h: target.h }
+            if (l.i === target.i) return { ...l, x: origin.x, y: origin.y, w: origin.w, h: origin.h }
+            return l
+          })
+          setLayout(swapped)
+          persistMerged(swapped)
+          return
+        }
       }
     }
     const next = normalize(finalLayout)
