@@ -8,11 +8,11 @@ const pool = [
 ]
 
 describe("findSwapTarget", () => {
-  it("returns the widget whose slot the dragged centre falls in", () => {
-    const dragged = { ...pool[0], x: 7, y: 1 } // centre lands inside b
+  it("returns the widget the dragged footprint overlaps", () => {
+    const dragged = { ...pool[0], x: 7, y: 1 } // 6x4 footprint overlaps b most
     expect(findSwapTarget(dragged, pool)?.i).toBe("b")
   })
-  it("returns null when the centre covers no other widget", () => {
+  it("returns null when the footprint covers no other widget", () => {
     const dragged = { ...pool[0], x: 0, y: 20 }
     expect(findSwapTarget(dragged, pool)).toBeNull()
   })
@@ -20,15 +20,19 @@ describe("findSwapTarget", () => {
     const dragged = { ...pool[0], x: 0, y: 0 }
     expect(findSwapTarget(dragged, pool)).toBeNull()
   })
-  it("allows a swap when both sides still satisfy their min size", () => {
-    const dragged = { ...pool[0], x: 0, y: 2 } // centre (3,4) inside c
-    expect(findSwapTarget(dragged, pool)?.i).toBe("c")
+  it("picks the widget with the largest overlap when several are touched", () => {
+    const d = { i: "d", x: 0, y: 0, w: 4, h: 4 }
+    const t1 = { i: "t1", x: 0, y: 0, w: 4, h: 4 }
+    const t2 = { i: "t2", x: 4, y: 0, w: 4, h: 4 }
+    // d's footprint at x:3 overlaps t1 by 1 col, t2 by 3 cols -> t2 wins.
+    const dragged = { ...d, x: 3, y: 0 }
+    expect(findSwapTarget(dragged, [d, t1, t2])?.i).toBe("t2")
   })
-  it("rejects when the target is too small for the dragged widget's min", () => {
+  it("is permissive: still targets a smaller widget regardless of min size", () => {
     const wide = { i: "wide", x: 0, y: 0, w: 8, h: 4, minW: 6, minH: 2 }
     const small = { i: "small", x: 8, y: 0, w: 2, h: 2, minW: 1, minH: 1 }
-    const dragged = { ...wide, x: 8, y: 0 } // centre inside small
-    expect(findSwapTarget(dragged, [wide, small])).toBeNull()
+    const dragged = { ...wide, x: 8, y: 0 } // footprint overlaps small
+    expect(findSwapTarget(dragged, [wide, small])?.i).toBe("small")
   })
 })
 
