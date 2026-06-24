@@ -265,28 +265,33 @@ export function DashboardCanvas({
     return extra ? { ...base, h: base.h + extra } : base
   })
 
-  // Custom RGL compactor giving full-slot swap with a live preview. `allowOverlap`
-  // stops the engine's default push so the dragged widget floats over its target
-  // instead of shoving it down; we then either exchange the two widgets' slots
-  // (position + size) when the drag covers a compatible target, or fall back to
-  // normal vertical compaction. Runs every drag frame and on drop, so the swap is
-  // visible while dragging and persists through onLayoutChange with no remount.
+  // Custom RGL compactor giving full-slot swap with a live preview. Every drag
+  // frame (and the drop) is rebuilt from `preDragLayout`, the snapshot frozen at
+  // drag start, so the result is deterministic and never accumulates: starting
+  // from every widget at rest we either exchange the dragged widget and the one
+  // under it (position + size), or drop the dragged widget at the cursor and let
+  // vertical compaction push neighbours. Both paths end in a clean, overlap-free
+  // compaction, so the swap shows while dragging and persists through
+  // onLayoutChange with no remount. Outside a drag (mount, resize, post-drop
+  // sync) preDragLayout is empty and we just compact what RGL hands us.
   const compactor = useMemo(
     () => ({
       type: "vertical" as const,
-      allowOverlap: true,
+      allowOverlap: false,
       compact(items: RglItem[], cols: number) {
         const pre = preDragLayout.current
         const dragged = items.find((l) => l.moved)
-        if (!dragged || pre.length === 0) return verticalCompactor.compact(items, cols)
+        const origin = dragged && pre.find((l) => l.i === dragged.i)
+        if (!dragged || !origin) return verticalCompactor.compact(items, cols)
         const target = findSwapTarget(dragged, pre)
-        const origin = pre.find((l) => l.i === dragged.i)
-        if (!target || !origin) return verticalCompactor.compact(items, cols)
-        return items.map((l) => {
-          if (l.i === dragged.i) return { ...l, x: target.x, y: target.y, w: target.w, h: target.h, moved: false }
-          if (l.i === target.i) return { ...l, x: origin.x, y: origin.y, w: origin.w, h: origin.h, moved: false }
-          return l.moved ? { ...l, moved: false } : l
-        })
+        const base = target
+          ? pre.map((l) => {
+              if (l.i === dragged.i) return { ...l, x: target.x, y: target.y, w: target.w, h: target.h }
+              if (l.i === target.i) return { ...l, x: origin.x, y: origin.y, w: origin.w, h: origin.h }
+              return l
+            })
+          : pre.map((l) => (l.i === dragged.i ? { ...l, x: dragged.x, y: dragged.y } : l))
+        return verticalCompactor.compact(base, cols)
       },
     }),
     [],
