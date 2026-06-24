@@ -15,7 +15,7 @@ import { DashboardConfigContext } from "@/contexts/DashboardConfigContext"
 import { type GridItemLayout, type WidgetMeta, type DashboardPreset, SOURCE_FILTERABLE_WIDGETS } from "@/types/dashboard"
 
 export type SourceOption = { id: string; label: string }
-import { buildDefaultLayout, buildDefaultMeta, mergeLayout, mergeMeta, findSwapTarget } from "./dashboardLayoutUtils"
+import { buildDefaultLayout, buildDefaultMeta, mergeLayout, mergeMeta, findSwapTarget, sameGeometry } from "./dashboardLayoutUtils"
 import { PresetTab } from "./PresetTab"
 import { RenameOverlay } from "./RenameOverlay"
 
@@ -180,6 +180,9 @@ export function DashboardCanvas({
     const next = items.map((item) => ({
       i: item.i, x: item.x, y: item.y, w: item.w, h: item.h, minW: item.minW, minH: item.minH,
     }))
+    // Skip no-op writes: the grid re-emits onLayoutChange after we feed a layout
+    // back, so without this guard setState would re-render in an endless cycle.
+    if (sameGeometry(next, layout)) return
     setLayout(next)
     if (!editing || !activePreset) return
     const savedLayout = activePreset.layout ?? []
