@@ -91,7 +91,7 @@ export function StatsRow({
   const cols = Math.max(1, visible.length)
 
   return (
-    <div className="space-y-3">
+    <div className="relative space-y-3">
       {editing && <div className="flex justify-end">
         <button
           onClick={() => setShowSettings((s) => !s)}
@@ -105,7 +105,10 @@ export function StatsRow({
       </div>}
 
       {showSettings && (
-        <div className="rounded-lg border border-border bg-card p-4">
+        // Floating popover: kept out of flow so opening it never grows the
+        // widget past its grid cell (which would clip the top and overlap the
+        // row below). The parent item's hover z-index lifts it over neighbours.
+        <div className="absolute right-0 top-9 z-50 w-72 rounded-lg border border-border bg-card p-4 shadow-lg">
           <p className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
             Visible cards
           </p>
