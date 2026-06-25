@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { Printer, Download, ChevronDown } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { Button, buttonVariants } from "@/components/ui/button"
 
 const CSV_SECTIONS = [
   { key: "all", label: "Full report" },
@@ -60,10 +60,14 @@ export function ReportToolbar({ generatedAt, filterQuery = "" }: { generatedAt: 
           </>
         )}
       </div>
-      <Button variant="outline" size="sm" onClick={() => window.print()}>
+      <a
+        href={`/api/reports/export?format=pdf&section=all${suffix}`}
+        download
+        className={buttonVariants({ variant: "outline", size: "sm" })}
+      >
         <Printer className="size-3.5" />
         PDF
-      </Button>
+      </a>
     </div>
   )
 }
