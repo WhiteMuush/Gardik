@@ -28,6 +28,25 @@ function isSection(value: string): value is CsvSection {
   return (SECTIONS as string[]).includes(value)
 }
 
+// Filename-safe slug: strip accents, keep alphanumerics, collapse the rest to
+// single hyphens. Keeps downloads readable and portable across filesystems.
+function slug(value: string): string {
+  return value
+    .normalize("NFKD")
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[^a-zA-Z0-9]+/g, "-")
+    .replace(/^-+|-+$/g, "")
+    .toLowerCase()
+}
+
+// e.g. datashield_acme-corp_report_2026-06-25 or
+//      datashield_acme-corp_employees_2026-06-25
+function reportFilename(orgName: string, generatedAt: string, part: string): string {
+  const company = slug(orgName) || "report"
+  const date = generatedAt.slice(0, 10)
+  return `datashield_${company}_${part}_${date}`
+}
+
 export async function GET(request: Request): Promise<Response> {
   const { session, error } = await requireAuth()
   if (error) return error
@@ -41,21 +60,23 @@ export async function GET(request: Request): Promise<Response> {
 
   if (sp.get("format") === "pdf") {
     const pdf = await reportPdf(PDF_SECTIONS, data)
+    const name = reportFilename(data.org.name, data.generatedAt, "report")
     return new Response(new Uint8Array(pdf), {
       status: 200,
       headers: {
         "Content-Type": "application/pdf",
-        "Content-Disposition": `attachment; filename="datashield-report.pdf"`,
+        "Content-Disposition": `attachment; filename="${name}.pdf"`,
       },
     })
   }
 
   const csv = reportCsv(section, data)
+  const name = reportFilename(data.org.name, data.generatedAt, section)
   return new Response(csv, {
     status: 200,
     headers: {
       "Content-Type": "text/csv; charset=utf-8",
-      "Content-Disposition": `attachment; filename="datashield-report-${section}.csv"`,
+      "Content-Disposition": `attachment; filename="${name}.csv"`,
     },
   })
 }
