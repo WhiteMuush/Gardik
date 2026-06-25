@@ -103,8 +103,10 @@ const s = StyleSheet.create({
 
 // - Building blocks -
 function SectionHead({ title, lead }: { title: string; lead?: string }) {
+  // Reserve space below the heading so a page break can't strand the title at
+  // the bottom of a page with its content pushed to the next one.
   return (
-    <View>
+    <View wrap={false} minPresenceAhead={72}>
       <View style={s.sectionHead}>
         <View style={s.accent} />
         <Text style={s.h2}>{title}</Text>
@@ -266,7 +268,7 @@ function NotableIncidents({ d }: { d: ReportData }) {
   const breaches = d.exposure.topBreaches
   if (breaches.length === 0) return null
   return (
-    <View style={s.section}>
+    <View style={s.section} wrap={breaches.length > 12}>
       <SectionHead title="Notable incidents" lead="Breaches with the greatest impact on the organisation." />
       <Table
         cols={[
