@@ -6,6 +6,7 @@ import { getTrends } from "./trends"
 import { getCompliance } from "./compliance"
 import { buildFindings } from "./findings"
 import { getDeltas } from "./deltas"
+import { getOrgInfo } from "./org"
 import { EMPTY_FILTERS, type ReportFilters } from "./filters"
 import type { ReportData } from "./types"
 
@@ -16,8 +17,9 @@ export async function getReportData(
   companyId: string,
   filters: ReportFilters = EMPTY_FILTERS,
 ): Promise<ReportData> {
-  const [exposure, dataTypes, departments, employees, trends, compliance, deltas] =
+  const [org, exposure, dataTypes, departments, employees, trends, compliance, deltas] =
     await Promise.all([
+      getOrgInfo(companyId),
       getExposureSummary(companyId, filters),
       getDataTypeExposure(companyId, filters),
       getDepartmentBreakdown(companyId, filters),
@@ -29,6 +31,7 @@ export async function getReportData(
 
   return {
     generatedAt: new Date().toISOString(),
+    org,
     findings: buildFindings(exposure, compliance, dataTypes, deltas, employees),
     exposure,
     dataTypes,
