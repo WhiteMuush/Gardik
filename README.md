@@ -47,22 +47,30 @@ Early development. Things move fast and not everything listed below is finished.
 
 ## Getting started
 
-Prerequisites: Node.js 22 (pinned via `.nvmrc` and `engines`; run `nvm use`),
-and Docker (for the local database) or your own PostgreSQL instance.
+The quickest path needs only Docker, no Node on the host. It builds the app,
+starts PostgreSQL, applies migrations and seeds demo data in one command.
 
 ```bash
-# 1. Install dependencies
-npm install
-
-# 2. Configure the environment
-cp .env.example .env.local   # then edit AUTH_SECRET (npx auth secret)
-
-# 3. Start the database, apply migrations and seed demo data
-npm run db:init
-
-# 4. Run the development server
-npm run dev
+make env            # create .env.local with generated secrets
+docker compose up   # app on http://localhost:3000, database seeded
 ```
+
+### Running on the host
+
+Prerequisites: Node.js 22 (pinned via `.nvmrc` and `engines`) and Docker for the
+local database, or your own PostgreSQL instance. The `make` targets select the
+pinned Node version automatically via nvm, so they work even when your shell's
+default Node differs.
+
+```bash
+make setup   # install deps, create .env.local, start DB, migrate, seed
+make run     # start the dev server
+```
+
+`make doctor` diagnoses the setup (toolchain, env, Docker, DB, Prisma) and can
+auto-fix common issues, including creating `.env.local` and switching to Node 22.
+The underlying npm steps (`npm install`, `npm run db:init`, `npm run dev`) still
+work if you prefer them.
 
 Open http://localhost:3000 and sign in with the seeded admin account:
 
@@ -72,10 +80,13 @@ admin@datashield.local / ChangeMe123!
 
 ### Switching machines / after `git pull`
 
-The Prisma client is regenerated automatically on `npm install` (`postinstall`).
-The database is **not** migrated automatically: `npm run dev` only *warns* if
-migrations are pending (it never applies them on boot). After pulling changes
-that add a migration, apply it explicitly before running the app:
+With `docker compose up`, migrations and the demo seed run on every start, so a
+fresh machine is ready right after `git pull`.
+
+On the host, the Prisma client is regenerated automatically on `npm install`
+(`postinstall`). The database is **not** migrated automatically: `npm run dev`
+only *warns* if migrations are pending (it never applies them on boot). After
+pulling changes that add a migration, apply it explicitly before running the app:
 
 ```bash
 npm run db:migrate   # prisma migrate deploy, applies pending migrations
