@@ -1,5 +1,28 @@
-# Local development database. Not for production.
+# Local development stack (app + database). Not for production.
 services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: datashield-app
+    depends_on:
+      db:
+        condition: service_healthy
+    env_file:
+      - .env.local
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER:-user}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
+      POSTGRES_DB: ${POSTGRES_DB:-datashield}
+    ports:
+      - "3000:3000"
+    volumes:
+      - .:/app
+      - /app/node_modules
+    # Build DATABASE_URL so it targets the db service (the .env.local one points
+    # at localhost). Credentials are assembled at runtime, never stored inline.
+    command: sh -c 'C="$$POSTGRES_USER:$$POSTGRES_PASSWORD"; export DATABASE_URL="postgresql://$${C}@db:5432/$$POSTGRES_DB"; npx prisma migrate deploy && npm run dev -- -H 0.0.0.0'
+
   db:
     image: postgres:16
     container_name: datashield-db
