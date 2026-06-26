@@ -5,6 +5,10 @@
 .DEFAULT_GOAL := help
 SHELL := /bin/sh
 
+# Run npm/npx under the project's Node version (.nvmrc) via nvm when available,
+# so the targets work even when the shell's default Node is wrong.
+N := sh scripts/use-node.sh
+
 .PHONY: help setup install env db-up db-down db-init migrate seed seed-dev \
         run build lint lint-fix test check doctor clean
 
@@ -17,53 +21,53 @@ setup: install env db-init ## One-shot: install deps, create .env.local, start D
 	@echo "Setup complete. Start the app with 'make run'."
 
 install: ## Install dependencies (also runs prisma generate)
-	npm install
+	$(N) npm install
 
 env: ## Create .env.local from .env.example with generated secrets (no-op if it exists)
 	@sh scripts/env-init.sh
 
 db-up: ## Start the local PostgreSQL container
-	npm run db:up
+	$(N) npm run db:up
 
 db-down: ## Stop the local database container
-	npm run db:down
+	$(N) npm run db:down
 
 db-init: ## Start DB, apply migrations, seed demo data (Docker required)
-	npm run db:init
+	$(N) npm run db:init
 
 migrate: ## Apply pending Prisma migrations
-	npm run db:migrate
+	$(N) npm run db:migrate
 
 seed: ## Seed the base admin account
-	npm run seed
+	$(N) npm run seed
 
 seed-dev: ## Seed demo data for development
-	npm run seed:dev
+	$(N) npm run seed:dev
 
 run: ## Run the dev server
-	npm run dev
+	$(N) npm run dev
 
 build: ## Production build
-	npm run build
+	$(N) npm run build
 
 lint: ## Lint
-	npm run lint
+	$(N) npm run lint
 
 lint-fix: ## Lint and auto-fix
-	npm run lint:fix
+	$(N) npm run lint:fix
 
 test: ## Run the test suite
-	npm test
+	$(N) npm test
 
 check: ## Run the same gates CI enforces (lint, types, schema, build)
-	npm run lint -- --max-warnings 0
-	npx tsc --noEmit
-	npx prisma validate
-	npm run build
+	$(N) npm run lint -- --max-warnings 0
+	$(N) npx tsc --noEmit
+	$(N) npx prisma validate
+	$(N) npm run build
 
 doctor: ## Full setup diagnosis with optional auto-fix (toolchain, env, Docker, DB, Prisma)
 	@sh scripts/doctor.sh
 
 clean: ## Stop the DB and remove node_modules and the Next.js build cache
-	npm run db:down
+	$(N) npm run db:down
 	rm -rf node_modules .next

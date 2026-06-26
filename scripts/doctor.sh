@@ -16,6 +16,7 @@ fx_auth=0
 fx_enc=0
 fx_authurl=0
 fx_cron=0
+fx_node=0
 fx_install=0
 fx_generate=0
 fx_dbup=0
@@ -37,10 +38,17 @@ echo "DataShield doctor"
 echo "================="
 
 echo "Toolchain:"
+have_nvm=0
+[ -s "$HOME/.nvm/nvm.sh" ] && have_nvm=1
 nv="$(node -v 2>/dev/null || true)"
-if [ -z "$nv" ]; then err "node: not found (need Node 22)"
+if [ -z "$nv" ]; then
+  if [ "$have_nvm" = "1" ]; then err "node: not found (need Node 22, nvm can install it)"; fx_node=1
+  else err "node: not found (need Node 22)"; fi
 elif [ "${nv#v22.}" != "$nv" ]; then pass "node $nv"
-else wrn "node $nv (project targets Node 22)"; fi
+else
+  if [ "$have_nvm" = "1" ]; then err "node $nv (project targets Node 22, nvm can switch)"; fx_node=1
+  else wrn "node $nv (project targets Node 22)"; fi
+fi
 if command -v npm >/dev/null 2>&1; then pass "npm $(npm -v)"; else err "npm: not found"; fi
 if command -v openssl >/dev/null 2>&1; then pass "openssl present (used by 'make env')"
 else wrn "openssl: not found ('make env' cannot generate secrets)"; fi
@@ -108,7 +116,7 @@ echo "================="
 echo "Summary: $ok OK, $warn warning(s), $bad failure(s)"
 if [ "$bad" -gt 0 ]; then echo "Result: NOT ready."; else echo "Result: ready."; fi
 
-errfix=$((fx_env + fx_auth + fx_enc + fx_install + fx_generate))
+errfix=$((fx_node + fx_env + fx_auth + fx_enc + fx_install + fx_generate))
 warnfix=$((fx_authurl + fx_cron + fx_dbup + fx_migrate))
 ans=n
 if [ $((errfix + warnfix)) -gt 0 ] && [ -t 0 ]; then
@@ -126,6 +134,16 @@ esac
 
 applied=0
 if [ "$do_err" = "1" ]; then
+  if [ "$fx_node" = "1" ]; then
+    export NVM_DIR="$HOME/.nvm"
+    . "$NVM_DIR/nvm.sh" 2>/dev/null || true
+    nvm install 22 >/dev/null 2>&1
+    nvm use 22 >/dev/null 2>&1
+    echo "fixed: using $(node -v) via nvm (also run 'nvm use 22' in your shell)"
+    npm install
+    fx_install=0
+    applied=1
+  fi
   if [ "$fx_env" = "1" ]; then
     cp .env.example .env.local
     setval AUTH_SECRET "$(openssl rand -base64 32)"
