@@ -435,7 +435,7 @@ export function SetupGuides() {
         </p>
       </div>
 
-      <div className="rounded-xl border border-border overflow-hidden">
+      <div className="rounded-xl border border-border/60 overflow-hidden">
         <div className="flex border-b border-border bg-muted/40">
           {TABS.map((tab) => (
             <button

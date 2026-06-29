@@ -172,7 +172,7 @@ export function AlertTable({
       </div>
 
       {filtered.length === 0 ? (
-        <div className="rounded-xl border border-border bg-card py-12 text-center text-sm text-muted-foreground">
+        <div className="rounded-xl border border-border/60 bg-card py-12 text-center text-sm text-muted-foreground">
           No alerts found
         </div>
       ) : (
@@ -181,7 +181,7 @@ export function AlertTable({
             <div
               key={a.id}
               className={cn(
-                "flex items-center gap-4 rounded-xl border border-l-4 border-border bg-card px-4 py-3",
+                "flex items-center gap-4 rounded-xl border border-l-4 border-border/60 bg-card px-4 py-3",
                 borderBySeverity[a.severity],
                 a.status === "RESOLVED" && "opacity-60"
               )}

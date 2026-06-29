@@ -151,7 +151,7 @@ export function EmployeeTable({ data }: { data: EmployeeRow[] }) {
       </div>
 
       {/* Table */}
-      <div className="rounded-xl border border-border bg-card overflow-hidden">
+      <div className="rounded-xl border border-border/60 bg-card overflow-hidden">
         <table className="w-full text-sm">
           <thead className="border-b border-border bg-muted/30">
             {table.getHeaderGroups().map((hg) => (

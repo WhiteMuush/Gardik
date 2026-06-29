@@ -80,7 +80,7 @@ export function ApiCredentials({ initial, isAdmin }: Props) {
           return (
             <div
               key={meta.id}
-              className="flex items-start gap-4 rounded-xl border border-border bg-card px-4 py-4"
+              className="flex items-start gap-4 rounded-xl border border-border/60 bg-card px-4 py-4"
             >
               <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
                 <KeyRound className="size-4" />

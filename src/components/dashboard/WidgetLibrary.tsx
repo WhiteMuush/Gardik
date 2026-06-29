@@ -152,7 +152,7 @@ export function WidgetLibrary({
                         "group overflow-hidden rounded-xl border transition-all duration-200",
                         isEnabled
                           ? "border-primary/40 shadow-sm hover:border-primary/60"
-                          : "border-border hover:border-muted-foreground/40"
+                          : "border-border/60 hover:border-muted-foreground/40"
                       )}
                     >
                       {/* Preview */}
