@@ -12,37 +12,17 @@ interface StatCardProps {
   label: string
   value: string | number
   description?: string
-  icon: LucideIcon
+  icon?: LucideIcon
   variant?: "default" | "critical" | "high" | "medium" | "ok"
   delta?: StatDelta
 }
 
 const variants = {
-  default: {
-    value: "text-foreground",
-    icon: "text-muted-foreground",
-    iconBg: "bg-muted",
-  },
-  critical: {
-    value: "text-severity-critical",
-    icon: "text-severity-critical",
-    iconBg: "bg-severity-critical/10",
-  },
-  high: {
-    value: "text-severity-high",
-    icon: "text-severity-high",
-    iconBg: "bg-severity-high/10",
-  },
-  medium: {
-    value: "text-severity-medium",
-    icon: "text-severity-medium",
-    iconBg: "bg-severity-medium/10",
-  },
-  ok: {
-    value: "text-severity-ok",
-    icon: "text-severity-ok",
-    iconBg: "bg-severity-ok/10",
-  },
+  default: { value: "text-foreground", icon: "text-muted-foreground", iconBg: "bg-muted" },
+  critical: { value: "text-severity-critical", icon: "text-severity-critical", iconBg: "bg-severity-critical/10" },
+  high: { value: "text-severity-high", icon: "text-severity-high", iconBg: "bg-severity-high/10" },
+  medium: { value: "text-severity-medium", icon: "text-severity-medium", iconBg: "bg-severity-medium/10" },
+  ok: { value: "text-severity-ok", icon: "text-severity-ok", iconBg: "bg-severity-ok/10" },
 }
 
 export function StatCard({
@@ -55,6 +35,22 @@ export function StatCard({
 }: StatCardProps) {
   const v = variants[variant]
 
+  // Compact layout (dashboard): no icon/description -> label left, value right.
+  if (!Icon && !description) {
+    return (
+      <div className="rounded-xl border border-border/60 bg-card p-5 shadow-sm">
+        <div className="flex items-center justify-between gap-4">
+          <p className="text-sm font-medium text-muted-foreground">{label}</p>
+          <div className="flex flex-col items-end">
+            <p className={cn("text-2xl font-bold tabular-nums", v.value)}>{value}</p>
+            {delta && <DeltaPill delta={delta} />}
+          </div>
+        </div>
+      </div>
+    )
+  }
+
+  // Detailed layout (reports): label/value left, boxed icon right.
   return (
     <div className="rounded-xl border border-border/60 bg-card p-5 shadow-sm">
       <div className="flex items-start justify-between gap-4">
@@ -68,9 +64,11 @@ export function StatCard({
           )}
           {delta && <DeltaPill delta={delta} />}
         </div>
-        <div className={cn("flex size-9 shrink-0 items-center justify-center rounded-lg", v.iconBg)}>
-          <Icon className={cn("size-5", v.icon)} />
-        </div>
+        {Icon && (
+          <div className={cn("flex size-9 shrink-0 items-center justify-center rounded-lg", v.iconBg)}>
+            <Icon className={cn("size-5", v.icon)} />
+          </div>
+        )}
       </div>
     </div>
   )
