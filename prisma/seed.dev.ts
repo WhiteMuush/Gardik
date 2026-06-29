@@ -250,7 +250,7 @@ async function main() {
     await prisma.breachRecord.upsert({
       where: { employeeId_breachId: { employeeId: employee.id, breachId: breach.id } },
       update: {},
-      create: { employeeId: employee.id, breachId: breach.id, exposedData: r.data, detectedAt: new Date(r.date) },
+      create: { employeeId: employee.id, breachId: breach.id, exposedData: r.data, artifacts: [], sources: ["HIBP"], detectedAt: new Date(r.date) },
     })
   }
 
