@@ -39,7 +39,6 @@ export function TopRiskyEmployees({ data }: { data: Employee[] }) {
       <div className="mb-4 shrink-0 flex items-start justify-between">
         <div>
           <h2 className="text-sm font-medium text-foreground">{title}</h2>
-          <p className="text-xs text-muted-foreground">Employees to contact first</p>
         </div>
         <AlertTriangle className="size-4 text-muted-foreground shrink-0" />
       </div>

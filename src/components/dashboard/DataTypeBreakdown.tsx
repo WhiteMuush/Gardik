@@ -61,7 +61,6 @@ export function DataTypeBreakdown({ data }: DataTypeBreakdownProps) {
       <div className="mb-4 shrink-0 flex items-start justify-between">
         <div>
           <h2 className="text-sm font-medium text-foreground">{title}</h2>
-          <p className="text-xs text-muted-foreground">Distribution of compromised data categories</p>
         </div>
         {editing && <button
           onClick={() => setShowSettings((s) => !s)}

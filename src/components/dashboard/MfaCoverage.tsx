@@ -13,9 +13,6 @@ export type MfaCoverageData = {
 
 export function MfaCoverage({ data }: { data: MfaCoverageData }) {
   const { title } = useWidgetTitle("mfa-coverage", "MFA Coverage")
-  const known = data.enabled + data.disabled
-  const coverage = known > 0 ? Math.round((data.enabled / known) * 100) : 0
-
   const tiers = [
     { label: "MFA on", count: data.enabled, icon: ShieldCheck, color: "oklch(var(--severity-low))" },
     { label: "MFA off", count: data.disabled, icon: ShieldX, color: "oklch(var(--severity-critical))" },
@@ -26,7 +23,6 @@ export function MfaCoverage({ data }: { data: MfaCoverageData }) {
     <div className="flex h-full flex-col rounded-xl border border-border/60 bg-card p-5 shadow-sm">
       <div className="mb-4 shrink-0">
         <h2 className="text-sm font-medium text-foreground">{title}</h2>
-        <p className="text-xs text-muted-foreground">{coverage}% of known accounts enrolled</p>
       </div>
 
       <div className="grid grid-cols-3 gap-3">

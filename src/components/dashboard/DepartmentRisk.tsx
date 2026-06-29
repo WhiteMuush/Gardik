@@ -13,7 +13,6 @@ export function DepartmentRisk({ data }: { data: DeptData[] }) {
       <div className="mb-4 shrink-0 flex items-start justify-between">
         <div>
           <h2 className="text-sm font-medium text-foreground">{title}</h2>
-          <p className="text-xs text-muted-foreground">Compromised employees by department</p>
         </div>
       </div>
 

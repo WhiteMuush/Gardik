@@ -41,7 +41,6 @@ export function AlertsByMonth({ data }: { data: MonthData[] }) {
       <div className="mb-4 shrink-0 flex items-start justify-between">
         <div>
           <h2 className="text-sm font-medium text-foreground">{title}</h2>
-          <p className="text-xs text-muted-foreground">Alert volume — {period.label}</p>
         </div>
         {editing && (
           <button
