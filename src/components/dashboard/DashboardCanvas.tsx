@@ -22,6 +22,16 @@ import { RenameOverlay } from "./RenameOverlay"
 
 const COLS = 12
 
+// View-only uniform zoom (CSS transform scale). The whole grid plus its widget
+// content scale together, so nothing clips. Forced to 1 while editing because a
+// CSS scale breaks react-grid-layout's pointer math during drag/resize. To keep
+// the grid filling the container at every level, RGL is laid out at width
+// containerW / zoom and then scaled back down/up by `zoom`. Zoom is continuous
+// (not stepped) for fine control; SENS tunes how fast the wheel/pinch changes it.
+const ZOOM_MIN = 0.5
+const ZOOM_MAX = 2
+const ZOOM_SENS = 0.0015
+
 export type WidgetEntry = {
   instanceId: string
   type: string
@@ -55,6 +65,10 @@ export function DashboardCanvas({
   const [editing, setEditing] = useState(false)
   const [containerW, setContainerW] = useState(0)
   const containerRef = useRef<HTMLDivElement>(null)
+  // Natural (unscaled) height of the grid, used to reserve the scaled footprint
+  // so the scroll area matches what the eye sees at the current zoom.
+  const [naturalH, setNaturalH] = useState(0)
+  const gridInnerRef = useRef<HTMLDivElement>(null)
 
   const [presets, setPresets] = useState<DashboardPreset[]>(initialPresets)
   const [activePresetId, setActivePresetId] = useState<string | null>(initialActivePresetId)
@@ -91,6 +105,8 @@ export function DashboardCanvas({
   // Not persisted: it only inflates the live layout so RGL pushes neighbours.
   const [extraRows, setExtraRows] = useState<Record<string, number>>({})
   const [addMenuOpen, setAddMenuOpen] = useState(false)
+  // View-only zoom factor (1 = 100%). Forced to 1 while editing.
+  const [zoomLevel, setZoomLevel] = useState(1)
   const addMenuRef = useRef<HTMLDivElement>(null)
   const saveTimeout = useRef<ReturnType<typeof setTimeout> | null>(null)
 
@@ -110,6 +126,56 @@ export function DashboardCanvas({
     ro.observe(el)
     return () => ro.disconnect()
   }, [])
+
+  useEffect(() => {
+    const el = gridInnerRef.current
+    if (!el) return
+    // contentRect is the pre-transform box, i.e. the natural height we want.
+    const ro = new ResizeObserver((entries) => setNaturalH(entries[0].contentRect.height))
+    ro.observe(el)
+    return () => ro.disconnect()
+  }, [])
+
+  // A trackpad pinch synthesises wheel events with ctrlKey=true, so e.ctrlKey
+  // alone can't tell a real Ctrl press from a pinch. Track the physical key via
+  // keydown/keyup and gate zoom on that, so only Ctrl/Cmd + wheel zooms (pinch
+  // and plain scroll fall through to normal scrolling).
+  const ctrlHeld = useRef(false)
+  useEffect(() => {
+    const down = (e: KeyboardEvent) => {
+      if (e.key === "Control" || e.key === "Meta") ctrlHeld.current = true
+    }
+    const up = (e: KeyboardEvent) => {
+      if (e.key === "Control" || e.key === "Meta") ctrlHeld.current = false
+    }
+    const reset = () => { ctrlHeld.current = false }
+    window.addEventListener("keydown", down)
+    window.addEventListener("keyup", up)
+    window.addEventListener("blur", reset)
+    return () => {
+      window.removeEventListener("keydown", down)
+      window.removeEventListener("keyup", up)
+      window.removeEventListener("blur", reset)
+    }
+  }, [])
+
+  // Ctrl/Cmd + wheel zooms the grid (view only). Native non-passive listener so
+  // we can preventDefault the browser's own page zoom.
+  useEffect(() => {
+    const el = containerRef.current
+    if (!el || editing) return
+    const handler = (e: WheelEvent) => {
+      if (!ctrlHeld.current) return
+      e.preventDefault()
+      // Continuous multiplicative zoom: each delta nudges the factor a little,
+      // so a small scroll = small change (fine control), big scroll = big change.
+      setZoomLevel((z) =>
+        Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, z * Math.exp(-e.deltaY * ZOOM_SENS))),
+      )
+    }
+    el.addEventListener("wheel", handler, { passive: false })
+    return () => el.removeEventListener("wheel", handler)
+  }, [editing])
 
   const persistPreset = useCallback((id: string, nextLayout: GridItemLayout[], nextMeta: WidgetMeta[]) => {
     setPresets((prev) => prev.map((p) => p.id === id ? { ...p, layout: nextLayout, widgets: nextMeta } : p))
@@ -358,6 +424,10 @@ export function DashboardCanvas({
     ? activePreset.scope === "PERSONAL" || isAdmin
     : false
 
+  // Editing always renders at 1x so RGL's drag/resize pointer math stays correct.
+  const zoom = editing ? 1 : zoomLevel
+  const scaledWidth = containerW > 0 ? containerW / zoom : 0
+
   return (
     <DetailDrawerProvider>
     <DashboardEditContext.Provider value={editing}>
@@ -471,9 +541,29 @@ export function DashboardCanvas({
             }}
           >
             {containerW > 0 && (
+              // Spacer reserves the scaled footprint so the scrollbar matches the
+              // zoomed view; the inner layer is the actual grid, scaled in place.
+              <div
+                style={{
+                  position: "relative",
+                  width: containerW,
+                  height: naturalH ? naturalH * zoom : undefined,
+                }}
+              >
+              <div
+                ref={gridInnerRef}
+                style={{
+                  position: "absolute",
+                  top: 0,
+                  left: 0,
+                  width: scaledWidth,
+                  transformOrigin: "top left",
+                  transform: `scale(${zoom})`,
+                }}
+              >
               <ResponsiveGridLayout
                 className="layout"
-                width={containerW}
+                width={scaledWidth}
                 breakpoints={{ lg: 0 }}
                 cols={{ lg: COLS }}
                 layouts={{ lg: rglLayout }}
@@ -571,6 +661,8 @@ export function DashboardCanvas({
                   )
                 })}
               </ResponsiveGridLayout>
+              </div>
+              </div>
             )}
           </div>
 
