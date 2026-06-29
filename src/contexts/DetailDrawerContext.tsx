@@ -132,11 +132,11 @@ export function DetailDrawerProvider({ children }: { children: ReactNode }) {
                         {payload.variant && (
                           <span className={cn("size-2 shrink-0 rounded-full", dotColor[payload.variant])} />
                         )}
-                        <h2 className="truncate text-base font-semibold text-foreground">{payload.title}</h2>
+                        <h2 className="truncate text-sm font-semibold text-foreground">{payload.title}</h2>
                         {loading && <Loader2 className="size-3.5 shrink-0 animate-spin text-muted-foreground" />}
                       </div>
                       {payload.subtitle && (
-                        <p className="mt-0.5 truncate text-xs text-muted-foreground">{payload.subtitle}</p>
+                        <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{payload.subtitle}</p>
                       )}
                     </div>
                     <button
@@ -168,7 +168,7 @@ export function DetailDrawerProvider({ children }: { children: ReactNode }) {
                     {payload.groups?.map((g, gi) => (
                       <div key={gi} className={cn(gi > 0 && "mt-5")}>
                         {g.heading && (
-                          <p className="mb-1 text-sm font-semibold text-foreground">{g.heading}</p>
+                          <p className="mb-1 text-xs font-semibold text-foreground">{g.heading}</p>
                         )}
                         <FieldList fields={g.fields} />
                       </div>
@@ -193,10 +193,10 @@ function FieldList({ fields }: { fields: DetailField[] }) {
     <dl className="divide-y divide-border">
       {fields.map((f, i) => (
         <div key={i} className="flex items-start justify-between gap-4 py-2.5">
-          <dt className="shrink-0 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+          <dt className="shrink-0 text-[11px] font-medium uppercase tracking-wider text-muted-foreground">
             {f.label}
           </dt>
-          <dd className="text-right text-sm font-medium text-foreground">{f.value}</dd>
+          <dd className="text-right text-xs font-medium text-foreground">{f.value}</dd>
         </div>
       ))}
     </dl>
