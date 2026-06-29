@@ -34,7 +34,7 @@ const SCORE_BAR: Record<string, string> = {
 
 export function TopRiskyEmployees({ data }: { data: Employee[] }) {
   const { title } = useWidgetTitle("top-risky-employees", "Top Employees at Risk")
-  const { open } = useDetailDrawer()
+  const { openRef } = useDetailDrawer()
 
   return (
     <div className="flex h-full flex-col rounded-xl border border-border/60 bg-card p-5 shadow-sm">
@@ -56,17 +56,12 @@ export function TopRiskyEmployees({ data }: { data: Employee[] }) {
               key={emp.id}
               type="button"
               onClick={() =>
-                open({
+                openRef({
+                  kind: "employee",
+                  id: emp.id,
                   title: emp.name,
                   subtitle: emp.department ?? undefined,
                   variant: emp.riskVariant,
-                  fields: [
-                    { label: "Risk level", value: emp.riskLevel },
-                    { label: "Risk score", value: `${emp.riskScore} / 100` },
-                    { label: "Breaches", value: emp.breachCount },
-                    { label: "Open alerts", value: emp.openAlerts },
-                    { label: "Department", value: emp.department ?? "Unknown" },
-                  ],
                 })
               }
               className="flex w-full items-center gap-3 rounded-lg border border-border bg-background px-3 py-2.5 text-left transition-colors hover:border-primary/40 hover:bg-muted">

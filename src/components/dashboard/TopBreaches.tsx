@@ -19,7 +19,7 @@ const SOURCE_COLOR: Record<string, string> = {
 
 export function TopBreaches({ data }: { data: BreachSource[] }) {
   const { title } = useWidgetTitle("top-breaches", "Top Breaches by Impact")
-  const { open } = useDetailDrawer()
+  const { openRef } = useDetailDrawer()
 
   const sorted = [...data]
     .sort((a, b) => b.affectedEmployees - a.affectedEmployees)
@@ -82,24 +82,12 @@ export function TopBreaches({ data }: { data: BreachSource[] }) {
                     key={entry.id}
                     style={{ cursor: "pointer" }}
                     onClick={() =>
-                      open({
+                      openRef({
+                        kind: "breach",
+                        id: entry.id,
                         title: entry.name,
                         subtitle: entry.source,
                         variant: "medium",
-                        tags: entry.dataTypes.map((t) => t.replace(/_/g, " ")),
-                        fields: [
-                          { label: "Source", value: entry.source },
-                          {
-                            label: "Breach date",
-                            value: new Date(entry.breachDate).toLocaleDateString("en-US", {
-                              day: "numeric",
-                              month: "short",
-                              year: "numeric",
-                            }),
-                          },
-                          { label: "Affected employees", value: entry.affectedEmployees },
-                          { label: "Data types", value: entry.dataTypes.length },
-                        ],
                       })
                     }
                     fill={SOURCE_COLOR[entry.source] ?? "oklch(var(--primary))"}

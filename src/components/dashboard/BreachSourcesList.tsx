@@ -28,7 +28,7 @@ const SOURCE_COLORS: Record<string, string> = {
 
 export function BreachSourcesList({ data }: { data: BreachSource[] }) {
   const { title } = useWidgetTitle("breach-sources", "Breach Sources")
-  const { open } = useDetailDrawer()
+  const { openRef } = useDetailDrawer()
 
   return (
     <div className="flex h-full flex-col rounded-xl border border-border/60 bg-card p-5 shadow-sm">
@@ -50,24 +50,12 @@ export function BreachSourcesList({ data }: { data: BreachSource[] }) {
               key={breach.id}
               type="button"
               onClick={() =>
-                open({
+                openRef({
+                  kind: "breach",
+                  id: breach.id,
                   title: breach.name,
                   subtitle: SOURCE_LABELS[breach.source] ?? breach.source,
                   variant: "medium",
-                  tags: breach.dataTypes.map((t) => t.replace(/_/g, " ")),
-                  fields: [
-                    { label: "Source", value: SOURCE_LABELS[breach.source] ?? breach.source },
-                    {
-                      label: "Breach date",
-                      value: new Date(breach.breachDate).toLocaleDateString("en-US", {
-                        day: "numeric",
-                        month: "short",
-                        year: "numeric",
-                      }),
-                    },
-                    { label: "Affected employees", value: breach.affectedEmployees },
-                    { label: "Data types", value: breach.dataTypes.length },
-                  ],
                 })
               }
               className="flex w-full items-start justify-between gap-3 rounded-lg border border-border bg-background p-3 text-left transition-colors hover:border-primary/40 hover:bg-muted"
