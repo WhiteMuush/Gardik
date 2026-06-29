@@ -35,7 +35,7 @@ export function TopRiskyEmployees({ data }: { data: Employee[] }) {
   const { title } = useWidgetTitle("top-risky-employees", "Top Employees at Risk")
 
   return (
-    <div className="flex h-full flex-col rounded-xl border border-border bg-card p-5">
+    <div className="flex h-full flex-col rounded-xl border border-border/60 bg-card p-5 shadow-sm">
       <div className="mb-4 shrink-0 flex items-start justify-between">
         <div>
           <h2 className="text-sm font-medium text-foreground">{title}</h2>

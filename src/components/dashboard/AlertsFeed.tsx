@@ -45,7 +45,7 @@ export function AlertsFeed({ data }: { data: Alert[] }) {
   const filtered = data.filter((a) => filter === "ALL" || a.status === filter)
 
   return (
-    <div className="flex h-full flex-col rounded-xl border border-border bg-card p-5">
+    <div className="flex h-full flex-col rounded-xl border border-border/60 bg-card p-5 shadow-sm">
       <div className="mb-3 shrink-0 flex items-start justify-between">
         <div>
           <h2 className="text-sm font-medium text-foreground">{title}</h2>
