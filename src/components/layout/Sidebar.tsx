@@ -1,14 +1,10 @@
 "use client"
 
+import type { ReactNode } from "react"
 import Link from "next/link"
 import { usePathname } from "next/navigation"
 import { signOut } from "next-auth/react"
-import { useEffect, useRef } from "react"
 import { cn } from "@/lib/utils"
-import { useSidebar } from "./SidebarContext"
-
-// Auto-close the floating sidebar after this idle delay (no pointer over it).
-const AUTO_CLOSE_MS = 4000
 import {
   LayoutDashboard,
   Users,
@@ -19,7 +15,7 @@ import {
   KeyRound,
   Send,
   LogOut,
-  PanelLeftClose,
+  ShieldCheck,
 } from "lucide-react"
 
 const navItems = [
@@ -33,115 +29,83 @@ const navItems = [
   { href: "/notifications", label: "Notifications", icon: Send },
 ]
 
+// Layers (within the aside stacking context): labels z-10 sit UNDER the rail
+// surface z-20, icons/pills z-30 sit ABOVE it. A label starts tucked behind the
+// surface and slides right on hover, so it emerges from under the panel.
+function RailLabel({ children }: { children: ReactNode }) {
+  return (
+    <span className="pointer-events-none absolute left-full top-1/2 z-10 -ml-4 -translate-y-1/2">
+      <span className="block -translate-x-full whitespace-nowrap rounded-md border border-border bg-popover py-2.5 pl-11 pr-5 text-sm font-medium text-popover-foreground transition-transform duration-500 ease-[cubic-bezier(0.36,0,0.66,-0.56)] group-hover/item:translate-x-0 group-hover/item:duration-150 group-hover/item:ease-out">
+        {children}
+      </span>
+    </span>
+  )
+}
+
 interface SidebarProps {
-  companyName: string
-  userEmail: string
   openAlerts: number
 }
 
-export function Sidebar({ companyName, userEmail, openAlerts }: SidebarProps) {
+export function Sidebar({ openAlerts }: SidebarProps) {
   const pathname = usePathname()
-  const { open, toggle, close } = useSidebar()
-  const timer = useRef<ReturnType<typeof setTimeout> | null>(null)
-  const asideRef = useRef<HTMLElement>(null)
-
-  const clearTimer = () => {
-    if (timer.current) clearTimeout(timer.current)
-    timer.current = null
-  }
-  const startTimer = () => {
-    clearTimer()
-    timer.current = setTimeout(close, AUTO_CLOSE_MS)
-  }
-
-  // Start the idle countdown whenever the sidebar opens; hovering pauses it.
-  useEffect(() => {
-    if (open) startTimer()
-    else clearTimer()
-    return clearTimer
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open])
-
-  // Close when clicking anywhere outside the panel.
-  useEffect(() => {
-    if (!open) return
-    const handler = (e: MouseEvent) => {
-      if (!asideRef.current?.contains(e.target as Node)) close()
-    }
-    document.addEventListener("mousedown", handler)
-    return () => document.removeEventListener("mousedown", handler)
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [open])
 
   return (
-    <aside
-      ref={asideRef}
-      onMouseEnter={clearTimer}
-      onMouseLeave={startTimer}
-      className={cn(
-        "fixed inset-y-0 left-0 z-40 flex h-screen w-60 flex-col border-r border-sidebar-border bg-sidebar shadow-[4px_0_24px_-6px_oklch(var(--primary)/0.18)] transition-transform duration-200 ease-out",
-        open ? "translate-x-0" : "-translate-x-full",
-      )}
-    >
-      <div className="flex h-12 items-center justify-between border-b border-sidebar-border px-4">
-        <span className="text-sm font-semibold text-sidebar-foreground">DataShield</span>
-        <button
-          onClick={toggle}
-          className="-mr-1 rounded-md p-1 text-sidebar-foreground/60 transition-colors hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
-          title="Close sidebar"
-          aria-label="Close sidebar"
-        >
-          <PanelLeftClose className="size-4" />
-        </button>
+    <aside className="fixed inset-y-0 left-0 z-40 flex h-screen w-16 flex-col">
+      {/* Rail shadow: painted BELOW the labels so it never tints them. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 z-0 shadow-[4px_0_24px_-6px_oklch(var(--primary)/0.18)]"
+      />
+      {/* Rail surface: opaque, painted ABOVE the labels so they hide under it. */}
+      <div
+        aria-hidden
+        className="pointer-events-none absolute inset-0 z-20 border-r border-sidebar-border bg-sidebar"
+      />
+
+      <div className="relative z-30 flex h-12 items-center justify-center border-b border-sidebar-border">
+        <ShieldCheck className="size-5 text-sidebar-primary" />
       </div>
 
-      <nav className="flex-1 space-y-0.5 overflow-y-auto px-2 py-3">
+      <nav className="flex-1 space-y-1 px-2 py-3">
         {navItems.map(({ href, label, icon: Icon }) => {
           const active =
             pathname === href || pathname.startsWith(href + "/")
           return (
-            <Link
-              key={href}
-              href={href}
-              className={cn(
-                "flex items-center gap-2.5 rounded-md px-2.5 py-2 text-sm transition-colors",
-                active
-                  ? "bg-sidebar-accent text-sidebar-primary font-medium"
-                  : "text-sidebar-foreground/60 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
-              )}
-            >
-              <Icon
+            <Link key={href} href={href} className="group/item relative flex">
+              <span
                 className={cn(
-                  "size-4 shrink-0",
-                  active ? "text-sidebar-primary" : ""
+                  "relative z-30 flex w-full items-center justify-center rounded-md py-2.5 transition-colors",
+                  active
+                    ? "bg-sidebar-accent text-sidebar-primary"
+                    : "text-sidebar-foreground/60 group-hover/item:bg-sidebar-accent/50 group-hover/item:text-sidebar-foreground"
                 )}
-              />
-              {label}
-              {href === "/alerts" && openAlerts > 0 && (
-                <span className="ml-auto inline-flex min-w-5 items-center justify-center rounded-full bg-severity-critical px-1.5 text-xs font-medium tabular-nums text-white">
-                  {openAlerts > 99 ? "99+" : openAlerts}
-                </span>
-              )}
+              >
+                <Icon className="size-4 shrink-0" />
+                {href === "/alerts" && openAlerts > 0 && (
+                  <span className="absolute -right-0.5 -top-0.5 inline-flex min-w-4 items-center justify-center rounded-full bg-severity-critical px-1 text-[10px] font-medium leading-4 tabular-nums text-white">
+                    {openAlerts > 9 ? "9+" : openAlerts}
+                  </span>
+                )}
+              </span>
+              <RailLabel>{label}</RailLabel>
             </Link>
           )
         })}
       </nav>
 
-      <div className="space-y-1 border-t border-sidebar-border p-3">
-        <div className="px-2 py-1">
-          <p className="truncate text-xs font-medium text-sidebar-foreground">
-            {companyName}
-          </p>
-          <p className="truncate text-xs text-sidebar-foreground/50">
-            {userEmail}
-          </p>
-        </div>
+      <div className="relative px-2 py-3">
+        <div
+          aria-hidden
+          className="absolute inset-x-2 top-0 z-30 border-t border-sidebar-border"
+        />
         <button
           onClick={() => signOut({ callbackUrl: "/login" })}
-          className="flex w-full items-center gap-2.5 rounded-md px-2.5 py-2 text-sm text-sidebar-foreground/60 transition-colors hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+          className="group/item relative flex w-full"
         >
-          <LogOut className="size-4 shrink-0" />
-          Sign out
+          <span className="relative z-30 flex w-full items-center justify-center rounded-md py-2.5 text-sidebar-foreground/60 transition-colors group-hover/item:bg-sidebar-accent/50 group-hover/item:text-sidebar-foreground">
+            <LogOut className="size-4 shrink-0" />
+          </span>
+          <RailLabel>Sign out</RailLabel>
         </button>
       </div>
     </aside>
