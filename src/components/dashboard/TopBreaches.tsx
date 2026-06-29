@@ -4,6 +4,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell,
 } from "recharts"
 import { useWidgetTitle } from "@/hooks/useWidgetTitle"
+import { useDetailDrawer } from "@/contexts/DetailDrawerContext"
 
 type BreachSource = {
   id: string; name: string; source: string
@@ -18,6 +19,7 @@ const SOURCE_COLOR: Record<string, string> = {
 
 export function TopBreaches({ data }: { data: BreachSource[] }) {
   const { title } = useWidgetTitle("top-breaches", "Top Breaches by Impact")
+  const { open } = useDetailDrawer()
 
   const sorted = [...data]
     .sort((a, b) => b.affectedEmployees - a.affectedEmployees)
@@ -76,7 +78,32 @@ export function TopBreaches({ data }: { data: BreachSource[] }) {
               />
               <Bar dataKey="affectedEmployees" name="Affected" radius={[0, 4, 4, 0]}>
                 {sorted.map((entry) => (
-                  <Cell key={entry.id} fill={SOURCE_COLOR[entry.source] ?? "oklch(var(--primary))"} />
+                  <Cell
+                    key={entry.id}
+                    style={{ cursor: "pointer" }}
+                    onClick={() =>
+                      open({
+                        title: entry.name,
+                        subtitle: entry.source,
+                        variant: "medium",
+                        tags: entry.dataTypes.map((t) => t.replace(/_/g, " ")),
+                        fields: [
+                          { label: "Source", value: entry.source },
+                          {
+                            label: "Breach date",
+                            value: new Date(entry.breachDate).toLocaleDateString("en-US", {
+                              day: "numeric",
+                              month: "short",
+                              year: "numeric",
+                            }),
+                          },
+                          { label: "Affected employees", value: entry.affectedEmployees },
+                          { label: "Data types", value: entry.dataTypes.length },
+                        ],
+                      })
+                    }
+                    fill={SOURCE_COLOR[entry.source] ?? "oklch(var(--primary))"}
+                  />
                 ))}
               </Bar>
             </BarChart>

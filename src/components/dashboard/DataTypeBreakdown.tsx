@@ -6,6 +6,7 @@ import { useWidgetConfig } from "@/hooks/useWidgetConfig"
 import { PRESET_DATA_TYPES } from "@/lib/dataTypes"
 import { useDashboardEditing } from "@/contexts/DashboardEditContext"
 import { useWidgetTitle } from "@/hooks/useWidgetTitle"
+import { useDetailDrawer } from "@/contexts/DetailDrawerContext"
 import { cn } from "@/lib/utils"
 
 type DataItem = { type: string; count: number; percentage: number }
@@ -22,6 +23,7 @@ export function DataTypeBreakdown({ data }: DataTypeBreakdownProps) {
   const [showSettings, setShowSettings] = useState(false)
   const [newType, setNewType] = useState("")
   const { title } = useWidgetTitle("data-type-breakdown", "Exposed Data Types")
+  const { open } = useDetailDrawer()
 
   const toggle = (key: string) => {
     const already = config.trackedTypes.includes(key)
@@ -142,7 +144,22 @@ export function DataTypeBreakdown({ data }: DataTypeBreakdownProps) {
       ) : (
         <div className="flex-1 min-h-0 overflow-y-auto space-y-3">
           {merged.map(({ type, count, percentage }) => (
-            <div key={type}>
+            <button
+              key={type}
+              type="button"
+              onClick={() =>
+                open({
+                  title: type.replace(/_/g, " "),
+                  subtitle: count > 0 ? `${percentage}% of exposures` : "Not detected",
+                  fields: [
+                    { label: "Exposures", value: count },
+                    { label: "Share", value: `${percentage}%` },
+                    { label: "Total exposures", value: totalCount },
+                  ],
+                })
+              }
+              className="block w-full text-left"
+            >
               <div className="mb-1.5 flex items-center justify-between">
                 <span className={cn("text-sm capitalize", count === 0 ? "text-muted-foreground" : "text-foreground")}>
                   {type.replace(/_/g, " ")}
@@ -157,7 +174,7 @@ export function DataTypeBreakdown({ data }: DataTypeBreakdownProps) {
                   style={{ width: count === 0 ? "100%" : `${percentage}%` }}
                 />
               </div>
-            </div>
+            </button>
           ))}
         </div>
       )}

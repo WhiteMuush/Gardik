@@ -1,6 +1,7 @@
 "use client"
 
 import { useWidgetTitle } from "@/hooks/useWidgetTitle"
+import { useDetailDrawer } from "@/contexts/DetailDrawerContext"
 import { cn } from "@/lib/utils"
 import { ShieldAlert, AlertTriangle } from "lucide-react"
 
@@ -33,6 +34,7 @@ const SCORE_BAR: Record<string, string> = {
 
 export function TopRiskyEmployees({ data }: { data: Employee[] }) {
   const { title } = useWidgetTitle("top-risky-employees", "Top Employees at Risk")
+  const { open } = useDetailDrawer()
 
   return (
     <div className="flex h-full flex-col rounded-xl border border-border/60 bg-card p-5 shadow-sm">
@@ -50,7 +52,24 @@ export function TopRiskyEmployees({ data }: { data: Employee[] }) {
       ) : (
         <div className="flex-1 min-h-0 overflow-y-auto space-y-2">
           {data.map((emp, i) => (
-            <div key={emp.id} className="flex items-center gap-3 rounded-lg border border-border bg-background px-3 py-2.5">
+            <button
+              key={emp.id}
+              type="button"
+              onClick={() =>
+                open({
+                  title: emp.name,
+                  subtitle: emp.department ?? undefined,
+                  variant: emp.riskVariant,
+                  fields: [
+                    { label: "Risk level", value: emp.riskLevel },
+                    { label: "Risk score", value: `${emp.riskScore} / 100` },
+                    { label: "Breaches", value: emp.breachCount },
+                    { label: "Open alerts", value: emp.openAlerts },
+                    { label: "Department", value: emp.department ?? "Unknown" },
+                  ],
+                })
+              }
+              className="flex w-full items-center gap-3 rounded-lg border border-border bg-background px-3 py-2.5 text-left transition-colors hover:border-primary/40 hover:bg-muted">
               <span className="shrink-0 w-5 text-xs font-medium text-muted-foreground tabular-nums">
                 {i + 1}
               </span>
@@ -82,7 +101,7 @@ export function TopRiskyEmployees({ data }: { data: Employee[] }) {
                   />
                 </div>
               </div>
-            </div>
+            </button>
           ))}
         </div>
       )}

@@ -2,6 +2,7 @@
 
 import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from "recharts"
 import { useWidgetTitle } from "@/hooks/useWidgetTitle"
+import { useDetailDrawer, type DetailVariant } from "@/contexts/DetailDrawerContext"
 
 type AlertSeverity = { critical: number; high: number; medium: number; low: number }
 
@@ -14,6 +15,7 @@ const SEVERITY = [
 
 export function SeverityDonut({ data }: { data: AlertSeverity }) {
   const { title } = useWidgetTitle("severity-donut", "Alert Severity")
+  const { open } = useDetailDrawer()
 
   const chartData = SEVERITY
     .map((s) => ({ name: s.label, value: data[s.key], color: s.color }))
@@ -47,7 +49,26 @@ export function SeverityDonut({ data }: { data: AlertSeverity }) {
                 dataKey="value"
               >
                 {chartData.map((entry) => (
-                  <Cell key={entry.name} fill={entry.color} stroke="none" />
+                  <Cell
+                    key={entry.name}
+                    fill={entry.color}
+                    stroke="none"
+                    style={{ cursor: "pointer" }}
+                    onClick={() =>
+                      open({
+                        title: `${entry.name} alerts`,
+                        variant: entry.name.toLowerCase() as DetailVariant,
+                        fields: [
+                          { label: "Count", value: entry.value },
+                          {
+                            label: "Share",
+                            value: total > 0 ? `${Math.round((entry.value / total) * 100)}%` : "0%",
+                          },
+                          { label: "Total alerts", value: total },
+                        ],
+                      })
+                    }
+                  />
                 ))}
               </Pie>
               <Tooltip
