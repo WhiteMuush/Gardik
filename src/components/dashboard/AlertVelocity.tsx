@@ -33,7 +33,6 @@ export function AlertVelocity({ data }: { data: VelocityData[] }) {
       <div className="mb-3 shrink-0 flex items-start justify-between">
         <div>
           <h2 className="text-sm font-medium text-foreground">{title}</h2>
-          <p className="text-xs text-muted-foreground">Daily alerts — last 30 days</p>
         </div>
         <div className="flex items-center gap-1 rounded-md px-2 py-1" style={{ background: `${trendColor}1a` }}>
           <TrendIcon className="size-3.5" style={{ color: trendColor }} />

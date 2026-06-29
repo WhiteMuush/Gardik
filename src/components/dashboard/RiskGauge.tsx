@@ -59,7 +59,6 @@ export function RiskGauge({ riskScore }: { riskScore: number }) {
     <div className="flex h-full flex-col rounded-xl border border-border/60 bg-card p-5 shadow-sm">
       <div className="mb-1 shrink-0">
         <h2 className="text-sm font-medium text-foreground">{title}</h2>
-        <p className="text-xs text-muted-foreground">Company security score</p>
       </div>
       <div className="flex flex-1 min-h-0 items-center justify-center">
         <svg viewBox="0 0 200 112" className="w-full max-w-[280px]">

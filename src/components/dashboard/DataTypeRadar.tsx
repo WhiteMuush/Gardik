@@ -26,7 +26,6 @@ export function DataTypeRadar({ data }: { data: DataType[] }) {
     <div className="flex h-full flex-col rounded-xl border border-border/60 bg-card p-5 shadow-sm">
       <div className="mb-4 shrink-0">
         <h2 className="text-sm font-medium text-foreground">{title}</h2>
-        <p className="text-xs text-muted-foreground">Compromised data category spread</p>
       </div>
 
       {isEmpty ? (

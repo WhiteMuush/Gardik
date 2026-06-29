@@ -30,7 +30,6 @@ export function CriticalAlertsList({ data }: { data: UrgentAlert[] }) {
     <div className="flex h-full flex-col rounded-xl border border-border/60 bg-card p-5 shadow-sm">
       <div className="mb-3 shrink-0">
         <h2 className="text-sm font-medium text-foreground">{title}</h2>
-        <p className="text-xs text-muted-foreground">{filtered.length} open — action required</p>
       </div>
 
       <div className="mb-3 shrink-0 flex gap-1.5">

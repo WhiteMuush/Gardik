@@ -49,7 +49,6 @@ export function AlertsFeed({ data }: { data: Alert[] }) {
       <div className="mb-3 shrink-0 flex items-start justify-between">
         <div>
           <h2 className="text-sm font-medium text-foreground">{title}</h2>
-          <p className="text-xs text-muted-foreground">{data.length} recent alerts</p>
         </div>
       </div>
 
