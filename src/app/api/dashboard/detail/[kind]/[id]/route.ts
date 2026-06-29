@@ -59,12 +59,29 @@ export async function GET(
           { label: "Breach date", value: fmtDate(r.breach.breachDate) },
           { label: "Detected", value: fmtDate(r.detectedAt) },
           { label: "Exposed data", value: prettyList(r.exposedData) },
+          ...(r.artifacts.length ? [{ label: "Artifacts", value: prettyList(r.artifacts) }] : []),
           { label: "Reported by", value: r.sources.length ? r.sources.join(", ") : r.breach.source },
           ...(r.malwareFamily ? [{ label: "Malware", value: r.malwareFamily }] : []),
+          ...(r.machineId ? [{ label: "Machine ID", value: r.machineId }] : []),
           ...(r.capturedAt ? [{ label: "Captured", value: fmtDate(r.capturedAt) }] : []),
         ],
       })),
     ]
+
+    const empRemediations = await prisma.remediationAction.findMany({
+      where: { employeeId: id, companyId },
+      orderBy: { createdAt: "desc" },
+      take: 20,
+    })
+    if (empRemediations.length) {
+      groups.push({
+        heading: "Remediation",
+        fields: empRemediations.map((a) => ({
+          label: `${a.action} (${a.status})`,
+          value: fmtDate(a.createdAt),
+        })),
+      })
+    }
 
     return NextResponse.json({
       title: `${emp.firstName} ${emp.lastName}`,
@@ -100,6 +117,7 @@ export async function GET(
         fields: [
           { label: "Department", value: r.employee.department ?? "Unknown" },
           { label: "Exposed data", value: prettyList(r.exposedData) },
+          ...(r.artifacts.length ? [{ label: "Artifacts", value: prettyList(r.artifacts) }] : []),
           { label: "Detected", value: fmtDate(r.detectedAt) },
         ],
       })),
@@ -154,6 +172,21 @@ export async function GET(
           { label: "Breach date", value: fmtDate(alert.breach.breachDate) },
           { label: "Data types", value: prettyList(alert.breach.dataTypes) },
         ],
+      })
+    }
+
+    const alertRemediations = await prisma.remediationAction.findMany({
+      where: { alertId: id, companyId },
+      orderBy: { createdAt: "desc" },
+      take: 20,
+    })
+    if (alertRemediations.length) {
+      groups.push({
+        heading: "Remediation",
+        fields: alertRemediations.map((a) => ({
+          label: `${a.action} (${a.status})`,
+          value: fmtDate(a.createdAt),
+        })),
       })
     }
 
