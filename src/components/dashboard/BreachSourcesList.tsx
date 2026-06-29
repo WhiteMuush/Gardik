@@ -1,6 +1,7 @@
 "use client"
 
 import { useWidgetTitle } from "@/hooks/useWidgetTitle"
+import { useDetailDrawer } from "@/contexts/DetailDrawerContext"
 import { cn } from "@/lib/utils"
 import { ShieldAlert, Globe, Eye } from "lucide-react"
 
@@ -27,13 +28,13 @@ const SOURCE_COLORS: Record<string, string> = {
 
 export function BreachSourcesList({ data }: { data: BreachSource[] }) {
   const { title } = useWidgetTitle("breach-sources", "Breach Sources")
+  const { openRef } = useDetailDrawer()
 
   return (
-    <div className="flex h-full flex-col rounded-xl border border-border bg-card p-5">
+    <div className="flex h-full flex-col rounded-xl border border-border/60 bg-card p-5 shadow-sm">
       <div className="mb-4 shrink-0 flex items-start justify-between">
         <div>
           <h2 className="text-sm font-medium text-foreground">{title}</h2>
-          <p className="text-xs text-muted-foreground">Sites that exposed your company data</p>
         </div>
         <ShieldAlert className="size-4 text-muted-foreground shrink-0" />
       </div>
@@ -45,9 +46,19 @@ export function BreachSourcesList({ data }: { data: BreachSource[] }) {
       ) : (
         <div className="flex-1 min-h-0 overflow-y-auto space-y-2">
           {data.map((breach) => (
-            <div
+            <button
               key={breach.id}
-              className="flex items-start justify-between gap-3 rounded-lg border border-border bg-background p-3"
+              type="button"
+              onClick={() =>
+                openRef({
+                  kind: "breach",
+                  id: breach.id,
+                  title: breach.name,
+                  subtitle: SOURCE_LABELS[breach.source] ?? breach.source,
+                  variant: "medium",
+                })
+              }
+              className="flex w-full items-start justify-between gap-3 rounded-lg border border-border bg-background p-3 text-left transition-colors hover:border-primary/40 hover:bg-muted"
             >
               <div className="flex items-start gap-2.5 min-w-0">
                 <div className="mt-0.5 flex size-7 shrink-0 items-center justify-center rounded-md bg-muted">
@@ -82,7 +93,7 @@ export function BreachSourcesList({ data }: { data: BreachSource[] }) {
                   <span className="text-muted-foreground">emp.</span>
                 </div>
               </div>
-            </div>
+            </button>
           ))}
         </div>
       )}

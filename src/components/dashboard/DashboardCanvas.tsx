@@ -12,6 +12,7 @@ import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 import { DashboardEditContext } from "@/contexts/DashboardEditContext"
 import { DashboardConfigContext } from "@/contexts/DashboardConfigContext"
+import { DetailDrawerProvider } from "@/contexts/DetailDrawerContext"
 import { type GridItemLayout, type WidgetMeta, type DashboardPreset, SOURCE_FILTERABLE_WIDGETS } from "@/types/dashboard"
 
 export type SourceOption = { id: string; label: string }
@@ -358,6 +359,7 @@ export function DashboardCanvas({
     : false
 
   return (
+    <DetailDrawerProvider>
     <DashboardEditContext.Provider value={editing}>
       <DashboardConfigContext.Provider value={{ getTitle, setTitle, editing, requestRows }}>
         <div className="flex flex-1 flex-col min-h-0">
@@ -575,5 +577,6 @@ export function DashboardCanvas({
         </div>
       </DashboardConfigContext.Provider>
     </DashboardEditContext.Provider>
+    </DetailDrawerProvider>
   )
 }
