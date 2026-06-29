@@ -27,10 +27,9 @@ export function AlertsByDepartment({ data }: { data: DeptData[] }) {
   const isEmpty = data.length === 0 || data.every((d) => d.total === 0)
 
   return (
-    <div className="flex h-full flex-col rounded-xl border border-border bg-card p-5">
+    <div className="flex h-full flex-col rounded-xl border border-border/60 bg-card p-5 shadow-sm">
       <div className="mb-4 shrink-0">
         <h2 className="text-sm font-medium text-foreground">{title}</h2>
-        <p className="text-xs text-muted-foreground">Alert volume per department</p>
       </div>
 
       {isEmpty ? (

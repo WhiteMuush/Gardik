@@ -2,6 +2,7 @@
 
 import { useState } from "react"
 import { useWidgetTitle } from "@/hooks/useWidgetTitle"
+import { useDetailDrawer, type DetailVariant } from "@/contexts/DetailDrawerContext"
 import { cn } from "@/lib/utils"
 
 type Alert = {
@@ -40,16 +41,16 @@ const STATUS_LABELS: Record<string, string> = {
 
 export function AlertsFeed({ data }: { data: Alert[] }) {
   const { title } = useWidgetTitle("alerts-feed", "Recent Alerts")
+  const { openRef } = useDetailDrawer()
   const [filter, setFilter] = useState<"ALL" | "OPEN" | "RESOLVED">("ALL")
 
   const filtered = data.filter((a) => filter === "ALL" || a.status === filter)
 
   return (
-    <div className="flex h-full flex-col rounded-xl border border-border bg-card p-5">
+    <div className="flex h-full flex-col rounded-xl border border-border/60 bg-card p-5 shadow-sm">
       <div className="mb-3 shrink-0 flex items-start justify-between">
         <div>
           <h2 className="text-sm font-medium text-foreground">{title}</h2>
-          <p className="text-xs text-muted-foreground">{data.length} recent alerts</p>
         </div>
       </div>
 
@@ -75,10 +76,20 @@ export function AlertsFeed({ data }: { data: Alert[] }) {
       ) : (
         <div className="flex-1 min-h-0 overflow-y-auto space-y-1.5">
           {filtered.map((alert) => (
-            <div
+            <button
               key={alert.id}
+              type="button"
+              onClick={() =>
+                openRef({
+                  kind: "alert",
+                  id: alert.id,
+                  title: alert.employeeName ?? "Unknown employee",
+                  subtitle: alert.breachName ?? undefined,
+                  variant: alert.severity.toLowerCase() as DetailVariant,
+                })
+              }
               className={cn(
-                "flex items-center gap-3 rounded-lg border border-border border-l-2 bg-background px-3 py-2.5",
+                "flex w-full items-center gap-3 rounded-lg border border-border border-l-2 bg-background px-3 py-2.5 text-left transition-colors hover:border-primary/40 hover:bg-muted",
                 SEVERITY_BORDER[alert.severity]
               )}
             >
@@ -100,7 +111,7 @@ export function AlertsFeed({ data }: { data: Alert[] }) {
                   {new Date(alert.createdAt).toLocaleDateString("en-US", { day: "numeric", month: "short" })}
                 </span>
               </div>
-            </div>
+            </button>
           ))}
         </div>
       )}

@@ -2,18 +2,19 @@
 
 import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts"
 import { useWidgetTitle } from "@/hooks/useWidgetTitle"
+import { useDetailDrawer, type DetailVariant } from "@/contexts/DetailDrawerContext"
 
 type DeptData = { department: string; total: number; compromised: number; percentage: number }
 
 export function DepartmentRisk({ data }: { data: DeptData[] }) {
   const { title } = useWidgetTitle("department-risk", "Department Exposure")
+  const { open } = useDetailDrawer()
 
   return (
-    <div className="flex h-full flex-col rounded-xl border border-border bg-card p-5">
+    <div className="flex h-full flex-col rounded-xl border border-border/60 bg-card p-5 shadow-sm">
       <div className="mb-4 shrink-0 flex items-start justify-between">
         <div>
           <h2 className="text-sm font-medium text-foreground">{title}</h2>
-          <p className="text-xs text-muted-foreground">Compromised employees by department</p>
         </div>
       </div>
 
@@ -62,6 +63,23 @@ export function DepartmentRisk({ data }: { data: DeptData[] }) {
                 {data.map((entry) => (
                   <Cell
                     key={entry.department}
+                    style={{ cursor: "pointer" }}
+                    onClick={() =>
+                      open({
+                        title: entry.department,
+                        subtitle: `${entry.percentage}% exposed`,
+                        variant: (entry.percentage >= 50
+                          ? "critical"
+                          : entry.percentage >= 25
+                          ? "high"
+                          : "medium") as DetailVariant,
+                        fields: [
+                          { label: "Compromised", value: entry.compromised },
+                          { label: "Total employees", value: entry.total },
+                          { label: "Exposure", value: `${entry.percentage}%` },
+                        ],
+                      })
+                    }
                     fill={
                       entry.percentage >= 50
                         ? "oklch(var(--severity-critical))"

@@ -37,11 +37,10 @@ export function AlertsByMonth({ data }: { data: MonthData[] }) {
   const isEmpty = sliced.every((d) => d.critical + d.high + d.medium + d.low === 0)
 
   return (
-    <div className="flex h-full flex-col rounded-xl border border-border bg-card p-5">
+    <div className="flex h-full flex-col rounded-xl border border-border/60 bg-card p-5 shadow-sm">
       <div className="mb-4 shrink-0 flex items-start justify-between">
         <div>
           <h2 className="text-sm font-medium text-foreground">{title}</h2>
-          <p className="text-xs text-muted-foreground">Alert volume — {period.label}</p>
         </div>
         {editing && (
           <button

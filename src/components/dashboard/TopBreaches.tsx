@@ -4,6 +4,7 @@ import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell,
 } from "recharts"
 import { useWidgetTitle } from "@/hooks/useWidgetTitle"
+import { useDetailDrawer } from "@/contexts/DetailDrawerContext"
 
 type BreachSource = {
   id: string; name: string; source: string
@@ -18,6 +19,7 @@ const SOURCE_COLOR: Record<string, string> = {
 
 export function TopBreaches({ data }: { data: BreachSource[] }) {
   const { title } = useWidgetTitle("top-breaches", "Top Breaches by Impact")
+  const { openRef } = useDetailDrawer()
 
   const sorted = [...data]
     .sort((a, b) => b.affectedEmployees - a.affectedEmployees)
@@ -27,10 +29,9 @@ export function TopBreaches({ data }: { data: BreachSource[] }) {
   const isEmpty = sorted.length === 0
 
   return (
-    <div className="flex h-full flex-col rounded-xl border border-border bg-card p-5">
+    <div className="flex h-full flex-col rounded-xl border border-border/60 bg-card p-5 shadow-sm">
       <div className="mb-4 shrink-0">
         <h2 className="text-sm font-medium text-foreground">{title}</h2>
-        <p className="text-xs text-muted-foreground">Ranked by affected employees</p>
       </div>
 
       {isEmpty ? (
@@ -77,7 +78,20 @@ export function TopBreaches({ data }: { data: BreachSource[] }) {
               />
               <Bar dataKey="affectedEmployees" name="Affected" radius={[0, 4, 4, 0]}>
                 {sorted.map((entry) => (
-                  <Cell key={entry.id} fill={SOURCE_COLOR[entry.source] ?? "oklch(var(--primary))"} />
+                  <Cell
+                    key={entry.id}
+                    style={{ cursor: "pointer" }}
+                    onClick={() =>
+                      openRef({
+                        kind: "breach",
+                        id: entry.id,
+                        title: entry.name,
+                        subtitle: entry.source,
+                        variant: "medium",
+                      })
+                    }
+                    fill={SOURCE_COLOR[entry.source] ?? "oklch(var(--primary))"}
+                  />
                 ))}
               </Bar>
             </BarChart>

@@ -4,7 +4,6 @@ import { useState, useEffect } from "react"
 import { Settings2, Check } from "lucide-react"
 import { StatCard } from "@/components/dashboard/StatCard"
 import { getRiskLevel } from "@/lib/risk"
-import { Users, Bell, Database, ShieldAlert } from "lucide-react"
 import { useWidgetConfig } from "@/hooks/useWidgetConfig"
 import { useDashboardEditing } from "@/contexts/DashboardEditContext"
 import { useDashboardConfig } from "@/contexts/DashboardConfigContext"
@@ -35,7 +34,6 @@ interface StatsRowProps {
 
 export function StatsRow({
   compromisedEmployees,
-  totalEmployees,
   openAlerts,
   recentBreaches,
   riskScore,
@@ -71,32 +69,24 @@ export function StatsRow({
       key: "employees" as CardKey,
       label: "Employees at risk",
       value: compromisedEmployees,
-      description: `out of ${totalEmployees} monitored`,
-      icon: Users,
       variant: (compromisedEmployees > 0 ? "critical" : "ok") as "critical" | "ok",
     },
     {
       key: "alerts" as CardKey,
       label: "Active alerts",
       value: openAlerts,
-      description: "requiring attention",
-      icon: Bell,
       variant: (openAlerts > 0 ? "high" : "ok") as "high" | "ok",
     },
     {
       key: "detections" as CardKey,
       label: "New detections",
       value: recentBreaches,
-      description: "in the last 30 days",
-      icon: Database,
       variant: (recentBreaches > 0 ? "medium" : "ok") as "medium" | "ok",
     },
     {
       key: "risk" as CardKey,
       label: "Risk score",
       value: `${riskScore} / 100`,
-      description: risk.label,
-      icon: ShieldAlert,
       variant: risk.variant,
     },
   ]
