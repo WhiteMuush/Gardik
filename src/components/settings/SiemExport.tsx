@@ -70,7 +70,7 @@ export function SiemExport({ companyId, tokenHint: initialHint, pushHint: initia
   }
 
   return (
-    <div className="rounded-xl border border-border bg-card p-5">
+    <div className="rounded-xl border border-border/60 bg-card p-5">
       <div className="mb-1 flex items-center gap-2">
         <Radio className="size-4 text-muted-foreground" />
         <h3 className="text-sm font-semibold text-foreground">SIEM / SOAR export</h3>

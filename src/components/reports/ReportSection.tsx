@@ -8,7 +8,7 @@ interface ReportSectionProps {
 
 export function ReportSection({ title, description, children }: ReportSectionProps) {
   return (
-    <section className="h-full rounded-xl border border-border bg-card">
+    <section className="h-full rounded-xl border border-border/60 bg-card">
       {/* Natural-height probe: stays content-sized even when the section is
           stretched to fill a taller grid cell, so the canvas can measure the
           intrinsic content height (the resize floor) instead of the cell. */}

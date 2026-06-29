@@ -71,7 +71,7 @@ export function SetupChecklist({
             <li
               key={step.href}
               className={cn(
-                "flex items-start gap-4 rounded-xl border border-border bg-card p-4",
+                "flex items-start gap-4 rounded-xl border border-border/60 bg-card p-4",
                 step.done && "opacity-60"
               )}
             >
@@ -110,7 +110,7 @@ export function SetupChecklist({
           </p>
         )}
 
-        <div className="mt-8 rounded-xl border border-border bg-muted/30 p-4">
+        <div className="mt-8 rounded-xl border border-border/60 bg-muted/30 p-4">
           <p className="text-sm text-foreground">Thanks for trying DataShield.</p>
           <p className="mt-1 text-xs text-muted-foreground">
             It is an open-source project built to make breach exposure visible and actionable.
