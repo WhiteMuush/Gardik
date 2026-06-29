@@ -2,23 +2,37 @@
 
 import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react"
 import { createPortal } from "react-dom"
-import { X } from "lucide-react"
+import { X, Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 export type DetailVariant = "critical" | "high" | "medium" | "low" | "ok" | "default"
 
 export type DetailField = { label: string; value: ReactNode }
 
+export type DetailGroup = { heading?: string; fields: DetailField[] }
+
 export type DetailPayload = {
   title: string
   subtitle?: string
   variant?: DetailVariant
   tags?: string[]
-  fields: DetailField[]
+  // Either flat fields (static callers) or grouped sections (rich fetches).
+  fields?: DetailField[]
+  groups?: DetailGroup[]
+}
+
+// Reference to an entity the drawer can fetch rich detail for on click.
+export type DetailRef = {
+  kind: "employee" | "breach" | "alert"
+  id: string
+  title: string
+  subtitle?: string
+  variant?: DetailVariant
 }
 
 type DetailDrawerCtx = {
   open: (payload: DetailPayload) => void
+  openRef: (ref: DetailRef) => void
   close: () => void
 }
 
@@ -41,12 +55,38 @@ const dotColor: Record<DetailVariant, string> = {
 
 export function DetailDrawerProvider({ children }: { children: ReactNode }) {
   const [payload, setPayload] = useState<DetailPayload | null>(null)
+  const [loading, setLoading] = useState(false)
   const [mounted, setMounted] = useState(false)
 
   useEffect(() => setMounted(true), [])
 
-  const open = useCallback((p: DetailPayload) => setPayload(p), [])
-  const close = useCallback(() => setPayload(null), [])
+  const open = useCallback((p: DetailPayload) => {
+    setLoading(false)
+    setPayload(p)
+  }, [])
+
+  const close = useCallback(() => {
+    setPayload(null)
+    setLoading(false)
+  }, [])
+
+  const openRef = useCallback((ref: DetailRef) => {
+    // Show what we already know immediately, then enrich from the API.
+    setPayload({ title: ref.title, subtitle: ref.subtitle, variant: ref.variant, groups: [] })
+    setLoading(true)
+    fetch(`/api/dashboard/detail/${ref.kind}/${ref.id}`)
+      .then((r) => (r.ok ? r.json() : Promise.reject(new Error(String(r.status)))))
+      .then((data: DetailPayload) => setPayload(data))
+      .catch(() =>
+        setPayload({
+          title: ref.title,
+          subtitle: ref.subtitle,
+          variant: ref.variant,
+          fields: [{ label: "Error", value: "Could not load details" }],
+        })
+      )
+      .finally(() => setLoading(false))
+  }, [])
 
   useEffect(() => {
     if (!payload) return
@@ -58,7 +98,7 @@ export function DetailDrawerProvider({ children }: { children: ReactNode }) {
   }, [payload, close])
 
   return (
-    <Ctx.Provider value={{ open, close }}>
+    <Ctx.Provider value={{ open, openRef, close }}>
       {children}
       {mounted &&
         createPortal(
@@ -69,7 +109,6 @@ export function DetailDrawerProvider({ children }: { children: ReactNode }) {
               payload ? "pointer-events-auto" : "pointer-events-none"
             )}
           >
-            {/* Overlay */}
             <div
               onClick={close}
               className={cn(
@@ -77,7 +116,6 @@ export function DetailDrawerProvider({ children }: { children: ReactNode }) {
                 payload ? "opacity-100" : "opacity-0"
               )}
             />
-            {/* Panel */}
             <aside
               role="dialog"
               aria-modal="true"
@@ -95,6 +133,7 @@ export function DetailDrawerProvider({ children }: { children: ReactNode }) {
                           <span className={cn("size-2 shrink-0 rounded-full", dotColor[payload.variant])} />
                         )}
                         <h2 className="truncate text-base font-semibold text-foreground">{payload.title}</h2>
+                        {loading && <Loader2 className="size-3.5 shrink-0 animate-spin text-muted-foreground" />}
                       </div>
                       {payload.subtitle && (
                         <p className="mt-0.5 truncate text-xs text-muted-foreground">{payload.subtitle}</p>
@@ -123,18 +162,21 @@ export function DetailDrawerProvider({ children }: { children: ReactNode }) {
                         ))}
                       </div>
                     )}
-                    <dl className="divide-y divide-border">
-                      {payload.fields.map((f, i) => (
-                        <div key={i} className="flex items-start justify-between gap-4 py-2.5">
-                          <dt className="text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                            {f.label}
-                          </dt>
-                          <dd className="text-right text-sm font-medium tabular-nums text-foreground">
-                            {f.value}
-                          </dd>
-                        </div>
-                      ))}
-                    </dl>
+
+                    {payload.fields && <FieldList fields={payload.fields} />}
+
+                    {payload.groups?.map((g, gi) => (
+                      <div key={gi} className={cn(gi > 0 && "mt-5")}>
+                        {g.heading && (
+                          <p className="mb-1 text-sm font-semibold text-foreground">{g.heading}</p>
+                        )}
+                        <FieldList fields={g.fields} />
+                      </div>
+                    ))}
+
+                    {loading && (!payload.groups || payload.groups.length === 0) && !payload.fields && (
+                      <p className="py-6 text-center text-sm text-muted-foreground">Loading details...</p>
+                    )}
                   </div>
                 </>
               )}
@@ -143,5 +185,20 @@ export function DetailDrawerProvider({ children }: { children: ReactNode }) {
           document.body
         )}
     </Ctx.Provider>
+  )
+}
+
+function FieldList({ fields }: { fields: DetailField[] }) {
+  return (
+    <dl className="divide-y divide-border">
+      {fields.map((f, i) => (
+        <div key={i} className="flex items-start justify-between gap-4 py-2.5">
+          <dt className="shrink-0 text-xs font-medium uppercase tracking-wider text-muted-foreground">
+            {f.label}
+          </dt>
+          <dd className="text-right text-sm font-medium text-foreground">{f.value}</dd>
+        </div>
+      ))}
+    </dl>
   )
 }

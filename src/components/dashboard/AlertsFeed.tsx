@@ -41,7 +41,7 @@ const STATUS_LABELS: Record<string, string> = {
 
 export function AlertsFeed({ data }: { data: Alert[] }) {
   const { title } = useWidgetTitle("alerts-feed", "Recent Alerts")
-  const { open } = useDetailDrawer()
+  const { openRef } = useDetailDrawer()
   const [filter, setFilter] = useState<"ALL" | "OPEN" | "RESOLVED">("ALL")
 
   const filtered = data.filter((a) => filter === "ALL" || a.status === filter)
@@ -80,25 +80,12 @@ export function AlertsFeed({ data }: { data: Alert[] }) {
               key={alert.id}
               type="button"
               onClick={() =>
-                open({
+                openRef({
+                  kind: "alert",
+                  id: alert.id,
                   title: alert.employeeName ?? "Unknown employee",
                   subtitle: alert.breachName ?? undefined,
                   variant: alert.severity.toLowerCase() as DetailVariant,
-                  fields: [
-                    { label: "Severity", value: alert.severity },
-                    { label: "Status", value: STATUS_LABELS[alert.status] },
-                    { label: "Employee", value: alert.employeeName ?? "Unknown" },
-                    { label: "Department", value: alert.department ?? "Unknown" },
-                    { label: "Breach", value: alert.breachName ?? "Unknown" },
-                    {
-                      label: "Created",
-                      value: new Date(alert.createdAt).toLocaleDateString("en-US", {
-                        day: "numeric",
-                        month: "short",
-                        year: "numeric",
-                      }),
-                    },
-                  ],
                 })
               }
               className={cn(

@@ -23,7 +23,7 @@ const SEV_BADGE_CLASSES: Record<string, string> = {
 
 export function CriticalAlertsList({ data }: { data: UrgentAlert[] }) {
   const { title } = useWidgetTitle("critical-alerts", "Urgent Alerts")
-  const { open } = useDetailDrawer()
+  const { openRef } = useDetailDrawer()
   const [config, setConfig] = useWidgetConfig<{ filter: Filter }>("critical-alerts", { filter: "ALL" })
 
   const filtered = config.filter === "ALL" ? data : data.filter((a) => a.severity === config.filter)
@@ -62,24 +62,12 @@ export function CriticalAlertsList({ data }: { data: UrgentAlert[] }) {
               key={alert.id}
               type="button"
               onClick={() =>
-                open({
+                openRef({
+                  kind: "alert",
+                  id: alert.id,
                   title: alert.employeeName ?? "Unknown employee",
                   subtitle: alert.breachName ?? undefined,
                   variant: alert.severity.toLowerCase() as DetailVariant,
-                  fields: [
-                    { label: "Severity", value: alert.severity },
-                    { label: "Employee", value: alert.employeeName ?? "Unknown" },
-                    { label: "Department", value: alert.department ?? "Unknown" },
-                    { label: "Breach", value: alert.breachName ?? "Unknown" },
-                    {
-                      label: "Created",
-                      value: new Date(alert.createdAt).toLocaleDateString("en-US", {
-                        day: "numeric",
-                        month: "short",
-                        year: "numeric",
-                      }),
-                    },
-                  ],
                 })
               }
               className="flex w-full items-start gap-2.5 rounded-lg border border-border bg-background px-3 py-2.5 text-left transition-colors hover:border-primary/40 hover:bg-muted"
