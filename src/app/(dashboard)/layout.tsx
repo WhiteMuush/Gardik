@@ -28,11 +28,7 @@ export default async function DashboardLayout({
   return (
     <Providers>
       <RoutePrefetcher />
-      <DashboardShell
-        companyName={session.user.name ?? ""}
-        userEmail={session.user.email ?? ""}
-        openAlerts={openAlerts}
-      >
+      <DashboardShell openAlerts={openAlerts}>
         {children}
       </DashboardShell>
     </Providers>
