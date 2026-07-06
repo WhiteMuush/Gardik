@@ -60,7 +60,7 @@ export function ExposureRegister({ initial, isAdmin }: { initial: RegisterRow[];
   return (
     <div className="space-y-6">
       {isAdmin && (
-        <div className="rounded-xl border border-border bg-card p-5">
+        <div className="rounded-xl border border-border/60 bg-card p-5">
           <h3 className="mb-3 text-sm font-semibold text-foreground">Record an exposure</h3>
           <div className="flex flex-wrap gap-2">
             <input
@@ -106,7 +106,7 @@ export function ExposureRegister({ initial, isAdmin }: { initial: RegisterRow[];
       )}
 
       {rows.length === 0 ? (
-        <p className="rounded-xl border border-border bg-card py-12 text-center text-sm text-muted-foreground">
+        <p className="rounded-xl border border-border/60 bg-card py-12 text-center text-sm text-muted-foreground">
           No exposures recorded yet.
         </p>
       ) : (
@@ -114,7 +114,7 @@ export function ExposureRegister({ initial, isAdmin }: { initial: RegisterRow[];
           {rows.map((r) => {
             const cd = countdown(r)
             return (
-              <div key={r.id} className="rounded-xl border border-border bg-card px-4 py-3">
+              <div key={r.id} className="rounded-xl border border-border/60 bg-card px-4 py-3">
                 <div className="flex items-center gap-3">
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium text-foreground">{r.title}</p>
