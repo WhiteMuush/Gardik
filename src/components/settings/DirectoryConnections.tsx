@@ -168,7 +168,7 @@ export function DirectoryConnections({ initial, isAdmin }: Props) {
         </div>
 
         {connections.length === 0 ? (
-          <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border py-12 text-center">
+          <div className="flex flex-col items-center justify-center rounded-xl border border-dashed border-border/60 py-12 text-center">
             <Network className="mb-3 size-8 text-muted-foreground/40" />
             <p className="text-sm font-medium text-foreground">No directory connected</p>
             <p className="mt-1 text-xs text-muted-foreground">
@@ -192,7 +192,7 @@ export function DirectoryConnections({ initial, isAdmin }: Props) {
               return (
                 <div
                   key={conn.id}
-                  className="flex items-start gap-4 rounded-xl border border-border bg-card px-4 py-4"
+                  className="flex items-start gap-4 rounded-xl border border-border/60 bg-card px-4 py-4"
                 >
                   <span
                     className={cn(
