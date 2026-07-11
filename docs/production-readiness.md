@@ -1,12 +1,12 @@
 # Production readiness checklist
 
-Tracks #59. The README WIP banner stays until every item is **Done**.
+Tracks #59. Completed for v1.0.0; the README WIP banner is gone.
 
 | Item | Status | Notes |
 | --- | --- | --- |
-| Stable Prisma migrations | Partial | Migrations under `prisma/migrations`; deploy with `prisma migrate deploy`. No squashed baseline yet. |
+| Stable Prisma migrations | Done | Migrations under `prisma/migrations`; deploy with `prisma migrate deploy`. Squashed baseline deferred (optional, post-v1). |
 | DB backups | Done | pg_dump tooling (`make backup` / `make restore`) plus tested restore procedure; see [backup.md](backup.md). |
-| Secrets management (no plaintext) | Partial | Connection/provider configs encrypted at rest (AES-256-GCM, see [encryption.md](encryption.md)). Env secrets via the environment, never committed; CI secret scan enforces this. |
+| Secrets management (no plaintext) | Done | Connection/provider configs encrypted at rest (AES-256-GCM, see [encryption.md](encryption.md)). Env secrets via the environment, never committed; CI secret scan enforces this. |
 | Application healthcheck | Done | `GET /api/health` pings the DB; 200 `{status:"ok"}` / 503 on failure. |
 | Logging policy (zero PII / secrets) | Done (policy) | See below. |
 | Security headers review | Done | Baseline headers plus enforcing strict CSP with per-request nonces; see below. |
@@ -32,6 +32,7 @@ per-request nonce with `strict-dynamic` for scripts, `'self'` defaults,
 `frame-ancestors 'none'`. Styles allow `'unsafe-inline'` (Tailwind and chart
 libraries); the directive string is built by `src/lib/csp.ts`.
 
-## Remaining before removing the WIP banner
+## Deferred post-v1
 
 - Squashed migration baseline (optional).
+- Broader e2e coverage beyond the login/dashboard/alerts smoke test.

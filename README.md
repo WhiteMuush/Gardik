@@ -15,22 +15,16 @@
 
 </div>
 
-> ### 🚧 Work in progress, projet en construction
->
-> DataShield is under active development and is **not production ready**. The
-> database schema, APIs and UI can change without notice, features may be
-> incomplete or unstable, and breaking changes land regularly. Do not point it
-> at real production data yet. Ce projet est en cours de construction.
-
 Self-hosted service that tells a business whether its employees' data has
 surfaced in known breaches, with severity-based alerting and a customizable
 security dashboard.
 
 ## Status
 
-Early development. Things move fast and not everything listed below is finished.
+v1.0.0. The production readiness checklist is tracked in
+[docs/production-readiness.md](docs/production-readiness.md).
 
-## Features (in progress)
+## Features
 
 - Breach exposure monitoring per employee (Have I Been Pwned and manual sources)
 - Customizable widget dashboard (drag and drop, saved presets)
