@@ -5,7 +5,7 @@ Tracks #59. The README WIP banner stays until every item is **Done**.
 | Item | Status | Notes |
 | --- | --- | --- |
 | Stable Prisma migrations | Partial | Migrations under `prisma/migrations`; deploy with `prisma migrate deploy`. No squashed baseline yet. |
-| DB backups | Pending | Depends on hosting; decision deferred with the Docker prod work. |
+| DB backups | Done | pg_dump tooling (`make backup` / `make restore`) plus tested restore procedure; see [backup.md](backup.md). |
 | Secrets management (no plaintext) | Partial | Connection/provider configs encrypted at rest (AES-256-GCM, see [encryption.md](encryption.md)). Env secrets via the environment, never committed; CI secret scan enforces this. |
 | Application healthcheck | Done | `GET /api/health` pings the DB; 200 `{status:"ok"}` / 503 on failure. |
 | Logging policy (zero PII / secrets) | Done (policy) | See below. |
@@ -33,6 +33,5 @@ shipped loose.
 
 ## Remaining before removing the WIP banner
 
-- DB backup strategy (tied to the deferred Docker/prod hosting decision).
 - Squashed migration baseline (optional).
 - Strict CSP with nonces.
