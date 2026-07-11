@@ -1,19 +1,25 @@
 import { test, expect } from "@playwright/test"
 
 let cspViolations: string[]
+let pageErrors: string[]
 
 test.beforeEach(({ page }) => {
   cspViolations = []
+  pageErrors = []
   page.on("console", (msg) => {
     const text = msg.text()
     if (text.includes("Content Security Policy") || text.includes("Refused to")) {
       cspViolations.push(text)
     }
   })
+  page.on("pageerror", (err) => {
+    pageErrors.push(err.message)
+  })
 })
 
 test.afterEach(() => {
   expect(cspViolations).toEqual([])
+  expect(pageErrors).toEqual([])
 })
 
 test("admin signs in, sees dashboard and alerts", async ({ page }) => {
@@ -27,4 +33,8 @@ test("admin signs in, sees dashboard and alerts", async ({ page }) => {
 
   await page.goto("/alerts")
   await expect(page.getByRole("main")).toBeVisible()
+
+  await page.goto("/dashboard/widgets")
+  await expect(page.getByRole("heading", { name: "Widget Library" })).toBeVisible()
+  await expect(page.getByRole("heading", { name: "Alert Severity" })).toBeVisible()
 })

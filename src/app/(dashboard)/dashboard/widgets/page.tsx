@@ -3,6 +3,7 @@ import { getDashboardData } from "@/lib/dashboard"
 import { prisma } from "@/lib/prisma"
 import { WIDGETS } from "@/lib/widgetRegistry"
 import { WidgetLibrary } from "@/components/dashboard/WidgetLibrary"
+import { DetailDrawerProvider } from "@/contexts/DetailDrawerContext"
 import { StatsRow } from "@/components/dashboard/StatsRow"
 import { TrendChart } from "@/components/dashboard/TrendChart"
 import { DataTypeBreakdown } from "@/components/dashboard/DataTypeBreakdown"
@@ -86,10 +87,12 @@ export default async function WidgetsPage() {
   }
 
   return (
-    <WidgetLibrary
-      preset={preset}
-      allWidgets={WIDGETS}
-      widgetPreviews={widgetPreviews}
-    />
+    <DetailDrawerProvider>
+      <WidgetLibrary
+        preset={preset}
+        allWidgets={WIDGETS}
+        widgetPreviews={widgetPreviews}
+      />
+    </DetailDrawerProvider>
   )
 }
