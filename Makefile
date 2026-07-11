@@ -79,6 +79,10 @@ lint-fix: ## Lint and auto-fix
 test: ## Run the test suite
 	$(N) npm test
 
+.PHONY: e2e
+e2e: ## Run the Playwright smoke test (app must be reachable on :3000)
+	$(N) npm run test:e2e
+
 .PHONY: check
 check: ## Run the same gates CI enforces (lint, types, schema, build)
 	$(N) npm run lint -- --max-warnings 0
