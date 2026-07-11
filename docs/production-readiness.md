@@ -9,7 +9,7 @@ Tracks #59. The README WIP banner stays until every item is **Done**.
 | Secrets management (no plaintext) | Partial | Connection/provider configs encrypted at rest (AES-256-GCM, see [encryption.md](encryption.md)). Env secrets via the environment, never committed; CI secret scan enforces this. |
 | Application healthcheck | Done | `GET /api/health` pings the DB; 200 `{status:"ok"}` / 503 on failure. |
 | Logging policy (zero PII / secrets) | Done (policy) | See below. |
-| Security headers review | Done (baseline) | See below; strict CSP still pending. |
+| Security headers review | Done | Baseline headers plus enforcing strict CSP with per-request nonces; see below. |
 
 ## Logging policy (zero PII / secrets)
 
@@ -27,11 +27,11 @@ Baseline headers are applied to every response in `next.config.ts`:
 `Permissions-Policy` (camera/mic/geolocation disabled), and
 `Strict-Transport-Security` (2y, includeSubDomains, preload).
 
-Pending: a strict `Content-Security-Policy`. The App Router needs per-request
-nonces for inline scripts/styles, so it is tracked as a follow-up rather than
-shipped loose.
+A strict `Content-Security-Policy` is enforced by `src/middleware.ts`:
+per-request nonce with `strict-dynamic` for scripts, `'self'` defaults,
+`frame-ancestors 'none'`. Styles allow `'unsafe-inline'` (Tailwind and chart
+libraries); the directive string is built by `src/lib/csp.ts`.
 
 ## Remaining before removing the WIP banner
 
 - Squashed migration baseline (optional).
-- Strict CSP with nonces.
