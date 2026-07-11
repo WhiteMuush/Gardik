@@ -90,11 +90,61 @@ jobs:
       - name: Build
         run: npm run build
 
+  e2e:
+    name: E2E smoke
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: datashield
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ci -d datashield"
+          --health-interval 3s
+          --health-timeout 3s
+          --health-retries 20
+    env:
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/datashield
+      AUTH_SECRET: ci-placeholder-auth-secret
+      AUTH_URL: http://localhost:3000
+      DIRECTORY_ENCRYPTION_KEY: ci-placeholder-encryption-key-32-chars-minimum
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v6
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Apply migrations
+        run: npx prisma migrate deploy
+
+      - name: Seed admin account
+        run: npx tsx prisma/seed.ts
+
+      - name: Build
+        run: npm run build
+
+      - name: Install chromium
+        run: npx playwright install --with-deps chromium
+
+      - name: Smoke test
+        run: npx playwright test
+
   # Aggregate gate required by the main branch protection rule.
-  # Reports the "ci" status check, green only when quality and build pass.
+  # Reports the "ci" status check, green only when all gates pass.
   ci:
     name: ci
     runs-on: ubuntu-latest
-    needs: [quality, test, build]
+    needs: [quality, test, build, e2e]
     steps:
-      - run: echo "Quality, test and build gates passed."
+      - run: echo "Quality, test, build and e2e gates passed."

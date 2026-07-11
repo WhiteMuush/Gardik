@@ -26,6 +26,7 @@
     "lint:fix": "eslint . --fix",
     "test": "vitest run",
     "test:watch": "vitest",
+    "test:e2e": "playwright test",
     "seed": "dotenv -e .env.local -- tsx prisma/seed.ts",
     "db:up": "docker compose up -d db",
     "db:down": "docker compose down",
@@ -66,6 +67,7 @@
   },
   "devDependencies": {
     "@eslint/eslintrc": "^3.3.5",
+    "@playwright/test": "^1.61.1",
     "@tailwindcss/container-queries": "^0.1.1",
     "@types/bcryptjs": "^3.0.0",
     "@types/node": "^26.1.0",

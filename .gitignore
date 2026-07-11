@@ -17,6 +17,10 @@ next-env.d.ts
 # database dumps (contain PII, never commit)
 backups/
 
+# playwright
+playwright-report/
+test-results/
+
 # private
 ROADMAP.md
 prisma/seed.dev.ts
