@@ -131,6 +131,9 @@ jobs:
       - name: Seed admin account
         run: npx tsx prisma/seed.ts
 
+      - name: Seed e2e fixtures
+        run: npx tsx e2e/seed.ts
+
       - name: Build
         run: npm run build
 
