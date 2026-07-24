@@ -709,6 +709,7 @@ export function TwoFactorSetup({ enabled }: { enabled: boolean }) {
         </div>
       ) : (
         <div className="space-y-3">
+          {/* eslint-disable-next-line @next/next/no-img-element -- QR is a local data URI, next/image adds nothing */}
           <img src={qr} alt="Scan with your authenticator app" className="h-40 w-40" />
           <div className="text-xs">
             <p className="font-medium">Backup codes (save these once):</p>
@@ -799,9 +800,8 @@ beforeEach(() => {
 
 describe("PATCH /api/company/auth-policy", () => {
   it("rejects an unknown method", async () => {
-    const res = await patch({ allowedAuthMethods: ["SMS"] }) as Request
-    const out = await PATCH(res)
-    expect(out.status).toBe(400)
+    const res = await PATCH(patch({ allowedAuthMethods: ["SMS"] }))
+    expect(res.status).toBe(400)
     expect(update).not.toHaveBeenCalled()
   })
 
