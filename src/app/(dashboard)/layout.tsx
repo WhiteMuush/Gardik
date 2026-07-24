@@ -3,7 +3,6 @@ import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { DashboardShell } from "@/components/layout/DashboardShell"
 import { RoutePrefetcher } from "@/components/layout/RoutePrefetcher"
-import { Providers } from "@/components/providers"
 import { getOpenAlertCount } from "@/lib/alerts"
 
 export default async function DashboardLayout({
@@ -26,11 +25,11 @@ export default async function DashboardLayout({
   const openAlerts = await getOpenAlertCount(session.user.companyId)
 
   return (
-    <Providers>
+    <>
       <RoutePrefetcher />
       <DashboardShell openAlerts={openAlerts}>
         {children}
       </DashboardShell>
-    </Providers>
+    </>
   )
 }
