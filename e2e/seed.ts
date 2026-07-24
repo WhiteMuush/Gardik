@@ -1,11 +1,16 @@
 import { PrismaClient } from "@prisma/client"
 import { PrismaPg } from "@prisma/adapter-pg"
+import bcrypt from "bcryptjs"
 
 // E2E fixture: one employee so a fresh instance counts as set up
-// (the dashboard redirects empty workspaces to /setup). Run after
-// prisma/seed.ts; used by the CI e2e job only.
+// (the dashboard redirects empty workspaces to /setup), plus a dedicated
+// user the two-factor spec enrolls so the admin stays password-only.
+// Run after prisma/seed.ts; used by the CI e2e job only.
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! })
 const prisma = new PrismaClient({ adapter })
+
+const MFA_EMAIL = "mfa@datashield.local"
+const MFA_PASSWORD = "ChangeMe123!"
 
 async function main() {
   const company = await prisma.company.findUniqueOrThrow({
@@ -26,6 +31,28 @@ async function main() {
     },
   })
 
+  const mfaUser = await prisma.user.upsert({
+    where: { email: MFA_EMAIL },
+    update: {},
+    create: { email: MFA_EMAIL, name: "MFA Tester", role: "ADMIN", companyId: company.id },
+  })
+
+  const hashedPassword = await bcrypt.hash(MFA_PASSWORD, 12)
+  const cred = await prisma.account.findFirst({
+    where: { userId: mfaUser.id, providerId: "credential" },
+  })
+  if (cred) {
+    await prisma.account.update({ where: { id: cred.id }, data: { password: hashedPassword } })
+  } else {
+    await prisma.account.create({
+      data: {
+        accountId: mfaUser.id,
+        providerId: "credential",
+        userId: mfaUser.id,
+        password: hashedPassword,
+      },
+    })
+  }
 }
 
 main()
