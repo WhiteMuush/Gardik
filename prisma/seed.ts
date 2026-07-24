@@ -17,16 +17,34 @@ async function main() {
 
   const hashedPassword = await bcrypt.hash(password, 12)
 
-  await prisma.user.upsert({
+  const user = await prisma.user.upsert({
     where: { email },
     update: {},
     create: {
       email,
-      hashedPassword,
       role: "ADMIN",
       companyId: company.id,
     },
   })
+
+  const credentialAccount = await prisma.account.findFirst({
+    where: { userId: user.id, providerId: "credential" },
+  })
+  if (credentialAccount) {
+    await prisma.account.update({
+      where: { id: credentialAccount.id },
+      data: { password: hashedPassword },
+    })
+  } else {
+    await prisma.account.create({
+      data: {
+        accountId: user.id,
+        providerId: "credential",
+        userId: user.id,
+        password: hashedPassword,
+      },
+    })
+  }
 
   console.log(`Seed complete: ${email} (change the password after first login)`)
 }

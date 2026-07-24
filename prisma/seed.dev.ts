@@ -16,11 +16,29 @@ async function main() {
   })
 
   const hashedPassword = await bcrypt.hash(adminPassword, 12)
-  await prisma.user.upsert({
+  const adminUser = await prisma.user.upsert({
     where: { email: adminEmail },
     update: {},
-    create: { email: adminEmail, hashedPassword, role: "ADMIN", companyId: company.id },
+    create: { email: adminEmail, role: "ADMIN", companyId: company.id },
   })
+  const adminCredential = await prisma.account.findFirst({
+    where: { userId: adminUser.id, providerId: "credential" },
+  })
+  if (adminCredential) {
+    await prisma.account.update({
+      where: { id: adminCredential.id },
+      data: { password: hashedPassword },
+    })
+  } else {
+    await prisma.account.create({
+      data: {
+        accountId: adminUser.id,
+        providerId: "credential",
+        userId: adminUser.id,
+        password: hashedPassword,
+      },
+    })
+  }
 
   // ─── BREACHES ──────────────────────────────────────────────────────────────
   const breachData = [

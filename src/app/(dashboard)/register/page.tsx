@@ -1,9 +1,9 @@
-import { auth } from "@/auth"
+import { getSession } from "@/lib/auth/session"
 import { listRegister } from "@/lib/register"
 import { ExposureRegister } from "@/components/register/ExposureRegister"
 
 export default async function RegisterPage() {
-  const session = await auth()
+  const session = await getSession()
   const isAdmin = session!.user.role === "ADMIN"
   const entries = await listRegister(session!.user.companyId)
 

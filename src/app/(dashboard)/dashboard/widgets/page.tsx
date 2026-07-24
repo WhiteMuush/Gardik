@@ -1,4 +1,4 @@
-import { auth } from "@/auth"
+import { getSession } from "@/lib/auth/session"
 import { getDashboardData } from "@/lib/dashboard"
 import { prisma } from "@/lib/prisma"
 import { WIDGETS } from "@/lib/widgetRegistry"
@@ -28,7 +28,7 @@ import type { ReactNode } from "react"
 import { redirect } from "next/navigation"
 
 export default async function WidgetsPage() {
-  const session = await auth()
+  const session = await getSession()
 
   const [data, presets, user] = await Promise.all([
     getDashboardData(session!.user.companyId),

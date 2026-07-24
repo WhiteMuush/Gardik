@@ -1,33 +1,60 @@
 "use client"
 
 import { useState } from "react"
-import { signIn } from "next-auth/react"
 import { useRouter } from "next/navigation"
+import { signIn, twoFactor } from "@/lib/auth/client"
 import { Button } from "@/components/ui/button"
 
 export default function LoginPage() {
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [needsTotp, setNeedsTotp] = useState(false)
   const router = useRouter()
 
-  async function handleSubmit(e: React.FormEvent<HTMLFormElement>) {
+  async function handlePassword(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
     setLoading(true)
     setError(null)
 
     const form = new FormData(e.currentTarget)
-    const result = await signIn("credentials", {
-      email: form.get("email"),
-      password: form.get("password"),
-      redirect: false,
+    const { data, error } = await signIn.email({
+      email: String(form.get("email")),
+      password: String(form.get("password")),
     })
 
-    if (result?.error) {
+    setLoading(false)
+
+    if (error) {
       setError("Invalid email or password")
-      setLoading(false)
-    } else {
-      router.push("/dashboard")
+      return
     }
+
+    if (data && "twoFactorRedirect" in data && data.twoFactorRedirect) {
+      setNeedsTotp(true)
+      return
+    }
+
+    router.push("/dashboard")
+  }
+
+  async function handleTotp(e: React.FormEvent<HTMLFormElement>) {
+    e.preventDefault()
+    setLoading(true)
+    setError(null)
+
+    const form = new FormData(e.currentTarget)
+    const { error } = await twoFactor.verifyTotp({
+      code: String(form.get("code")),
+    })
+
+    setLoading(false)
+
+    if (error) {
+      setError("Invalid code")
+      return
+    }
+
+    router.push("/dashboard")
   }
 
   return (
@@ -39,61 +66,99 @@ export default function LoginPage() {
               DataShield
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
-              Sign in to your workspace
+              {needsTotp
+                ? "Enter your two-factor code"
+                : "Sign in to your workspace"}
             </p>
           </div>
         </div>
 
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div className="space-y-1.5">
-            <label
-              htmlFor="email"
-              className="block text-sm font-medium text-foreground"
+        {needsTotp ? (
+          <form onSubmit={handleTotp} className="space-y-4">
+            <div className="space-y-1.5">
+              <label
+                htmlFor="code"
+                className="block text-sm font-medium text-foreground"
+              >
+                Authentication code
+              </label>
+              <input
+                id="code"
+                name="code"
+                type="text"
+                inputMode="numeric"
+                required
+                autoComplete="one-time-code"
+                placeholder="123456"
+                className="w-full rounded-lg border border-input bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors"
+              />
+            </div>
+
+            {error && (
+              <p className="text-sm text-destructive">{error}</p>
+            )}
+
+            <Button
+              type="submit"
+              disabled={loading}
+              className="w-full"
+              size="lg"
             >
-              Email
-            </label>
-            <input
-              id="email"
-              name="email"
-              type="email"
-              required
-              autoComplete="email"
-              placeholder="you@company.com"
-              className="w-full rounded-lg border border-input bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors"
-            />
-          </div>
+              {loading ? "Verifying..." : "Verify"}
+            </Button>
+          </form>
+        ) : (
+          <form onSubmit={handlePassword} className="space-y-4">
+            <div className="space-y-1.5">
+              <label
+                htmlFor="email"
+                className="block text-sm font-medium text-foreground"
+              >
+                Email
+              </label>
+              <input
+                id="email"
+                name="email"
+                type="email"
+                required
+                autoComplete="email"
+                placeholder="you@company.com"
+                className="w-full rounded-lg border border-input bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors"
+              />
+            </div>
 
-          <div className="space-y-1.5">
-            <label
-              htmlFor="password"
-              className="block text-sm font-medium text-foreground"
+            <div className="space-y-1.5">
+              <label
+                htmlFor="password"
+                className="block text-sm font-medium text-foreground"
+              >
+                Password
+              </label>
+              <input
+                id="password"
+                name="password"
+                type="password"
+                required
+                autoComplete="current-password"
+                placeholder="********"
+                className="w-full rounded-lg border border-input bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors"
+              />
+            </div>
+
+            {error && (
+              <p className="text-sm text-destructive">{error}</p>
+            )}
+
+            <Button
+              type="submit"
+              disabled={loading}
+              className="w-full"
+              size="lg"
             >
-              Password
-            </label>
-            <input
-              id="password"
-              name="password"
-              type="password"
-              required
-              autoComplete="current-password"
-              placeholder="••••••••"
-              className="w-full rounded-lg border border-input bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors"
-            />
-          </div>
-
-          {error && (
-            <p className="text-sm text-destructive">{error}</p>
-          )}
-
-          <Button
-            type="submit"
-            disabled={loading}
-            className="w-full"
-            size="lg"
-          >
-            {loading ? "Signing in…" : "Sign in"}
-          </Button>
-        </form>
+              {loading ? "Signing in..." : "Sign in"}
+            </Button>
+          </form>
+        )}
       </div>
     </div>
   )

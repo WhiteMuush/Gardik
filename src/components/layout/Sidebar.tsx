@@ -2,8 +2,8 @@
 
 import type { ReactNode } from "react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { signOut } from "next-auth/react"
+import { usePathname, useRouter } from "next/navigation"
+import { signOut } from "@/lib/auth/client"
 import { cn } from "@/lib/utils"
 import {
   LayoutDashboard,
@@ -48,6 +48,7 @@ interface SidebarProps {
 
 export function Sidebar({ openAlerts }: SidebarProps) {
   const pathname = usePathname()
+  const router = useRouter()
 
   return (
     <aside className="fixed inset-y-0 left-0 z-40 flex h-screen w-16 flex-col">
@@ -99,7 +100,11 @@ export function Sidebar({ openAlerts }: SidebarProps) {
           className="absolute inset-x-2 top-0 z-30 border-t border-sidebar-border"
         />
         <button
-          onClick={() => signOut({ callbackUrl: "/login" })}
+          onClick={() =>
+            signOut({
+              fetchOptions: { onSuccess: () => router.push("/login") },
+            })
+          }
           className="group/item relative flex w-full"
         >
           <span className="relative z-30 flex w-full items-center justify-center rounded-md py-2.5 text-sidebar-foreground/60 transition-colors group-hover/item:bg-sidebar-accent/50 group-hover/item:text-sidebar-foreground">

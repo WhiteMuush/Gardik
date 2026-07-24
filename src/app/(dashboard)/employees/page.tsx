@@ -1,10 +1,10 @@
-import { auth } from "@/auth"
+import { getSession } from "@/lib/auth/session"
 import { getEmployees } from "@/lib/employees"
 import { EmployeeTable } from "@/components/employees/EmployeeTable"
 import { ScanButton } from "@/components/employees/ScanButton"
 
 export default async function EmployeesPage() {
-  const session = await auth()
+  const session = await getSession()
   const employees = await getEmployees(session!.user.companyId)
 
   return (

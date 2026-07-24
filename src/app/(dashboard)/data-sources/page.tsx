@@ -1,4 +1,4 @@
-import { auth } from "@/auth"
+import { getSession } from "@/lib/auth/session"
 import { prisma } from "@/lib/prisma"
 import { DirectoryConnections } from "@/components/settings/DirectoryConnections"
 import { RemediationSettings } from "@/components/settings/RemediationSettings"
@@ -6,7 +6,7 @@ import { SiemExport } from "@/components/settings/SiemExport"
 import { SetupGuides } from "@/components/settings/SetupGuides"
 
 export default async function SettingsPage() {
-  const session = await auth()
+  const session = await getSession()
   const isAdmin = session!.user.role === "ADMIN"
   const companyId = session!.user.companyId
 
