@@ -29,6 +29,12 @@ describe("PATCH /api/company/auth-policy", () => {
     expect(update).not.toHaveBeenCalled()
   })
 
+  it("rejects an empty allowedAuthMethods list", async () => {
+    const res = await PATCH(patch({ allowedAuthMethods: [] }))
+    expect(res.status).toBe(400)
+    expect(update).not.toHaveBeenCalled()
+  })
+
   it("updates the policy scoped to the caller's company", async () => {
     const out = await PATCH(patch({ require2fa: true, allowedAuthMethods: ["TOTP"] }))
     expect(out.status).toBe(200)
