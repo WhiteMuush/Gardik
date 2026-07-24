@@ -19,6 +19,9 @@ export async function PATCH(req: Request) {
   if (typeof body.require2fa === "boolean") data.require2fa = body.require2fa
 
   if (body.allowedAuthMethods) {
+    if (body.allowedAuthMethods.length === 0) {
+      return NextResponse.json({ error: "At least one method required" }, { status: 400 })
+    }
     if (!body.allowedAuthMethods.every((m) => METHODS.has(m))) {
       return NextResponse.json({ error: "Unknown method" }, { status: 400 })
     }
