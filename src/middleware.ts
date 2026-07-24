@@ -1,11 +1,16 @@
-import NextAuth from "next-auth"
-import { NextResponse } from "next/server"
-import { authConfig } from "@/auth.config"
+import { NextResponse, type NextRequest } from "next/server"
+import { getSessionCookie } from "better-auth/cookies"
 import { buildCsp } from "@/lib/csp"
 
-const { auth } = NextAuth(authConfig)
+export default function middleware(req: NextRequest) {
+  const path = req.nextUrl.pathname
+  const isLogin = path === "/login" || path.startsWith("/login/")
+  const hasSession = getSessionCookie(req) !== null
 
-export default auth((req) => {
+  if (!hasSession && !isLogin) {
+    return NextResponse.redirect(new URL("/login", req.url))
+  }
+
   const nonce = btoa(crypto.randomUUID())
   const csp = buildCsp(nonce, process.env.NODE_ENV === "development")
 
@@ -18,7 +23,7 @@ export default auth((req) => {
   const res = NextResponse.next({ request: { headers: requestHeaders } })
   res.headers.set("Content-Security-Policy", csp)
   return res
-})
+}
 
 export const config = {
   matcher: ["/((?!api|_next/static|_next/image|favicon.ico|fonts|.*\\..*).*)"],
