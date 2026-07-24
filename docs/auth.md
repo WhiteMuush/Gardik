@@ -1,30 +1,42 @@
-# Auth.js (next-auth v5 beta) dependency choice
+# Better Auth
 
-Authentication uses Auth.js `next-auth@5.0.0-beta.31`, pinned to the exact
-version (no `^` range).
+Authentication uses [Better Auth](https://www.better-auth.com/), backed by
+the project's Prisma/PostgreSQL database.
 
-## Why a beta
+## Why Better Auth
 
-- v5 is the App Router-native line. The stable v4 targets the Pages Router
-  era and is in maintenance; this project is App Router only.
-- The v5 beta is widely deployed in production across the ecosystem and has
-  been the documented default for new App Router projects for a long time.
+- Sessions are database-backed: each sign-in creates a row in the `Session`
+  table, so sessions can be listed, revoked, and audited server-side instead
+  of relying only on a signed cookie.
+- TOTP two-factor authentication is available per company via the `twoFactor`
+  plugin, without a separate auth provider integration.
+- Native App Router support (`nextCookies` plugin) keeps cookie handling
+  correct for server actions and route handlers.
 
-## Risk and mitigation
+## Configuration
 
-The real risk of a beta is a breaking change landing between beta releases
-through an unreviewed dependency bump. Mitigations:
+Set these in `.env.local` (see `.env.example`):
 
-- The version is pinned exactly. Dependabot still opens update PRs, but each
-  one changes the pin explicitly and gets reviewed; nothing moves silently.
-- Auth flows are exercised by the seeded admin login during manual checks.
+- `BETTER_AUTH_SECRET`: session/token signing secret. Generate with
+  `openssl rand -base64 32`.
+- `BETTER_AUTH_URL`: base URL of the app. Defaults to `http://localhost:3000`.
 
-## Migration plan to stable
+## Password hashing
 
-When v5 stable ships:
+Passwords are hashed and verified with `bcryptjs` (already used elsewhere in
+this project), configured explicitly on the `emailAndPassword.password`
+option in `src/lib/auth/server.ts`, rather than Better Auth's default
+hashing algorithm.
 
-1. Read the official migration notes for changes since the pinned beta.
-2. Bump the pin to the stable version in a dedicated PR.
-3. Verify login, session handling, and the middleware matcher still behave.
-4. After one stable release cycle without issues, a caret range may be
-   restored; keeping the exact pin is also fine.
+## Two-factor authentication
+
+The `twoFactor` plugin enables TOTP-based two-factor authentication.
+Enrollment is per user; companies can require it for their members as part
+of their auth policy.
+
+## Migration note
+
+This project previously used `next-auth` (Auth.js) v5 beta. The migration to
+Better Auth replaces `AUTH_SECRET` / `AUTH_URL` with `BETTER_AUTH_SECRET` /
+`BETTER_AUTH_URL` and moves session storage into the application database via
+Prisma.

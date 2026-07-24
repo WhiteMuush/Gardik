@@ -1,4 +1,4 @@
-import { auth } from "@/auth"
+import { getSession } from "@/lib/auth/session"
 import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server"
 import type { SavedDashboardConfig } from "@/types/dashboard"
@@ -13,7 +13,7 @@ async function getPresetAndCheck(id: string, userId: string, role: string, compa
 }
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const session = await auth()
+  const session = await getSession()
   if (!session?.user?.id) return NextResponse.json(null, { status: 401 })
 
   const { id } = await params
@@ -35,7 +35,7 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
 }
 
 export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const session = await auth()
+  const session = await getSession()
   if (!session?.user?.id) return NextResponse.json(null, { status: 401 })
 
   const { id } = await params

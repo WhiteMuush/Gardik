@@ -1,26 +1,47 @@
 import { NextResponse } from "next/server"
-import type { Session } from "next-auth"
-import { auth } from "@/auth"
+import { getSession } from "@/lib/auth/session"
+import { prisma } from "@/lib/prisma"
 
 // Single source of truth for API route authorization.
 // Role model: ADMIN configures the workspace (API keys, directory
 // connections, webhooks); VIEWER operates (reads data, runs scans,
 // triages alerts). Callers do `const { session, error } = await requireX()`
 // and return `error` when present.
-type Guard = { session: Session; error: null } | { session: null; error: NextResponse }
+type AuthResult = NonNullable<Awaited<ReturnType<typeof getSession>>>
+type Guard = { session: AuthResult; error: null } | { session: null; error: NextResponse }
 
 const unauthorized = () => NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 const forbidden = () => NextResponse.json({ error: "Admin only" }, { status: 403 })
+const twoFactorRequired = () =>
+  NextResponse.json({ error: "Two-factor enrollment required" }, { status: 403 })
+
+// A company can force 2FA. The dashboard layout redirects un-enrolled users to
+// /setup, but that only guards pages, so mirror the policy here to keep the API
+// behind the same gate. The enrollment endpoints live under /api/auth and are
+// not routed through this guard, so a forced user can still enroll. Only enrolled
+// users skip the extra query, so the common path stays a single round-trip.
+async function enforce2fa(session: AuthResult): Promise<NextResponse | null> {
+  if (session.user.twoFactorEnabled) return null
+  const company = await prisma.company.findUnique({
+    where: { id: session.user.companyId },
+    select: { require2fa: true },
+  })
+  return company?.require2fa ? twoFactorRequired() : null
+}
 
 export async function requireAuth(): Promise<Guard> {
-  const session = await auth()
+  const session = await getSession()
   if (!session) return { session: null, error: unauthorized() }
+  const gate = await enforce2fa(session)
+  if (gate) return { session: null, error: gate }
   return { session, error: null }
 }
 
 export async function requireAdmin(): Promise<Guard> {
-  const session = await auth()
+  const session = await getSession()
   if (!session) return { session: null, error: unauthorized() }
   if (session.user.role !== "ADMIN") return { session: null, error: forbidden() }
+  const gate = await enforce2fa(session)
+  if (gate) return { session: null, error: gate }
   return { session, error: null }
 }
