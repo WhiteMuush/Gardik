@@ -1,9 +1,9 @@
-import { auth } from "@/auth"
+import { getSession } from "@/lib/auth/session"
 import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server"
 
 export async function PATCH(_req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const session = await auth()
+  const session = await getSession()
   if (!session?.user?.id) return NextResponse.json(null, { status: 401 })
 
   const { id } = await params

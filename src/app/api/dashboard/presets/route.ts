@@ -1,10 +1,10 @@
-import { auth } from "@/auth"
+import { getSession } from "@/lib/auth/session"
 import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server"
 import type { SavedDashboardConfig } from "@/types/dashboard"
 
 export async function GET() {
-  const session = await auth()
+  const session = await getSession()
   if (!session?.user?.id) return NextResponse.json(null, { status: 401 })
 
   const [presets, user] = await Promise.all([
@@ -27,7 +27,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const session = await auth()
+  const session = await getSession()
   if (!session?.user?.id) return NextResponse.json(null, { status: 401 })
 
   const body: { name: string; scope?: "PERSONAL" | "COMPANY"; layout?: SavedDashboardConfig["layout"]; widgets?: SavedDashboardConfig["widgets"] } = await req.json()

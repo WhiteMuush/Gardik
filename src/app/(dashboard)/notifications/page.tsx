@@ -1,11 +1,11 @@
-import { auth } from "@/auth"
+import { getSession } from "@/lib/auth/session"
 import { prisma } from "@/lib/prisma"
 import { Webhooks } from "@/components/credentials/Webhooks"
 import { ReportSchedules } from "@/components/reports/ReportSchedules"
 import { listWebhooks } from "@/lib/webhooks"
 
 export default async function NotificationsPage() {
-  const session = await auth()
+  const session = await getSession()
   const isAdmin = session!.user.role === "ADMIN"
 
   const webhooks = await listWebhooks(session!.user.companyId)

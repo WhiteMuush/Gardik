@@ -1,4 +1,4 @@
-import { auth } from "@/auth"
+import { getSession } from "@/lib/auth/session"
 import { prisma } from "@/lib/prisma"
 import { getReportData } from "@/lib/reports"
 import { parseReportFilters, filtersToQuery } from "@/lib/reports/filters"
@@ -21,7 +21,7 @@ function formatGeneratedAt(iso: string): string {
 type SearchParams = Record<string, string | string[] | undefined>
 
 export default async function ReportsPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
-  const session = await auth()
+  const session = await getSession()
   const companyId = session!.user.companyId
 
   const sp = await searchParams

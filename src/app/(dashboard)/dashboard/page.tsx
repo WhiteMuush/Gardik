@@ -1,4 +1,4 @@
-import { auth } from "@/auth"
+import { getSession } from "@/lib/auth/session"
 import { getDashboardData, buildTrendData, buildBreachSources, buildDataTypes } from "@/lib/dashboard"
 import { providerMeta } from "@/lib/credentials/providers"
 import { prisma } from "@/lib/prisma"
@@ -28,7 +28,7 @@ import { redirect } from "next/navigation"
 import type { DashboardPreset } from "@/types/dashboard"
 
 export default async function DashboardPage() {
-  const session = await auth()
+  const session = await getSession()
 
   const [employeeCount, apiKeyCount] = await Promise.all([
     prisma.employee.count({ where: { companyId: session!.user.companyId } }),
