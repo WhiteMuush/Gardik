@@ -37,6 +37,7 @@
     "postinstall": "prisma generate",
     "prepare": "sh .githooks/install.sh",
     "seed:dev": "dotenv -e .env.local -- tsx prisma/seed.dev.ts",
+    "seed:2fa": "dotenv -e .env.local -- tsx prisma/seed.2fa.ts",
     "reencrypt:directory": "dotenv -e .env.local -- tsx scripts/reencrypt-directory-configs.ts"
   },
   "dependencies": {
