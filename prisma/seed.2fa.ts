@@ -48,7 +48,7 @@ async function main() {
 
   // Already enrolled? Nothing to do; the secret is not recoverable after enroll.
   if ((await prisma.twoFactor.count({ where: { userId: user.id } })) > 0) {
-    console.log(`✓ ${email} already has 2FA. Delete its TwoFactor row to re-enroll.`)
+    console.log(`OK ${email} already has 2FA. Delete its TwoFactor row to re-enroll.`)
     return
   }
 
@@ -88,7 +88,7 @@ async function main() {
   })
   if (!verifyRes.ok) throw new Error(`verify failed: ${verifyRes.status} ${await verifyRes.text()}`)
 
-  console.log("\n✓ 2FA enrolled")
+  console.log("\n2FA enrolled")
   console.log(`  user:        ${email} / ${password}`)
   console.log(`  TOTP secret: ${secret}`)
   console.log(`  otpauth URI: ${totpURI}`)
