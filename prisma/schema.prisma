@@ -35,6 +35,9 @@ model Company {
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
 
+  require2fa         Boolean      @default(false)
+  allowedAuthMethods AuthMethod[] @default([TOTP])
+
   users                User[]
   employees            Employee[]
   alerts               Alert[]
@@ -216,10 +219,14 @@ enum ApiProvider {
 model User {
   id             String   @id @default(cuid())
   email          String   @unique
-  hashedPassword String
+  emailVerified  Boolean  @default(false)
+  name           String   @default("")
+  image          String?
   role           Role     @default(VIEWER)
   companyId      String
+  twoFactorEnabled Boolean @default(false)
   createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
 
   activePresetId  String?
 
@@ -227,6 +234,61 @@ model User {
   dashboardConfig  DashboardConfig?
   dashboardPresets DashboardPreset[] @relation("UserPresets")
   activePreset     DashboardPreset?  @relation("ActivePreset", fields: [activePresetId], references: [id], onDelete: SetNull)
+  sessions         Session[]
+  accounts         Account[]
+  twoFactor        TwoFactor[]
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  expiresAt DateTime
+  token     String   @unique
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Account {
+  id                    String    @id @default(cuid())
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+}
+
+model Verification {
+  id         String   @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model TwoFactor {
+  id          String @id @default(cuid())
+  secret      String
+  backupCodes String
+  userId      String
+  user        User   @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+enum AuthMethod {
+  TOTP
+  EMAIL_OTP
+  PASSKEY
 }
 
 model DashboardConfig {
