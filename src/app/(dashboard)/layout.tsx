@@ -1,5 +1,6 @@
 import { getSession } from "@/lib/auth/session"
 import { redirect } from "next/navigation"
+import { headers } from "next/headers"
 import { prisma } from "@/lib/prisma"
 import { DashboardShell } from "@/components/layout/DashboardShell"
 import { RoutePrefetcher } from "@/components/layout/RoutePrefetcher"
@@ -18,9 +19,16 @@ export default async function DashboardLayout({
   // dashboard page; force a re-auth instead.
   const company = await prisma.company.findUnique({
     where: { id: session.user.companyId },
-    select: { id: true },
+    select: { id: true, require2fa: true },
   })
   if (!company) redirect("/login")
+
+  // Companies can force 2FA enrollment. Route to /setup so the user can
+  // enroll, but skip this when already on /setup to avoid a redirect loop.
+  const pathname = (await headers()).get("x-pathname") ?? ""
+  if (company.require2fa && !session.user.twoFactorEnabled && !pathname.startsWith("/setup")) {
+    redirect("/setup?enroll=2fa")
+  }
 
   const openAlerts = await getOpenAlertCount(session.user.companyId)
 
