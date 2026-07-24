@@ -1,4 +1,4 @@
-import { auth } from "@/auth"
+import { getSession } from "@/lib/auth/session"
 import { redirect } from "next/navigation"
 import { prisma } from "@/lib/prisma"
 import { DashboardShell } from "@/components/layout/DashboardShell"
@@ -11,7 +11,7 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode
 }) {
-  const session = await auth()
+  const session = await getSession()
   if (!session) redirect("/login")
 
   // A session can outlive its company row (DB reseed, deleted tenant). Without

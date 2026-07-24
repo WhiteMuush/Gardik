@@ -1,10 +1,10 @@
 import { redirect } from "next/navigation"
-import { auth } from "@/auth"
+import { getSession } from "@/lib/auth/session"
 import { prisma } from "@/lib/prisma"
 import { SetupChecklist } from "@/components/dashboard/SetupChecklist"
 
 export default async function SetupPage() {
-  const session = await auth()
+  const session = await getSession()
   const companyId = session!.user.companyId
 
   const [employeeCount, apiKeyCount] = await Promise.all([
