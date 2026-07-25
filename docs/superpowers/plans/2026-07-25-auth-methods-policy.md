@@ -23,15 +23,25 @@ Block enrolling a method the company has not allowed, server-side.
 - Validate live: exclude TOTP -> enable returns 403; include TOTP -> works.
 - Commit: `feat: enforce allowedAuthMethods on enrollment`.
 
-## Phase B: EMAIL_OTP
+## Phase B: EMAIL_OTP (second factor, alongside TOTP)
 
-- Add `emailOTP` server plugin wired to `src/lib/email.ts`
-  (`sendVerificationOTP`); dev fallback logs the code when `emailEnabled()` is
-  false. Extend the before-hook map with the email-otp send path.
-- Add `emailOTPClient` to `src/lib/auth/client.ts`; login UI gains an
-  email-code path, offered only when `EMAIL_OTP` is allowed.
-- Test the challenge end to end.
-- Commit(s): plugin, client+UI, tests.
+Decision (2026-07-25): EMAIL_OTP is a SECOND factor, an alternative to TOTP,
+not a passwordless primary login. Implemented via the `twoFactor` plugin's OTP
+sub-mode (`otpOptions.sendOTP`), NOT the standalone `emailOTP` plugin. This
+matches `require2fa`, the `TwoFactorSetup` UI and the `AuthMethod` enum, where
+the three values read as factors.
+
+- Configure `otpOptions.sendOTP` on the existing `twoFactor()` in
+  `src/lib/auth/server.ts`, sending the code through `sendEmail` in
+  `src/lib/email.ts`; dev fallback logs the code when `emailEnabled()` is false.
+- Extend the before-hook map: `/two-factor/send-otp` -> `EMAIL_OTP`, so a
+  company that does not allow EMAIL_OTP gets a 403 when requesting a code.
+- Client already exposes `twoFactor.sendOtp` / `twoFactor.verifyOtp` via the
+  existing `twoFactorClient` (endpoints `/two-factor/send-otp`,
+  `/two-factor/verify-otp`). Login UI, after `twoFactorRedirect`, offers a
+  "code by email" path next to TOTP.
+- Test the challenge end to end (send + verify).
+- Commit(s): server otpOptions + hook, client+UI, tests.
 
 ## Phase C: PASSKEY
 
@@ -41,6 +51,33 @@ Block enrolling a method the company has not allowed, server-side.
   policy.
 - e2e via Playwright's CDP virtual authenticator.
 - Commit(s): deps, server+client, UI, e2e.
+
+## Phase D: OAuth social (external providers, kept under our control)
+
+Add "sign in with" providers on top of the in-house methods. The external
+provider only proves identity; the account still resolves to a `User` in our
+DB, keeping company link, roles and policy ours.
+
+- Wire `socialProviders` (Google / Microsoft / GitHub) in
+  `src/lib/auth/server.ts`; client buttons in the login UI.
+- Gate availability by `Company.allowedAuthMethods` (extend the enum/policy so
+  a social login counts as an allowed method per company).
+- Callback URLs + client id/secret via env; console/dev fallback documented.
+- Commit(s): server providers, client+UI, policy gating, tests.
+
+## Phase E: enterprise SSO (OIDC / SAML)
+
+Let a client company bring its own IdP (Azure AD / Okta). Heavier, B2B-only.
+
+- Add the SSO plugin (OIDC first, SAML if a client needs it); map the external
+  identity to our `User`, provisioning under the right company.
+- Per-company SSO config (issuer, client id/secret, allowed domains).
+- Policy: when a company mandates SSO, restrict its users to that path.
+- Commit(s): plugin, per-company config, provisioning, tests.
+
+Decision (2026-07-25): both D and E are in scope, implemented AFTER Phase B/C.
+Order stays B -> C -> D -> E. Identity always stays self-hosted (Montage 1);
+no external IdP owns the source of truth.
 
 ## Non-goals
 
