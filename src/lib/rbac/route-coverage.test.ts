@@ -26,4 +26,20 @@ describe("route->permission coverage", () => {
     }
     expect(missing, `Unregistered mutating routes: ${missing.join(", ")}`).toEqual([])
   })
+
+  it("every route mapped to a real permission actually enforces it with requirePermission", () => {
+    const files = new Map(routeFiles(API_DIR).map(({ key, file }) => [key, file]))
+    const unenforced: string[] = []
+    for (const [key, permission] of Object.entries(ROUTE_PERMISSIONS)) {
+      if (permission === "PUBLIC" || permission === "AUTH_ONLY") continue
+      const file = files.get(key)
+      if (!file) continue
+      const source = readFileSync(file, "utf8")
+      if (!source.includes(`requirePermission("${permission}")`)) unenforced.push(key)
+    }
+    expect(
+      unenforced,
+      `Routes mapped to a permission but not enforcing it via requirePermission(...): ${unenforced.join(", ")}`
+    ).toEqual([])
+  })
 })

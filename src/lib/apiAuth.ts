@@ -5,10 +5,12 @@ import { getUserPermissions, authorize } from "@/lib/rbac/authorize"
 import type { Permission } from "@/lib/rbac/permissions"
 
 // Single source of truth for API route authorization.
-// Role model: ADMIN configures the workspace (API keys, directory
-// connections, webhooks); VIEWER operates (reads data, runs scans,
-// triages alerts). Callers do `const { session, error } = await requireX()`
-// and return `error` when present.
+// Permission model: each route requires a specific Permission (see
+// lib/rbac/permissions.ts). `requirePermission(permission)` resolves the
+// caller's role permissions from the DB and checks the grant; `requireAuth`
+// only requires a valid session, for routes any authenticated user may hit.
+// Callers do `const { session, error } = await requireX()` and return
+// `error` when present.
 type AuthResult = NonNullable<Awaited<ReturnType<typeof getSession>>>
 type Guard = { session: AuthResult; error: null } | { session: null; error: NextResponse }
 
