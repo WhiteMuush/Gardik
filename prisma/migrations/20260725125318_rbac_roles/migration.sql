@@ -39,12 +39,12 @@ ALTER TABLE "Role" ADD CONSTRAINT "Role_companyId_fkey"
 -- held ADMIN or VIEWER.
 INSERT INTO "Role" ("id", "companyId", "name", "description", "permissions", "isSystem", "isAssignable", "createdAt", "updatedAt")
 SELECT 'role_admin_' || c."id", c."id", 'Administrator', 'Full access. Built-in, cannot be edited or deleted.',
-       ARRAY[]::TEXT[], true, true, now(), now()
+       ARRAY['alerts:read','alerts:assign','alerts:status','alerts:comment','alerts:close','alerts:remediate','employees:read','employees:manage','employees:scan','register:read','register:manage','register:evidence','dashboard:read','dashboard:customize','dashboard:manage_shared','reports:read','reports:export','reports:schedule','connectors:read','connectors:manage','connectors:sync','api_credentials:read','api_credentials:manage','notifications:read','notifications:manage','policy:read','policy:manage','sso:read','sso:config','sso:role_map','users:read','users:manage','roles:read','roles:manage','audit:read']::TEXT[], true, true, now(), now()
 FROM "Company" c;
 
 INSERT INTO "Role" ("id", "companyId", "name", "description", "permissions", "isSystem", "isAssignable", "createdAt", "updatedAt")
 SELECT 'role_viewer_' || c."id", c."id", 'Viewer', 'Read-only across the workspace.',
-       ARRAY[]::TEXT[], false, true, now(), now()
+       ARRAY['alerts:read','employees:read','register:read','dashboard:read','reports:read','connectors:read','api_credentials:read','notifications:read','policy:read','sso:read','users:read','roles:read','audit:read']::TEXT[], false, true, now(), now()
 FROM "Company" c;
 
 -- FK for User.roleId, now that every referenced Role row exists.
