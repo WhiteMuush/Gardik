@@ -1,12 +1,12 @@
 import { NextResponse } from "next/server"
-import { requireAdmin } from "@/lib/apiAuth"
+import { requirePermission } from "@/lib/apiAuth"
 import { prisma } from "@/lib/prisma"
 import { AuthMethod } from "@prisma/client"
 
 const METHODS = new Set<string>(Object.values(AuthMethod))
 
 export async function PATCH(req: Request) {
-  const { session, error } = await requireAdmin()
+  const { session, error } = await requirePermission("policy:manage")
   if (error) return error
 
   const body = (await req.json()) as {

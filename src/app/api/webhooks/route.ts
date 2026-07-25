@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { requireAuth, requireAdmin } from "@/lib/apiAuth"
+import { requireAuth, requirePermission } from "@/lib/apiAuth"
 import { prisma } from "@/lib/prisma"
 import { encryptConfig } from "@/lib/directory/crypto"
 import { listWebhooks, urlHint } from "@/lib/webhooks"
@@ -31,7 +31,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const { session, error } = await requireAdmin()
+  const { session, error } = await requirePermission("notifications:manage")
   if (error) return error
 
   const { label, url, channel, minSeverity } = (await req.json()) as {

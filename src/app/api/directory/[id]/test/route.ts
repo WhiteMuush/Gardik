@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { requireAdmin } from "@/lib/apiAuth"
+import { requirePermission } from "@/lib/apiAuth"
 import { prisma } from "@/lib/prisma"
 import { decryptConfig } from "@/lib/directory/crypto"
 import { testAzureConnection } from "@/lib/directory/azure"
@@ -13,7 +13,7 @@ export async function POST(
   _req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { session, error } = await requireAdmin()
+  const { session, error } = await requirePermission("connectors:sync")
   if (error) return error
 
   const { id } = await params

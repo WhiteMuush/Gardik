@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { requireAuth, requireAdmin } from "@/lib/apiAuth"
+import { requireAuth, requirePermission } from "@/lib/apiAuth"
 import { prisma } from "@/lib/prisma"
 import { listRegister } from "@/lib/register"
 import { mapToGdprCategories } from "@/lib/gdpr"
@@ -11,7 +11,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const { session, error } = await requireAdmin()
+  const { session, error } = await requirePermission("register:manage")
   if (error) return error
 
   const body = (await req.json()) as {

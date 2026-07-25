@@ -1,6 +1,7 @@
 import { redirect } from "next/navigation"
 import { getSession } from "@/lib/auth/session"
 import { prisma } from "@/lib/prisma"
+import { getUserPermissions, authorize } from "@/lib/rbac/authorize"
 import { SetupChecklist } from "@/components/dashboard/SetupChecklist"
 import { TwoFactorSetup } from "@/components/settings/TwoFactorSetup"
 import { PasskeySetup } from "@/components/settings/PasskeySetup"
@@ -17,7 +18,8 @@ export default async function SetupPage({
   const session = await getSession()
   const companyId = session!.user.companyId
   const twoFactorEnabled = session!.user.twoFactorEnabled ?? false
-  const isAdmin = session!.user.role === "ADMIN"
+  const perms = await getUserPermissions(prisma, session!.user.roleId ?? null)
+  const isAdmin = authorize(perms, "users:manage")
 
   const [employeeCount, apiKeyCount, company] = await Promise.all([
     prisma.employee.count({ where: { companyId } }),

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { requireAuth, requireAdmin } from "@/lib/apiAuth"
+import { requireAuth, requirePermission } from "@/lib/apiAuth"
 import { prisma } from "@/lib/prisma"
 import { encryptConfig } from "@/lib/directory/crypto"
 import { keyHint } from "@/lib/credentials/service"
@@ -29,7 +29,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const { session, error } = await requireAdmin()
+  const { session, error } = await requirePermission("api_credentials:manage")
   if (error) return error
 
   const { provider, key } = (await req.json()) as { provider?: string; key?: string }

@@ -1,10 +1,10 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
 
-const requireAdmin = vi.fn()
+const requirePermission = vi.fn()
 const findFirst = vi.fn()
 const update = vi.fn()
 
-vi.mock("@/lib/apiAuth", () => ({ requireAdmin: () => requireAdmin() }))
+vi.mock("@/lib/apiAuth", () => ({ requirePermission: () => requirePermission() }))
 vi.mock("@/lib/prisma", () => ({
   prisma: {
     directoryConnection: {
@@ -26,7 +26,7 @@ function patch(body: unknown): Request {
 
 beforeEach(() => {
   vi.clearAllMocks()
-  requireAdmin.mockResolvedValue({ session: { user: { companyId: "co1" } }, error: null })
+  requirePermission.mockResolvedValue({ session: { user: { companyId: "co1" } }, error: null })
   findFirst.mockResolvedValue({ type: "OKTA" })
 })
 

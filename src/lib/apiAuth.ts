@@ -39,15 +39,6 @@ export async function requireAuth(): Promise<Guard> {
   return { session, error: null }
 }
 
-export async function requireAdmin(): Promise<Guard> {
-  const session = await getSession()
-  if (!session) return { session: null, error: unauthorized() }
-  if (session.user.role !== "ADMIN") return { session: null, error: forbidden() }
-  const gate = await enforce2fa(session)
-  if (gate) return { session: null, error: gate }
-  return { session, error: null }
-}
-
 export async function requirePermission(perm: Permission): Promise<Guard> {
   const session = await getSession()
   if (!session) return { session: null, error: unauthorized() }
