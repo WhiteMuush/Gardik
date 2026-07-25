@@ -1,4 +1,5 @@
 import { getSession } from "@/lib/auth/session"
+import { VIEWER_ROLE } from "@/lib/rbac/presets"
 import { getDashboardData, buildTrendData, buildBreachSources, buildDataTypes } from "@/lib/dashboard"
 import { providerMeta } from "@/lib/credentials/providers"
 import { prisma } from "@/lib/prisma"
@@ -50,7 +51,7 @@ export default async function DashboardPage() {
     }),
     prisma.user.findUnique({
       where: { id: session!.user.id },
-      select: { activePresetId: true, role: true },
+      select: { activePresetId: true, role: { select: { name: true } } },
     }),
   ])
 
@@ -314,7 +315,7 @@ export default async function DashboardPage() {
       widgets={widgets}
       presets={typedPresets}
       activePresetId={activePresetId}
-      userRole={user?.role ?? "VIEWER"}
+      userRole={user?.role?.name ?? VIEWER_ROLE}
       sourceOptions={sourceOptions}
     />
   )

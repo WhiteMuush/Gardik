@@ -8,6 +8,8 @@ import { PrismaPg } from "@prisma/adapter-pg"
 import bcrypt from "bcryptjs"
 import { createOTP } from "@better-auth/utils/otp"
 import { base32 } from "@better-auth/utils/base32"
+import { seedPresetsForCompany, resolvePresetRoleId } from "@/lib/rbac/seed-roles"
+import { ADMINISTRATOR } from "@/lib/rbac/presets"
 
 const BASE_URL = process.env.BASE_URL ?? "http://localhost:3000"
 const email = process.env.MFA_USER_EMAIL ?? "mfa@datashield.local"
@@ -28,10 +30,13 @@ async function main() {
     create: { name: "DataShield Dev", domain: "datashield.dev" },
   })
 
+  await seedPresetsForCompany(prisma, company.id)
+  const adminRoleId = await resolvePresetRoleId(prisma, company.id, ADMINISTRATOR)
+
   const user = await prisma.user.upsert({
     where: { email },
     update: {},
-    create: { email, name: "MFA Tester", role: "ADMIN", companyId: company.id },
+    create: { email, name: "MFA Tester", roleId: adminRoleId, companyId: company.id },
   })
 
   const hashed = await bcrypt.hash(password, 12)
