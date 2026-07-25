@@ -9,7 +9,6 @@ export default defineConfig({
   // the tsconfig `jsx: preserve` so the test transformer (oxc) compiles it.
   oxc: { jsx: { runtime: "automatic" } },
   test: {
-    include: ["src/**/*.test.ts"],
-    exclude: ["**/node_modules/**", "src/**/*.itest.ts"],
+    include: ["src/**/*.itest.ts"],
   },
 })
