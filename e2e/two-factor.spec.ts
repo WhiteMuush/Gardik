@@ -1,5 +1,6 @@
 import { test, expect } from "@playwright/test"
 import { enrollTwoFactor, totpCode, setAllowedMethods, tryEnableTotp } from "./helpers/totp"
+import { latestEmailOtp, trySendEmailOtp } from "./helpers/email-otp"
 
 const EMAIL = "mfa@datashield.local"
 const PASSWORD = "ChangeMe123!"
@@ -41,4 +42,37 @@ test("2FA-enrolled user must pass a TOTP challenge to sign in", async ({ page, r
 
   await page.waitForURL("**/dashboard")
   await expect(page.getByRole("main")).toBeVisible()
+})
+
+// EMAIL_OTP is a second factor gated by the same policy: a company that does
+// not allow it must get a 403 at the send step, the entry point of the flow.
+// Runs after enrollment above, so the user already has 2FA enabled.
+test("company can forbid EMAIL_OTP at the send step", async ({ request }) => {
+  await setAllowedMethods(request, ADMIN, ["TOTP"])
+  expect(await trySendEmailOtp(request, EMAIL, PASSWORD)).toBe(403)
+})
+
+// Full email-code challenge: with EMAIL_OTP allowed, a 2FA user can sign in via
+// a code sent to their email instead of TOTP.
+test("2FA user can complete the email-code challenge", async ({ page, request }) => {
+  await setAllowedMethods(request, ADMIN, ["TOTP", "EMAIL_OTP"])
+  try {
+    await page.goto("/login")
+    await page.getByLabel("Email").fill(EMAIL)
+    await page.getByLabel("Password").fill(PASSWORD)
+    await page.getByRole("button", { name: "Sign in" }).click()
+
+    await expect(page.getByLabel("Authentication code")).toBeVisible()
+    await page.getByRole("button", { name: "Email me a code instead" }).click()
+    await page.getByRole("button", { name: "Email me a code" }).click()
+
+    await expect(page.getByLabel("Email code")).toBeVisible()
+    await page.getByLabel("Email code").fill(await latestEmailOtp())
+    await page.getByRole("button", { name: "Verify" }).click()
+
+    await page.waitForURL("**/dashboard")
+    await expect(page.getByRole("main")).toBeVisible()
+  } finally {
+    await setAllowedMethods(request, ADMIN, ["TOTP"])
+  }
 })
