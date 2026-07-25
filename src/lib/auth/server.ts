@@ -1,6 +1,7 @@
 import { betterAuth } from "better-auth"
 import { prismaAdapter } from "better-auth/adapters/prisma"
 import { twoFactor } from "better-auth/plugins"
+import { passkey } from "@better-auth/passkey"
 import { nextCookies } from "better-auth/next-js"
 import { createAuthMiddleware, getSessionFromCtx, APIError } from "better-auth/api"
 import { AuthMethod } from "@prisma/client"
@@ -18,6 +19,7 @@ import { emailEnabled, sendEmail } from "@/lib/email"
 const ENROLL_METHOD: Record<string, AuthMethod> = {
   "/two-factor/enable": AuthMethod.TOTP,
   "/two-factor/send-otp": AuthMethod.EMAIL_OTP,
+  "/passkey/generate-register-options": AuthMethod.PASSKEY,
 }
 
 // Deliver a login OTP as a second factor. Uses the shared transactional email
@@ -101,6 +103,22 @@ function isLoopbackAuthUrl(): boolean {
 
 const rateLimitDisabled = process.env.E2E === "1" && isLoopbackAuthUrl()
 
+// WebAuthn/passkey binds credentials to a relying-party ID (the host) and an
+// origin. Both come from AUTH_URL so dev (localhost) and prod stay correct
+// without extra config; a passkey registered under one host cannot be used
+// under another, which is the point.
+function webauthnConfig(): { rpID: string; origin: string } {
+  const raw = process.env.AUTH_URL ?? process.env.BETTER_AUTH_URL ?? "http://localhost:3000"
+  try {
+    const url = new URL(raw)
+    return { rpID: url.hostname, origin: url.origin }
+  } catch {
+    return { rpID: "localhost", origin: "http://localhost:3000" }
+  }
+}
+
+const { rpID: passkeyRpID, origin: passkeyOrigin } = webauthnConfig()
+
 export const auth = betterAuth({
   // e2e only: the serial 2FA suite makes several sign-ins inside Better Auth's
   // 3-per-10s window, which would 429-flake. Gated on E2E=1 *and* a loopback
@@ -128,6 +146,11 @@ export const auth = betterAuth({
       otpOptions: {
         sendOTP: ({ user, otp }) => sendLoginOtp(user.email, otp),
       },
+    }),
+    passkey({
+      rpID: passkeyRpID,
+      rpName: "DataShield",
+      origin: passkeyOrigin,
     }),
     nextCookies(),
   ],

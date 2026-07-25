@@ -237,6 +237,7 @@ model User {
   sessions         Session[]
   accounts         Account[]
   twoFactor        TwoFactor[]
+  passkeys         Passkey[]
 }
 
 model Session {
@@ -286,6 +287,26 @@ model TwoFactor {
   failedVerificationCount Int       @default(0)
   lockedUntil             DateTime?
   user                    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+// WebAuthn credentials for the passkey plugin (@better-auth/passkey). Field
+// names mirror the plugin's expected schema. A credentialID is globally unique
+// and looked up on every authentication, so it is indexed and unique.
+model Passkey {
+  id           String   @id @default(cuid())
+  name         String?
+  publicKey    String
+  userId       String
+  credentialID String   @unique
+  counter      Int
+  deviceType   String
+  backedUp     Boolean
+  transports   String?
+  aaguid       String?
+  createdAt    DateTime @default(now())
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
 }
 
 enum AuthMethod {
