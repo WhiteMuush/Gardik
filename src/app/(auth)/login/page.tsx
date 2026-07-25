@@ -25,6 +25,24 @@ export default function LoginPage() {
     setOtpSent(false)
   }
 
+  async function handlePasskey() {
+    setLoading(true)
+    setError(null)
+
+    try {
+      const res = await signIn.passkey()
+      if (res?.error) {
+        setError("Passkey sign-in failed or was cancelled")
+        return
+      }
+      router.push("/dashboard")
+    } catch {
+      setError("Passkey sign-in failed or was cancelled")
+    } finally {
+      setLoading(false)
+    }
+  }
+
   async function handleSendOtp() {
     setLoading(true)
     setError(null)
@@ -289,6 +307,23 @@ export default function LoginPage() {
               size="lg"
             >
               {loading ? "Signing in..." : "Sign in"}
+            </Button>
+
+            <div className="flex items-center gap-3">
+              <span className="h-px flex-1 bg-border" />
+              <span className="text-xs text-muted-foreground">or</span>
+              <span className="h-px flex-1 bg-border" />
+            </div>
+
+            <Button
+              type="button"
+              variant="outline"
+              onClick={handlePasskey}
+              disabled={loading}
+              className="w-full"
+              size="lg"
+            >
+              Sign in with a passkey
             </Button>
           </form>
         )}

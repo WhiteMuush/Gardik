@@ -3,6 +3,7 @@ import { getSession } from "@/lib/auth/session"
 import { prisma } from "@/lib/prisma"
 import { SetupChecklist } from "@/components/dashboard/SetupChecklist"
 import { TwoFactorSetup } from "@/components/settings/TwoFactorSetup"
+import { PasskeySetup } from "@/components/settings/PasskeySetup"
 import { AuthPolicySettings } from "@/components/settings/AuthPolicySettings"
 
 export default async function SetupPage({
@@ -43,6 +44,18 @@ export default async function SetupPage({
           </p>
           <div className="mt-3">
             <TwoFactorSetup enabled={twoFactorEnabled} />
+          </div>
+        </div>
+      )}
+      {company?.allowedAuthMethods.includes("PASSKEY") && (
+        <div className="rounded-xl border border-border/60 bg-card p-4">
+          <h3 className="text-sm font-medium text-foreground">Passkeys</h3>
+          <p className="mt-1 text-xs text-muted-foreground">
+            Sign in with your device (Face ID, Windows Hello, or a security key)
+            instead of a password.
+          </p>
+          <div className="mt-3">
+            <PasskeySetup />
           </div>
         </div>
       )}
