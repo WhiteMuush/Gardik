@@ -113,6 +113,12 @@ jobs:
       AUTH_SECRET: ci-placeholder-auth-secret
       AUTH_URL: http://localhost:3000
       DIRECTORY_ENCRYPTION_KEY: ci-placeholder-encryption-key-32-chars-minimum
+      # Disables Better Auth's sign-in rate limit (3 per 10s) for the e2e run
+      # only. The serial 2FA suite makes several sign-ins within that window, so
+      # without this it 429-flakes and leans on retries. The app only honours
+      # this when AUTH_URL is loopback (see src/lib/auth/server.ts), so it stays
+      # inert in prod even if this var leaks there.
+      E2E: "1"
     steps:
       - uses: actions/checkout@v7
 
