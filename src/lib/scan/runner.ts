@@ -7,6 +7,7 @@ import { providerById } from "./registry"
 import { canonicalBreachKey, sleep } from "./normalize"
 import type { BreachProvider, Finding } from "./types"
 import type { AlertConfidence, ApiProvider, ArtifactKind, BreachSource, Severity } from "@prisma/client"
+import { ADMINISTRATOR } from "@/lib/rbac/presets"
 
 const RATE_LIMIT_MS = 1500
 const CRITICAL_TYPES = ["password", "hashed_password", "credit_card", "ssn", "bank_account"]
@@ -246,7 +247,7 @@ async function handleFinding(
 async function notifyRecipients(companyId: string): Promise<string[]> {
   if (!emailEnabled()) return []
   const admins = await prisma.user.findMany({
-    where: { companyId, role: "ADMIN" },
+    where: { companyId, role: { name: ADMINISTRATOR } },
     select: { email: true },
   })
   return admins.map((a) => a.email)

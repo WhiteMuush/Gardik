@@ -1,6 +1,8 @@
 import { PrismaClient } from "@prisma/client"
 import { PrismaPg } from "@prisma/adapter-pg"
 import bcrypt from "bcryptjs"
+import { resolvePresetRoleId } from "@/lib/rbac/seed-roles"
+import { ADMINISTRATOR } from "@/lib/rbac/presets"
 
 // E2E fixture: one employee so a fresh instance counts as set up
 // (the dashboard redirects empty workspaces to /setup), plus a dedicated
@@ -31,10 +33,12 @@ async function main() {
     },
   })
 
+  const adminRoleId = await resolvePresetRoleId(prisma, company.id, ADMINISTRATOR)
+
   const mfaUser = await prisma.user.upsert({
     where: { email: MFA_EMAIL },
     update: {},
-    create: { email: MFA_EMAIL, name: "MFA Tester", role: "ADMIN", companyId: company.id },
+    create: { email: MFA_EMAIL, name: "MFA Tester", roleId: adminRoleId, companyId: company.id },
   })
 
   const hashedPassword = await bcrypt.hash(MFA_PASSWORD, 12)
