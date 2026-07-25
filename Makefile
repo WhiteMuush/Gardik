@@ -1,6 +1,7 @@
 # DataShield developer tasks. Thin wrapper over the npm scripts and
 # scripts/db-init.sh so a fresh clone can be brought up with a single command.
-# Requires Node 22 and (for the local database) Docker.
+# Requires Node 22 and, for the local database, a container engine: Docker or
+# Podman (auto-detected by scripts/container.sh, no config needed).
 
 .DEFAULT_GOAL := help
 SHELL := /bin/sh
@@ -36,8 +37,16 @@ db-down: ## Stop the local database container
 	$(N) npm run db:down
 
 .PHONY: db-init
-db-init: ## Start DB, apply migrations, seed demo data (Docker required)
+db-init: ## Start DB, apply migrations, seed demo data (Docker or Podman)
 	$(N) npm run db:init
+
+.PHONY: up
+up: ## Run the full stack (app + db) in containers (needs a compose provider)
+	@sh scripts/compose.sh up
+
+.PHONY: down
+down: ## Stop the full container stack
+	@sh scripts/compose.sh down
 
 .PHONY: backup
 backup: ## Dump the local database to backups/ (pg_dump)
