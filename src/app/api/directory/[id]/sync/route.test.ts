@@ -1,11 +1,11 @@
 import { describe, it, expect, vi, beforeEach } from "vitest"
 
-const requireAdmin = vi.fn()
+const requirePermission = vi.fn()
 const findFirst = vi.fn()
 const enqueueSyncJob = vi.fn()
 const processSyncJobs = vi.fn()
 
-vi.mock("@/lib/apiAuth", () => ({ requireAdmin: () => requireAdmin() }))
+vi.mock("@/lib/apiAuth", () => ({ requirePermission: () => requirePermission() }))
 vi.mock("@/lib/prisma", () => ({
   prisma: { directoryConnection: { findFirst: (a: unknown) => findFirst(a) } },
 }))
@@ -21,7 +21,7 @@ const req = new Request("http://localhost/api/directory/conn-1/sync", { method: 
 
 beforeEach(() => {
   vi.clearAllMocks()
-  requireAdmin.mockResolvedValue({ session: { user: { companyId: "co-1" } }, error: null })
+  requirePermission.mockResolvedValue({ session: { user: { companyId: "co-1" } }, error: null })
   findFirst.mockResolvedValue({ id: "conn-1" })
   enqueueSyncJob.mockResolvedValue({ id: "job-1", status: "PENDING" })
   processSyncJobs.mockResolvedValue({ processed: 1 })
@@ -30,7 +30,7 @@ beforeEach(() => {
 describe("POST /api/directory/[id]/sync", () => {
   it("propagates the auth error without enqueueing", async () => {
     const error = { status: 401 } as unknown
-    requireAdmin.mockResolvedValue({ session: null, error })
+    requirePermission.mockResolvedValue({ session: null, error })
 
     const res = await POST(req, { params })
 

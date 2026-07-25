@@ -2,6 +2,7 @@ import { getSession } from "@/lib/auth/session"
 import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server"
 import type { SavedDashboardConfig } from "@/types/dashboard"
+import { getUserPermissions, authorize } from "@/lib/rbac/authorize"
 
 export async function GET() {
   const session = await getSession()
@@ -38,8 +39,11 @@ export async function POST(req: Request) {
 
   const scope = body.scope ?? "PERSONAL"
 
-  if (scope === "COMPANY" && session.user.role !== "ADMIN") {
-    return NextResponse.json({ error: "Only admins can create company presets" }, { status: 403 })
+  if (scope === "COMPANY") {
+    const perms = await getUserPermissions(prisma, session.user.roleId ?? null)
+    if (!authorize(perms, "dashboard:manage_shared")) {
+      return NextResponse.json({ error: "Only admins can create company presets" }, { status: 403 })
+    }
   }
 
   const preset = await prisma.dashboardPreset.create({

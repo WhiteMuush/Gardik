@@ -1,10 +1,12 @@
 import { getSession } from "@/lib/auth/session"
 import { prisma } from "@/lib/prisma"
 import { ApiCredentials } from "@/components/credentials/ApiCredentials"
+import { getUserPermissions, authorize } from "@/lib/rbac/authorize"
 
 export default async function DataApiPage() {
   const session = await getSession()
-  const isAdmin = session!.user.role === "ADMIN"
+  const perms = await getUserPermissions(prisma, session!.user.roleId ?? null)
+  const isAdmin = authorize(perms, "api_credentials:manage")
 
   const credentials = await prisma.apiCredential.findMany({
     where: { companyId: session!.user.companyId },
