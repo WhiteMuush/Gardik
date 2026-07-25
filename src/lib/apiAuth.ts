@@ -1,6 +1,8 @@
 import { NextResponse } from "next/server"
 import { getSession } from "@/lib/auth/session"
 import { prisma } from "@/lib/prisma"
+import { getUserPermissions, authorize } from "@/lib/rbac/authorize"
+import type { Permission } from "@/lib/rbac/permissions"
 
 // Single source of truth for API route authorization.
 // Role model: ADMIN configures the workspace (API keys, directory
@@ -11,7 +13,7 @@ type AuthResult = NonNullable<Awaited<ReturnType<typeof getSession>>>
 type Guard = { session: AuthResult; error: null } | { session: null; error: NextResponse }
 
 const unauthorized = () => NextResponse.json({ error: "Unauthorized" }, { status: 401 })
-const forbidden = () => NextResponse.json({ error: "Admin only" }, { status: 403 })
+const forbidden = () => NextResponse.json({ error: "Forbidden" }, { status: 403 })
 const twoFactorRequired = () =>
   NextResponse.json({ error: "Two-factor enrollment required" }, { status: 403 })
 
@@ -41,6 +43,16 @@ export async function requireAdmin(): Promise<Guard> {
   const session = await getSession()
   if (!session) return { session: null, error: unauthorized() }
   if (session.user.role !== "ADMIN") return { session: null, error: forbidden() }
+  const gate = await enforce2fa(session)
+  if (gate) return { session: null, error: gate }
+  return { session, error: null }
+}
+
+export async function requirePermission(perm: Permission): Promise<Guard> {
+  const session = await getSession()
+  if (!session) return { session: null, error: unauthorized() }
+  const perms = await getUserPermissions(prisma, session.user.roleId ?? null)
+  if (!authorize(perms, perm)) return { session: null, error: forbidden() }
   const gate = await enforce2fa(session)
   if (gate) return { session: null, error: gate }
   return { session, error: null }
