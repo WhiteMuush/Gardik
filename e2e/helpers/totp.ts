@@ -11,6 +11,44 @@ export async function totpCode(secret: string): Promise<string> {
   return createOTP(new TextDecoder().decode(base32.decode(secret))).totp()
 }
 
+async function signIn(request: APIRequestContext, email: string, password: string) {
+  const res = await request.post(`${ORIGIN}/api/auth/sign-in/email`, {
+    data: { email, password },
+    headers: { origin: ORIGIN },
+  })
+  if (!res.ok()) throw new Error(`sign-in failed: ${res.status()} ${await res.text()}`)
+}
+
+// Signs in as the given admin and sets the company's allowed auth methods.
+export async function setAllowedMethods(
+  request: APIRequestContext,
+  admin: { email: string; password: string },
+  methods: string[],
+): Promise<void> {
+  await signIn(request, admin.email, admin.password)
+  const res = await request.fetch(`${ORIGIN}/api/company/auth-policy`, {
+    method: "PATCH",
+    data: { allowedAuthMethods: methods },
+    headers: { origin: ORIGIN },
+  })
+  if (!res.ok()) throw new Error(`policy update failed: ${res.status()} ${await res.text()}`)
+}
+
+// Returns the status of a two-factor enable attempt without asserting success,
+// so a test can check the policy gate rejects a disallowed method.
+export async function tryEnableTotp(
+  request: APIRequestContext,
+  email: string,
+  password: string,
+): Promise<number> {
+  await signIn(request, email, password)
+  const res = await request.post(`${ORIGIN}/api/auth/two-factor/enable`, {
+    data: { password },
+    headers: { origin: ORIGIN },
+  })
+  return res.status()
+}
+
 // Drives the real Better Auth enrollment flow (sign-in, enable, verify) and
 // returns the TOTP secret so the caller can produce codes. Exercises the
 // TwoFactor DB write that unit tests mock away.
@@ -21,11 +59,11 @@ export async function enrollTwoFactor(
 ): Promise<string> {
   const headers = { origin: ORIGIN }
 
-  const signIn = await request.post(`${ORIGIN}/api/auth/sign-in/email`, {
+  const signInRes = await request.post(`${ORIGIN}/api/auth/sign-in/email`, {
     data: { email, password },
     headers,
   })
-  if (!signIn.ok()) throw new Error(`sign-in failed: ${signIn.status()} ${await signIn.text()}`)
+  if (!signInRes.ok()) throw new Error(`sign-in failed: ${signInRes.status()} ${await signInRes.text()}`)
 
   const enable = await request.post(`${ORIGIN}/api/auth/two-factor/enable`, {
     data: { password },
