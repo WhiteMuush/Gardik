@@ -49,6 +49,7 @@ model Company {
   exposureRegister     ExposureRegisterEntry[]
   reportSchedules      ReportSchedule[]
   roles                Role[]
+  auditLogs            AuditLog[]
 }
 
 // A recurring report emailed to a recipient list (driven by the scheduler).
@@ -240,6 +241,8 @@ model User {
   accounts         Account[]
   twoFactor        TwoFactor[]
   passkeys         Passkey[]
+  auditActions     AuditLog[]        @relation("AuditActor")
+  stepUpGrants     StepUpGrant[]
 }
 
 model Session {
@@ -307,6 +310,35 @@ model Role {
 
   @@unique([companyId, name])
   @@index([companyId])
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  companyId   String
+  actorUserId String?
+  action      String
+  targetType  String
+  targetId    String?
+  before      Json?
+  after       Json?
+  ip          String?
+  createdAt   DateTime @default(now())
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  actor   User?   @relation("AuditActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([companyId, createdAt])
+}
+
+model StepUpGrant {
+  id        String   @id @default(cuid())
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, expiresAt])
 }
 
 // WebAuthn credentials for the passkey plugin (@better-auth/passkey). Field
