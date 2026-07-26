@@ -31,7 +31,7 @@ test("2FA-enrolled user must pass a TOTP challenge to sign in", async ({ page, r
   await page.goto("/login")
   await page.getByLabel("Email").fill(EMAIL)
   await page.getByLabel("Password").fill(PASSWORD)
-  await page.getByRole("button", { name: "Sign in" }).click()
+  await page.getByRole("button", { name: "Sign in", exact: true }).click()
 
   // Password alone must not reach the dashboard; the TOTP form takes over.
   await expect(page.getByLabel("Authentication code")).toBeVisible()
@@ -60,7 +60,7 @@ test("2FA user can complete the email-code challenge", async ({ page, request })
     await page.goto("/login")
     await page.getByLabel("Email").fill(EMAIL)
     await page.getByLabel("Password").fill(PASSWORD)
-    await page.getByRole("button", { name: "Sign in" }).click()
+    await page.getByRole("button", { name: "Sign in", exact: true }).click()
 
     await expect(page.getByLabel("Authentication code")).toBeVisible()
     await page.getByRole("button", { name: "Email me a code instead" }).click()

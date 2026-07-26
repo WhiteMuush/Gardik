@@ -43,8 +43,12 @@ export async function trySendEmailOtp(
     throw new Error(`sign-in failed: ${signInRes.status()} ${await signInRes.text()}`)
   }
 
+  // Send an empty JSON body so the request carries an application/json
+  // content-type; without it Better Auth rejects the POST with 415 before the
+  // policy hook (which is what this call is meant to exercise) ever runs.
   const res = await request.post(`${ORIGIN}/api/auth/two-factor/send-otp`, {
     headers,
+    data: {},
   })
   return res.status()
 }
