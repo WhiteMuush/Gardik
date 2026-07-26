@@ -1,7 +1,7 @@
 import { PrismaClient } from "@prisma/client"
 import { PrismaPg } from "@prisma/adapter-pg"
 import bcrypt from "bcryptjs"
-import { resolvePresetRoleId } from "@/lib/rbac/seed-roles"
+import { seedPresetsForCompany, resolvePresetRoleId } from "@/lib/rbac/seed-roles"
 import { ADMINISTRATOR } from "@/lib/rbac/presets"
 
 // E2E fixture: one employee so a fresh instance counts as set up
@@ -13,6 +13,26 @@ const prisma = new PrismaClient({ adapter })
 
 const MFA_EMAIL = "mfa@datashield.local"
 const MFA_PASSWORD = "ChangeMe123!"
+
+const PASSKEY_EMAIL = "passkey@datashield.local"
+const PASSKEY_PASSWORD = "ChangeMe123!"
+
+// Sets (or resets) the credential-provider password for a user. Better Auth
+// stores it on a `credential` account row, so upsert that row rather than the
+// user.
+async function setPassword(userId: string, password: string): Promise<void> {
+  const hashed = await bcrypt.hash(password, 12)
+  const cred = await prisma.account.findFirst({
+    where: { userId, providerId: "credential" },
+  })
+  if (cred) {
+    await prisma.account.update({ where: { id: cred.id }, data: { password: hashed } })
+  } else {
+    await prisma.account.create({
+      data: { accountId: userId, providerId: "credential", userId, password: hashed },
+    })
+  }
+}
 
 async function main() {
   const company = await prisma.company.findUniqueOrThrow({
@@ -40,23 +60,50 @@ async function main() {
     update: {},
     create: { email: MFA_EMAIL, name: "MFA Tester", roleId: adminRoleId, companyId: company.id },
   })
+  await setPassword(mfaUser.id, MFA_PASSWORD)
 
-  const hashedPassword = await bcrypt.hash(MFA_PASSWORD, 12)
-  const cred = await prisma.account.findFirst({
-    where: { userId: mfaUser.id, providerId: "credential" },
+  // Passkey fixture: its own company so the passkey spec can flip PASSKEY in and
+  // out of allowedAuthMethods without racing the two-factor spec, which mutates
+  // the shared datashield.dev policy. Seeded with PASSKEY allowed so enrollment
+  // works out of the box; the gate test removes it temporarily. One employee so
+  // the workspace counts as set up and /dashboard does not bounce to /setup.
+  const passkeyCompany = await prisma.company.upsert({
+    where: { domain: "passkey.datashield.dev" },
+    update: { allowedAuthMethods: ["PASSKEY", "TOTP"] },
+    create: {
+      name: "DataShield Passkey",
+      domain: "passkey.datashield.dev",
+      allowedAuthMethods: ["PASSKEY", "TOTP"],
+    },
   })
-  if (cred) {
-    await prisma.account.update({ where: { id: cred.id }, data: { password: hashedPassword } })
-  } else {
-    await prisma.account.create({
-      data: {
-        accountId: mfaUser.id,
-        providerId: "credential",
-        userId: mfaUser.id,
-        password: hashedPassword,
-      },
-    })
-  }
+  await seedPresetsForCompany(prisma, passkeyCompany.id)
+  const passkeyAdminRoleId = await resolvePresetRoleId(prisma, passkeyCompany.id, ADMINISTRATOR)
+
+  await prisma.employee.upsert({
+    where: {
+      email_companyId: { email: "sam.key@passkey.datashield.dev", companyId: passkeyCompany.id },
+    },
+    update: {},
+    create: {
+      email: "sam.key@passkey.datashield.dev",
+      firstName: "Sam",
+      lastName: "Key",
+      department: "Security",
+      companyId: passkeyCompany.id,
+    },
+  })
+
+  const passkeyUser = await prisma.user.upsert({
+    where: { email: PASSKEY_EMAIL },
+    update: {},
+    create: {
+      email: PASSKEY_EMAIL,
+      name: "Passkey Tester",
+      roleId: passkeyAdminRoleId,
+      companyId: passkeyCompany.id,
+    },
+  })
+  await setPassword(passkeyUser.id, PASSKEY_PASSWORD)
 }
 
 main()
