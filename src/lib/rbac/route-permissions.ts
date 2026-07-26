@@ -31,6 +31,7 @@ export const ROUTE_PERMISSIONS: Record<string, Permission | "PUBLIC" | "AUTH_ONL
   "rbac/step-up": "AUTH_ONLY",
   "roles": "roles:manage",
   "roles/[id]": "roles:manage",
+  "users/[id]/role": "users:manage",
   "reports/schedules": "reports:schedule",
   "reports/schedules/[id]": "reports:schedule",
   "webhooks": "notifications:manage",
