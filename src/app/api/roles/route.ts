@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { Prisma } from "@prisma/client"
 import { requirePermission, assertStepUp } from "@/lib/apiAuth"
 import { prisma } from "@/lib/prisma"
 import { getUserPermissions } from "@/lib/rbac/authorize"
@@ -47,27 +48,36 @@ export async function POST(req: Request) {
   }
 
   try {
-    const role = await prisma.role.create({
-      data: {
+    const role = await prisma.$transaction(async (tx) => {
+      const created = await tx.role.create({
+        data: {
+          companyId: session.user.companyId,
+          name,
+          description: body.description?.trim() ?? "",
+          permissions,
+          isSystem: false,
+          isAssignable: true,
+        },
+      })
+      await writeAudit(tx, {
         companyId: session.user.companyId,
-        name,
-        description: body.description?.trim() ?? "",
-        permissions,
-        isSystem: false,
-        isAssignable: true,
-      },
-    })
-    await writeAudit(prisma, {
-      companyId: session.user.companyId,
-      actorUserId: session.user.id,
-      action: AUDIT_ACTIONS.ROLE_CREATE,
-      targetType: "Role",
-      targetId: role.id,
-      after: { name: role.name, permissions: role.permissions },
+        actorUserId: session.user.id,
+        action: AUDIT_ACTIONS.ROLE_CREATE,
+        targetType: "Role",
+        targetId: created.id,
+        after: { name: created.name, permissions: created.permissions },
+      })
+      return created
     })
     return NextResponse.json({ role }, { status: 201 })
-  } catch {
-    // Unique (companyId, name) collision is the only expected failure here.
-    return NextResponse.json({ error: "A role with that name already exists" }, { status: 409 })
+  } catch (e) {
+    // Unique (companyId, name) collision is the only expected failure here;
+    // any other error (e.g. the audit write failing) should surface as a 500
+    // rather than be mis-reported as a name collision, and create+audit stay
+    // atomic via the transaction above.
+    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
+      return NextResponse.json({ error: "A role with that name already exists" }, { status: 409 })
+    }
+    throw e
   }
 }
