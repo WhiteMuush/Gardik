@@ -3,6 +3,7 @@ import { getSession } from "@/lib/auth/session"
 import { prisma } from "@/lib/prisma"
 import { getUserPermissions, authorize } from "@/lib/rbac/authorize"
 import type { Permission } from "@/lib/rbac/permissions"
+import { hasValidStepUp } from "@/lib/rbac/step-up"
 
 // Single source of truth for API route authorization.
 // Permission model: each route requires a specific Permission (see
@@ -49,4 +50,16 @@ export async function requirePermission(perm: Permission): Promise<Guard> {
   const gate = await enforce2fa(session)
   if (gate) return { session: null, error: gate }
   return { session, error: null }
+}
+
+// Distinct 403 shape so the client can tell "you lack the permission" (plain
+// Forbidden) from "re-enter your password" (STEP_UP_REQUIRED) and open the
+// step-up dialog instead of showing a dead end.
+export const stepUpRequired = () =>
+  NextResponse.json({ error: "Step-up required", code: "STEP_UP_REQUIRED" }, { status: 403 })
+
+// Call AFTER requirePermission, only on crown-jewel mutations. Returns an error
+// response when the caller has no fresh step-up grant, else null to proceed.
+export async function assertStepUp(userId: string): Promise<NextResponse | null> {
+  return (await hasValidStepUp(prisma, userId)) ? null : stepUpRequired()
 }
