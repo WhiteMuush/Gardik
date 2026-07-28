@@ -8,7 +8,7 @@
 import { execFileSync } from "node:child_process";
 
 // Canonical major version each frozen dependency is pinned to.
-const CANONICAL = { next: "15", tailwindcss: "3", typescript: "5", eslint: "9" };
+const CANONICAL = { next: "16", tailwindcss: "3", typescript: "5", eslint: "9" };
 
 function load(ref) {
   try {
