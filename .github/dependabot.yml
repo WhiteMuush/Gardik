@@ -26,9 +26,10 @@ updates:
         update-types: ["version-update:semver-major"]
       - dependency-name: "eslint"
         update-types: ["version-update:semver-major"]
-    # Split by semver impact, not by prod/dev. Patches are safe enough to flow
-    # continuously; minors and majors are held for review so the dependency
-    # state is known when a release tag is cut.
+    # Split by semver impact, not by prod/dev. Patches carry their own low-risk
+    # pull request that reviews in a glance; minors and majors are isolated so
+    # the dependency state is known when a release tag is cut. Every bump is
+    # merged by a human, see the note on the cooldown above.
     commit-message:
       prefix: "build"
       prefix-development: "chore"
