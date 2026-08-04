@@ -20,6 +20,9 @@ export function RolesManager() {
   const [query, setQuery] = useState("")
   const [page, setPage] = useState(0)
   const [editing, setEditing] = useState<Role | null>(null)
+  // Explicit, because a new role starts with no name and no permissions, so
+  // the form's own fields cannot tell "closed" from "creating".
+  const [formOpen, setFormOpen] = useState(false)
   const [perms, setPerms] = useState<Set<string>>(new Set())
   const [name, setName] = useState("")
   const [error, setError] = useState<string | null>(null)
@@ -44,6 +47,15 @@ export function RolesManager() {
     setName(role?.name ?? "")
     setPerms(new Set(role?.permissions ?? []))
     setError(null)
+    setFormOpen(true)
+  }
+
+  function closeForm() {
+    setEditing(null)
+    setName("")
+    setPerms(new Set())
+    setError(null)
+    setFormOpen(false)
   }
 
   // Runs a mutation; on STEP_UP_REQUIRED it stashes the retry and opens the
@@ -63,7 +75,7 @@ export function RolesManager() {
       setError(((await res.json().catch(() => ({}))) as { error?: string }).error ?? "Failed")
       return
     }
-    setEditing(null)
+    closeForm()
     setStepUpRetry(null)
     await load()
   }
@@ -156,7 +168,7 @@ export function RolesManager() {
         </div>
       </div>
 
-      {(editing || name || perms.size > 0) && (
+      {formOpen && (
         <div className="space-y-3 rounded-xl border border-border p-3">
           <input
             placeholder="Role name"
@@ -167,8 +179,8 @@ export function RolesManager() {
           <PermissionEditor selected={perms} onChange={setPerms} />
           {error && <p className="text-xs text-destructive">{error}</p>}
           <div className="flex justify-end gap-2">
-            <button onClick={() => startEdit(null)} className="text-sm text-muted-foreground">
-              Clear
+            <button onClick={closeForm} className="text-sm text-muted-foreground">
+              Cancel
             </button>
             <button onClick={save} className="rounded-lg bg-primary px-3 py-1.5 text-sm text-primary-foreground">
               Save
