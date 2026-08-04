@@ -2,7 +2,7 @@ import { PrismaClient } from "@prisma/client"
 import { PrismaPg } from "@prisma/adapter-pg"
 import bcrypt from "bcryptjs"
 import { seedPresetsForCompany, resolvePresetRoleId } from "@/lib/rbac/seed-roles"
-import { ADMINISTRATOR } from "@/lib/rbac/presets"
+import { ADMINISTRATOR, VIEWER_ROLE } from "@/lib/rbac/presets"
 
 // E2E fixture: one employee so a fresh instance counts as set up
 // (the dashboard redirects empty workspaces to /setup), plus a dedicated
@@ -16,6 +16,12 @@ const MFA_PASSWORD = "ChangeMe123!"
 
 const PASSKEY_EMAIL = "passkey@datashield.local"
 const PASSKEY_PASSWORD = "ChangeMe123!"
+
+const MANAGER_EMAIL = "manager@datashield.local"
+const MANAGER_PASSWORD = "ChangeMe123!"
+
+const MEMBER_EMAIL = "member@datashield.local"
+const MEMBER_PASSWORD = "ChangeMe123!"
 
 // Sets (or resets) the credential-provider password for a user. Better Auth
 // stores it on a `credential` account row, so upsert that row rather than the
@@ -61,6 +67,25 @@ async function main() {
     create: { email: MFA_EMAIL, name: "MFA Tester", roleId: adminRoleId, companyId: company.id },
   })
   await setPassword(mfaUser.id, MFA_PASSWORD)
+
+  // RBAC fixtures in the shared company: a manager holding users:manage and
+  // roles:read but NOT roles:manage, and a plain read-only member. The rbac
+  // spec uses them to assert the read gate from the outside.
+  const managerRoleId = await resolvePresetRoleId(prisma, company.id, "Security Manager")
+  const manager = await prisma.user.upsert({
+    where: { email: MANAGER_EMAIL },
+    update: {},
+    create: { email: MANAGER_EMAIL, name: "Manager", roleId: managerRoleId, companyId: company.id },
+  })
+  await setPassword(manager.id, MANAGER_PASSWORD)
+
+  const viewerRoleId = await resolvePresetRoleId(prisma, company.id, VIEWER_ROLE)
+  const member = await prisma.user.upsert({
+    where: { email: MEMBER_EMAIL },
+    update: {},
+    create: { email: MEMBER_EMAIL, name: "Member", roleId: viewerRoleId, companyId: company.id },
+  })
+  await setPassword(member.id, MEMBER_PASSWORD)
 
   // Passkey fixture: its own company so the passkey spec can flip PASSKEY in and
   // out of allowedAuthMethods without racing the two-factor spec, which mutates

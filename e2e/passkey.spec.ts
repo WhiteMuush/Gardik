@@ -1,6 +1,7 @@
 import { test, expect } from "@playwright/test"
 import { setAllowedMethods } from "./helpers/totp"
 import { addVirtualAuthenticator, tryGeneratePasskeyOptions } from "./helpers/passkey"
+import { resetPasskeys } from "./helpers/reset"
 
 const PASSKEY_USER = { email: "passkey@datashield.local", password: "ChangeMe123!" }
 
@@ -9,6 +10,13 @@ const PASSKEY_USER = { email: "passkey@datashield.local", password: "ChangeMe123
 // datashield.dev company the two-factor spec mutates, so the two files do not
 // race on a shared allowedAuthMethods across workers.
 test.describe.configure({ mode: "serial" })
+
+// Drop credentials left by an earlier local run. They are bound to a virtual
+// authenticator that no longer exists, so sign-in would hang waiting on a
+// credential nothing can satisfy.
+test.beforeAll(async () => {
+  await resetPasskeys(PASSKEY_USER.email)
+})
 
 // The policy gate must refuse passkey registration server-side, not merely hide
 // the setup card: with PASSKEY removed, the register-options endpoint (a GET

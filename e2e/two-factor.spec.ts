@@ -1,6 +1,7 @@
 import { test, expect } from "@playwright/test"
 import { enrollTwoFactor, totpCode, setAllowedMethods, tryEnableTotp } from "./helpers/totp"
 import { latestEmailOtp, trySendEmailOtp } from "./helpers/email-otp"
+import { resetTwoFactorEnrollment } from "./helpers/reset"
 
 const EMAIL = "mfa@datashield.local"
 const PASSWORD = "ChangeMe123!"
@@ -10,6 +11,13 @@ const ADMIN = { email: "admin@datashield.local", password: "ChangeMe123!" }
 // smoke.spec uses password-only admin login, which allowedAuthMethods does not
 // gate, so it stays safe to run in parallel.
 test.describe.configure({ mode: "serial" })
+
+// Drop any enrollment left by an earlier local run, otherwise the enable call
+// below returns 401 on an already-enrolled user. The serial chain then builds
+// its own state: the second test enrolls, the last two rely on it.
+test.beforeAll(async () => {
+  await resetTwoFactorEnrollment(EMAIL)
+})
 
 // Guards the "decorative policy" fix: enrolling a method the company has not
 // allowed must be refused server-side, not merely hidden in the UI.
