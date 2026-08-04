@@ -14,6 +14,10 @@ next-env.d.ts
 # misc
 .DS_Store
 
+# editors
+.idea/
+.vscode/
+
 # database dumps (contain PII, never commit)
 backups/
 
