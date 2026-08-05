@@ -1,6 +1,7 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
+import { Search } from "lucide-react"
 import { StepUpDialog } from "./StepUpDialog"
 
 type UserRow = { id: string; email: string; name: string; roleId: string | null; roleName: string | null }
@@ -56,35 +57,74 @@ export function UserRoleAssignment() {
   }
 
   return (
-    <div className="space-y-3">
-      <input
-        placeholder="Search users"
-        value={query}
-        onChange={(e) => setQuery(e.target.value)}
-        className="rounded-lg border border-input bg-card px-3 py-2 text-sm"
-      />
+    <div className="space-y-4">
+      <div className="relative max-w-sm">
+        <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
+        <input
+          placeholder="Search people"
+          value={query}
+          onChange={(e) => setQuery(e.target.value)}
+          className="w-full rounded-lg border border-input bg-card py-2 pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
+        />
+      </div>
+
       {error && <p className="text-xs text-destructive">{error}</p>}
-      <ul className="divide-y divide-border/60 rounded-lg border border-border/60">
-        {filtered.map((u) => (
-          <li key={u.id} className="flex items-center justify-between px-3 py-2 text-sm">
-            <span className="text-foreground">{u.email}</span>
-            <select
-              value={u.roleId ?? ""}
-              onChange={(e) => assign(u.id, e.target.value || null)}
-              className="rounded-lg border border-input bg-card px-2 py-1 text-xs"
-            >
-              <option value="">No access</option>
-              {roles
-                .filter((r) => r.isAssignable)
-                .map((r) => (
-                  <option key={r.id} value={r.id}>
-                    {r.name}
-                  </option>
-                ))}
-            </select>
-          </li>
-        ))}
-      </ul>
+
+      <div className="overflow-hidden rounded-xl border border-border/60 bg-card">
+        <table className="w-full text-sm">
+          <thead className="border-b border-border bg-muted/30">
+            <tr>
+              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                Person
+              </th>
+              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                Role
+              </th>
+            </tr>
+          </thead>
+          <tbody className="divide-y divide-border">
+            {filtered.length === 0 ? (
+              <tr>
+                <td colSpan={2} className="py-12 text-center text-sm text-muted-foreground">
+                  No one matches this search
+                </td>
+              </tr>
+            ) : (
+              filtered.map((u) => (
+                <tr key={u.id} className="transition-colors hover:bg-muted/40">
+                  <td className="px-4 py-3">
+                    <span className="font-medium text-foreground">{u.name || u.email}</span>
+                    {u.name && <span className="ml-2 text-muted-foreground">{u.email}</span>}
+                  </td>
+                  <td className="px-4 py-3">
+                    <select
+                      value={u.roleId ?? ""}
+                      onChange={(e) => assign(u.id, e.target.value || null)}
+                      className="rounded-lg border border-input bg-card px-2 py-1.5 text-sm text-foreground focus:border-ring focus:outline-none"
+                    >
+                      <option value="">No access</option>
+                      {roles
+                        .filter((r) => r.isAssignable)
+                        .map((r) => (
+                          <option key={r.id} value={r.id}>
+                            {r.name}
+                          </option>
+                        ))}
+                    </select>
+                  </td>
+                </tr>
+              ))
+            )}
+          </tbody>
+        </table>
+
+        <div className="border-t border-border px-4 py-3">
+          <p className="text-xs text-muted-foreground">
+            {filtered.length} {filtered.length === 1 ? "person" : "people"}
+          </p>
+        </div>
+      </div>
+
       <StepUpDialog
         open={stepUpRetry !== null}
         onVerified={() => stepUpRetry?.()}

@@ -1,18 +1,30 @@
-type Entry = { count: number; reset: number }
+import { prisma } from "@/lib/prisma"
 
-const buckets = new Map<string, Entry>()
+// Backed by Postgres rather than a per-process Map. In memory the limit was
+// silently multiplied by the number of running instances and reset on every
+// deploy, which makes it decorative on anything but a single long-lived node.
+//
+// One statement does the whole thing, so two concurrent requests cannot both
+// read a stale count and both decide they are under the limit: the row is
+// locked by the UPDATE and the window rolls over inside the same statement.
+export async function rateLimit(key: string, limit: number, windowMs: number): Promise<boolean> {
+  const reset = new Date(Date.now() + windowMs)
 
-// Fixed-window counter. Returns false once the limit is reached for the
-// current window. In-memory and per-instance, sufficient for a single-node
-// deployment; move to a shared store if the app is scaled horizontally.
-export function rateLimit(key: string, limit: number, windowMs: number): boolean {
-  const now = Date.now()
-  const entry = buckets.get(key)
-  if (!entry || now > entry.reset) {
-    buckets.set(key, { count: 1, reset: now + windowMs })
-    return true
-  }
-  if (entry.count >= limit) return false
-  entry.count++
-  return true
+  const rows = await prisma.$queryRaw<{ count: number }[]>`
+    INSERT INTO "ApiRateLimit" ("key", "count", "reset")
+    VALUES (${key}, 1, ${reset})
+    ON CONFLICT ("key") DO UPDATE SET
+      "count" = CASE WHEN "ApiRateLimit"."reset" <= now() THEN 1 ELSE "ApiRateLimit"."count" + 1 END,
+      "reset" = CASE WHEN "ApiRateLimit"."reset" <= now() THEN ${reset} ELSE "ApiRateLimit"."reset" END
+    RETURNING "count"
+  `
+
+  return (rows[0]?.count ?? 1) <= limit
+}
+
+// Expired rows are dead weight once their window has passed. Nothing depends on
+// this running promptly, so it rides along with the existing cron sweep.
+export async function pruneRateLimits(): Promise<number> {
+  const { count } = await prisma.apiRateLimit.deleteMany({ where: { reset: { lte: new Date() } } })
+  return count
 }

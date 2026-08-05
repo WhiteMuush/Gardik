@@ -11,7 +11,7 @@ export async function POST() {
 
   const companyId = session.user.companyId
 
-  if (!rateLimit(`scan:${companyId}`, 5, 60_000)) {
+  if (!(await rateLimit(`scan:${companyId}`, 5, 60_000))) {
     return NextResponse.json(
       { error: "Too many scans. Try again in a minute." },
       { status: 429 }

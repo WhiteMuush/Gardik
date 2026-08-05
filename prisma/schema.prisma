@@ -538,3 +538,26 @@ enum AlertConfidence {
   MEDIUM
   LOW
 }
+
+// Better Auth's own limiter, moved off in-memory storage so the sign-in window
+// is shared by every instance and survives a deploy. Field names and types are
+// dictated by Better Auth (storage: "database").
+model RateLimit {
+  id          String @id
+  key         String
+  count       Int
+  lastRequest BigInt
+
+  @@index([key])
+}
+
+// The application limiter behind scan, SCIM and SIEM. Same reasoning: a
+// per-process Map divides the limit by the number of instances and resets on
+// every deploy.
+model ApiRateLimit {
+  key   String   @id
+  count Int
+  reset DateTime
+
+  @@index([reset])
+}

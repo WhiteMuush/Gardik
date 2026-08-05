@@ -2,16 +2,49 @@
 
 import { useState } from "react"
 import { useRouter } from "next/navigation"
+import { Loader2, ShieldCheck } from "lucide-react"
 import { signIn, twoFactor } from "@/lib/auth/client"
 import { Button } from "@/components/ui/button"
 
+// Covers the gap between "credentials accepted" and "dashboard painted". That
+// stretch is the slowest part of signing in and used to show nothing at all:
+// the button had already snapped back to its idle label. Rendered only once
+// authentication has actually succeeded, never during the check itself.
+function EnteringWorkspace() {
+  return (
+    <div
+      role="status"
+      aria-live="polite"
+      className="fixed inset-0 z-50 flex flex-col items-center justify-center gap-4 bg-background"
+    >
+      <ShieldCheck aria-hidden className="size-10 animate-pulse text-primary" />
+      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+        <Loader2 aria-hidden className="size-4 animate-spin" />
+        Opening your workspace...
+      </div>
+    </div>
+  )
+}
+
 export default function LoginPage() {
   const [error, setError] = useState<string | null>(null)
-  const [loading, setLoading] = useState(false)
+  // Which action is in flight, not merely whether one is: the spinner belongs on
+  // the button that was actually clicked, and the passkey button must keep its
+  // own label so its accessible name never collides with "Sign in".
+  const [pending, setPending] = useState<null | "password" | "passkey" | "totp" | "otp">(null)
+  const loading = pending !== null
+  const [entering, setEntering] = useState(false)
   const [needsTotp, setNeedsTotp] = useState(false)
   const [emailMode, setEmailMode] = useState(false)
   const [otpSent, setOtpSent] = useState(false)
   const router = useRouter()
+
+  // Every successful path funnels through here so the transition screen is the
+  // single thing standing between authentication and the dashboard.
+  function enterWorkspace() {
+    setEntering(true)
+    router.push("/dashboard")
+  }
 
   function chooseEmail() {
     setError(null)
@@ -26,30 +59,30 @@ export default function LoginPage() {
   }
 
   async function handlePasskey() {
-    setLoading(true)
+    setPending("passkey")
     setError(null)
 
     try {
       const res = await signIn.passkey()
       if (res?.error) {
         setError("Passkey sign-in failed or was cancelled")
+        setPending(null)
         return
       }
-      router.push("/dashboard")
+      enterWorkspace()
     } catch {
       setError("Passkey sign-in failed or was cancelled")
-    } finally {
-      setLoading(false)
+      setPending(null)
     }
   }
 
   async function handleSendOtp() {
-    setLoading(true)
+    setPending("otp")
     setError(null)
 
     const { error } = await twoFactor.sendOtp()
 
-    setLoading(false)
+    setPending(null)
 
     if (error) {
       // 403 when the company's policy does not allow EMAIL_OTP; the server hook
@@ -67,7 +100,7 @@ export default function LoginPage() {
 
   async function handleEmailVerify(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    setLoading(true)
+    setPending("otp")
     setError(null)
 
     const form = new FormData(e.currentTarget)
@@ -75,19 +108,18 @@ export default function LoginPage() {
       code: String(form.get("code")),
     })
 
-    setLoading(false)
-
     if (error) {
+      setPending(null)
       setError("Invalid code")
       return
     }
 
-    router.push("/dashboard")
+    enterWorkspace()
   }
 
   async function handlePassword(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    setLoading(true)
+    setPending("password")
     setError(null)
 
     const form = new FormData(e.currentTarget)
@@ -96,24 +128,25 @@ export default function LoginPage() {
       password: String(form.get("password")),
     })
 
-    setLoading(false)
-
     if (error) {
+      setPending(null)
       setError("Invalid email or password")
       return
     }
 
     if (data && "twoFactorRedirect" in data && data.twoFactorRedirect) {
+      // Stays on the page to ask for the second factor, so hand control back.
+      setPending(null)
       setNeedsTotp(true)
       return
     }
 
-    router.push("/dashboard")
+    enterWorkspace()
   }
 
   async function handleTotp(e: React.FormEvent<HTMLFormElement>) {
     e.preventDefault()
-    setLoading(true)
+    setPending("totp")
     setError(null)
 
     const form = new FormData(e.currentTarget)
@@ -121,15 +154,16 @@ export default function LoginPage() {
       code: String(form.get("code")),
     })
 
-    setLoading(false)
-
     if (error) {
+      setPending(null)
       setError("Invalid code")
       return
     }
 
-    router.push("/dashboard")
+    enterWorkspace()
   }
+
+  if (entering) return <EnteringWorkspace />
 
   return (
     <div className="flex min-h-screen items-center justify-center bg-background">
@@ -306,7 +340,7 @@ export default function LoginPage() {
               className="w-full"
               size="lg"
             >
-              {loading ? "Signing in..." : "Sign in"}
+              {pending === "password" ? "Signing in..." : "Sign in"}
             </Button>
 
             <div className="flex items-center gap-3">
