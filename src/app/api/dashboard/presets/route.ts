@@ -37,7 +37,16 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Name is required" }, { status: 400 })
   }
 
+  // Narrowed against a literal set before it reaches the guard below. The type
+  // annotation on `body` is a compile-time claim about a value that arrives as
+  // untrusted JSON, so anything other than the two members used to slip past
+  // `scope === "COMPANY"` unchecked and only fail later, on Prisma's enum
+  // validation. That made an authorization decision depend on a database
+  // constraint several lines away rather than on an explicit check.
   const scope = body.scope ?? "PERSONAL"
+  if (scope !== "PERSONAL" && scope !== "COMPANY") {
+    return NextResponse.json({ error: "Invalid scope" }, { status: 400 })
+  }
 
   if (scope === "COMPANY") {
     const perms = await getUserPermissions(prisma, session.user.roleId ?? null)

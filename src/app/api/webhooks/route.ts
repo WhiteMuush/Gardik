@@ -4,24 +4,28 @@ import { prisma } from "@/lib/prisma"
 import { encryptConfig } from "@/lib/directory/crypto"
 import { listWebhooks, urlHint } from "@/lib/webhooks"
 import { isEmail } from "@/lib/validators"
+import { parseOutboundUrl, resolvesToPublicHost } from "@/lib/ssrf"
 import { NotificationChannel, Severity } from "@prisma/client"
 
 // Resolve the encrypted delivery target and its display hint for a channel.
 // EMAIL targets a recipient address; every other channel targets an HTTPS URL.
-function resolveTarget(channel: NotificationChannel, raw: string): { target: string; hint: string } | { error: string } {
+async function resolveTarget(
+  channel: NotificationChannel,
+  raw: string,
+): Promise<{ target: string; hint: string } | { error: string }> {
   if (channel === "EMAIL") {
     const addr = raw.trim().toLowerCase()
     if (!isEmail(addr)) return { error: "Invalid email address" }
     return { target: addr, hint: addr }
   }
-  let parsed: URL
-  try {
-    parsed = new URL(raw)
-  } catch {
-    return { error: "Invalid URL" }
+  const parsed = parseOutboundUrl(raw)
+  if ("error" in parsed) return parsed
+  // Refuse an endpoint that resolves inside the private space up front, rather
+  // than storing it and discovering the problem on the first delivery.
+  if (!(await resolvesToPublicHost(parsed.url.hostname))) {
+    return { error: "URL must point to a public host" }
   }
-  if (parsed.protocol !== "https:") return { error: "URL must use https" }
-  return { target: parsed.toString(), hint: urlHint(parsed.toString()) }
+  return { target: parsed.url.toString(), hint: urlHint(parsed.url.toString()) }
 }
 
 export async function GET() {
@@ -48,7 +52,7 @@ export async function POST(req: Request) {
       ? (channel as NotificationChannel)
       : NotificationChannel.WEBHOOK
 
-  const resolved = resolveTarget(chan, url ?? "")
+  const resolved = await resolveTarget(chan, url ?? "")
   if ("error" in resolved) return NextResponse.json({ error: resolved.error }, { status: 400 })
 
   const severity =
