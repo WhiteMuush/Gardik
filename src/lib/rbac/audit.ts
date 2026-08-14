@@ -9,6 +9,7 @@ export const AUDIT_ACTIONS = {
   ROLE_CREATE: "role.create",
   ROLE_UPDATE: "role.update",
   ROLE_DELETE: "role.delete",
+  USER_CREATE: "user.create",
   USER_ROLE_ASSIGN: "user.role.assign",
   SSO_PROVIDER_CREATE: "sso.provider.create",
   SSO_PROVIDER_UPDATE: "sso.provider.update",
