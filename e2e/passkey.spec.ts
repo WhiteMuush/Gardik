@@ -41,6 +41,7 @@ test("a registered passkey signs the user in", async ({ page, request }) => {
   // Password sign-in (no 2FA on this user) to reach the setup page.
   await page.goto("/login")
   await page.getByLabel("Email").fill(PASSKEY_USER.email)
+  await page.getByRole("button", { name: "Continue" }).click()
   await page.getByLabel("Password").fill(PASSKEY_USER.password)
   await page.getByRole("button", { name: "Sign in", exact: true }).click()
   await page.waitForURL("**/dashboard")
