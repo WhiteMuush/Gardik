@@ -1,4 +1,6 @@
 import { describe, it, expect, afterAll } from "vitest"
+import bcrypt from "bcryptjs"
+import { convertSetCookieToCookie } from "better-auth/test"
 import { prisma } from "@/lib/prisma"
 import { authPrisma } from "@/lib/auth/prisma"
 import { auth } from "@/lib/auth/server"
@@ -60,19 +62,93 @@ describe("oidcConfig at rest", () => {
   })
 })
 
+// Signs in through the real request path (auth.api.signInEmail -> a real
+// Response with Set-Cookie) and converts the result into a Cookie header, so
+// a follow-up auth.api.* call carries a real session and goes through the
+// same hooks.before pipeline (enforceAllowedMethod in server.ts) as an HTTP
+// request would. Calling auth.api.registerSSOProvider directly still runs
+// hooks.before: `toAuthEndpoints` in better-auth/dist/api/to-auth-endpoints.mjs
+// routes every `auth.api.*` call through `dispatchAuthEndpoint`, the same
+// function the HTTP router uses, and its own comment says as much ("The HTTP
+// router and auth.api.* reach it through toAuthEndpoints... Calling an
+// endpoint as a plain function deliberately skips hooks; dispatchAuthEndpoint
+// is the supported way to opt back in"). Verified by reading
+// node_modules/better-auth/dist/api/{dispatch,to-auth-endpoints}.mjs.
+async function signInAndGetCookieHeaders(email: string, password: string): Promise<Headers> {
+  const response = await auth.api.signInEmail({
+    body: { email, password },
+    asResponse: true,
+  })
+  return convertSetCookieToCookie(response.headers)
+}
+
 describe("sso:config gate", () => {
-  it("refuses provider registration for a Viewer", async () => {
-    const admin = await prisma.user.findUniqueOrThrow({ where: { email: "admin@datashield.local" } })
-    await seedPresetsForCompany(prisma, admin.companyId)
-    const viewer = await resolvePresetRoleId(prisma, admin.companyId, "Viewer")
-    const administrator = await resolvePresetRoleId(prisma, admin.companyId, "Administrator")
-    await prisma.user.update({ where: { id: admin.id }, data: { roleId: viewer } })
+  it("refuses registration for a Viewer and lets an Administrator past the permission check", async () => {
+    // A dedicated company/users, never the shared seeded admin: itest files
+    // run in parallel against one seeded DB, and mutating admin@datashield.local's
+    // role races every other suite that reads it (see require-permission.itest.ts's
+    // history, fixed the same way in PR #144). No role mutation here means no
+    // restore step is needed either.
+    const company = await prisma.company.create({
+      data: { name: "SSO Gate Co", domain: `sso-gate-${Date.now()}.test` },
+    })
+    await seedPresetsForCompany(prisma, company.id)
+    const viewerRoleId = await resolvePresetRoleId(prisma, company.id, "Viewer")
+    const administratorRoleId = await resolvePresetRoleId(prisma, company.id, "Administrator")
 
-    const perms = await prisma.role.findUniqueOrThrow({ where: { id: viewer } })
-    expect(perms.permissions).toContain("sso:read")
-    expect(perms.permissions).not.toContain("sso:config")
+    const viewerRole = await prisma.role.findUniqueOrThrow({ where: { id: viewerRoleId } })
+    expect(viewerRole.permissions).toContain("sso:read")
+    expect(viewerRole.permissions).not.toContain("sso:config")
 
-    await prisma.user.update({ where: { id: admin.id }, data: { roleId: administrator } })
-    expect(typeof auth.api.registerSSOProvider).toBe("function")
+    const password = "CorrectHorse1!"
+    const hashedPassword = await bcrypt.hash(password, 10)
+
+    const viewerEmail = `sso-gate-viewer-${Date.now()}@test.local`
+    const viewerUser = await prisma.user.create({
+      data: { email: viewerEmail, companyId: company.id, roleId: viewerRoleId, emailVerified: true },
+    })
+    await prisma.account.create({
+      data: { accountId: viewerUser.id, providerId: "credential", userId: viewerUser.id, password: hashedPassword },
+    })
+
+    const adminEmail = `sso-gate-admin-${Date.now()}@test.local`
+    const adminUser = await prisma.user.create({
+      data: { email: adminEmail, companyId: company.id, roleId: administratorRoleId, emailVerified: true },
+    })
+    await prisma.account.create({
+      data: { accountId: adminUser.id, providerId: "credential", userId: adminUser.id, password: hashedPassword },
+    })
+
+    const registrationBody = (providerId: string) => ({
+      providerId,
+      issuer: "https://idp.example.com/gate",
+      domain: company.domain,
+      oidcConfig: {
+        clientId: "gate-client",
+        clientSecret: "gate-secret",
+        skipDiscovery: true,
+        authorizationEndpoint: "https://idp.example.com/gate/authorize",
+        tokenEndpoint: "https://idp.example.com/gate/token",
+        jwksEndpoint: "https://idp.example.com/gate/jwks",
+      },
+    })
+
+    const viewerHeaders = await signInAndGetCookieHeaders(viewerEmail, password)
+    await expect(
+      auth.api.registerSSOProvider({
+        headers: viewerHeaders,
+        body: registrationBody("itest-gate-viewer"),
+      })
+    ).rejects.toMatchObject({ status: "FORBIDDEN" })
+
+    const adminHeaders = await signInAndGetCookieHeaders(adminEmail, password)
+    // Not rejected for permission reasons: skipDiscovery avoids any real OIDC
+    // network call, so a valid body clears sso:config and actually creates
+    // the provider (cleaned up by the afterAll above via the itest- prefix).
+    const created = await auth.api.registerSSOProvider({
+      headers: adminHeaders,
+      body: registrationBody("itest-gate-admin"),
+    })
+    expect(created.providerId).toBe("itest-gate-admin")
   })
 })
