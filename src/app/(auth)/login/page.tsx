@@ -1,6 +1,6 @@
 "use client"
 
-import { useEffect, useState } from "react"
+import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Loader2, ShieldCheck } from "lucide-react"
 import { signIn, twoFactor } from "@/lib/auth/client"
@@ -52,6 +52,9 @@ export default function LoginPage() {
   // Carried over from step one so the password step's form still posts an
   // email field without asking the user to type it twice.
   const [email, setEmail] = useState("")
+  // Lets the anti-lockout escape hatch below read the typed address without
+  // making the input controlled.
+  const emailInputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
 
   // The sso plugin sends failures back as /login?error=<code> after a round
@@ -136,6 +139,29 @@ export default function LoginPage() {
   function backToEmail() {
     setError(null)
     setSsoChecked(false)
+  }
+
+  // Anti-lockout escape hatch. User.ssoExempt exists so that an expired
+  // certificate or a broken IdP can never lock a whole company out of its
+  // own security product: an exempt user must still be able to reach the
+  // password step even when their company has a verified SSO provider. But
+  // /api/sso/resolve cannot answer "no SSO" for exempt addresses without
+  // leaking, to an unauthenticated caller, which accounts hold the
+  // exemption. So the way out is client-side: skip the resolve lookup
+  // entirely and go straight to the password step for the typed email. This
+  // grants nothing by itself, the server still enforces the real policy in
+  // enforceAllowedMethod, so a non-exempt user who takes this route is
+  // simply refused there with a readable error. Do not remove this as
+  // apparent clutter; without it, ssoExempt is unreachable through the UI.
+  function usePasswordInstead() {
+    const input = emailInputRef.current
+    if (!input || !input.checkValidity()) {
+      input?.reportValidity()
+      return
+    }
+    setError(null)
+    setEmail(input.value)
+    setSsoChecked(true)
   }
 
   async function handlePasskey() {
@@ -405,6 +431,7 @@ export default function LoginPage() {
                 autoComplete="email"
                 autoFocus
                 placeholder="you@company.com"
+                ref={emailInputRef}
                 className="w-full rounded-lg border border-input bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors"
               />
             </div>
@@ -433,6 +460,15 @@ export default function LoginPage() {
             >
               Sign in with a passkey
             </Button>
+
+            <button
+              type="button"
+              onClick={usePasswordInstead}
+              disabled={loading}
+              className="w-full text-sm text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Use a password instead
+            </button>
           </form>
         ) : (
           // Step two: password. Same method="post" fallback risk as step one,
