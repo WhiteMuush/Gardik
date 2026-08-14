@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma"
 import { authPrisma } from "@/lib/auth/prisma"
 import { auth } from "@/lib/auth/server"
 import { seedPresetsForCompany, resolvePresetRoleId } from "@/lib/rbac/seed-roles"
+import { findCompanyProvider, takeOwnership, maskedProvider } from "@/lib/sso/provider"
 
 const PROVIDER_ID = "itest-sso-provider"
 
@@ -150,5 +151,35 @@ describe("sso:config gate", () => {
       body: registrationBody("itest-gate-admin"),
     })
     expect(created.providerId).toBe("itest-gate-admin")
+  })
+})
+
+describe("provider helpers", () => {
+  it("finds the company provider and masks its secret", async () => {
+    const admin = await prisma.user.findUniqueOrThrow({ where: { email: "admin@datashield.local" } })
+    await prisma.ssoProvider.deleteMany({ where: { organizationId: admin.companyId } })
+    await authPrisma.ssoProvider.create({
+      data: {
+        issuer: "https://idp.example.com",
+        providerId: "itest-masked",
+        domain: "datashield.local",
+        organizationId: admin.companyId,
+        oidcConfig: JSON.stringify({ clientId: "client-1234", clientSecret: "shh", discoveryEndpoint: "https://idp.example.com/.well-known/openid-configuration" }),
+      },
+    })
+
+    const found = await findCompanyProvider(admin.companyId)
+    expect(found?.providerId).toBe("itest-masked")
+
+    const masked = maskedProvider(found!)
+    expect(masked.clientIdLastFour).toBe("1234")
+    expect(JSON.stringify(masked)).not.toContain("shh")
+  })
+
+  it("re-points ownership at the calling admin", async () => {
+    const admin = await prisma.user.findUniqueOrThrow({ where: { email: "admin@datashield.local" } })
+    await takeOwnership("itest-masked", admin.id)
+    const row = await prisma.ssoProvider.findUniqueOrThrow({ where: { providerId: "itest-masked" } })
+    expect(row.userId).toBe(admin.id)
   })
 })

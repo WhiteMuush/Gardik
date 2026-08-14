@@ -10,6 +10,10 @@ export const AUDIT_ACTIONS = {
   ROLE_UPDATE: "role.update",
   ROLE_DELETE: "role.delete",
   USER_ROLE_ASSIGN: "user.role.assign",
+  SSO_PROVIDER_CREATE: "sso.provider.create",
+  SSO_PROVIDER_UPDATE: "sso.provider.update",
+  SSO_PROVIDER_DELETE: "sso.provider.delete",
+  SSO_DOMAIN_VERIFY: "sso.domain.verify",
 } as const
 
 export type AuditAction = (typeof AUDIT_ACTIONS)[keyof typeof AUDIT_ACTIONS]
