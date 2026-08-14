@@ -32,6 +32,7 @@ export const ROUTE_PERMISSIONS: Record<string, Permission | "PUBLIC" | "AUTH_ONL
   "roles": "roles:manage",
   "roles/[id]": "roles:manage",
   "sso/provider": "sso:config",
+  "sso/provider/domain": "sso:config",
   "users/[id]/role": "users:manage",
   "reports/schedules": "reports:schedule",
   "reports/schedules/[id]": "reports:schedule",

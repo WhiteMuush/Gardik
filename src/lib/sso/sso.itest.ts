@@ -5,8 +5,10 @@ import { prisma } from "@/lib/prisma"
 import { authPrisma } from "@/lib/auth/prisma"
 import { auth } from "@/lib/auth/server"
 import { seedPresetsForCompany, resolvePresetRoleId } from "@/lib/rbac/seed-roles"
+import { AUDIT_ACTIONS } from "@/lib/rbac/audit"
 import { findCompanyProvider, takeOwnership, maskedProvider } from "@/lib/sso/provider"
 import { GET, POST, PATCH, DELETE } from "@/app/api/sso/provider/route"
+import { POST as domainPOST, PUT as domainPUT } from "@/app/api/sso/provider/domain/route"
 
 const PROVIDER_ID = "itest-sso-provider"
 
@@ -360,5 +362,147 @@ describe("provider route handlers", () => {
 
     expect((await PATCH(jsonRequest("PATCH", { domain: "whatever.test" }))).status).toBe(404)
     expect((await DELETE()).status).toBe(404)
+  })
+})
+
+// requestDomainVerification (index.mjs:1561-1596) never touches the network:
+// it only writes a verification row and returns its token, so it is called
+// for real below, same as this suite's other non-network auth.api calls.
+// verifyDomain (index.mjs:1598-1671) does a real dns.resolveTxt lookup, but
+// the plugin itself wraps that lookup in a try/catch that only logs on
+// failure (index.mjs:1646-1651) rather than rethrowing, so an unresolvable
+// test domain still ends the call with a thrown APIError("BAD_GATEWAY")
+// deterministically, not a hang or a flaky network-dependent outcome
+// (verified directly: `dns.promises.resolveTxt` against a nonexistent
+// hostname in this sandbox rejects with ENOTFOUND in well under a second).
+// That means the route's catch-all 409 branch is exercised for real too, so
+// nothing here needs to be stubbed.
+describe("domain verification route handlers", () => {
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  it("rejects a Viewer on both POST and PUT", async () => {
+    const { viewerHeaders } = await setupCompanyWithViewerAndAdmin("domain-viewer")
+    headersState.current = viewerHeaders
+    expect((await domainPOST()).status).toBe(403)
+    expect((await domainPUT()).status).toBe(403)
+  })
+
+  it("POST 404s when the company has no provider configured", async () => {
+    const { adminHeaders } = await setupCompanyWithViewerAndAdmin("domain-404")
+    headersState.current = adminHeaders
+    expect((await domainPOST()).status).toBe(404)
+  })
+
+  it("PUT 404s when the company has no provider configured", async () => {
+    const { adminHeaders } = await setupCompanyWithViewerAndAdmin("domain-404-put")
+    headersState.current = adminHeaders
+    expect((await domainPUT()).status).toBe(404)
+  })
+
+  it("POST 409s when the provider's domain is already verified", async () => {
+    const { company, adminUser, adminHeaders } = await setupCompanyWithViewerAndAdmin("domain-verified")
+    await authPrisma.ssoProvider.create({
+      data: {
+        providerId: `itest-domain-verified-${Date.now()}`,
+        issuer: "https://idp.example.com/domain-verified",
+        domain: company.domain,
+        organizationId: company.id,
+        userId: adminUser.id,
+        domainVerified: true,
+      },
+    })
+
+    headersState.current = adminHeaders
+    expect((await domainPOST()).status).toBe(409)
+  })
+
+  it("POST issues a real verification token and re-points ownership; PUT maps the plugin's DNS failure to 409", async () => {
+    const { company, viewerUser, adminUser, adminHeaders } = await setupCompanyWithViewerAndAdmin("domain-flow")
+    const providerId = `itest-domain-flow-${Date.now()}`
+    await authPrisma.ssoProvider.create({
+      data: {
+        providerId,
+        issuer: "https://idp.example.com/domain-flow",
+        domain: company.domain,
+        organizationId: company.id,
+        userId: viewerUser.id, // proves takeOwnership repoints it to the caller below
+        domainVerified: false,
+      },
+    })
+
+    headersState.current = adminHeaders
+    const posted = await domainPOST()
+    expect(posted.status).toBe(200)
+    const postedBody = (await posted.json()) as { record: { name: string; value: string } }
+    expect(postedBody.record.name).toBe(`_better-auth-token-${providerId}.${company.domain}`)
+    expect(postedBody.record.value).toBeTruthy()
+
+    const afterPost = await prisma.ssoProvider.findUniqueOrThrow({ where: { providerId } })
+    expect(afterPost.userId).toBe(adminUser.id)
+
+    const putRes = await domainPUT()
+    expect(putRes.status).toBe(409)
+    const putBody = (await putRes.json()) as { error: string }
+    expect(putBody.error).toContain("DNS record")
+
+    const afterPut = await prisma.ssoProvider.findUniqueOrThrow({ where: { providerId } })
+    expect(afterPut.domainVerified).toBe(false)
+  })
+
+  it("PUT stubbed to reject writes no audit entry and still maps to 409", async () => {
+    const { company, viewerUser, adminUser, adminHeaders } = await setupCompanyWithViewerAndAdmin("domain-put-stub")
+    const providerId = `itest-domain-put-stub-${Date.now()}`
+    await authPrisma.ssoProvider.create({
+      data: {
+        providerId,
+        issuer: "https://idp.example.com/domain-put-stub",
+        domain: company.domain,
+        organizationId: company.id,
+        userId: viewerUser.id,
+        domainVerified: false,
+      },
+    })
+
+    const verifySpy = vi.spyOn(auth.api, "verifyDomain").mockRejectedValue(new Error("stubbed rejection"))
+    headersState.current = adminHeaders
+    const putRes = await domainPUT()
+    expect(putRes.status).toBe(409)
+    verifySpy.mockRestore()
+
+    const afterPut = await prisma.ssoProvider.findUniqueOrThrow({ where: { providerId } })
+    expect(afterPut.userId).toBe(adminUser.id) // takeOwnership still ran before the plugin call
+    expect(afterPut.domainVerified).toBe(false)
+
+    const audits = await prisma.auditLog.findMany({ where: { targetId: providerId } })
+    expect(audits).toHaveLength(0)
+  })
+
+  it("PUT writes an audit entry and reports domainVerified on a successful verification", async () => {
+    const { company, viewerUser, adminHeaders } = await setupCompanyWithViewerAndAdmin("domain-put-ok")
+    const providerId = `itest-domain-put-ok-${Date.now()}`
+    await authPrisma.ssoProvider.create({
+      data: {
+        providerId,
+        issuer: "https://idp.example.com/domain-put-ok",
+        domain: company.domain,
+        organizationId: company.id,
+        userId: viewerUser.id,
+        domainVerified: false,
+      },
+    })
+
+    const verifySpy = vi.spyOn(auth.api, "verifyDomain").mockResolvedValue(undefined)
+    headersState.current = adminHeaders
+    const putRes = await domainPUT()
+    expect(putRes.status).toBe(200)
+    expect(await putRes.json()).toEqual({ domainVerified: true })
+    verifySpy.mockRestore()
+
+    const audits = await prisma.auditLog.findMany({ where: { targetId: providerId } })
+    expect(audits).toHaveLength(1)
+    expect(audits[0].action).toBe(AUDIT_ACTIONS.SSO_DOMAIN_VERIFY)
+    expect(audits[0].companyId).toBe(company.id)
   })
 })
