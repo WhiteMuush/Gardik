@@ -10,6 +10,7 @@ import { AUDIT_ACTIONS } from "@/lib/rbac/audit"
 import { findCompanyProvider, takeOwnership, maskedProvider } from "@/lib/sso/provider"
 import { GET, POST, PATCH, DELETE } from "@/app/api/sso/provider/route"
 import { POST as domainPOST, PUT as domainPUT } from "@/app/api/sso/provider/domain/route"
+import { POST as resolveSso } from "@/app/api/sso/resolve/route"
 
 const PROVIDER_ID = "itest-sso-provider"
 
@@ -551,5 +552,55 @@ describe("domain verification route handlers", () => {
     expect(audits).toHaveLength(1)
     expect(audits[0].action).toBe(AUDIT_ACTIONS.SSO_DOMAIN_VERIFY)
     expect(audits[0].companyId).toBe(company.id)
+  })
+})
+
+function resolveRequest(email: string): Request {
+  return new Request("http://localhost/api/sso/resolve", {
+    method: "POST",
+    body: JSON.stringify({ email }),
+  })
+}
+
+describe("POST /api/sso/resolve", () => {
+  it("answers sso:false for an unknown address", async () => {
+    // rateLimit() is keyed on the raw email and backed by Postgres, so a
+    // fixed literal here would accumulate hits across every suite run within
+    // the window and could eventually trip the 429 path for reasons
+    // unrelated to this test. Suffix with Date.now() to keep the key fresh
+    // per run, matching the pattern already used by the throwaway users below.
+    const res = await resolveSso(resolveRequest(`nobody-${Date.now()}@example.com`))
+    expect(await res.json()).toEqual({ sso: false })
+  })
+
+  it("answers sso:false while the company's provider is unverified, then sso:true with its providerId once verified", async () => {
+    // A dedicated company/user rather than the shared seeded admin: mutating
+    // admin@datashield.local's SsoProvider rows would race every other itest
+    // file that reads that company's provider state (see PR #144, where
+    // mutating the shared admin caused real CI flakiness).
+    // setupCompanyWithViewerAndAdmin already suffixes its emails with
+    // Date.now(), which doubles as this test's unique rateLimit() key.
+    const { company, adminUser } = await setupCompanyWithViewerAndAdmin("resolve")
+
+    const providerId = `itest-resolve-${Date.now()}`
+    await authPrisma.ssoProvider.create({
+      data: {
+        issuer: "https://idp.example.com/resolve",
+        providerId,
+        domain: company.domain,
+        organizationId: company.id,
+        userId: adminUser.id,
+        domainVerified: false,
+        oidcConfig: JSON.stringify({ clientId: "abc", clientSecret: "shh" }),
+      },
+    })
+
+    const unverified = await resolveSso(resolveRequest(adminUser.email))
+    expect(await unverified.json()).toEqual({ sso: false })
+
+    await prisma.ssoProvider.update({ where: { providerId }, data: { domainVerified: true } })
+
+    const verified = await resolveSso(resolveRequest(adminUser.email))
+    expect(await verified.json()).toEqual({ sso: true, providerId })
   })
 })
