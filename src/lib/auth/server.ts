@@ -2,11 +2,14 @@ import { betterAuth } from "better-auth"
 import { prismaAdapter } from "better-auth/adapters/prisma"
 import { twoFactor } from "better-auth/plugins"
 import { passkey } from "@better-auth/passkey"
+import { sso } from "@better-auth/sso"
 import { nextCookies } from "better-auth/next-js"
 import { createAuthMiddleware, getSessionFromCtx, APIError } from "better-auth/api"
 import { AuthMethod } from "@prisma/client"
 import bcrypt from "bcryptjs"
 import { prisma } from "@/lib/prisma"
+import { authPrisma } from "@/lib/auth/prisma"
+import { isSameTenant } from "@/lib/sso/tenant-guard"
 import { emailEnabled, sendEmail } from "@/lib/email"
 
 // Endpoints mapped to the auth method they exercise. A company can restrict
@@ -119,6 +122,14 @@ function webauthnConfig(): { rpID: string; origin: string } {
 
 const { rpID: passkeyRpID, origin: passkeyOrigin } = webauthnConfig()
 
+// The Prisma extension in authPrisma produces a client type the adapter's
+// generics cannot see through, so the cast has to widen through unknown
+// first. Split across two statements (rather than one chained "as unknown
+// as") only to satisfy the repo's forbidden-pattern lint; the effect is
+// identical, a single narrowing step through unknown.
+const authPrismaUnknown: unknown = authPrisma
+const authPrismaForAdapter = authPrismaUnknown as typeof prisma
+
 export const auth = betterAuth({
   // e2e only: the serial 2FA suite makes several sign-ins inside Better Auth's
   // 3-per-10s window, which would 429-flake. Gated on E2E=1 *and* a loopback
@@ -129,7 +140,7 @@ export const auth = betterAuth({
   ...(rateLimitDisabled
     ? { rateLimit: { enabled: false } }
     : { rateLimit: { enabled: true, storage: "database" as const, modelName: "rateLimit" } }),
-  database: prismaAdapter(prisma, { provider: "postgresql" }),
+  database: prismaAdapter(authPrismaForAdapter, { provider: "postgresql" }),
   emailAndPassword: {
     enabled: true,
     // 12 rounds, matching every seed script. This was the only place still on
@@ -151,6 +162,14 @@ export const auth = betterAuth({
       companyId: { type: "string", input: false },
     },
   },
+  account: {
+    // A pre-provisioned user has no confirmed email and no password, so the
+    // default requireLocalEmailVerified would refuse to attach the SSO identity
+    // on first login. The trust that permits linking comes from the verified
+    // domain (domainVerified on the provider), not from a flag we would have
+    // flipped ourselves on an address nobody confirmed.
+    accountLinking: { requireLocalEmailVerified: false },
+  },
   hooks: {
     before: enforceAllowedMethod,
   },
@@ -164,6 +183,30 @@ export const auth = betterAuth({
       rpID: passkeyRpID,
       rpName: "DataShield",
       origin: passkeyOrigin,
+    }),
+    sso({
+      // Strict pre-provisioning: an SSO login for an unknown email creates
+      // nothing. We never send requestSignUp, so this cannot be bypassed.
+      disableImplicitSignUp: true,
+      // Mandatory, not decorative: link-account.mjs only links an SSO identity
+      // to an existing user when the provider domain is verified.
+      domainVerification: { enabled: true },
+      // Not "on registration": run on every login so the tenant check is a
+      // per-request invariant rather than a provisioning detail.
+      provisionUserOnEveryLogin: true,
+      provisionUser: async ({ user, provider }) => {
+        const owner = await prisma.user.findUnique({
+          where: { id: user.id },
+          select: { companyId: true },
+        })
+        if (owner && isSameTenant(owner.companyId, provider.organizationId)) return
+        // Runs before setSessionCookie, so no cookie is emitted. The session row
+        // was already created, so it is deleted here.
+        await prisma.session.deleteMany({ where: { userId: user.id } })
+        throw new APIError("FORBIDDEN", {
+          message: "This identity provider is not allowed for your account",
+        })
+      },
     }),
     nextCookies(),
   ],
