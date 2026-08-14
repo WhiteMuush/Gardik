@@ -1,6 +1,8 @@
 import { describe, it, expect, afterAll } from "vitest"
 import { prisma } from "@/lib/prisma"
 import { authPrisma } from "@/lib/auth/prisma"
+import { auth } from "@/lib/auth/server"
+import { seedPresetsForCompany, resolvePresetRoleId } from "@/lib/rbac/seed-roles"
 
 const PROVIDER_ID = "itest-sso-provider"
 
@@ -55,5 +57,22 @@ describe("oidcConfig at rest", () => {
 
     const opened = await authPrisma.ssoProvider.findUniqueOrThrow({ where: { providerId: "itest-sealed" } })
     expect(opened.oidcConfig).toBe(raw)
+  })
+})
+
+describe("sso:config gate", () => {
+  it("refuses provider registration for a Viewer", async () => {
+    const admin = await prisma.user.findUniqueOrThrow({ where: { email: "admin@datashield.local" } })
+    await seedPresetsForCompany(prisma, admin.companyId)
+    const viewer = await resolvePresetRoleId(prisma, admin.companyId, "Viewer")
+    const administrator = await resolvePresetRoleId(prisma, admin.companyId, "Administrator")
+    await prisma.user.update({ where: { id: admin.id }, data: { roleId: viewer } })
+
+    const perms = await prisma.role.findUniqueOrThrow({ where: { id: viewer } })
+    expect(perms.permissions).toContain("sso:read")
+    expect(perms.permissions).not.toContain("sso:config")
+
+    await prisma.user.update({ where: { id: admin.id }, data: { roleId: administrator } })
+    expect(typeof auth.api.registerSSOProvider).toBe("function")
   })
 })

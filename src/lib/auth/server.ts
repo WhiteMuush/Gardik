@@ -11,6 +11,8 @@ import { prisma } from "@/lib/prisma"
 import { authPrisma } from "@/lib/auth/prisma"
 import { isSameTenant } from "@/lib/sso/tenant-guard"
 import { emailEnabled, sendEmail } from "@/lib/email"
+import { getUserPermissions, authorize } from "@/lib/rbac/authorize"
+import { requiredPermissionFor } from "@/lib/sso/policy"
 
 // Endpoints mapped to the auth method they exercise. A company can restrict
 // which methods its members may use (Company.allowedAuthMethods), so both
@@ -72,6 +74,17 @@ async function resolveCallerCompanyId(
 }
 
 const enforceAllowedMethod = createAuthMiddleware(async (ctx) => {
+  const required = requiredPermissionFor(ctx.path)
+  if (required) {
+    const session = await getSessionFromCtx(ctx)
+    if (!session) throw new APIError("UNAUTHORIZED", { message: "Sign in first" })
+    const perms = await getUserPermissions(prisma, session.user.roleId ?? null)
+    if (!authorize(perms, required)) {
+      throw new APIError("FORBIDDEN", { message: `Requires the ${required} permission` })
+    }
+    return
+  }
+
   const method = ENROLL_METHOD[ctx.path]
   if (!method) return
 
