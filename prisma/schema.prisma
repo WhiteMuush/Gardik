@@ -37,6 +37,7 @@ model Company {
 
   require2fa         Boolean      @default(false)
   allowedAuthMethods AuthMethod[] @default([TOTP])
+  ssoMandatory       Boolean      @default(false)
 
   users                User[]
   employees            Employee[]
@@ -50,6 +51,7 @@ model Company {
   reportSchedules      ReportSchedule[]
   roles                Role[]
   auditLogs            AuditLog[]
+  ssoProviders         SsoProvider[]
 }
 
 // A recurring report emailed to a recipient list (driven by the scheduler).
@@ -227,6 +229,7 @@ model User {
   roleId           String?
   companyId        String
   twoFactorEnabled Boolean  @default(false)
+  ssoExempt        Boolean  @default(false)
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
@@ -243,6 +246,7 @@ model User {
   passkeys         Passkey[]
   auditActions     AuditLog[]        @relation("AuditActor")
   stepUpGrants     StepUpGrant[]
+  ssoProviders     SsoProvider[]
 }
 
 model Session {
@@ -560,4 +564,28 @@ model ApiRateLimit {
   reset DateTime
 
   @@index([reset])
+}
+
+// Owned by @better-auth/sso: the field names come from the plugin's schema and
+// must not be renamed. `organizationId` is our companyId; the plugin only reads
+// it inside paths guarded by hasPlugin("organization"), which we do not install.
+// `oidcConfig` holds the client secret and is encrypted by the Prisma extension
+// in src/lib/sso/encryption.ts, so it is ciphertext at rest.
+model SsoProvider {
+  id             String   @id @default(cuid())
+  issuer         String
+  oidcConfig     String?
+  samlConfig     String?
+  userId         String?
+  providerId     String   @unique
+  organizationId String?
+  domain         String
+  domainVerified Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user    User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  company Company? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
 }
