@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, vi } from "vitest"
 import { prisma } from "@/lib/prisma"
 import { seedPresetsForCompany, resolvePresetRoleId } from "@/lib/rbac/seed-roles"
+import type { AuditEntry } from "@/lib/rbac/audit"
 
 // The route runs behind requirePermission, which reads getSession() from
 // @/lib/auth/session. An integration test has no cookie jar, so that module
@@ -9,6 +10,31 @@ import { seedPresetsForCompany, resolvePresetRoleId } from "@/lib/rbac/seed-role
 // doesn't leak into sso.itest.ts.
 const stub: { user: Record<string, unknown> } = { user: {} }
 vi.mock("@/lib/auth/session", () => ({ getSession: async () => stub }))
+
+// A toggleable wrapper around the real writeAudit so one test can prove the
+// create+audit transaction rolls back cleanly when the audit write fails.
+// Wired through vi.mock (rather than replaced only inside that test) because
+// the route imports writeAudit once at module load; every other test leaves
+// auditShouldFail false and gets the real implementation.
+let auditShouldFail = false
+let lastAuditEntry: AuditEntry | null = null
+vi.mock("@/lib/rbac/audit", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/rbac/audit")>()
+  const writeAudit: typeof actual.writeAudit = async (db, entry) => {
+    lastAuditEntry = entry
+    if (auditShouldFail) throw new Error("itest: simulated audit failure")
+    return actual.writeAudit(db, entry)
+  }
+  return { ...actual, writeAudit }
+})
+
+// Narrow-avoidance helper: reading lastAuditEntry through a function (rather
+// than the bare module variable) keeps TypeScript from treating a prior
+// "lastAuditEntry = null" assignment in the same test as though it still
+// held after the awaited call that the mock's closure reassigns it in.
+function readLastAuditEntry(): AuditEntry | null {
+  return lastAuditEntry
+}
 
 const { POST: createUser } = await import("@/app/api/users/route")
 
@@ -120,5 +146,98 @@ describe("POST /api/users", () => {
     ).toBeNull()
 
     await prisma.company.delete({ where: { id: otherCompany.id } })
+  })
+
+  it("returns 409, not 500, for an email that already has an account", async () => {
+    const email = `itest-shell-dup-${Date.now()}@datashield.local`
+    const first = await createUser(
+      new Request("http://localhost/api/users", {
+        method: "POST",
+        body: JSON.stringify({ email, name: "Shell", roleId: viewerRoleId }),
+      })
+    )
+    expect(first.status).toBe(201)
+
+    // Same email again: the pre-check (findUnique before create) is what
+    // should catch this in the common case.
+    const second = await createUser(
+      new Request("http://localhost/api/users", {
+        method: "POST",
+        body: JSON.stringify({ email, name: "Shell again", roleId: viewerRoleId }),
+      })
+    )
+    expect(second.status).toBe(409)
+
+    expect(await prisma.user.findMany({ where: { email } })).toHaveLength(1)
+
+    const created = await prisma.user.findUniqueOrThrow({ where: { email } })
+    await prisma.user.delete({ where: { id: created.id } })
+  })
+
+  it("still returns 409, not 500, when the pre-check races and the create hits the DB's unique constraint", async () => {
+    // Simulates the TOCTOU window from the finding: two requests both pass
+    // the findUnique pre-check because neither has committed yet. Force that
+    // by making findUnique lie (report "no existing row") once a duplicate
+    // is already sitting in the DB, so this request falls through to
+    // prisma.user.create -- which must hit the real unique constraint on
+    // User.email and have its P2002 caught and turned into a 409, not an
+    // unhandled 500.
+    const email = `itest-shell-race-${Date.now()}@datashield.local`
+    const existing = await prisma.user.create({
+      data: { email, name: "Already here", companyId, roleId: viewerRoleId, emailVerified: false },
+    })
+
+    const spy = vi.spyOn(prisma.user, "findUnique").mockResolvedValueOnce(null)
+    try {
+      const res = await createUser(
+        new Request("http://localhost/api/users", {
+          method: "POST",
+          body: JSON.stringify({ email, name: "Racer", roleId: viewerRoleId }),
+        })
+      )
+      expect(res.status).toBe(409)
+    } finally {
+      spy.mockRestore()
+    }
+
+    // No second row, and no orphan audit entry from the losing attempt.
+    expect(await prisma.user.findMany({ where: { email } })).toHaveLength(1)
+    const audits = await prisma.auditLog.findMany({ where: { targetId: existing.id } })
+    expect(audits).toHaveLength(0)
+
+    await prisma.user.delete({ where: { id: existing.id } })
+  })
+
+  it("rolls back the user row when the audit write fails inside the transaction", async () => {
+    // Proves Finding 2's atomicity: if writeAudit throws after tx.user.create
+    // has run (but before the transaction commits), Prisma must roll the
+    // whole transaction back, leaving neither the user row nor an audit row
+    // behind. Forced via the writeAudit wrapper mocked in above.
+    const email = `itest-shell-rollback-${Date.now()}@datashield.local`
+    auditShouldFail = true
+    lastAuditEntry = null
+    try {
+      await expect(
+        createUser(
+          new Request("http://localhost/api/users", {
+            method: "POST",
+            body: JSON.stringify({ email, name: "Shell", roleId: viewerRoleId }),
+          })
+        )
+      ).rejects.toThrow("itest: simulated audit failure")
+    } finally {
+      auditShouldFail = false
+    }
+
+    // writeAudit was reached (proving tx.user.create ran before the throw),
+    // and it saw the would-be user's id.
+    const targetId = readLastAuditEntry()?.targetId
+    expect(targetId).toBeTruthy()
+
+    expect(await prisma.user.findUnique({ where: { email } })).toBeNull()
+    if (targetId) {
+      expect(await prisma.user.findUnique({ where: { id: targetId } })).toBeNull()
+      expect(await prisma.auditLog.findFirst({ where: { targetId } })).toBeNull()
+    }
   })
 })

@@ -1,4 +1,5 @@
 import { NextResponse } from "next/server"
+import { Prisma } from "@prisma/client"
 import { requirePermission } from "@/lib/apiAuth"
 import { prisma } from "@/lib/prisma"
 import { writeAudit, AUDIT_ACTIONS } from "@/lib/rbac/audit"
@@ -48,25 +49,38 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "That email already has an account" }, { status: 409 })
   }
 
-  const created = await prisma.user.create({
-    data: {
-      email,
-      name: body.name?.trim() || email,
-      companyId: session.user.companyId,
-      roleId: role.id,
-      emailVerified: false,
-    },
-    select: { id: true, email: true, name: true },
-  })
-
-  await writeAudit(prisma, {
-    companyId: session.user.companyId,
-    actorUserId: session.user.id,
-    action: AUDIT_ACTIONS.USER_CREATE,
-    targetType: "user",
-    targetId: created.id,
-    after: { email: created.email, name: created.name, role: role.name },
-  })
-
-  return NextResponse.json({ user: { ...created, roleName: role.name } }, { status: 201 })
+  try {
+    const created = await prisma.$transaction(async (tx) => {
+      const user = await tx.user.create({
+        data: {
+          email,
+          name: body.name?.trim() || email,
+          companyId: session.user.companyId,
+          roleId: role.id,
+          emailVerified: false,
+        },
+        select: { id: true, email: true, name: true },
+      })
+      await writeAudit(tx, {
+        companyId: session.user.companyId,
+        actorUserId: session.user.id,
+        action: AUDIT_ACTIONS.USER_CREATE,
+        targetType: "user",
+        targetId: user.id,
+        after: { email: user.email, name: user.name, role: role.name },
+      })
+      return user
+    })
+    return NextResponse.json({ user: { ...created, roleName: role.name } }, { status: 201 })
+  } catch (e) {
+    // The pre-check above handles the common case; this catch is the race
+    // backstop when two concurrent requests both pass it for the same email.
+    // Any other error (e.g. the audit write failing) should surface as a 500
+    // rather than be mis-reported as a duplicate, and create+audit stay
+    // atomic via the transaction above.
+    if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
+      return NextResponse.json({ error: "That email already has an account" }, { status: 409 })
+    }
+    throw e
+  }
 }
