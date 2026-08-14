@@ -8,6 +8,7 @@ test.describe.configure({ mode: "serial" })
 async function login(page: import("@playwright/test").Page, u: { email: string; password: string }) {
   await page.goto("/login")
   await page.getByLabel("Email").fill(u.email)
+  await page.getByRole("button", { name: "Continue" }).click()
   await page.getByLabel("Password").fill(u.password)
   await page.getByRole("button", { name: "Sign in", exact: true }).click()
   await page.waitForURL("**/dashboard")

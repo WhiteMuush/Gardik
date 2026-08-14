@@ -25,6 +25,7 @@ test.afterEach(() => {
 test("admin signs in, sees dashboard and alerts", async ({ page }) => {
   await page.goto("/login")
   await page.getByLabel("Email").fill("admin@datashield.local")
+  await page.getByRole("button", { name: "Continue" }).click()
   await page.getByLabel("Password").fill("ChangeMe123!")
   await page.getByRole("button", { name: "Sign in", exact: true }).click()
 
