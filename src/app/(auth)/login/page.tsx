@@ -6,6 +6,13 @@ import { Loader2, ShieldCheck } from "lucide-react"
 import { signIn, twoFactor } from "@/lib/auth/client"
 import { Button } from "@/components/ui/button"
 
+// /api/sso/resolve is two indexed lookups; a healthy reply is fast. 5s is
+// generous for a slow network but still short enough that a stalled request
+// does not leave the anti-lockout escape hatch (see usePasswordInstead below)
+// disabled for long: past this, the check is abandoned and treated like "no
+// SSO configured", same as a thrown fetch or a non-2xx response.
+const RESOLVE_TIMEOUT_MS = 5000
+
 // The plugin redirects back with ?error=<code>. Only the codes a real user can
 // reach are translated; the rest fall back, and the raw code stays server-side.
 const SSO_ERRORS: Record<string, string> = {
@@ -64,6 +71,27 @@ export default function LoginPage() {
     if (code) setError(SSO_ERRORS[code] ?? "Single sign-on failed. Try again or contact an administrator.")
   }, [])
 
+  // Anti-lockout bfcache trap. signIn.sso navigates by assigning
+  // window.location.href (a same-tab top-level navigation), so this page is
+  // eligible for the browser's back-forward cache; nothing here sends
+  // Cache-Control: no-store to opt out. On the success path `pending` is
+  // deliberately left set (see continueWithEmail: "nothing left to do"),
+  // because the redirect is expected to carry the user away for good. But if
+  // the IdP the user was sent to is slow or broken and they press Back, the
+  // browser can restore this exact page from bfcache with `pending` frozen
+  // at "password", which disables both Continue and the escape hatch below
+  // with no way out short of a manual reload, a step a locked-out user has
+  // no reason to know to take. `persisted` is true only on that kind of
+  // restore, never on a normal fresh load, so this cannot flicker the
+  // controls back to enabled during an ordinary successful redirect.
+  useEffect(() => {
+    function handlePageShow(event: PageTransitionEvent) {
+      if (event.persisted) setPending(null)
+    }
+    window.addEventListener("pageshow", handlePageShow)
+    return () => window.removeEventListener("pageshow", handlePageShow)
+  }, [])
+
   // Every successful path funnels through here so the transition screen is the
   // single thing standing between authentication and the dashboard.
   function enterWorkspace() {
@@ -94,16 +122,22 @@ export default function LoginPage() {
     setError(null)
 
     let resolved: { sso?: boolean; providerId?: string } | null = null
+    const controller = new AbortController()
+    const timer = setTimeout(() => controller.abort(), RESOLVE_TIMEOUT_MS)
     try {
       const res = await fetch("/api/sso/resolve", {
         method: "POST",
         headers: { "content-type": "application/json" },
         body: JSON.stringify({ email: typedEmail }),
+        signal: controller.signal,
       })
       if (res.ok) resolved = (await res.json()) as { sso?: boolean; providerId?: string }
     } catch {
-      // Network failure: treated exactly like "no SSO configured" below.
+      // Network failure, non-JSON body, or the RESOLVE_TIMEOUT_MS abort above:
+      // all treated exactly like "no SSO configured" below.
       resolved = null
+    } finally {
+      clearTimeout(timer)
     }
 
     if (resolved?.sso && resolved.providerId) {
