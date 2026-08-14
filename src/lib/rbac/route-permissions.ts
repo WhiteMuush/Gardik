@@ -10,6 +10,9 @@ export const ROUTE_PERMISSIONS: Record<string, Permission | "PUBLIC" | "AUTH_ONL
   "integrations/siem/[companyId]": "PUBLIC",
   "scim/[connectionId]/Users": "PUBLIC",
   "scim/[connectionId]/Users/[scimId]": "PUBLIC",
+  // Runs before sign-in: the login page calls it to learn whether a typed
+  // email's company has a verified SSO provider, so there is no session yet.
+  "sso/resolve": "PUBLIC",
 
   "alerts/[id]": "alerts:status",
   "alerts/[id]/remediate": "alerts:remediate",
