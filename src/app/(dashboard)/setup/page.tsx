@@ -26,7 +26,7 @@ export default async function SetupPage({
     prisma.apiCredential.count({ where: { companyId } }),
     prisma.company.findUnique({
       where: { id: companyId },
-      select: { require2fa: true, allowedAuthMethods: true },
+      select: { require2fa: true, allowedAuthMethods: true, ssoMandatory: true },
     }),
   ])
 
@@ -66,6 +66,7 @@ export default async function SetupPage({
           require2fa={company.require2fa}
           allowedAuthMethods={company.allowedAuthMethods}
           isAdmin={isAdmin}
+          ssoMandatory={company.ssoMandatory}
         />
       )}
     </SetupChecklist>
