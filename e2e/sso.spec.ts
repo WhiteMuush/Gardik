@@ -36,7 +36,7 @@ test("the anti-lockout escape hatch skips the SSO lookup entirely", async ({ pag
 // `pending` in the disabled state, then dispatches the same `pageshow`
 // event with `persisted: true` that a genuine restore delivers, exercising
 // the exact listener added to page.tsx.
-test("pending state recovers from a bfcache-style restore", async ({ page }) => {
+test("the pageshow listener clears the pending state on a restore", async ({ page }) => {
   await page.route("**/api/sso/resolve", async () => {
     // Never calls fulfill/continue/abort: the request hangs from the page's
     // point of view, same as a stalled network in production.
