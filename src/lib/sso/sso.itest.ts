@@ -1,4 +1,4 @@
-import { describe, it, expect, afterAll } from "vitest"
+import { describe, it, expect, afterAll, afterEach, vi } from "vitest"
 import bcrypt from "bcryptjs"
 import { convertSetCookieToCookie } from "better-auth/test"
 import { prisma } from "@/lib/prisma"
@@ -6,8 +6,20 @@ import { authPrisma } from "@/lib/auth/prisma"
 import { auth } from "@/lib/auth/server"
 import { seedPresetsForCompany, resolvePresetRoleId } from "@/lib/rbac/seed-roles"
 import { findCompanyProvider, takeOwnership, maskedProvider } from "@/lib/sso/provider"
+import { GET, POST, PATCH, DELETE } from "@/app/api/sso/provider/route"
 
 const PROVIDER_ID = "itest-sso-provider"
+
+// Route handlers resolve the caller's session through next/headers's headers(),
+// which throws outside a real Next request scope (verified by running it plain
+// in node: "headers was called outside a request scope"). Stub it to hand back
+// whatever Headers object the current test set, so requirePermission's
+// getSession() -> auth.api.getSession() sees the real signed-in cookie the same
+// way an actual HTTP request would.
+const headersState = vi.hoisted(() => ({ current: new Headers() }))
+vi.mock("next/headers", () => ({
+  headers: async () => headersState.current,
+}))
 
 afterAll(async () => {
   await prisma.ssoProvider.deleteMany({ where: { providerId: { startsWith: "itest-" } } })
@@ -181,5 +193,172 @@ describe("provider helpers", () => {
     await takeOwnership("itest-masked", admin.id)
     const row = await prisma.ssoProvider.findUniqueOrThrow({ where: { providerId: "itest-masked" } })
     expect(row.userId).toBe(admin.id)
+  })
+})
+
+// The plugin's registerSSOProvider always runs a live OIDC discovery fetch
+// against the supplied issuer/discoveryEndpoint unless the caller sets
+// oidcConfig.skipDiscovery (verified by reading registerSSOProvider in
+// node_modules/@better-auth/sso/dist/index.mjs: discoverOIDCConfig() is only
+// skipped `if (body.oidcConfig && !body.oidcConfig.skipDiscovery)`), and
+// route.ts's POST body never sets that flag. Reaching the plugin's own
+// discovery endpoint also requires the URL's origin to be in the auth
+// instance's trustedOrigins, which this app never configures for arbitrary
+// customer IdPs. So a real POST through the route can't succeed offline; the
+// route's own logic (permission gate, the follow-up prisma writes, masking,
+// audit) is what this suite is verifying, not the plugin's own discovery
+// flow (that's the plugin's own test surface). Stub just that one plugin
+// call to perform the equivalent row insert, and leave every other auth.api
+// method (getSession, updateSSOProvider, signInEmail) real.
+async function stubProviderRegistration(ownerId: string) {
+  return vi.spyOn(auth.api, "registerSSOProvider").mockImplementation(async (args) => {
+    const body = args.body as {
+      providerId: string
+      issuer: string
+      domain: string
+      oidcConfig: Record<string, unknown>
+    }
+    await authPrisma.ssoProvider.create({
+      data: {
+        providerId: body.providerId,
+        issuer: body.issuer,
+        domain: body.domain,
+        domainVerified: false,
+        oidcConfig: JSON.stringify(body.oidcConfig),
+        userId: ownerId,
+      },
+    })
+    return { providerId: body.providerId } as Awaited<ReturnType<typeof auth.api.registerSSOProvider>>
+  })
+}
+
+async function setupCompanyWithViewerAndAdmin(label: string) {
+  const company = await prisma.company.create({
+    data: { name: `${label} Co`, domain: `${label}-${Date.now()}.test` },
+  })
+  await seedPresetsForCompany(prisma, company.id)
+  const viewerRoleId = await resolvePresetRoleId(prisma, company.id, "Viewer")
+  const administratorRoleId = await resolvePresetRoleId(prisma, company.id, "Administrator")
+
+  const password = "CorrectHorse1!"
+  const hashedPassword = await bcrypt.hash(password, 10)
+
+  const viewerEmail = `${label}-viewer-${Date.now()}@test.local`
+  const viewerUser = await prisma.user.create({
+    data: { email: viewerEmail, companyId: company.id, roleId: viewerRoleId, emailVerified: true },
+  })
+  await prisma.account.create({
+    data: { accountId: viewerUser.id, providerId: "credential", userId: viewerUser.id, password: hashedPassword },
+  })
+
+  const adminEmail = `${label}-admin-${Date.now()}@test.local`
+  const adminUser = await prisma.user.create({
+    data: { email: adminEmail, companyId: company.id, roleId: administratorRoleId, emailVerified: true },
+  })
+  await prisma.account.create({
+    data: { accountId: adminUser.id, providerId: "credential", userId: adminUser.id, password: hashedPassword },
+  })
+
+  const viewerHeaders = await signInAndGetCookieHeaders(viewerEmail, password)
+  const adminHeaders = await signInAndGetCookieHeaders(adminEmail, password)
+
+  return { company, viewerUser, adminUser, viewerHeaders, adminHeaders }
+}
+
+function jsonRequest(method: string, body?: unknown): Request {
+  return new Request("http://localhost/api/sso/provider", {
+    method,
+    ...(body !== undefined ? { body: JSON.stringify(body) } : {}),
+  })
+}
+
+describe("provider route handlers", () => {
+  afterEach(() => {
+    vi.restoreAllMocks()
+  })
+
+  it("gates writes, masks reads, preserves secrets on a metadata-only PATCH, and enforces the ssoMandatory delete guard", async () => {
+    const { company, adminUser, viewerHeaders, adminHeaders } = await setupCompanyWithViewerAndAdmin("route-lifecycle")
+
+    const createBody = {
+      issuer: "https://idp.example.com/route-lifecycle",
+      domain: company.domain,
+      clientId: "route-client-id",
+      clientSecret: "route-super-secret",
+      discoveryEndpoint: "https://idp.example.com/route-lifecycle/.well-known/openid-configuration",
+    }
+
+    // Viewer has sso:read but not sso:config: POST is rejected before ever
+    // reaching the plugin.
+    headersState.current = viewerHeaders
+    const rejected = await POST(jsonRequest("POST", createBody))
+    expect(rejected.status).toBe(403)
+    expect(await findCompanyProvider(company.id)).toBeNull()
+
+    // Administrator clears the gate and creates the provider. Stub only the
+    // plugin's own registration call (see stubProviderRegistration's comment).
+    const registerSpy = await stubProviderRegistration(adminUser.id)
+    headersState.current = adminHeaders
+    const created = await POST(jsonRequest("POST", createBody))
+    expect(created.status).toBe(201)
+    const createdBody = (await created.json()) as { provider: { providerId: string } }
+    expect(createdBody.provider.providerId).toBe(`sso-${company.id}`)
+    expect(JSON.stringify(createdBody)).not.toContain("route-super-secret")
+    registerSpy.mockRestore()
+
+    // GET, still gated on sso:read only, returns the same masked shape to the Viewer.
+    headersState.current = viewerHeaders
+    const got = await GET()
+    expect(got.status).toBe(200)
+    const gotBody = (await got.json()) as { provider: { clientIdLastFour: string | null } }
+    expect(gotBody.provider.clientIdLastFour).toBe("t-id") // last 4 of "route-client-id"
+    expect(JSON.stringify(gotBody)).not.toContain("route-super-secret")
+
+    // A metadata-only PATCH (domain change, no client fields) goes through
+    // auth.api.updateSSOProvider for real: no network call is involved for a
+    // domain/issuer-only update (verified by reading updateSSOProvider in
+    // node_modules/@better-auth/sso/dist/index.mjs; the oidcConfig branch only
+    // calls validateSkipDiscoveryEndpoints + mergeOIDCConfig, never
+    // discoverOIDCConfig). mergeOIDCConfig there falls back to the current
+    // stored clientId/clientSecret/discoveryEndpoint with `updates.x ?? current.x`
+    // whenever the PATCH body omits them, so this proves that fallback holds
+    // through the real route, not just the library source.
+    headersState.current = adminHeaders
+    const newDomain = `patched-${company.domain}`
+    const patched = await PATCH(jsonRequest("PATCH", { domain: newDomain }))
+    expect(patched.status).toBe(200)
+
+    const afterPatch = await authPrisma.ssoProvider.findUniqueOrThrow({ where: { providerId: `sso-${company.id}` } })
+    expect(afterPatch.domain).toBe(newDomain)
+    const oidcConfig = JSON.parse(afterPatch.oidcConfig!) as { clientId?: string; clientSecret?: string; discoveryEndpoint?: string }
+    expect(oidcConfig.clientId).toBe("route-client-id")
+    expect(oidcConfig.clientSecret).toBe("route-super-secret")
+    expect(oidcConfig.discoveryEndpoint).toBe(createBody.discoveryEndpoint)
+
+    // DELETE is blocked with 409 while the company mandates SSO.
+    await prisma.company.update({ where: { id: company.id }, data: { ssoMandatory: true } })
+    const blocked = await DELETE()
+    expect(blocked.status).toBe(409)
+    expect(await findCompanyProvider(company.id)).not.toBeNull()
+
+    // Turning the policy off lets the same Administrator remove the provider.
+    await prisma.company.update({ where: { id: company.id }, data: { ssoMandatory: false } })
+    const deleted = await DELETE()
+    expect(deleted.status).toBe(200)
+    expect(await findCompanyProvider(company.id)).toBeNull()
+  })
+
+  it("404s on PATCH/DELETE when the company has no provider configured (GET returns provider: null instead, by design)", async () => {
+    const { adminHeaders } = await setupCompanyWithViewerAndAdmin("route-404")
+
+    headersState.current = adminHeaders
+    // GET never 404s: it returns { provider: null } for "not configured yet"
+    // (route.ts:27-32), the shape the dashboard uses to render an empty state.
+    const got = await GET()
+    expect(got.status).toBe(200)
+    expect(await got.json()).toEqual({ provider: null })
+
+    expect((await PATCH(jsonRequest("PATCH", { domain: "whatever.test" }))).status).toBe(404)
+    expect((await DELETE()).status).toBe(404)
   })
 })
