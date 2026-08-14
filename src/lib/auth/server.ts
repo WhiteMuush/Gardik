@@ -12,7 +12,7 @@ import { authPrisma } from "@/lib/auth/prisma"
 import { isSameTenant } from "@/lib/sso/tenant-guard"
 import { emailEnabled, sendEmail } from "@/lib/email"
 import { getUserPermissions, authorize } from "@/lib/rbac/authorize"
-import { requiredPermissionFor } from "@/lib/sso/policy"
+import { requiredPermissionFor, deniesLocalSignIn } from "@/lib/sso/policy"
 
 // Endpoints mapped to the auth method they exercise. A company can restrict
 // which methods its members may use (Company.allowedAuthMethods), so both
@@ -81,6 +81,22 @@ const enforceAllowedMethod = createAuthMiddleware(async (ctx) => {
     const perms = await getUserPermissions(prisma, session.user.roleId ?? null)
     if (!authorize(perms, required)) {
       throw new APIError("FORBIDDEN", { message: `Requires the ${required} permission` })
+    }
+    return
+  }
+
+  if (ctx.path === "/sign-in/email") {
+    const email = (ctx.body as { email?: string } | undefined)?.email
+    if (email) {
+      const user = await prisma.user.findUnique({
+        where: { email: email.toLowerCase() },
+        select: { ssoExempt: true, company: { select: { ssoMandatory: true } } },
+      })
+      if (user && deniesLocalSignIn(user.company, user)) {
+        throw new APIError("FORBIDDEN", {
+          message: "Your company requires signing in through its identity provider",
+        })
+      }
     }
     return
   }
