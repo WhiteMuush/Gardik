@@ -82,6 +82,7 @@ export function SsoSettings({ canConfigure }: Props) {
       clientSecret: "",
     })
     setStatus(null)
+    setRecord(null)
     setEditing(true)
   }
 
@@ -109,63 +110,87 @@ export function SsoSettings({ canConfigure }: Props) {
       ? Object.fromEntries(Object.entries(trimmed).filter(([, v]) => v.length > 0))
       : trimmed
 
-    const res = await fetch("/api/sso/provider", {
-      method: provider ? "PATCH" : "POST",
-      headers: { "content-type": "application/json" },
-      body: JSON.stringify(body),
-    })
-    const data = (await res.json()) as { provider?: SsoProvider | null; error?: string }
-    setAction(null)
-    if (!res.ok) {
-      setStatus({ kind: "error", text: data.error ?? "Could not save the configuration" })
-      return
+    try {
+      const res = await fetch("/api/sso/provider", {
+        method: provider ? "PATCH" : "POST",
+        headers: { "content-type": "application/json" },
+        body: JSON.stringify(body),
+      })
+      const data = (await res.json()) as { provider?: SsoProvider | null; error?: string }
+      if (!res.ok) {
+        setStatus({ kind: "error", text: data.error ?? "Could not save the configuration" })
+        return
+      }
+      const wasUpdate = provider !== null
+      setProvider(data.provider ?? null)
+      setRecord(null)
+      setForm(EMPTY_FORM)
+      setEditing(false)
+      setStatus({
+        kind: "success",
+        text: wasUpdate
+          ? "Configuration updated."
+          : "Provider connected. Publish the DNS record and verify the domain before members can sign in.",
+      })
+    } catch (err) {
+      setStatus({
+        kind: "error",
+        text: err instanceof Error ? err.message : "Could not save the configuration",
+      })
+    } finally {
+      setAction(null)
     }
-    const wasUpdate = provider !== null
-    setProvider(data.provider ?? null)
-    setRecord(null)
-    setForm(EMPTY_FORM)
-    setEditing(false)
-    setStatus({
-      kind: "success",
-      text: wasUpdate
-        ? "Configuration updated."
-        : "Provider connected. Publish the DNS record and verify the domain before members can sign in.",
-    })
   }
 
   async function requestRecord() {
     setAction("record")
     setStatus(null)
-    const res = await fetch("/api/sso/provider/domain", { method: "POST" })
-    const data = (await res.json()) as { record?: DnsRecord; error?: string }
-    setAction(null)
-    if (!res.ok) {
-      setStatus({ kind: "error", text: data.error ?? "Could not start verification" })
-      return
+    try {
+      const res = await fetch("/api/sso/provider/domain", { method: "POST" })
+      const data = (await res.json()) as { record?: DnsRecord; error?: string }
+      if (!res.ok) {
+        setStatus({ kind: "error", text: data.error ?? "Could not start verification" })
+        return
+      }
+      setRecord(data.record ?? null)
+      setStatus({
+        kind: "success",
+        text: "DNS record generated below. Publish it with your registrar, then verify.",
+      })
+    } catch (err) {
+      setStatus({
+        kind: "error",
+        text: err instanceof Error ? err.message : "Could not start verification",
+      })
+    } finally {
+      setAction(null)
     }
-    setRecord(data.record ?? null)
-    setStatus({
-      kind: "success",
-      text: "DNS record generated below. Publish it with your registrar, then verify.",
-    })
   }
 
   async function verify() {
     setAction("verify")
     setStatus(null)
-    const res = await fetch("/api/sso/provider/domain", { method: "PUT" })
-    const data = (await res.json()) as { error?: string }
-    setAction(null)
-    if (!res.ok) {
-      setStatus({ kind: "error", text: data.error ?? "Verification failed" })
-      return
+    try {
+      const res = await fetch("/api/sso/provider/domain", { method: "PUT" })
+      const data = (await res.json()) as { error?: string }
+      if (!res.ok) {
+        setStatus({ kind: "error", text: data.error ?? "Verification failed" })
+        return
+      }
+      setProvider((p) => (p ? { ...p, domainVerified: true } : p))
+      setRecord(null)
+      setStatus({
+        kind: "success",
+        text: "Domain verified. Members of this domain can now sign in through the provider.",
+      })
+    } catch (err) {
+      setStatus({
+        kind: "error",
+        text: err instanceof Error ? err.message : "Verification failed",
+      })
+    } finally {
+      setAction(null)
     }
-    setProvider((p) => (p ? { ...p, domainVerified: true } : p))
-    setRecord(null)
-    setStatus({
-      kind: "success",
-      text: "Domain verified. Members of this domain can now sign in through the provider.",
-    })
   }
 
   async function removeProvider() {
@@ -178,17 +203,25 @@ export function SsoSettings({ canConfigure }: Props) {
     }
     setAction("remove")
     setStatus(null)
-    const res = await fetch("/api/sso/provider", { method: "DELETE" })
-    const data = (await res.json().catch(() => ({}))) as { error?: string }
-    setAction(null)
-    if (!res.ok) {
-      setStatus({ kind: "error", text: data.error ?? "Could not remove the provider" })
-      return
+    try {
+      const res = await fetch("/api/sso/provider", { method: "DELETE" })
+      const data = (await res.json().catch(() => ({}))) as { error?: string }
+      if (!res.ok) {
+        setStatus({ kind: "error", text: data.error ?? "Could not remove the provider" })
+        return
+      }
+      setProvider(null)
+      setRecord(null)
+      setEditing(false)
+      setStatus({ kind: "success", text: "Identity provider disconnected." })
+    } catch (err) {
+      setStatus({
+        kind: "error",
+        text: err instanceof Error ? err.message : "Could not remove the provider",
+      })
+    } finally {
+      setAction(null)
     }
-    setProvider(null)
-    setRecord(null)
-    setEditing(false)
-    setStatus({ kind: "success", text: "Identity provider disconnected." })
   }
 
   return (
@@ -227,7 +260,13 @@ export function SsoSettings({ canConfigure }: Props) {
       )}
 
       {!loading && !loadError && !provider && canConfigure && (
-        <ConnectForm form={form} setForm={setForm} onSubmit={save} pending={action === "save"} />
+        <ConnectForm
+          form={form}
+          setForm={setForm}
+          onSubmit={save}
+          pending={action === "save"}
+          disabled={action !== null}
+        />
       )}
 
       {!loading && !loadError && !provider && !canConfigure && (
@@ -357,6 +396,7 @@ export function SsoSettings({ canConfigure }: Props) {
               setForm={setForm}
               onSubmit={save}
               pending={action === "save"}
+              disabled={action !== null}
               clientIdLastFour={provider.clientIdLastFour}
             />
           )}
@@ -410,9 +450,10 @@ type FormProps = {
   setForm: React.Dispatch<React.SetStateAction<FormState>>
   onSubmit: (e: React.FormEvent<HTMLFormElement>) => void
   pending: boolean
+  disabled: boolean
 }
 
-function ConnectForm({ form, setForm, onSubmit, pending }: FormProps) {
+function ConnectForm({ form, setForm, onSubmit, pending, disabled }: FormProps) {
   return (
     <form onSubmit={onSubmit} className="grid gap-3 sm:grid-cols-2">
       <Field
@@ -450,7 +491,7 @@ function ConnectForm({ form, setForm, onSubmit, pending }: FormProps) {
         onChange={(v) => setForm((f) => ({ ...f, clientSecret: v }))}
       />
       <div className="flex items-end sm:col-span-2">
-        <Button type="submit" disabled={pending}>
+        <Button type="submit" disabled={disabled}>
           {pending && <Loader2 className="mr-1.5 size-3.5 animate-spin" />}
           {pending ? "Connecting..." : "Connect"}
         </Button>
@@ -464,6 +505,7 @@ function EditForm({
   setForm,
   onSubmit,
   pending,
+  disabled,
   clientIdLastFour,
 }: FormProps & { clientIdLastFour: string | null }) {
   return (
@@ -497,7 +539,7 @@ function EditForm({
         placeholder="Leave blank to keep current secret"
       />
       <div className="flex items-end sm:col-span-2">
-        <Button type="submit" disabled={pending}>
+        <Button type="submit" disabled={disabled}>
           {pending && <Loader2 className="mr-1.5 size-3.5 animate-spin" />}
           {pending ? "Saving..." : "Save changes"}
         </Button>
