@@ -216,6 +216,9 @@ describe("provider helpers", () => {
 // method (getSession, updateSSOProvider, signInEmail) real.
 async function stubProviderRegistration(ownerId: string) {
   return vi.spyOn(auth.api, "registerSSOProvider").mockImplementation(async (args) => {
+    // The endpoint's own signature makes args optional. The route always sends
+    // a body, so a missing one is a broken test rather than a case to tolerate.
+    if (!args) throw new Error("registerSSOProvider stub called without args")
     const body = args.body as {
       providerId: string
       issuer: string
