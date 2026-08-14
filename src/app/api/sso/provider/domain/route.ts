@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { headers } from "next/headers"
+import { isAPIError } from "better-auth/api"
 import { requirePermission } from "@/lib/apiAuth"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth/server"
@@ -49,13 +50,25 @@ export async function PUT() {
       body: { providerId: provider.providerId },
       headers: await headers(),
     })
-  } catch {
-    // The plugin answers 502 when the TXT record is absent or stale. DNS
+  } catch (err) {
+    // The plugin throws APIError("BAD_GATEWAY") only when the TXT record is
+    // absent or stale (index.mjs verifyDomain, resolveTxt branch). DNS
     // propagation is the usual cause, so say that instead of "bad gateway".
-    return NextResponse.json(
-      { error: "The DNS record was not found yet. Propagation can take up to an hour." },
-      { status: 409 }
-    )
+    // Every other plugin error (already verified -> CONFLICT, no pending
+    // verification -> NOT_FOUND, invalid domain/identifier -> BAD_REQUEST,
+    // dns module failure -> INTERNAL_SERVER_ERROR) carries its own real
+    // status and message, so it is surfaced as-is instead of being folded
+    // into this DNS-specific message.
+    if (isAPIError(err) && err.status === "BAD_GATEWAY") {
+      return NextResponse.json(
+        { error: "The DNS record was not found yet. Propagation can take up to an hour." },
+        { status: 409 }
+      )
+    }
+    if (isAPIError(err)) {
+      return NextResponse.json({ error: err.body?.message ?? err.message }, { status: err.statusCode })
+    }
+    throw err
   }
 
   await writeAudit(prisma, {

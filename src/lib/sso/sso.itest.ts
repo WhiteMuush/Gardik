@@ -1,6 +1,7 @@
 import { describe, it, expect, afterAll, afterEach, vi } from "vitest"
 import bcrypt from "bcryptjs"
 import { convertSetCookieToCookie } from "better-auth/test"
+import { APIError } from "better-auth/api"
 import { prisma } from "@/lib/prisma"
 import { authPrisma } from "@/lib/auth/prisma"
 import { auth } from "@/lib/auth/server"
@@ -368,15 +369,26 @@ describe("provider route handlers", () => {
 // requestDomainVerification (index.mjs:1561-1596) never touches the network:
 // it only writes a verification row and returns its token, so it is called
 // for real below, same as this suite's other non-network auth.api calls.
-// verifyDomain (index.mjs:1598-1671) does a real dns.resolveTxt lookup, but
-// the plugin itself wraps that lookup in a try/catch that only logs on
-// failure (index.mjs:1646-1651) rather than rethrowing, so an unresolvable
-// test domain still ends the call with a thrown APIError("BAD_GATEWAY")
-// deterministically, not a hang or a flaky network-dependent outcome
-// (verified directly: `dns.promises.resolveTxt` against a nonexistent
-// hostname in this sandbox rejects with ENOTFOUND in well under a second).
-// That means the route's catch-all 409 branch is exercised for real too, so
-// nothing here needs to be stubbed.
+// verifyDomain (index.mjs:1598-1671) does a real dns.resolveTxt lookup once it
+// gets past its early validation, which would pull a live DNS dependency into
+// this suite (CI's egress and failure timing for an unresolvable name are not
+// something this suite should rely on). Every verifyDomain call below is
+// therefore stubbed to reject with the plugin's actual APIError shape for the
+// case under test (status/body.code copied from index.mjs), so the route's
+// error-mapping logic is proven without any real network dependency:
+//   BAD_GATEWAY, code DOMAIN_VERIFICATION_FAILED -> TXT record absent/stale
+//   CONFLICT, code DOMAIN_VERIFIED               -> already verified
+const badGatewayError = () =>
+  new APIError("BAD_GATEWAY", {
+    message: "Unable to verify domain ownership for example.com. Try again later",
+    code: "DOMAIN_VERIFICATION_FAILED",
+  })
+const conflictError = () =>
+  new APIError("CONFLICT", {
+    message: "Domain has already been verified",
+    code: "DOMAIN_VERIFIED",
+  })
+
 describe("domain verification route handlers", () => {
   afterEach(() => {
     vi.restoreAllMocks()
@@ -442,7 +454,9 @@ describe("domain verification route handlers", () => {
     const afterPost = await prisma.ssoProvider.findUniqueOrThrow({ where: { providerId } })
     expect(afterPost.userId).toBe(adminUser.id)
 
+    const verifySpy = vi.spyOn(auth.api, "verifyDomain").mockRejectedValue(badGatewayError())
     const putRes = await domainPUT()
+    verifySpy.mockRestore()
     expect(putRes.status).toBe(409)
     const putBody = (await putRes.json()) as { error: string }
     expect(putBody.error).toContain("DNS record")
@@ -465,7 +479,7 @@ describe("domain verification route handlers", () => {
       },
     })
 
-    const verifySpy = vi.spyOn(auth.api, "verifyDomain").mockRejectedValue(new Error("stubbed rejection"))
+    const verifySpy = vi.spyOn(auth.api, "verifyDomain").mockRejectedValue(badGatewayError())
     headersState.current = adminHeaders
     const putRes = await domainPUT()
     expect(putRes.status).toBe(409)
@@ -474,6 +488,39 @@ describe("domain verification route handlers", () => {
     const afterPut = await prisma.ssoProvider.findUniqueOrThrow({ where: { providerId } })
     expect(afterPut.userId).toBe(adminUser.id) // takeOwnership still ran before the plugin call
     expect(afterPut.domainVerified).toBe(false)
+
+    const audits = await prisma.auditLog.findMany({ where: { targetId: providerId } })
+    expect(audits).toHaveLength(0)
+  })
+
+  it("PUT surfaces the plugin's CONFLICT response instead of the generic DNS message", async () => {
+    const { company, viewerUser, adminUser, adminHeaders } = await setupCompanyWithViewerAndAdmin(
+      "domain-put-conflict"
+    )
+    const providerId = `itest-domain-put-conflict-${Date.now()}`
+    await authPrisma.ssoProvider.create({
+      data: {
+        providerId,
+        issuer: "https://idp.example.com/domain-put-conflict",
+        domain: company.domain,
+        organizationId: company.id,
+        userId: viewerUser.id,
+        domainVerified: true, // already verified, matching the shape of the real CONFLICT case
+      },
+    })
+
+    const verifySpy = vi.spyOn(auth.api, "verifyDomain").mockRejectedValue(conflictError())
+    headersState.current = adminHeaders
+    const putRes = await domainPUT()
+    verifySpy.mockRestore()
+
+    expect(putRes.status).toBe(409)
+    const putBody = (await putRes.json()) as { error: string }
+    expect(putBody.error).toBe("Domain has already been verified")
+    expect(putBody.error).not.toContain("DNS record")
+
+    const afterPut = await prisma.ssoProvider.findUniqueOrThrow({ where: { providerId } })
+    expect(afterPut.userId).toBe(adminUser.id) // takeOwnership still ran before the plugin call
 
     const audits = await prisma.auditLog.findMany({ where: { targetId: providerId } })
     expect(audits).toHaveLength(0)
