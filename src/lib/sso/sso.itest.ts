@@ -565,6 +565,28 @@ function resolveRequest(email: string): Request {
   })
 }
 
+describe("SSO mandatory policy", () => {
+  it("refuses a password sign-in and lets an exempt user through", async () => {
+    // A dedicated company/user, never the shared seeded admin: this test flips
+    // ssoMandatory to true, which would make enforceAllowedMethod refuse the
+    // password sign-in of every user in that company. The shared admin is
+    // signed in by other itest suites running in parallel against the same
+    // seeded DB, so mutating its company's policy would race them (see PR #144).
+    const { company, adminUser } = await setupCompanyWithViewerAndAdmin("sso-mandatory")
+    await prisma.company.update({ where: { id: company.id }, data: { ssoMandatory: true } })
+
+    await expect(
+      auth.api.signInEmail({ body: { email: adminUser.email, password: "CorrectHorse1!" } })
+    ).rejects.toThrow()
+
+    await prisma.user.update({ where: { id: adminUser.id }, data: { ssoExempt: true } })
+    const ok = await auth.api.signInEmail({
+      body: { email: adminUser.email, password: "CorrectHorse1!" },
+    })
+    expect(ok.user.email).toBe(adminUser.email)
+  })
+})
+
 describe("POST /api/sso/resolve", () => {
   it("answers sso:false for an unknown address", async () => {
     // rateLimit() is keyed on the raw email and backed by Postgres, so a
