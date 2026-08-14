@@ -1,5 +1,6 @@
 import { describe, it, expect, afterAll } from "vitest"
 import { prisma } from "@/lib/prisma"
+import { authPrisma } from "@/lib/auth/prisma"
 
 const PROVIDER_ID = "itest-sso-provider"
 
@@ -31,5 +32,28 @@ describe("SsoProvider model", () => {
     const company = await prisma.company.findUniqueOrThrow({ where: { id: admin.companyId } })
     expect(company.ssoMandatory).toBe(false)
     expect(admin.ssoExempt).toBe(false)
+  })
+})
+
+describe("oidcConfig at rest", () => {
+  it("is unreadable through the plain client and readable through the extended one", async () => {
+    const admin = await prisma.user.findUniqueOrThrow({ where: { email: "admin@datashield.local" } })
+    const raw = JSON.stringify({ clientId: "abc", clientSecret: "shh" })
+
+    await authPrisma.ssoProvider.create({
+      data: {
+        issuer: "https://idp.example.com",
+        providerId: "itest-sealed",
+        domain: "datashield.local",
+        organizationId: admin.companyId,
+        oidcConfig: raw,
+      },
+    })
+
+    const stored = await prisma.ssoProvider.findUniqueOrThrow({ where: { providerId: "itest-sealed" } })
+    expect(stored.oidcConfig).not.toContain("shh")
+
+    const opened = await authPrisma.ssoProvider.findUniqueOrThrow({ where: { providerId: "itest-sealed" } })
+    expect(opened.oidcConfig).toBe(raw)
   })
 })
