@@ -3,6 +3,7 @@ import { getSession } from "@/lib/auth/session"
 import { prisma } from "@/lib/prisma"
 import { getUserPermissions, authorize } from "@/lib/rbac/authorize"
 import { RolesManager } from "@/components/rbac/RolesManager"
+import { UserCreateForm } from "@/components/rbac/UserCreateForm"
 import { UserRoleAssignment } from "@/components/rbac/UserRoleAssignment"
 import { AuditTrail } from "@/components/rbac/AuditTrail"
 import { AccessTabs } from "@/components/rbac/AccessTabs"
@@ -36,7 +37,18 @@ export default async function AccessPage() {
         tabs={[
           { id: "roles", label: "Roles", panel: <RolesManager /> },
           ...(canManageUsers
-            ? [{ id: "people", label: "People", panel: <UserRoleAssignment /> }]
+            ? [
+                {
+                  id: "people",
+                  label: "People",
+                  panel: (
+                    <>
+                      <UserCreateForm />
+                      <UserRoleAssignment />
+                    </>
+                  ),
+                },
+              ]
             : []),
           ...(canReadAudit ? [{ id: "audit", label: "Audit trail", panel: <AuditTrail /> }] : []),
         ]}
