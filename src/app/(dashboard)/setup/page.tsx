@@ -6,6 +6,7 @@ import { SetupChecklist } from "@/components/dashboard/SetupChecklist"
 import { TwoFactorSetup } from "@/components/settings/TwoFactorSetup"
 import { PasskeySetup } from "@/components/settings/PasskeySetup"
 import { AuthPolicySettings } from "@/components/settings/AuthPolicySettings"
+import { SsoSettings } from "@/components/settings/SsoSettings"
 
 export default async function SetupPage({
   searchParams,
@@ -20,6 +21,8 @@ export default async function SetupPage({
   const twoFactorEnabled = session!.user.twoFactorEnabled ?? false
   const perms = await getUserPermissions(prisma, session!.user.roleId ?? null)
   const isAdmin = authorize(perms, "users:manage")
+  const canReadSso = authorize(perms, "sso:read")
+  const canConfigureSso = authorize(perms, "sso:config")
 
   const [employeeCount, apiKeyCount, company] = await Promise.all([
     prisma.employee.count({ where: { companyId } }),
@@ -69,6 +72,7 @@ export default async function SetupPage({
           ssoMandatory={company.ssoMandatory}
         />
       )}
+      {canReadSso && <SsoSettings canConfigure={canConfigureSso} />}
     </SetupChecklist>
   )
 }
