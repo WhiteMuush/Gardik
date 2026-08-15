@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server"
-import { requireAuth } from "@/lib/apiAuth"
+import { requirePermission } from "@/lib/apiAuth"
 import { listRegister, evidenceCsv } from "@/lib/register"
 
 // Evidence pack (CSV) for one register entry, for an Article 33 dossier.
 export async function GET(_req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const { session, error } = await requireAuth()
+  const { session, error } = await requirePermission("register:evidence")
   if (error) return error
 
   const { id } = await params

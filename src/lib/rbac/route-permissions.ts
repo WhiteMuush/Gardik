@@ -48,6 +48,8 @@ export const ROUTE_PERMISSIONS: Record<string, Permission | "PUBLIC" | "AUTH_ONL
   "users/[id]/role": "users:manage",
   "users/[id]/invite": "users:manage",
   "users/[id]/require-password-change": "users:manage",
+  "reports/export": "reports:export",
+  "dashboard/detail/[kind]/[id]": "employees:read",
   "reports/schedules": "reports:schedule",
   "reports/schedules/[id]": "reports:schedule",
   "webhooks": "notifications:manage",

@@ -27,6 +27,29 @@ describe("route->permission coverage", () => {
     expect(missing, `Unregistered mutating routes: ${missing.join(", ")}`).toEqual([])
   })
 
+  // The gap that let eight read endpoints serve the company's data to a role
+  // holding nothing: the checks above only ever looked at mutating handlers, so
+  // a GET could sit on requireAuth (any valid session) while the POST beside it
+  // demanded a permission, and nothing noticed. Pages were fixed; the APIs
+  // behind them were not.
+  it("a route that declares a permission never falls back to a bare session check", () => {
+    // Two endpoints authenticate on their own terms and are documented as
+    // doing so: minting a step-up grant, and setting a new password under a
+    // forced rotation, which the permission guard itself refuses.
+    const OWN_TERMS = new Set(["rbac/step-up", "account/password"])
+    const offenders: string[] = []
+    for (const { key, file } of routeFiles(API_DIR)) {
+      const permission = ROUTE_PERMISSIONS[key]
+      if (!permission || permission === "PUBLIC" || permission === "AUTH_ONLY") continue
+      if (OWN_TERMS.has(key)) continue
+      if (/await\s+requireAuth\(\)/.test(readFileSync(file, "utf8"))) offenders.push(key)
+    }
+    expect(
+      offenders,
+      `Routes mapped to a permission but still calling requireAuth(): ${offenders.join(", ")}`
+    ).toEqual([])
+  })
+
   it("every route mapped to a real permission actually enforces it with requirePermission", () => {
     const files = new Map(routeFiles(API_DIR).map(({ key, file }) => [key, file]))
     const unenforced: string[] = []
