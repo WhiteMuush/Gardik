@@ -5,7 +5,9 @@ import { Search } from "lucide-react"
 import { StepUpDialog } from "./StepUpDialog"
 
 type UserRow = { id: string; email: string; name: string; roleId: string | null; roleName: string | null }
-type RoleRow = { id: string; name: string; isAssignable: boolean }
+// grantable comes from the server and already folds in the no-escalation rule,
+// so the dropdown never offers a role the assignment call would refuse.
+type RoleRow = { id: string; name: string; isAssignable: boolean; grantable: boolean }
 
 export function UserRoleAssignment() {
   const [users, setUsers] = useState<UserRow[]>([])
@@ -154,7 +156,7 @@ export function UserRoleAssignment() {
                     >
                       <option value="">No access</option>
                       {roles
-                        .filter((r) => r.isAssignable)
+                        .filter((r) => r.grantable)
                         .map((r) => (
                           <option key={r.id} value={r.id}>
                             {r.name}

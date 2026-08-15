@@ -3,6 +3,7 @@ import { Prisma } from "@prisma/client"
 import { requirePermission } from "@/lib/apiAuth"
 import { prisma } from "@/lib/prisma"
 import { writeAudit, AUDIT_ACTIONS } from "@/lib/rbac/audit"
+import { assertMayGrantRole } from "@/lib/rbac/grant-role"
 
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 
@@ -41,9 +42,16 @@ export async function POST(req: Request) {
 
   const role = await prisma.role.findFirst({
     where: { id: body.roleId, companyId: session.user.companyId, isAssignable: true },
-    select: { id: true, name: true },
+    select: { id: true, name: true, permissions: true },
   })
   if (!role) return NextResponse.json({ error: "Unknown role" }, { status: 400 })
+
+  // Same bar as reassigning somebody's role. Creating an account is the other
+  // way to hand out a role, and it used to accept any assignable one: a holder
+  // of users:manage could mint an Administrator account and then take it over
+  // through the invitation flow.
+  const grant = await assertMayGrantRole(session.user, role)
+  if (grant) return grant
 
   if (await prisma.user.findUnique({ where: { email }, select: { id: true } })) {
     return NextResponse.json({ error: "That email already has an account" }, { status: 409 })

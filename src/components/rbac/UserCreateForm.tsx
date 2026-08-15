@@ -3,7 +3,9 @@
 import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 
-type Role = { id: string; name: string; isAssignable: boolean }
+// grantable is the server's own answer to "would you accept this from me",
+// so the picker cannot offer a role the write path will refuse.
+type Role = { id: string; name: string; isAssignable: boolean; grantable: boolean }
 
 export function UserCreateForm() {
   const [roles, setRoles] = useState<Role[]>([])
@@ -69,7 +71,7 @@ export function UserCreateForm() {
         >
           <option value="">Role</option>
           {roles
-            .filter((r) => r.isAssignable)
+            .filter((r) => r.grantable)
             .map((r) => (
               <option key={r.id} value={r.id}>
                 {r.name}
