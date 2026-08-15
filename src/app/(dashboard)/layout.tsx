@@ -24,9 +24,18 @@ export default async function DashboardLayout({
   })
   if (!company) redirect("/login")
 
+  const pathname = (await headers()).get("x-pathname") ?? ""
+
+  // Ordered before the two-factor gate on purpose: enrolling a second factor
+  // asks for the current password, so a user under a forced rotation would be
+  // binding an authenticator while still on the password an administrator
+  // handed them. Password first, then the second factor.
+  if (session.user.mustChangePassword && !pathname.startsWith("/security")) {
+    redirect("/security")
+  }
+
   // Companies can force 2FA enrollment. Route to /security so the user can
   // enroll, but skip this when already there to avoid a redirect loop.
-  const pathname = (await headers()).get("x-pathname") ?? ""
   if (
     !pathname.startsWith("/security") &&
     company.require2fa &&
