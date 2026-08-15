@@ -2,12 +2,19 @@ import { NextResponse, type NextRequest } from "next/server"
 import { getSessionCookie } from "better-auth/cookies"
 import { buildCsp } from "@/lib/csp"
 
+// Pages a signed-out visitor must be able to open. /invite belongs here for the
+// same reason /login does: an invited person has no session yet, and the
+// single-use token in the URL is what authorises them. Without this entry the
+// invitation link would bounce to a login form they cannot pass.
+function isPublicPage(path: string): boolean {
+  return ["/login", "/invite"].some((p) => path === p || path.startsWith(`${p}/`))
+}
+
 export default function middleware(req: NextRequest) {
   const path = req.nextUrl.pathname
-  const isLogin = path === "/login" || path.startsWith("/login/")
   const hasSession = getSessionCookie(req) !== null
 
-  if (!hasSession && !isLogin) {
+  if (!hasSession && !isPublicPage(path)) {
     return NextResponse.redirect(new URL("/login", req.url))
   }
 
