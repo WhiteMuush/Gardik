@@ -98,6 +98,13 @@ const enforceAllowedMethod = createAuthMiddleware(async (ctx) => {
         })
       }
     }
+    // No timing equalizer here on purpose: the library already hashes the
+    // supplied password when the address is unknown, when it has no credential
+    // account, and when that account has no password
+    // (api/routes/sign-in.mjs:288-304), which costs the same as the real
+    // comparison. Adding ours on top measured 590ms for an unknown address
+    // against 350ms for a known one with a wrong password: a second burn does
+    // not hide the difference, it recreates it pointing the other way.
     return
   }
 
