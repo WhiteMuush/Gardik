@@ -46,9 +46,9 @@ test("a registered passkey signs the user in", async ({ page, request }) => {
   await page.getByRole("button", { name: "Sign in", exact: true }).click()
   await page.waitForURL("**/dashboard")
 
-  // Register a passkey. enroll=2fa keeps the setup page from bouncing to the
-  // dashboard now that the workspace has an employee.
-  await page.goto("/setup?enroll=2fa")
+  // Register a passkey from the security page, which stays reachable for the
+  // life of the workspace (unlike the onboarding checklist).
+  await page.goto("/security")
   await page.getByPlaceholder("Name this device (optional)").fill("E2E Key")
   await page.getByRole("button", { name: "Add a passkey" }).click()
   await expect(page.getByText("E2E Key")).toBeVisible()
