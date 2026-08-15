@@ -108,6 +108,38 @@ const enforceAllowedMethod = createAuthMiddleware(async (ctx) => {
     return
   }
 
+  // Signing in with a passkey is a complete primary authentication: the plugin
+  // creates the session and sets the cookie itself. It carried no policy check
+  // at all, so a company that turned on ssoMandatory to cut somebody's access
+  // still let them in through the passkey button, and a company that removed
+  // PASSKEY from its allowed methods only hid the button. The assertion names
+  // the credential rather than the user, so the owner is resolved from it.
+  if (ctx.path === "/passkey/verify-authentication") {
+    const credentialId = (ctx.body as { response?: { id?: string } } | undefined)?.response?.id
+    if (!credentialId) return
+    const passkey = await prisma.passkey.findUnique({
+      where: { credentialID: credentialId },
+      select: {
+        user: {
+          select: {
+            ssoExempt: true,
+            company: { select: { ssoMandatory: true, allowedAuthMethods: true } },
+          },
+        },
+      },
+    })
+    if (!passkey) return
+    if (deniesLocalSignIn(passkey.user.company, passkey.user)) {
+      throw new APIError("FORBIDDEN", {
+        message: "Your company requires signing in through its identity provider",
+      })
+    }
+    if (!passkey.user.company.allowedAuthMethods.includes(AuthMethod.PASSKEY)) {
+      throw new APIError("FORBIDDEN", { message: "Passkeys are not allowed for your company" })
+    }
+    return
+  }
+
   const method = ENROLL_METHOD[ctx.path]
   if (!method) return
 

@@ -1,4 +1,4 @@
-import { requireAuth } from "@/lib/apiAuth"
+import { requirePermission } from "@/lib/apiAuth"
 import { rateLimit } from "@/lib/rateLimit"
 import { getReportData } from "@/lib/reports"
 import { parseReportFilters } from "@/lib/reports/filters"
@@ -49,7 +49,7 @@ function reportFilename(orgName: string, generatedAt: string, part: string): str
 }
 
 export async function GET(request: Request): Promise<Response> {
-  const { session, error } = await requireAuth()
+  const { session, error } = await requirePermission("reports:export")
   if (error) return error
 
   // Rendering a PDF walks the whole company's data and costs real CPU, so it
