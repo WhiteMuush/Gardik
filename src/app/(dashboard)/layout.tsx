@@ -1,10 +1,14 @@
 import { getSession } from "@/lib/auth/session"
 import { redirect } from "next/navigation"
+import { headers } from "next/headers"
 import { prisma } from "@/lib/prisma"
 import { DashboardShell } from "@/components/layout/DashboardShell"
 import { RoutePrefetcher } from "@/components/layout/RoutePrefetcher"
+import { NoAccess } from "@/components/layout/NoAccess"
 import { getOpenAlertCount } from "@/lib/alerts"
 import { needsTwoFactorEnrollment } from "@/lib/auth/two-factor-gate"
+import { getUserPermissions, authorize } from "@/lib/rbac/authorize"
+import { PAGE_PERMISSIONS, requiredPermissionForPage } from "@/lib/rbac/page-permissions"
 
 export default async function DashboardLayout({
   children,
@@ -45,13 +49,27 @@ export default async function DashboardLayout({
     }
   }
 
+  // Page authorization, enforced here rather than page by page. Every dashboard
+  // page renders through this layout, so a page that forgets its own check is
+  // still covered, and a page nobody registered is refused rather than left
+  // open. Pages keep their finer-grained checks for what to draw once inside.
+  const pathname = (await headers()).get("x-pathname") ?? ""
+  const perms = await getUserPermissions(prisma, session.user.roleId ?? null)
+  const may = (permission: ReturnType<typeof requiredPermissionForPage>) =>
+    permission !== null && (permission === "AUTH_ONLY" || authorize(perms, permission))
+
   const openAlerts = await getOpenAlertCount(session.user.companyId)
+
+  // The rail advertises exactly what the server would let this user open, from
+  // the same map: no entry that leads to a refusal, and no hidden entry that
+  // would have worked.
+  const visible = Object.keys(PAGE_PERMISSIONS).filter((path) => may(PAGE_PERMISSIONS[path]))
 
   return (
     <>
       <RoutePrefetcher />
-      <DashboardShell openAlerts={openAlerts}>
-        {children}
+      <DashboardShell openAlerts={openAlerts} visible={visible}>
+        {may(requiredPermissionForPage(pathname)) ? children : <NoAccess />}
       </DashboardShell>
     </>
   )

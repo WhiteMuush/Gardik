@@ -2,6 +2,7 @@ import { test, expect } from "@playwright/test"
 
 const ADMIN = { email: "admin@datashield.local", password: "ChangeMe123!" }
 const MEMBER = { email: "member@datashield.local", password: "ChangeMe123!" }
+const NARROW = { email: "narrow@datashield.local", password: "ChangeMe123!" }
 
 test.describe.configure({ mode: "serial" })
 
@@ -13,6 +14,37 @@ async function login(page: import("@playwright/test").Page, u: { email: string; 
   await page.getByRole("button", { name: "Sign in", exact: true }).click()
   await page.waitForURL("**/dashboard")
 }
+
+// The hole this guards: pages used to check permissions only to decide what to
+// draw, so typing the address reached them anyway and rendered the company's
+// data to a role that was never granted it. The rail hiding the entry was the
+// only thing in the way, and an address bar goes around that.
+test("a page the role cannot open refuses, and its rail entry is absent", async ({ page }) => {
+  await login(page, NARROW)
+
+  // Allowed: the two permissions this fixture holds.
+  await page.goto("/alerts")
+  await expect(page.getByRole("main")).toBeVisible()
+  await expect(page.getByText("Not available to your role")).toBeHidden()
+
+  for (const path of ["/data-api", "/employees", "/access", "/notifications"]) {
+    await page.goto(path)
+    await expect(page.getByText("Not available to your role")).toBeVisible()
+  }
+
+  // The refusal has to happen before the page queries, not after. Hiding a
+  // rendered page still ships its data: with only the layout check in place,
+  // this address was in the HTML of /employees for a role without
+  // employees:read.
+  await page.goto("/employees")
+  expect(await page.content()).not.toContain("jane.doe@datashield.dev")
+
+  const rail = page.getByRole("navigation")
+  await expect(rail.getByRole("link", { name: "Alerts" })).toBeAttached()
+  for (const label of ["Data API", "Employees", "Access", "Notifications"]) {
+    await expect(rail.getByRole("link", { name: label, exact: true })).toHaveCount(0)
+  }
+})
 
 // A Viewer (roles:read only, no roles:manage) can open Access and see roles but
 // gets no "New role" mutation power server-side. Guards the read gate.

@@ -23,6 +23,9 @@ const MANAGER_PASSWORD = "ChangeMe123!"
 const MEMBER_EMAIL = "member@datashield.local"
 const MEMBER_PASSWORD = "ChangeMe123!"
 
+const NARROW_EMAIL = "narrow@datashield.local"
+const NARROW_PASSWORD = "ChangeMe123!"
+
 // Sets (or resets) the credential-provider password for a user. Better Auth
 // stores it on a `credential` account row, so upsert that row rather than the
 // user.
@@ -86,6 +89,28 @@ async function main() {
     create: { email: MEMBER_EMAIL, name: "Member", roleId: viewerRoleId, companyId: company.id },
   })
   await setPassword(member.id, MEMBER_PASSWORD)
+
+  // Narrow fixture: every preset role holds all the ":read" permissions, so
+  // none of them can show what happens to a user who lacks one. This role holds
+  // exactly two, which is what lets the rbac spec type a forbidden address into
+  // the bar and assert the page refuses rather than renders.
+  const narrowRole = await prisma.role.upsert({
+    where: { companyId_name: { companyId: company.id, name: "E2E Narrow" } },
+    update: { permissions: ["dashboard:read", "alerts:read"] },
+    create: {
+      name: "E2E Narrow",
+      description: "Dashboard and alerts only. E2E fixture.",
+      permissions: ["dashboard:read", "alerts:read"],
+      companyId: company.id,
+      isAssignable: true,
+    },
+  })
+  const narrow = await prisma.user.upsert({
+    where: { email: NARROW_EMAIL },
+    update: { roleId: narrowRole.id },
+    create: { email: NARROW_EMAIL, name: "Narrow", roleId: narrowRole.id, companyId: company.id },
+  })
+  await setPassword(narrow.id, NARROW_PASSWORD)
 
   // Passkey fixture: its own company so the passkey spec can flip PASSKEY in and
   // out of allowedAuthMethods without racing the two-factor spec, which mutates
