@@ -24,6 +24,8 @@
     "start": "next start",
     "lint": "eslint .",
     "lint:fix": "eslint . --fix",
+    "licenses": "node scripts/check-licenses.mjs",
+    "licenses:write": "node scripts/check-licenses.mjs --write",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:integration": "vitest run --config vitest.integration.config.ts",
