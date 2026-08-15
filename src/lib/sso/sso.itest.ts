@@ -27,6 +27,7 @@ vi.mock("next/headers", () => ({
 
 afterAll(async () => {
   await prisma.ssoProvider.deleteMany({ where: { providerId: { startsWith: "itest-" } } })
+  await prisma.company.deleteMany({ where: { id: { in: throwawayCompanyIds } } })
 })
 
 describe("SsoProvider model", () => {
@@ -109,6 +110,7 @@ describe("sso:config gate", () => {
     const company = await prisma.company.create({
       data: { name: "SSO Gate Co", domain: `sso-gate-${Date.now()}.test` },
     })
+    throwawayCompanyIds.push(company.id)
     await seedPresetsForCompany(prisma, company.id)
     const viewerRoleId = await resolvePresetRoleId(prisma, company.id, "Viewer")
     const administratorRoleId = await resolvePresetRoleId(prisma, company.id, "Administrator")
@@ -239,10 +241,16 @@ async function stubProviderRegistration(ownerId: string) {
   })
 }
 
+// Every throwaway company this helper builds, so afterAll can drop them. Users,
+// credential accounts, sessions, roles and audit rows all cascade from the
+// company row, so the ids are all the cleanup needs to track.
+const throwawayCompanyIds: string[] = []
+
 async function setupCompanyWithViewerAndAdmin(label: string) {
   const company = await prisma.company.create({
     data: { name: `${label} Co`, domain: `${label}-${Date.now()}.test` },
   })
+  throwawayCompanyIds.push(company.id)
   await seedPresetsForCompany(prisma, company.id)
   const viewerRoleId = await resolvePresetRoleId(prisma, company.id, "Viewer")
   const administratorRoleId = await resolvePresetRoleId(prisma, company.id, "Administrator")
