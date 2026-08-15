@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeAll, afterAll, vi } from "vitest"
 import { prisma } from "@/lib/prisma"
 import { seedPresetsForCompany, resolvePresetRoleId } from "@/lib/rbac/seed-roles"
+import { grantStepUp } from "@/lib/rbac/step-up"
 import type { AuditEntry } from "@/lib/rbac/audit"
 
 // The route runs behind requirePermission, which reads getSession() from
@@ -245,5 +246,64 @@ describe("POST /api/users", () => {
       expect(await prisma.user.findUnique({ where: { id: targetId } })).toBeNull()
       expect(await prisma.auditLog.findFirst({ where: { targetId } })).toBeNull()
     }
+  })
+})
+
+// The escalation hole this route used to have: it accepted any assignable role
+// of the company, so a holder of users:manage could create an account carrying
+// Administrator and then take it over through the invitation flow. The
+// reassignment route refused the same grant; this one did not check at all.
+describe("POST /api/users, no-escalation", () => {
+  it("refuses a role holding permissions the actor lacks", async () => {
+    const managerRoleId = await resolvePresetRoleId(prisma, companyId, "Security Manager")
+    const administratorRoleId = await resolvePresetRoleId(prisma, companyId, "Administrator")
+    const previous = stub.user
+    stub.user = { ...previous, roleId: managerRoleId }
+    try {
+      const email = `itest-escalation-${Date.now()}@datashield.local`
+      const res = await createUser(
+        new Request("http://localhost/api/users", {
+          method: "POST",
+          body: JSON.stringify({ email, name: "Puppet", roleId: administratorRoleId }),
+        })
+      )
+
+      expect(res.status).toBe(403)
+      expect((await res.json()).excess.length).toBeGreaterThan(0)
+      expect(await prisma.user.findUnique({ where: { email } })).toBeNull()
+    } finally {
+      stub.user = previous
+    }
+  })
+
+  // Crown-jewel roles need proof the session is still in the right hands, the
+  // same bar the reassignment route applies.
+  it("requires a fresh step-up for a role that carries a crown jewel", async () => {
+    const administratorRoleId = await resolvePresetRoleId(prisma, companyId, "Administrator")
+    const actorId = stub.user.id as string
+    await prisma.stepUpGrant.deleteMany({ where: { userId: actorId } })
+
+    const email = `itest-crownjewel-${Date.now()}@datashield.local`
+    const res = await createUser(
+      new Request("http://localhost/api/users", {
+        method: "POST",
+        body: JSON.stringify({ email, name: "Second admin", roleId: administratorRoleId }),
+      })
+    )
+
+    expect(res.status).toBe(403)
+    expect((await res.json()).code).toBe("STEP_UP_REQUIRED")
+    expect(await prisma.user.findUnique({ where: { email } })).toBeNull()
+
+    // With the grant in place the same call goes through, so the test proves a
+    // gate rather than a blanket refusal.
+    await grantStepUp(prisma, actorId)
+    const allowed = await createUser(
+      new Request("http://localhost/api/users", {
+        method: "POST",
+        body: JSON.stringify({ email, name: "Second admin", roleId: administratorRoleId }),
+      })
+    )
+    expect(allowed.status).toBe(201)
   })
 })
