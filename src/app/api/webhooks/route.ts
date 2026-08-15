@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { requireAuth, requirePermission } from "@/lib/apiAuth"
+import { requirePermission } from "@/lib/apiAuth"
 import { prisma } from "@/lib/prisma"
 import { encryptConfig } from "@/lib/directory/crypto"
 import { listWebhooks, urlHint } from "@/lib/webhooks"
@@ -29,7 +29,7 @@ async function resolveTarget(
 }
 
 export async function GET() {
-  const { session, error } = await requireAuth()
+  const { session, error } = await requirePermission("notifications:read")
   if (error) return error
   return NextResponse.json(await listWebhooks(session.user.companyId))
 }

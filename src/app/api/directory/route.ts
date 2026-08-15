@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server"
-import { requireAuth, requirePermission } from "@/lib/apiAuth"
+import { requirePermission } from "@/lib/apiAuth"
 import { prisma } from "@/lib/prisma"
 import { buildDirectoryConnection } from "@/lib/directory/validation"
 
 export async function GET() {
-  const { session, error } = await requireAuth()
+  const { session, error } = await requirePermission("connectors:read")
   if (error) return error
 
   const connections = await prisma.directoryConnection.findMany({
