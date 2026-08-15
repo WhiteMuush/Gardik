@@ -9,7 +9,7 @@ Generated from `package-lock.json`; do not edit by hand. Regenerate with
 `npm run licenses:write`. Build-time-only dependencies are excluded: they
 are not part of anything that ships.
 
-Runtime packages: 548.
+Runtime packages: 549.
 
 ## Obligations worth knowing
 
@@ -23,22 +23,23 @@ Runtime packages: 548.
 
 ## Packages by license
 
-### MIT (398)
+### MIT (399)
 
 - @authenio/xml-encryption@2.0.2
 - @babel/runtime@7.29.7
 - @base-ui/react@1.7.0
 - @base-ui/utils@0.3.2
-- @better-auth/core@1.6.26
-- @better-auth/drizzle-adapter@1.6.26
-- @better-auth/kysely-adapter@1.6.26
-- @better-auth/memory-adapter@1.6.26
-- @better-auth/mongo-adapter@1.6.26
-- @better-auth/passkey@1.6.25
-- @better-auth/prisma-adapter@1.6.26
-- @better-auth/sso@1.6.26
-- @better-auth/telemetry@1.6.26
+- @better-auth/core@1.6.29
+- @better-auth/drizzle-adapter@1.6.29
+- @better-auth/kysely-adapter@1.6.29
+- @better-auth/memory-adapter@1.6.29
+- @better-auth/mongo-adapter@1.6.29
+- @better-auth/passkey@1.6.29
+- @better-auth/prisma-adapter@1.6.29
+- @better-auth/sso@1.6.29
+- @better-auth/telemetry@1.6.29
 - @better-auth/utils@0.4.2
+- @better-auth/utils@0.5.0
 - @better-fetch/fetch@1.3.1
 - @dnd-kit/accessibility@3.1.1
 - @dnd-kit/core@6.3.1
@@ -216,8 +217,8 @@ Runtime packages: 548.
 - aws-ssl-profiles@1.1.2
 - base64-js@0.0.8
 - base64-js@1.5.1
-- better-auth@1.6.26
-- better-call@1.3.7
+- better-auth@1.6.29
+- better-call@1.4.0
 - better-result@2.10.0
 - bidi-js@1.0.3
 - bowser@2.14.1
@@ -368,7 +369,7 @@ Runtime packages: 548.
 - ret@0.5.0
 - retry@0.12.0
 - rolldown@1.1.4
-- rou3@0.7.12
+- rou3@0.9.2
 - safe-buffer@5.2.1
 - safe-regex2@5.1.1
 - safer-buffer@2.1.2
