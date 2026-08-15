@@ -9,7 +9,7 @@ Generated from `package-lock.json`; do not edit by hand. Regenerate with
 `npm run licenses:write`. Build-time-only dependencies are excluded: they
 are not part of anything that ships.
 
-Runtime packages: 523.
+Runtime packages: 548.
 
 ## Obligations worth knowing
 
@@ -23,19 +23,21 @@ Runtime packages: 523.
 
 ## Packages by license
 
-### MIT (373)
+### MIT (398)
 
+- @authenio/xml-encryption@2.0.2
 - @babel/runtime@7.29.7
 - @base-ui/react@1.7.0
 - @base-ui/utils@0.3.2
-- @better-auth/core@1.6.25
-- @better-auth/drizzle-adapter@1.6.25
-- @better-auth/kysely-adapter@1.6.25
-- @better-auth/memory-adapter@1.6.25
-- @better-auth/mongo-adapter@1.6.25
+- @better-auth/core@1.6.26
+- @better-auth/drizzle-adapter@1.6.26
+- @better-auth/kysely-adapter@1.6.26
+- @better-auth/memory-adapter@1.6.26
+- @better-auth/mongo-adapter@1.6.26
 - @better-auth/passkey@1.6.25
-- @better-auth/prisma-adapter@1.6.25
-- @better-auth/telemetry@1.6.25
+- @better-auth/prisma-adapter@1.6.26
+- @better-auth/sso@1.6.26
+- @better-auth/telemetry@1.6.26
 - @better-auth/utils@0.4.2
 - @better-fetch/fetch@1.3.1
 - @dnd-kit/accessibility@3.1.1
@@ -97,6 +99,8 @@ Runtime packages: 523.
 - @noble/ciphers@2.2.0
 - @noble/hashes@1.8.0
 - @noble/hashes@2.2.0
+- @noble/hashes@2.3.0
+- @nodable/entities@3.0.0
 - @oxc-project/types@0.138.0
 - @peculiar/asn1-android@2.8.0
 - @peculiar/asn1-cms@2.8.0
@@ -200,15 +204,19 @@ Runtime packages: 523.
 - @vitest/snapshot@4.1.10
 - @vitest/spy@4.1.10
 - @vitest/utils@4.1.10
+- @xmldom/is-dom-node@1.0.1
+- @xmldom/xmldom@0.8.14
 - abs-svg-path@0.1.1
 - ajv@8.20.0
 - ansi-regex@5.0.1
 - ansi-styles@4.3.0
+- anynum@1.0.1
+- asn1@0.2.6
 - assertion-error@2.0.1
 - aws-ssl-profiles@1.1.2
 - base64-js@0.0.8
 - base64-js@1.5.1
-- better-auth@1.6.25
+- better-auth@1.6.26
 - better-call@1.3.7
 - better-result@2.10.0
 - bidi-js@1.0.3
@@ -245,6 +253,7 @@ Runtime packages: 523.
 - es-module-lexer@2.1.0
 - es-toolkit@1.47.0
 - esbuild@0.28.1
+- escape-html@1.0.3
 - estree-walker@3.0.3
 - eventemitter3@5.0.4
 - events@3.3.0
@@ -254,6 +263,8 @@ Runtime packages: 523.
 - fast-deep-equal@3.1.3
 - fast-equals@4.0.3
 - fast-querystring@1.1.2
+- fast-xml-builder@1.3.1
+- fast-xml-parser@5.10.1
 - fdir@6.5.0
 - fflate@0.8.3
 - find-my-way@9.7.0
@@ -271,6 +282,7 @@ Runtime packages: 523.
 - immer@11.1.11
 - is-fullwidth-code-point@3.0.0
 - is-property@1.0.2
+- is-unsafe@2.0.0
 - is-url@1.2.4
 - jay-peg@1.1.1
 - jiti@1.21.7
@@ -279,7 +291,7 @@ Runtime packages: 523.
 - js-md5@0.8.3
 - js-tokens@4.0.0
 - json-schema-traverse@1.0.0
-- kysely@0.29.4
+- kysely@0.29.5
 - ldapts@9.0.0
 - linebreak@1.1.0
 - locate-path@5.0.0
@@ -293,6 +305,7 @@ Runtime packages: 523.
 - nanoid@3.3.18
 - nanostores@1.4.2
 - next@16.3.0
+- node-rsa@1.1.1
 - normalize-svg-path@1.1.0
 - object-assign@4.1.1
 - obug@2.1.3
@@ -303,6 +316,7 @@ Runtime packages: 523.
 - pako@0.2.9
 - parse-svg-path@0.1.2
 - path-exists@4.0.0
+- path-expression-matcher@1.6.2
 - path-key@3.1.1
 - pathe@2.0.3
 - perfect-debounce@2.1.0
@@ -358,6 +372,7 @@ Runtime packages: 523.
 - safe-buffer@5.2.1
 - safe-regex2@5.1.1
 - safer-buffer@2.1.2
+- samlify@2.13.1
 - scheduler@0.25.0-rc-603e6108-20241029
 - scheduler@0.27.0
 - seq-queue@0.0.5
@@ -371,6 +386,7 @@ Runtime packages: 523.
 - string-width@4.2.3
 - string_decoder@1.3.0
 - strip-ansi@6.0.1
+- strnum@2.4.2
 - styled-jsx@5.1.6
 - tailwind-merge@3.6.0
 - tiny-inflate@1.0.3
@@ -379,6 +395,8 @@ Runtime packages: 523.
 - tinyexec@1.2.4
 - tinyglobby@0.2.17
 - tinyrainbow@3.1.0
+- tldts-core@6.1.86
+- tldts@6.1.86
 - tsx@4.23.12
 - tsyringe@4.10.0
 - tw-animate-css@1.4.0
@@ -393,6 +411,13 @@ Runtime packages: 523.
 - vitest@4.1.10
 - why-is-node-running@2.3.0
 - wrap-ansi@6.2.0
+- xml-crypto@6.1.2
+- xml-escape@1.1.0
+- xml-naming@0.3.0
+- xml@1.0.1
+- xpath@0.0.32
+- xpath@0.0.33
+- xpath@0.0.34
 - xtend@4.0.2
 - yargs@15.4.1
 - yoga-layout@3.2.1
