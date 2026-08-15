@@ -1,5 +1,6 @@
 "use client"
 
+import { PasswordInput } from "@/components/ui/password-input"
 import { useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Loader2, ShieldCheck } from "lucide-react"
@@ -350,7 +351,7 @@ export default function LoginPage() {
                 name="code"
                 type="text"
                 inputMode="numeric"
-                required
+        required
                 autoComplete="one-time-code"
                 placeholder="123456"
                 className="w-full rounded-lg border border-input bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors"
@@ -416,7 +417,7 @@ export default function LoginPage() {
                 name="code"
                 type="text"
                 inputMode="numeric"
-                required
+        required
                 autoComplete="one-time-code"
                 placeholder="123456"
                 className="w-full rounded-lg border border-input bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors"
@@ -461,7 +462,7 @@ export default function LoginPage() {
                 id="email"
                 name="email"
                 type="email"
-                required
+        required
                 autoComplete="email"
                 autoFocus
                 placeholder="you@company.com"
@@ -519,7 +520,7 @@ export default function LoginPage() {
                 id="email"
                 name="email"
                 type="email"
-                required
+        required
                 autoComplete="email"
                 readOnly
                 defaultValue={email}
@@ -534,11 +535,10 @@ export default function LoginPage() {
               >
                 Password
               </label>
-              <input
+              <PasswordInput
                 id="password"
                 name="password"
-                type="password"
-                required
+        required
                 autoComplete="current-password"
                 autoFocus
                 placeholder="********"

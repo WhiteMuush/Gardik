@@ -1,5 +1,6 @@
 "use client"
 
+import { PasswordInput } from "@/components/ui/password-input"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Lock } from "lucide-react"
@@ -49,8 +50,7 @@ export function StepUpGate({ hasPassword, hasTwoFactor }: { hasPassword: boolean
             : "Enter a code from your authenticator to open your account settings."}
       </p>
       {hasPassword ? (
-        <input
-          type="password"
+        <PasswordInput
           autoComplete="current-password"
           value={password}
           onChange={(e) => setPassword(e.target.value)}

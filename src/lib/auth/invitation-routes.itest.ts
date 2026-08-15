@@ -1,6 +1,8 @@
 import { describe, it, expect, beforeAll, afterAll, beforeEach, vi } from "vitest"
 import bcrypt from "bcryptjs"
 import { prisma } from "@/lib/prisma"
+import { rateLimit } from "@/lib/rateLimit"
+import { API_RATE_LIMIT, API_RATE_WINDOW_MS } from "@/lib/apiAuth"
 import { seedPresetsForCompany, resolvePresetRoleId } from "@/lib/rbac/seed-roles"
 import { grantStepUp } from "@/lib/rbac/step-up"
 import { AUDIT_ACTIONS } from "@/lib/rbac/audit"
@@ -194,6 +196,26 @@ describe("POST /api/users/[id]/invite", () => {
     const body = await (await invite(post(), params(target.id))).json()
     expect(body.delivered).toBe("email")
     expect(body.link).toBeUndefined()
+  })
+})
+
+// The ceiling that applies to every authenticated route, checked through a real
+// one rather than against the limiter in isolation: what matters is that the
+// guard consults it at all. The counter is filled directly instead of by making
+// 120 requests, which would prove the same thing far more slowly.
+describe("the API rate ceiling in requirePermission", () => {
+  it("refuses once the account has spent its allowance", async () => {
+    const target = await makeUser("flood")
+    for (let i = 0; i < API_RATE_LIMIT; i++) {
+      await rateLimit(`api:${adminId}`, API_RATE_LIMIT, API_RATE_WINDOW_MS)
+    }
+
+    const res = await invite(post(), params(target.id))
+    expect(res.status).toBe(429)
+    expect(await prisma.userInvitation.count({ where: { userId: target.id } })).toBe(0)
+
+    // Leave the counter clean for whatever runs next in this file.
+    await prisma.apiRateLimit.deleteMany({ where: { key: `api:${adminId}` } })
   })
 })
 

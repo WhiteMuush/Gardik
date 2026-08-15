@@ -1,5 +1,6 @@
 "use client"
 
+import { PasswordInput } from "@/components/ui/password-input"
 import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { MIN_PASSWORD_LENGTH } from "@/lib/auth/invitation"
@@ -46,8 +47,7 @@ export function PasswordChange({ required, continueTo }: { required: boolean; co
           ? "Every other session of yours is signed out when you save."
           : "Changing it signs out every other session."}
       </p>
-      <input
-        type="password"
+      <PasswordInput
         autoComplete="current-password"
         required
         value={currentPassword}
@@ -55,8 +55,7 @@ export function PasswordChange({ required, continueTo }: { required: boolean; co
         placeholder="Current password"
         className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm"
       />
-      <input
-        type="password"
+      <PasswordInput
         autoComplete="new-password"
         required
         minLength={MIN_PASSWORD_LENGTH}
@@ -65,8 +64,7 @@ export function PasswordChange({ required, continueTo }: { required: boolean; co
         placeholder={`New password (${MIN_PASSWORD_LENGTH} characters minimum)`}
         className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm"
       />
-      <input
-        type="password"
+      <PasswordInput
         autoComplete="new-password"
         required
         value={confirmation}
