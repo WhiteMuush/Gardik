@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { requireAuth, requirePermission } from "@/lib/apiAuth"
+import { requirePermission } from "@/lib/apiAuth"
 import { prisma } from "@/lib/prisma"
 import { encryptConfig } from "@/lib/directory/crypto"
 import { keyHint } from "@/lib/credentials/service"
@@ -17,7 +17,7 @@ const SELECT = {
 } as const
 
 export async function GET() {
-  const { session, error } = await requireAuth()
+  const { session, error } = await requirePermission("api_credentials:read")
   if (error) return error
 
   const credentials = await prisma.apiCredential.findMany({
