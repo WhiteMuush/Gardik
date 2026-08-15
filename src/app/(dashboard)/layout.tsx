@@ -1,6 +1,5 @@
 import { getSession } from "@/lib/auth/session"
 import { redirect } from "next/navigation"
-import { headers } from "next/headers"
 import { prisma } from "@/lib/prisma"
 import { DashboardShell } from "@/components/layout/DashboardShell"
 import { RoutePrefetcher } from "@/components/layout/RoutePrefetcher"
@@ -24,23 +23,12 @@ export default async function DashboardLayout({
   })
   if (!company) redirect("/login")
 
-  const pathname = (await headers()).get("x-pathname") ?? ""
-
-  // Ordered before the two-factor gate on purpose: enrolling a second factor
-  // asks for the current password, so a user under a forced rotation would be
-  // binding an authenticator while still on the password an administrator
-  // handed them. Password first, then the second factor.
-  if (session.user.mustChangePassword && !pathname.startsWith("/security")) {
-    redirect("/security")
-  }
-
-  // Companies can force 2FA enrollment. Route to /security so the user can
-  // enroll, but skip this when already there to avoid a redirect loop.
-  if (
-    !pathname.startsWith("/security") &&
-    company.require2fa &&
-    !session.user.twoFactorEnabled
-  ) {
+  // Anything a user owes before the dashboard opens (a forced password
+  // rotation, a mandatory second factor) is settled on /secure, which lives
+  // outside this layout entirely: no sidebar, no other page to wander into
+  // while the requirement is outstanding. The API guard refuses those users
+  // independently, so this redirect is a courtesy rather than the control.
+  if (session.user.mustChangePassword || (company.require2fa && !session.user.twoFactorEnabled)) {
     // Only queried on the path that can redirect, which is the rare one.
     const credential = await prisma.account.findFirst({
       where: { userId: session.user.id, providerId: "credential" },
@@ -51,7 +39,10 @@ export default async function DashboardLayout({
       userHasTwoFactor: session.user.twoFactorEnabled ?? false,
       userHasPassword: credential !== null,
     })
-    if (mustEnroll) redirect("/security")
+    // A password-less SSO account owes neither: it cannot satisfy either form.
+    if ((session.user.mustChangePassword && credential !== null) || mustEnroll) {
+      redirect("/secure")
+    }
   }
 
   const openAlerts = await getOpenAlertCount(session.user.companyId)

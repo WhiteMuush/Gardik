@@ -297,10 +297,27 @@ describe("POST /api/invitations/accept", () => {
 })
 
 describe("POST /api/account/password", () => {
-  async function actAs(userId: string, sessionToken: string) {
-    stub.user = { id: userId, companyId, roleId: viewerRoleId }
+  // Every case but one runs with a rotation pending, because that is the only
+  // state in which this endpoint does anything at all.
+  async function actAs(userId: string, sessionToken: string, mustChangePassword = true) {
+    stub.user = { id: userId, companyId, roleId: viewerRoleId, mustChangePassword }
     stub.session = { token: sessionToken }
   }
+
+  it("refuses a change nobody asked for, so the rule is not merely a hidden form", async () => {
+    const target = await makeUser("voluntary", { password: "the-real-password-1" })
+    await actAs(target.id, `s0-${target.id}`, false)
+
+    const res = await changePassword(
+      post({ currentPassword: "the-real-password-1", newPassword: "self-service-password-1" })
+    )
+    expect(res.status).toBe(403)
+
+    const account = await prisma.account.findFirstOrThrow({
+      where: { userId: target.id, providerId: "credential" },
+    })
+    expect(await bcrypt.compare("the-real-password-1", account.password!)).toBe(true)
+  })
 
   it("refuses without the current password", async () => {
     const target = await makeUser("wrong-current", { password: "the-real-password-1" })
