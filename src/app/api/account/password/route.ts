@@ -6,11 +6,19 @@ import { rateLimit } from "@/lib/rateLimit"
 import { verifyPassword } from "@/lib/rbac/step-up"
 import { passwordProblem } from "@/lib/auth/invitation"
 
-// Changing your own password. Deliberately not behind requireAuth: that guard
-// refuses every call from a user under a forced rotation, and this is the one
-// thing such a user must still be able to do. It authenticates on its own terms
-// instead, and re-checks the current password, so a stolen session cookie alone
-// cannot lock the real owner out by changing the password.
+// Setting a new password, and only as part of a rotation an administrator has
+// required. Changing a password at will is not a self-service action in this
+// product: a user who wants a new one asks an administrator, who requires the
+// rotation, which is what unlocks this endpoint for them.
+//
+// That rule is enforced here rather than by leaving the form out of the
+// interface. A control that exists only in the UI is not a control: the request
+// this route answers can be made with any HTTP client.
+//
+// Deliberately not behind requireAuth either: that guard refuses every call
+// from a user under a forced rotation, which is precisely who calls this. It
+// authenticates on its own terms and re-checks the current password, so a
+// stolen session cookie alone cannot lock the real owner out.
 export async function POST(req: Request) {
   const session = await getSession()
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -19,6 +27,13 @@ export async function POST(req: Request) {
   // sits outside Better Auth's own rate limiting.
   if (!(await rateLimit(`password-change:${session.user.id}`, 5, 60_000))) {
     return NextResponse.json({ error: "Too many attempts" }, { status: 429 })
+  }
+
+  if (session.user.mustChangePassword !== true) {
+    return NextResponse.json(
+      { error: "Ask an administrator to require a password change" },
+      { status: 403 }
+    )
   }
 
   const body = (await req.json().catch(() => ({}))) as {
