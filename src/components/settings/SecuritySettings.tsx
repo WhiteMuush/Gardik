@@ -1,6 +1,7 @@
 import { getSession } from "@/lib/auth/session"
 import { prisma } from "@/lib/prisma"
 import { getUserPermissions, authorize } from "@/lib/rbac/authorize"
+import { PasswordChange } from "@/components/settings/PasswordChange"
 import { TwoFactorSetup } from "@/components/settings/TwoFactorSetup"
 import { PasskeySetup } from "@/components/settings/PasskeySetup"
 import { AuthPolicySettings } from "@/components/settings/AuthPolicySettings"
@@ -20,14 +21,25 @@ export async function SecuritySettings() {
   const canReadSso = authorize(perms, "sso:read")
   const canConfigureSso = authorize(perms, "sso:config")
 
-  const company = await prisma.company.findUnique({
-    where: { id: companyId },
-    select: { require2fa: true, allowedAuthMethods: true, ssoMandatory: true },
-  })
+  const [company, credential] = await Promise.all([
+    prisma.company.findUnique({
+      where: { id: companyId },
+      select: { require2fa: true, allowedAuthMethods: true, ssoMandatory: true },
+    }),
+    prisma.account.findFirst({
+      where: { userId: session!.user.id, providerId: "credential" },
+      select: { id: true },
+    }),
+  ])
+
+  const mustChangePassword = session!.user.mustChangePassword === true
 
   return (
     <>
-      {(company?.allowedAuthMethods.includes("TOTP") ?? true) && (
+      {/* Password first, and alone, while a rotation is pending: the other
+          blocks call endpoints the forced user cannot reach yet. */}
+      {credential && <PasswordChange required={mustChangePassword} />}
+      {!mustChangePassword && (company?.allowedAuthMethods.includes("TOTP") ?? true) && (
         <div className="rounded-xl border border-border/60 bg-card p-4">
           <h3 className="text-sm font-medium text-foreground">Two-factor authentication</h3>
           <p className="mt-1 text-xs text-muted-foreground">
@@ -38,7 +50,7 @@ export async function SecuritySettings() {
           </div>
         </div>
       )}
-      {company?.allowedAuthMethods.includes("PASSKEY") && (
+      {!mustChangePassword && company?.allowedAuthMethods.includes("PASSKEY") && (
         <div className="rounded-xl border border-border/60 bg-card p-4">
           <h3 className="text-sm font-medium text-foreground">Passkeys</h3>
           <p className="mt-1 text-xs text-muted-foreground">
@@ -50,7 +62,7 @@ export async function SecuritySettings() {
           </div>
         </div>
       )}
-      {isAdmin && company && (
+      {!mustChangePassword && isAdmin && company && (
         <AuthPolicySettings
           require2fa={company.require2fa}
           allowedAuthMethods={company.allowedAuthMethods}
@@ -58,7 +70,7 @@ export async function SecuritySettings() {
           ssoMandatory={company.ssoMandatory}
         />
       )}
-      {canReadSso && <SsoSettings canConfigure={canConfigureSso} />}
+      {!mustChangePassword && canReadSso && <SsoSettings canConfigure={canConfigureSso} />}
     </>
   )
 }

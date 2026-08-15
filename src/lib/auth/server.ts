@@ -215,6 +215,11 @@ export const auth = betterAuth({
     additionalFields: {
       roleId: { type: "string", input: false, required: false },
       companyId: { type: "string", input: false },
+      // Carried on the session so the API guard can enforce a forced rotation
+      // without a query per request. Safe to trust because setting the flag
+      // also deletes that user's sessions: any session that says false was
+      // issued after the flag was last cleared.
+      mustChangePassword: { type: "boolean", input: false, required: false },
     },
   },
   account: {
