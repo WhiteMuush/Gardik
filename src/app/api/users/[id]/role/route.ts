@@ -1,9 +1,7 @@
 import { NextResponse } from "next/server"
-import { requirePermission, assertStepUp } from "@/lib/apiAuth"
+import { requirePermission } from "@/lib/apiAuth"
 import { prisma } from "@/lib/prisma"
-import { getUserPermissions } from "@/lib/rbac/authorize"
-import { excessPermissions } from "@/lib/rbac/escalation"
-import { containsCrownJewel } from "@/lib/rbac/crown-jewels"
+import { assertMayGrantRole } from "@/lib/rbac/grant-role"
 import { wouldOrphanAdmins } from "@/lib/rbac/last-admin"
 import { writeAudit, AUDIT_ACTIONS } from "@/lib/rbac/audit"
 
@@ -31,17 +29,11 @@ export async function PATCH(req: Request, { params }: Params) {
     if (!role.isAssignable) {
       return NextResponse.json({ error: "Role is not assignable" }, { status: 403 })
     }
-    // No-escalation: cannot assign a role holding a permission the actor lacks.
-    const actorPerms = await getUserPermissions(prisma, session.user.roleId ?? null)
-    const excess = excessPermissions(actorPerms, role.permissions)
-    if (excess.length > 0) {
-      return NextResponse.json({ error: "Exceeds your permissions", excess }, { status: 403 })
-    }
-    // Step-up when assigning a crown-jewel-bearing role (for example Administrator).
-    if (containsCrownJewel(role.permissions)) {
-      const gate = await assertStepUp(session.user.id)
-      if (gate) return gate
-    }
+    // No-escalation, plus a step-up when the role carries a crown jewel. Shared
+    // with the account-creation route, which is the other way to hand out a
+    // role and once checked neither.
+    const grant = await assertMayGrantRole(session.user, role)
+    if (grant) return grant
   }
 
   // Last-admin guard: never leave the company with zero roles:manage holders.

@@ -1,11 +1,19 @@
 "use client"
 
+import { PasswordInput } from "@/components/ui/password-input"
 import { useState } from "react"
 import QRCode from "qrcode"
 import { twoFactor } from "@/lib/auth/client"
 import { Button } from "@/components/ui/button"
 
-export function TwoFactorSetup({ enabled }: { enabled: boolean }) {
+export function TwoFactorSetup({
+  enabled,
+  continueTo,
+}: {
+  enabled: boolean
+  /** Set on the pre-dashboard gate: where to go once enrollment succeeds. */
+  continueTo?: string
+}) {
   const [password, setPassword] = useState("")
   const [qr, setQr] = useState<string | null>(null)
   const [backupCodes, setBackupCodes] = useState<string[]>([])
@@ -32,6 +40,9 @@ export function TwoFactorSetup({ enabled }: { enabled: boolean }) {
       return
     }
     setDone(true)
+    // Full navigation rather than a router push: the session carries
+    // twoFactorEnabled, and the gate that sent the user here reads it.
+    if (continueTo) window.location.assign(continueTo)
   }
 
   if (done) return <p className="text-sm text-muted-foreground">Two-factor is enabled.</p>
@@ -40,8 +51,7 @@ export function TwoFactorSetup({ enabled }: { enabled: boolean }) {
     <div className="space-y-4">
       {!qr ? (
         <div className="space-y-2">
-          <input
-            type="password"
+          <PasswordInput
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Confirm your password"

@@ -5,13 +5,16 @@ import { Search } from "lucide-react"
 import { StepUpDialog } from "./StepUpDialog"
 
 type UserRow = { id: string; email: string; name: string; roleId: string | null; roleName: string | null }
-type RoleRow = { id: string; name: string; isAssignable: boolean }
+// grantable comes from the server and already folds in the no-escalation rule,
+// so the dropdown never offers a role the assignment call would refuse.
+type RoleRow = { id: string; name: string; isAssignable: boolean; grantable: boolean }
 
 export function UserRoleAssignment() {
   const [users, setUsers] = useState<UserRow[]>([])
   const [roles, setRoles] = useState<RoleRow[]>([])
   const [query, setQuery] = useState("")
   const [error, setError] = useState<string | null>(null)
+  const [notice, setNotice] = useState<string | null>(null)
   const [stepUpRetry, setStepUpRetry] = useState<null | (() => void)>(null)
 
   async function load() {
@@ -27,6 +30,51 @@ export function UserRoleAssignment() {
     () => users.filter((u) => u.email.toLowerCase().includes(query.toLowerCase())),
     [users, query],
   )
+
+  // Both credential actions run behind step-up, same as assigning a
+  // crown-jewel role: each one ends in somebody being able to sign in.
+  async function credentialAction(
+    userId: string,
+    path: string,
+    onOk: (body: { link?: string; delivered?: string }) => string
+  ) {
+    const res = await fetch(`/api/users/${userId}/${path}`, { method: "POST" })
+    const body = (await res.json().catch(() => ({}))) as {
+      error?: string
+      code?: string
+      link?: string
+      delivered?: string
+    }
+    if (res.status === 403 && body.code === "STEP_UP_REQUIRED") {
+      setStepUpRetry(() => async () => {
+        await credentialAction(userId, path, onOk)
+      })
+      return
+    }
+    if (!res.ok) {
+      setError(body.error ?? "Failed")
+      return
+    }
+    setError(null)
+    setStepUpRetry(null)
+    setNotice(onOk(body))
+  }
+
+  async function invite(userId: string) {
+    await credentialAction(userId, "invite", (body) =>
+      body.delivered === "email"
+        ? "Invitation sent. The link works once and expires in 72 hours."
+        : `Email is not configured here, so copy this one-time link: ${body.link}`
+    )
+  }
+
+  async function requirePasswordChange(userId: string) {
+    await credentialAction(
+      userId,
+      "require-password-change",
+      () => "Done. Their sessions are closed and they must set a new password at next sign-in."
+    )
+  }
 
   async function assign(userId: string, roleId: string | null) {
     const run = () =>
@@ -69,6 +117,7 @@ export function UserRoleAssignment() {
       </div>
 
       {error && <p className="text-xs text-destructive">{error}</p>}
+      {notice && <p className="break-all text-xs text-muted-foreground">{notice}</p>}
 
       <div className="overflow-hidden rounded-xl border border-border/60 bg-card">
         <table className="w-full text-sm">
@@ -80,12 +129,15 @@ export function UserRoleAssignment() {
               <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
                 Role
               </th>
+              <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">
+                Credentials
+              </th>
             </tr>
           </thead>
           <tbody className="divide-y divide-border">
             {filtered.length === 0 ? (
               <tr>
-                <td colSpan={2} className="py-12 text-center text-sm text-muted-foreground">
+                <td colSpan={3} className="py-12 text-center text-sm text-muted-foreground">
                   No one matches this search
                 </td>
               </tr>
@@ -104,13 +156,31 @@ export function UserRoleAssignment() {
                     >
                       <option value="">No access</option>
                       {roles
-                        .filter((r) => r.isAssignable)
+                        .filter((r) => r.grantable)
                         .map((r) => (
                           <option key={r.id} value={r.id}>
                             {r.name}
                           </option>
                         ))}
                     </select>
+                  </td>
+                  <td className="px-4 py-3 text-right">
+                    <div className="flex justify-end gap-2">
+                      <button
+                        type="button"
+                        onClick={() => void invite(u.id)}
+                        className="rounded-lg border border-input px-2 py-1.5 text-xs text-foreground transition-colors hover:bg-muted/60"
+                      >
+                        Send invitation
+                      </button>
+                      <button
+                        type="button"
+                        onClick={() => void requirePasswordChange(u.id)}
+                        className="rounded-lg border border-input px-2 py-1.5 text-xs text-foreground transition-colors hover:bg-muted/60"
+                      >
+                        Force new password
+                      </button>
+                    </div>
                   </td>
                 </tr>
               ))

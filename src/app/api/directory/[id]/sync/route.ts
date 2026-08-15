@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
 import { requirePermission } from "@/lib/apiAuth"
+import { rateLimit } from "@/lib/rateLimit"
 import { prisma } from "@/lib/prisma"
 import { enqueueSyncJob, processSyncJobs } from "@/lib/directory/jobs"
 
@@ -9,6 +10,13 @@ export async function POST(
 ) {
   const { session, error } = await requirePermission("connectors:sync")
   if (error) return error
+
+  // A sync walks an entire directory and writes the result. Queueing them
+  // faster than they drain is a way to load the database and the remote
+  // directory at once.
+  if (!(await rateLimit(`directory-sync:${session.user.companyId}`, 10, 60_000))) {
+    return NextResponse.json({ error: "Too many attempts" }, { status: 429 })
+  }
 
   const { id } = await params
 

@@ -1,5 +1,6 @@
 import type { PrismaClient } from "@prisma/client"
 import bcrypt from "bcryptjs"
+import { burnPasswordTime, notFasterThan, MIN_VERIFY_MS } from "@/lib/auth/password-timing"
 
 type Db = Pick<PrismaClient, "account" | "stepUpGrant">
 
@@ -11,15 +12,26 @@ type Db = Pick<PrismaClient, "account" | "stepUpGrant">
 export const STEP_UP_TTL_MS = 5 * 60 * 1000
 
 // Re-verify the caller's own password against their credential account. Returns
-// false when the user has no password account (SSO-only, a later plan) or the
-// password is wrong; the caller maps false to a 401 so the UI re-prompts.
+// false when the user has no password account (SSO-only) or the password is
+// wrong; the caller maps false to a 401 so the UI re-prompts.
+//
+// Every outcome costs the same. Without the burn, "no password on this account"
+// answered in a millisecond while a wrong password took a quarter of a second,
+// and that gap is readable over the network: it says which accounts have
+// passwords worth attacking. The floor covers the same ground for the rest of
+// the work around the comparison.
 export async function verifyPassword(db: Db, userId: string, password: string): Promise<boolean> {
-  const account = await db.account.findFirst({
-    where: { userId, providerId: "credential" },
-    select: { password: true },
-  })
-  if (!account?.password) return false
-  return bcrypt.compare(password, account.password)
+  return notFasterThan(
+    MIN_VERIFY_MS,
+    (async () => {
+      const account = await db.account.findFirst({
+        where: { userId, providerId: "credential" },
+        select: { password: true },
+      })
+      if (!account?.password) return burnPasswordTime(password)
+      return bcrypt.compare(password, account.password)
+    })()
+  )
 }
 
 export async function grantStepUp(db: Db, userId: string): Promise<void> {

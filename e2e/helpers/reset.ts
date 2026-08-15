@@ -32,6 +32,17 @@ export async function resetTwoFactorEnrollment(email: string): Promise<void> {
   })
 }
 
+// A step-up grant lives for five minutes and is shared by everything that user
+// does, so one spec proving its identity would silently let the next spec walk
+// past the account gate. Cleared up front so each run sees the same state.
+export async function resetStepUp(email: string): Promise<void> {
+  await withPrisma(async (prisma) => {
+    const user = await prisma.user.findUnique({ where: { email }, select: { id: true } })
+    if (!user) return
+    await prisma.stepUpGrant.deleteMany({ where: { userId: user.id } })
+  })
+}
+
 export async function resetPasskeys(email: string): Promise<void> {
   await withPrisma(async (prisma) => {
     const user = await prisma.user.findUnique({ where: { email }, select: { id: true } })
