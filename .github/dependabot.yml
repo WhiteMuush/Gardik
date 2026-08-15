@@ -3,8 +3,15 @@ updates:
   # Application dependencies.
   - package-ecosystem: npm
     directory: "/"
+    # Monthly only throttles routine version bumps. Security updates ignore the
+    # schedule and still open as soon as an advisory lands.
     schedule:
-      interval: weekly
+      interval: monthly
+    # Never adopt a release younger than a week. Compromised packages are
+    # typically yanked within 72 hours, so this skips the malicious window.
+    # Cooldown covers version updates only, security updates are never delayed.
+    cooldown:
+      default-days: 7
     open-pull-requests-limit: 10
     # Frozen majors enforced by .githooks/lib/check-frozen-deps.mjs. Ignore
     # major updates here so Dependabot does not open PRs that CI will reject.
@@ -19,14 +26,59 @@ updates:
         update-types: ["version-update:semver-major"]
       - dependency-name: "eslint"
         update-types: ["version-update:semver-major"]
+    # Split by semver impact, not by prod/dev. Patches carry their own low-risk
+    # pull request that reviews in a glance; minors and majors are isolated so
+    # the dependency state is known when a release tag is cut. Every bump is
+    # merged by a human, see the note on the cooldown above.
+    commit-message:
+      prefix: "build"
+      prefix-development: "chore"
+      include: scope
     groups:
-      production:
-        dependency-type: production
-      development:
-        dependency-type: development
+      npm-patch:
+        patterns: ["*"]
+        update-types: ["patch"]
+      npm-risky:
+        patterns: ["*"]
+        update-types: ["minor", "major"]
+      # Groups default to applies-to version-updates. Without this block a
+      # single advisory touching N packages opens N separate pull requests,
+      # bypassing the schedule and the open pull request limit.
+      npm-security:
+        applies-to: security-updates
+        patterns: ["*"]
 
-  # The GitHub Actions used by the workflows above.
+  # The GitHub Actions used by the workflows above. Grouped so a bump does not
+  # open one pull request per action.
   - package-ecosystem: github-actions
     directory: "/"
     schedule:
-      interval: weekly
+      interval: monthly
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: "ci"
+      include: scope
+    groups:
+      actions:
+        patterns: ["*"]
+      actions-security:
+        applies-to: security-updates
+        patterns: ["*"]
+
+  # Base images. Nothing watched these before, so node and postgres drifted.
+  - package-ecosystem: docker
+    directory: "/"
+    schedule:
+      interval: monthly
+    cooldown:
+      default-days: 7
+    commit-message:
+      prefix: "build"
+      include: scope
+    groups:
+      docker:
+        patterns: ["*"]
+      docker-security:
+        applies-to: security-updates
+        patterns: ["*"]

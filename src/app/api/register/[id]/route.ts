@@ -1,10 +1,10 @@
 import { NextResponse } from "next/server"
-import { requireAdmin } from "@/lib/apiAuth"
+import { requirePermission } from "@/lib/apiAuth"
 import { prisma } from "@/lib/prisma"
 import { RegisterStatus } from "@prisma/client"
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const { session, error } = await requireAdmin()
+  const { session, error } = await requirePermission("register:manage")
   if (error) return error
 
   const { id } = await params

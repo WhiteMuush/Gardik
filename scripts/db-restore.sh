@@ -1,9 +1,11 @@
 #!/usr/bin/env sh
-# Restore a pg_dump custom-format dump into the local compose database.
+# Restore a pg_dump custom-format dump into the local database (Docker or Podman).
 set -eu
 
 root="$(CDPATH= cd "$(dirname "$0")/.." && pwd)"
 cd "$root"
+. "$root/scripts/container.sh"
+ct_resolve || exit 1
 
 if [ "$#" -ne 1 ]; then
   echo "[db-restore] usage: npm run db:restore -- backups/<file>.dump"
@@ -16,7 +18,7 @@ if [ ! -f "$file" ]; then
   exit 1
 fi
 
-if [ "$(docker inspect -f '{{.State.Health.Status}}' datashield-db 2>/dev/null)" != "healthy" ]; then
+if ! "$CT_ENGINE" exec "$DB_CONTAINER" pg_isready -U "$DB_USER" -d "$DB_NAME" >/dev/null 2>&1; then
   echo "[db-restore] database container is not running. Start it with: npm run db:up"
   exit 1
 fi
@@ -28,6 +30,6 @@ if [ "$answer" != "yes" ]; then
   exit 1
 fi
 
-docker compose exec -T db pg_restore --clean --if-exists -U "${POSTGRES_USER:-user}" -d "${POSTGRES_DB:-datashield}" < "$file"
+"$CT_ENGINE" exec -i "$DB_CONTAINER" pg_restore --clean --if-exists -U "$DB_USER" -d "$DB_NAME" < "$file"
 
 echo "[db-restore] done. Check schema consistency with: npx prisma migrate status"

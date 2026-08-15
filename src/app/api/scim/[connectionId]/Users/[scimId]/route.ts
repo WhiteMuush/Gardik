@@ -25,7 +25,7 @@ export async function PATCH(
   { params }: { params: Promise<{ connectionId: string; scimId: string }> }
 ) {
   const { connectionId, scimId } = await params
-  if (!checkScimRateLimit(connectionId))
+  if (!(await checkScimRateLimit(connectionId)))
     return NextResponse.json({ status: 429, detail: "Too many requests" }, { status: 429 })
   const ctx = await authenticateScim(req, connectionId)
   if (!ctx) return NextResponse.json({ status: 401, detail: "Unauthorized" }, { status: 401 })
@@ -52,7 +52,7 @@ export async function DELETE(
   { params }: { params: Promise<{ connectionId: string; scimId: string }> }
 ) {
   const { connectionId, scimId } = await params
-  if (!checkScimRateLimit(connectionId))
+  if (!(await checkScimRateLimit(connectionId)))
     return NextResponse.json({ status: 429, detail: "Too many requests" }, { status: 429 })
   const ctx = await authenticateScim(req, connectionId)
   if (!ctx) return NextResponse.json({ status: 401, detail: "Unauthorized" }, { status: 401 })

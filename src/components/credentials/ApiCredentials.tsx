@@ -1,5 +1,6 @@
 "use client"
 
+import { PasswordInput } from "@/components/ui/password-input"
 import { useState } from "react"
 import { KeyRound, Trash2, Loader2, ExternalLink, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
@@ -116,8 +117,7 @@ export function ApiCredentials({ initial, isAdmin }: Props) {
 
                 {isAdmin && (
                   <div className="mt-3 flex items-center gap-2">
-                    <input
-                      type="password"
+                    <PasswordInput
                       autoComplete="off"
                       placeholder={cred ? "Replace key…" : "Paste API key…"}
                       value={drafts[meta.id] ?? ""}

@@ -1,4 +1,6 @@
-import { auth } from "@/auth"
+import { guardPage } from "@/lib/rbac/guard-page"
+import { getSession } from "@/lib/auth/session"
+import { VIEWER_ROLE } from "@/lib/rbac/presets"
 import { getDashboardData, buildTrendData, buildBreachSources, buildDataTypes } from "@/lib/dashboard"
 import { providerMeta } from "@/lib/credentials/providers"
 import { prisma } from "@/lib/prisma"
@@ -28,7 +30,10 @@ import { redirect } from "next/navigation"
 import type { DashboardPreset } from "@/types/dashboard"
 
 export default async function DashboardPage() {
-  const session = await auth()
+  const denied = await guardPage("dashboard:read")
+  if (denied) return denied
+
+  const session = await getSession()
 
   const [employeeCount, apiKeyCount] = await Promise.all([
     prisma.employee.count({ where: { companyId: session!.user.companyId } }),
@@ -50,7 +55,7 @@ export default async function DashboardPage() {
     }),
     prisma.user.findUnique({
       where: { id: session!.user.id },
-      select: { activePresetId: true, role: true },
+      select: { activePresetId: true, role: { select: { name: true } } },
     }),
   ])
 
@@ -314,7 +319,7 @@ export default async function DashboardPage() {
       widgets={widgets}
       presets={typedPresets}
       activePresetId={activePresetId}
-      userRole={user?.role ?? "VIEWER"}
+      userRole={user?.role?.name ?? VIEWER_ROLE}
       sourceOptions={sourceOptions}
     />
   )

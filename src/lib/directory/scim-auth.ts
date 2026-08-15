@@ -9,9 +9,9 @@ const SCIM_RATE_WINDOW_MS = 60_000
 
 // Throttle inbound SCIM requests per connection, before token validation, so
 // an unauthenticated caller cannot brute-force tokens or flood the endpoint.
-// Returns true when the request is allowed. In-memory and per-instance (see
-// rateLimit); move to a shared store when scaling horizontally.
-export function checkScimRateLimit(connectionId: string): boolean {
+// Returns true when the request is allowed. Shared across instances, see
+// rateLimit.
+export function checkScimRateLimit(connectionId: string): Promise<boolean> {
   return rateLimit(`scim:${connectionId}`, SCIM_RATE_LIMIT, SCIM_RATE_WINDOW_MS)
 }
 

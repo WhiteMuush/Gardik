@@ -1,10 +1,16 @@
-import { auth } from "@/auth"
+import { guardPage } from "@/lib/rbac/guard-page"
+import { getSession } from "@/lib/auth/session"
 import { prisma } from "@/lib/prisma"
 import { ApiCredentials } from "@/components/credentials/ApiCredentials"
+import { getUserPermissions, authorize } from "@/lib/rbac/authorize"
 
 export default async function DataApiPage() {
-  const session = await auth()
-  const isAdmin = session!.user.role === "ADMIN"
+  const denied = await guardPage("api_credentials:read")
+  if (denied) return denied
+
+  const session = await getSession()
+  const perms = await getUserPermissions(prisma, session!.user.roleId ?? null)
+  const isAdmin = authorize(perms, "api_credentials:manage")
 
   const credentials = await prisma.apiCredential.findMany({
     where: { companyId: session!.user.companyId },

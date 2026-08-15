@@ -17,6 +17,10 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   serverExternalPackages: ["pg", "@prisma/adapter-pg"],
+  // Next 16.3 makes `next dev` append its own block to AGENTS.md on every run.
+  // The block ships a non-ASCII character, which the pre-push ASCII gate
+  // rejects, so the tree would go dirty on each dev start. We own that file.
+  agentRules: false,
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }];
   },

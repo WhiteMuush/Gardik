@@ -2,9 +2,9 @@ name: CI
 
 on:
   push:
-    branches: [main]
+    branches: [main, develop]
   pull_request:
-    branches: [main]
+    branches: [main, develop]
 
 # Least privilege by default for every job in this workflow.
 permissions:
@@ -90,6 +90,55 @@ jobs:
       - name: Build
         run: npm run build
 
+  integration:
+    name: Integration (DB)
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: ci
+          POSTGRES_PASSWORD: ci
+          POSTGRES_DB: datashield
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U ci -d datashield"
+          --health-interval 3s
+          --health-timeout 3s
+          --health-retries 20
+    env:
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/datashield
+      # Placeholders, same shape as the build and e2e jobs. The integration
+      # suite writes SsoProvider rows, and the Prisma extension that seals
+      # oidcConfig refuses to run without a key, so the suite cannot start
+      # without one. Never a real secret: it only ever encrypts throwaway rows
+      # in a database this job creates and discards.
+      DIRECTORY_ENCRYPTION_KEY: ci-placeholder-encryption-key-32-chars-minimum
+      AUTH_SECRET: ci-placeholder-auth-secret
+      AUTH_URL: http://localhost:3000
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 22
+          cache: npm
+
+      - name: Install dependencies
+        run: npm ci
+
+      - name: Apply migrations
+        run: npx prisma migrate deploy
+
+      - name: Seed admin account
+        run: npx tsx prisma/seed.ts
+
+      - name: Integration tests
+        run: npm run test:integration
+
   e2e:
     name: E2E smoke
     runs-on: ubuntu-latest
@@ -113,6 +162,12 @@ jobs:
       AUTH_SECRET: ci-placeholder-auth-secret
       AUTH_URL: http://localhost:3000
       DIRECTORY_ENCRYPTION_KEY: ci-placeholder-encryption-key-32-chars-minimum
+      # Disables Better Auth's sign-in rate limit (3 per 10s) for the e2e run
+      # only. The serial 2FA suite makes several sign-ins within that window, so
+      # without this it 429-flakes and leans on retries. The app only honours
+      # this when AUTH_URL is loopback (see src/lib/auth/server.ts), so it stays
+      # inert in prod even if this var leaks there.
+      E2E: "1"
     steps:
       - uses: actions/checkout@v7
 
@@ -148,6 +203,6 @@ jobs:
   ci:
     name: ci
     runs-on: ubuntu-latest
-    needs: [quality, test, build, e2e]
+    needs: [quality, test, build, integration, e2e]
     steps:
-      - run: echo "Quality, test, build and e2e gates passed."
+      - run: echo "Quality, test, build, integration and e2e gates passed."

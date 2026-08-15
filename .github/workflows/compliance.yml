@@ -2,7 +2,7 @@ name: Compliance
 
 on:
   pull_request:
-    branches: [main]
+    branches: [main, develop]
 
 permissions:
   contents: read

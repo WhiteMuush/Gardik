@@ -8,7 +8,7 @@ const SIEM_RATE_LIMIT = 60
 const SIEM_RATE_WINDOW_MS = 60_000
 const MAX_ALERTS = 1000
 
-export function checkSiemRateLimit(companyId: string): boolean {
+export function checkSiemRateLimit(companyId: string): Promise<boolean> {
   return rateLimit(`siem:${companyId}`, SIEM_RATE_LIMIT, SIEM_RATE_WINDOW_MS)
 }
 

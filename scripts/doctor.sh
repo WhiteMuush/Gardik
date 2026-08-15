@@ -81,16 +81,18 @@ else
   else wrn "email half-configured: set both RESEND_API_KEY and EMAIL_FROM or neither"; fi
 fi
 
-echo "Docker:"
-if command -v docker >/dev/null 2>&1; then pass "docker $(docker --version | awk '{print $3}' | tr -d ',')"
-else err "docker not found (needed for the local database)"; fi
-if docker compose version >/dev/null 2>&1; then pass "docker compose available"; else wrn "docker compose not available"; fi
-if docker info >/dev/null 2>&1; then pass "docker daemon running"; dkr=1
-else err "docker daemon not running (start Docker Desktop / enable WSL integration)"; fi
-st="$(docker inspect -f '{{.State.Health.Status}}' datashield-db 2>/dev/null || true)"
-if [ "$st" = "healthy" ]; then pass "db container healthy"
-elif [ -n "$st" ]; then wrn "db container status: $st"
-else wrn "db container not found (run 'make db-up')"; [ "$dkr" = "1" ] && fx_dbup=1; fi
+echo "Container engine:"
+engine=""
+if command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then engine="docker"
+elif command -v podman >/dev/null 2>&1; then engine="podman"; fi
+if [ -n "$engine" ]; then pass "$engine available ($($engine --version 2>/dev/null | awk '{print $3}' | tr -d ','))"; dkr=1
+elif command -v docker >/dev/null 2>&1; then err "docker installed but daemon not running (start Docker Desktop / enable WSL integration)"
+else err "no container engine found (install Docker or Podman for the local database)"; fi
+if [ -n "$engine" ]; then
+  if "$engine" exec datashield-db pg_isready >/dev/null 2>&1; then pass "db container running"
+  elif "$engine" container inspect datashield-db >/dev/null 2>&1; then wrn "db container present but not ready (run 'make db-up')"; fx_dbup=1
+  else wrn "db container not found (run 'make db-up')"; fx_dbup=1; fi
+fi
 
 echo "Database connectivity:"
 du="$(getv DATABASE_URL)"
@@ -161,11 +163,6 @@ if [ "$do_warn" = "1" ]; then
   if [ "$fx_cron" = "1" ]; then setval CRON_SECRET "$(openssl rand -base64 32)"; echo "fixed: CRON_SECRET"; applied=1; fi
   if [ "$fx_dbup" = "1" ]; then
     npm run db:up
-    echo "waiting for db to become healthy"
-    i=0
-    while [ "$(docker inspect -f '{{.State.Health.Status}}' datashield-db 2>/dev/null || true)" != "healthy" ] && [ "$i" -lt 60 ]; do
-      i=$((i + 1)); sleep 1
-    done
     applied=1
   fi
   if [ "$fx_migrate" = "1" ]; then npx prisma migrate deploy; applied=1; fi

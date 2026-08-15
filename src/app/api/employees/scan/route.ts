@@ -1,17 +1,17 @@
 import { NextResponse } from "next/server"
-import { requireAuth } from "@/lib/apiAuth"
+import { requirePermission } from "@/lib/apiAuth"
 import { rateLimit } from "@/lib/rateLimit"
 import { loadActiveProviders, runScan } from "@/lib/scan/runner"
 
 const runningScans = new Set<string>()
 
 export async function POST() {
-  const { session, error } = await requireAuth()
+  const { session, error } = await requirePermission("employees:scan")
   if (error) return error
 
   const companyId = session.user.companyId
 
-  if (!rateLimit(`scan:${companyId}`, 5, 60_000)) {
+  if (!(await rateLimit(`scan:${companyId}`, 5, 60_000))) {
     return NextResponse.json(
       { error: "Too many scans. Try again in a minute." },
       { status: 429 }

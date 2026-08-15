@@ -1,6 +1,8 @@
 import { PrismaClient } from "@prisma/client"
 import { PrismaPg } from "@prisma/adapter-pg"
 import bcrypt from "bcryptjs"
+import { seedPresetsForCompany, resolvePresetRoleId } from "@/lib/rbac/seed-roles"
+import { ADMINISTRATOR } from "@/lib/rbac/presets"
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! })
 const prisma = new PrismaClient({ adapter })
@@ -15,18 +17,39 @@ async function main() {
     create: { name: "DataShield Dev", domain: "datashield.dev" },
   })
 
+  await seedPresetsForCompany(prisma, company.id)
+  const adminRoleId = await resolvePresetRoleId(prisma, company.id, ADMINISTRATOR)
+
   const hashedPassword = await bcrypt.hash(password, 12)
 
-  await prisma.user.upsert({
+  const user = await prisma.user.upsert({
     where: { email },
     update: {},
     create: {
       email,
-      hashedPassword,
-      role: "ADMIN",
+      roleId: adminRoleId,
       companyId: company.id,
     },
   })
+
+  const credentialAccount = await prisma.account.findFirst({
+    where: { userId: user.id, providerId: "credential" },
+  })
+  if (credentialAccount) {
+    await prisma.account.update({
+      where: { id: credentialAccount.id },
+      data: { password: hashedPassword },
+    })
+  } else {
+    await prisma.account.create({
+      data: {
+        accountId: user.id,
+        providerId: "credential",
+        userId: user.id,
+        password: hashedPassword,
+      },
+    })
+  }
 
   console.log(`Seed complete: ${email} (change the password after first login)`)
 }

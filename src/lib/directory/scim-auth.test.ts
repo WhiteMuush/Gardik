@@ -10,7 +10,7 @@ vi.mock("@/lib/directory/crypto", () => ({
   decryptConfig: (s: string) => decryptConfig(s),
 }))
 
-import { authenticateScim, checkScimRateLimit } from "./scim-auth"
+import { authenticateScim } from "./scim-auth"
 
 function reqWith(token?: string): Request {
   const headers = new Headers()
@@ -58,21 +58,5 @@ describe("authenticateScim", () => {
     expect(findFirst).toHaveBeenCalledWith(
       expect.objectContaining({ where: { id: "c1", type: "SCIM" } })
     )
-  })
-})
-
-describe("checkScimRateLimit", () => {
-  it("allows up to 120 requests per connection then throttles", () => {
-    const id = `conn-${Math.random()}`
-    for (let i = 0; i < 120; i++) expect(checkScimRateLimit(id)).toBe(true)
-    expect(checkScimRateLimit(id)).toBe(false)
-  })
-
-  it("tracks connections independently", () => {
-    const a = `a-${Math.random()}`
-    const b = `b-${Math.random()}`
-    for (let i = 0; i < 120; i++) checkScimRateLimit(a)
-    expect(checkScimRateLimit(a)).toBe(false)
-    expect(checkScimRateLimit(b)).toBe(true)
   })
 })

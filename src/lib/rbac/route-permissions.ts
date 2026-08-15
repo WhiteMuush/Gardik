@@ -1,0 +1,58 @@
+import type { Permission } from "./permissions"
+
+// Every mutating API route must appear here. The coverage test fails the build
+// if a mutating route is missing. "PUBLIC" = no session (own auth or none).
+// "AUTH_ONLY" = any authenticated user, no specific permission.
+export const ROUTE_PERMISSIONS: Record<string, Permission | "PUBLIC" | "AUTH_ONLY"> = {
+  "auth/[...all]": "PUBLIC",
+  "health": "PUBLIC",
+  "cron": "PUBLIC",
+  "integrations/siem/[companyId]": "PUBLIC",
+  "scim/[connectionId]/Users": "PUBLIC",
+  "scim/[connectionId]/Users/[scimId]": "PUBLIC",
+  // Runs before sign-in: the login page calls it to learn whether a typed
+  // email's company has a verified SSO provider, so there is no session yet.
+  "sso/resolve": "PUBLIC",
+  // The invitee has no account to authenticate with yet; the single-use token
+  // in the body is the authorization.
+  "invitations/accept": "PUBLIC",
+  // Checks the session itself rather than going through requireAuth, because a
+  // user under a forced rotation is refused by that guard everywhere else and
+  // this is the one call that must still go through. It re-verifies the current
+  // password before writing.
+  "account/password": "PUBLIC",
+
+  "alerts/[id]": "alerts:status",
+  "alerts/[id]/remediate": "alerts:remediate",
+  "company": "policy:manage",
+  "company/auth-policy": "policy:manage",
+  "credentials": "api_credentials:manage",
+  "credentials/[id]": "api_credentials:manage",
+  "dashboard/config": "AUTH_ONLY",
+  "dashboard/presets": "AUTH_ONLY",
+  "dashboard/presets/[id]": "AUTH_ONLY",
+  "dashboard/presets/[id]/activate": "AUTH_ONLY",
+  "directory": "connectors:manage",
+  "directory/[id]": "connectors:manage",
+  "directory/[id]/sync": "connectors:sync",
+  "directory/[id]/test": "connectors:sync",
+  "employees/scan": "employees:scan",
+  "register": "register:manage",
+  "register/[id]": "register:manage",
+  "rbac/step-up": "AUTH_ONLY",
+  "roles": "roles:manage",
+  "roles/[id]": "roles:manage",
+  "sso/provider": "sso:config",
+  "sso/provider/domain": "sso:config",
+  "users": "users:manage",
+  "users/[id]/role": "users:manage",
+  "users/[id]/invite": "users:manage",
+  "users/[id]/require-password-change": "users:manage",
+  "reports/export": "reports:export",
+  "dashboard/detail/[kind]/[id]": "employees:read",
+  "reports/schedules": "reports:schedule",
+  "reports/schedules/[id]": "reports:schedule",
+  "webhooks": "notifications:manage",
+  "webhooks/[id]": "notifications:manage",
+  "webhooks/[id]/test": "notifications:manage",
+}

@@ -2,8 +2,8 @@
 
 import type { ReactNode } from "react"
 import Link from "next/link"
-import { usePathname } from "next/navigation"
-import { signOut } from "next-auth/react"
+import { usePathname, useRouter } from "next/navigation"
+import { signOut } from "@/lib/auth/client"
 import { cn } from "@/lib/utils"
 import {
   LayoutDashboard,
@@ -15,6 +15,7 @@ import {
   KeyRound,
   Send,
   LogOut,
+  UserCircle,
   ShieldCheck,
 } from "lucide-react"
 
@@ -27,6 +28,7 @@ const navItems = [
   { href: "/data-sources", label: "Data Sources", icon: Database },
   { href: "/data-api", label: "Data API", icon: KeyRound },
   { href: "/notifications", label: "Notifications", icon: Send },
+  { href: "/access", label: "Access", icon: ShieldCheck },
 ]
 
 // Layers (within the aside stacking context): labels z-10 sit UNDER the rail
@@ -44,10 +46,20 @@ function RailLabel({ children }: { children: ReactNode }) {
 
 interface SidebarProps {
   openAlerts: number
+  /**
+   * Hrefs this user may actually open, resolved server-side from the same map
+   * the layout enforces. Passed in rather than computed here: a client
+   * component cannot be trusted with the decision, and duplicating the rule
+   * would let the two copies drift until the rail advertises a page the server
+   * refuses.
+   */
+  visible: string[]
 }
 
-export function Sidebar({ openAlerts }: SidebarProps) {
+export function Sidebar({ openAlerts, visible }: SidebarProps) {
   const pathname = usePathname()
+  const router = useRouter()
+  const items = navItems.filter((item) => visible.includes(item.href))
 
   return (
     <aside className="fixed inset-y-0 left-0 z-40 flex h-screen w-16 flex-col">
@@ -67,7 +79,7 @@ export function Sidebar({ openAlerts }: SidebarProps) {
       </div>
 
       <nav className="flex-1 space-y-1 px-2 py-3">
-        {navItems.map(({ href, label, icon: Icon }) => {
+        {items.map(({ href, label, icon: Icon }) => {
           const active =
             pathname === href || pathname.startsWith(href + "/")
           return (
@@ -93,13 +105,32 @@ export function Sidebar({ openAlerts }: SidebarProps) {
         })}
       </nav>
 
-      <div className="relative px-2 py-3">
+      <div className="relative space-y-1 px-2 py-3">
         <div
           aria-hidden
           className="absolute inset-x-2 top-0 z-30 border-t border-sidebar-border"
         />
+        {/* The account, not a section of the product: the caller's own sign-in
+            methods, and whatever else about them comes later. */}
+        <Link href="/security" className="group/item relative flex">
+          <span
+            className={cn(
+              "relative z-30 flex w-full items-center justify-center rounded-md py-2.5 transition-colors",
+              pathname.startsWith("/security")
+                ? "bg-sidebar-accent text-sidebar-primary"
+                : "text-sidebar-foreground/60 group-hover/item:bg-sidebar-accent/50 group-hover/item:text-sidebar-foreground"
+            )}
+          >
+            <UserCircle className="size-4 shrink-0" />
+          </span>
+          <RailLabel>My account</RailLabel>
+        </Link>
         <button
-          onClick={() => signOut({ callbackUrl: "/login" })}
+          onClick={() =>
+            signOut({
+              fetchOptions: { onSuccess: () => router.push("/login") },
+            })
+          }
           className="group/item relative flex w-full"
         >
           <span className="relative z-30 flex w-full items-center justify-center rounded-md py-2.5 text-sidebar-foreground/60 transition-colors group-hover/item:bg-sidebar-accent/50 group-hover/item:text-sidebar-foreground">

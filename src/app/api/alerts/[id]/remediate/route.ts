@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { requireAdmin } from "@/lib/apiAuth"
+import { requirePermission } from "@/lib/apiAuth"
 import { prisma } from "@/lib/prisma"
 import { remediateAlert } from "@/lib/remediation"
 import { RemediationType } from "@prisma/client"
@@ -17,7 +17,7 @@ const ERROR_MESSAGE: Record<string, string> = {
 }
 
 export async function POST(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const { session, error } = await requireAdmin()
+  const { session, error } = await requirePermission("alerts:remediate")
   if (error) return error
 
   const company = await prisma.company.findUnique({
