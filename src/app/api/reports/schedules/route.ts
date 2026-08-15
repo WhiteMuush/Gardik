@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { requireAuth, requirePermission } from "@/lib/apiAuth"
+import { requirePermission } from "@/lib/apiAuth"
 import { prisma } from "@/lib/prisma"
 import { isReportSection } from "@/lib/reportSchedules"
 import { isEmail } from "@/lib/validators"
@@ -15,7 +15,7 @@ const SELECT = {
 } as const
 
 export async function GET() {
-  const { session, error } = await requireAuth()
+  const { session, error } = await requirePermission("reports:read")
   if (error) return error
   return NextResponse.json(
     await prisma.reportSchedule.findMany({

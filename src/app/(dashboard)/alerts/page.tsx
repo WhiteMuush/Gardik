@@ -1,3 +1,4 @@
+import { guardPage } from "@/lib/rbac/guard-page"
 import { getSession } from "@/lib/auth/session"
 import { prisma } from "@/lib/prisma"
 import { getUserPermissions, authorize } from "@/lib/rbac/authorize"
@@ -5,6 +6,9 @@ import { getAlerts } from "@/lib/alerts"
 import { AlertTable } from "@/components/alerts/AlertTable"
 
 export default async function AlertsPage() {
+  const denied = await guardPage("alerts:read")
+  if (denied) return denied
+
   const session = await getSession()
   const companyId = session!.user.companyId
   const [alerts, company, perms] = await Promise.all([

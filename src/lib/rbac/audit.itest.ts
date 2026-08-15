@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll } from "vitest"
+import { describe, it, expect, beforeAll, afterAll } from "vitest"
 import { prisma } from "@/lib/prisma"
 import { writeAudit, AUDIT_ACTIONS } from "./audit"
 
@@ -9,6 +9,12 @@ beforeAll(async () => {
     data: { name: "Audit Test Co", domain: `audit-${Date.now()}.test` },
   })
   companyId = c.id
+})
+
+// Deleting the company is enough: every row this suite creates hangs off it
+// through an onDelete: Cascade relation.
+afterAll(async () => {
+  await prisma.company.deleteMany({ where: { id: companyId } })
 })
 
 describe("writeAudit (real DB)", () => {

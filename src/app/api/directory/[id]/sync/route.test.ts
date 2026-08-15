@@ -7,7 +7,11 @@ const processSyncJobs = vi.fn()
 
 vi.mock("@/lib/apiAuth", () => ({ requirePermission: () => requirePermission() }))
 vi.mock("@/lib/prisma", () => ({
-  prisma: { directoryConnection: { findFirst: (a: unknown) => findFirst(a) } },
+  prisma: {
+    directoryConnection: { findFirst: (a: unknown) => findFirst(a) },
+    // Both the API guard and this route's own ceiling go through a raw upsert.
+    $queryRaw: async () => [{ count: 1 }],
+  },
 }))
 vi.mock("@/lib/directory/jobs", () => ({
   enqueueSyncJob: (id: string) => enqueueSyncJob(id),
