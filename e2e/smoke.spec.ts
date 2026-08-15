@@ -1,4 +1,5 @@
 import { test, expect } from "@playwright/test"
+import { resetStepUp } from "./helpers/reset"
 
 let cspViolations: string[]
 let pageErrors: string[]
@@ -45,6 +46,10 @@ test("admin signs in, sees dashboard and alerts", async ({ page }) => {
 // employee, leaving an admin no way to reach the SSO or auth-policy controls
 // from the interface at all.
 test("security settings are reachable from the sidebar", async ({ page }) => {
+  // Another spec may have proved this admin's identity minutes ago, and the
+  // grant would carry the gate away with it.
+  await resetStepUp("admin@datashield.local")
+
   // Scoped to the sidebar and exact: getByRole matches accessible names by
   // substring, and the dashboard carries other links whose text contains this
   // one.
@@ -55,9 +60,14 @@ test("security settings are reachable from the sidebar", async ({ page }) => {
   await page.getByRole("button", { name: "Sign in", exact: true }).click()
   await page.waitForURL("**/dashboard")
 
-  await page.getByRole("navigation").getByRole("link", { name: "Security", exact: true }).click()
+  await page.getByRole("link", { name: "My account", exact: true }).click()
   await page.waitForURL("**/security")
-  // level 2: the topbar renders the page name as an h1 as well.
-  await expect(page.getByRole("heading", { name: "Security", exact: true, level: 2 })).toBeVisible()
+
+  // Step-up stands in front of the section: a live session is not enough to
+  // reach the place where a session becomes lasting access.
+  await expect(page.getByRole("heading", { name: "Confirm it is you" })).toBeVisible()
+  await page.getByPlaceholder("Password").fill("ChangeMe123!")
+  await page.getByRole("button", { name: "Continue" }).click()
+
   await expect(page.getByRole("heading", { name: "Single sign-on (OIDC)" })).toBeVisible()
 })
