@@ -5,6 +5,7 @@ import { prisma } from "@/lib/prisma"
 import { DashboardShell } from "@/components/layout/DashboardShell"
 import { RoutePrefetcher } from "@/components/layout/RoutePrefetcher"
 import { getOpenAlertCount } from "@/lib/alerts"
+import { needsTwoFactorEnrollment } from "@/lib/auth/two-factor-gate"
 
 export default async function DashboardLayout({
   children,
@@ -23,11 +24,25 @@ export default async function DashboardLayout({
   })
   if (!company) redirect("/login")
 
-  // Companies can force 2FA enrollment. Route to /setup so the user can
-  // enroll, but skip this when already on /setup to avoid a redirect loop.
+  // Companies can force 2FA enrollment. Route to /security so the user can
+  // enroll, but skip this when already there to avoid a redirect loop.
   const pathname = (await headers()).get("x-pathname") ?? ""
-  if (company.require2fa && !session.user.twoFactorEnabled && !pathname.startsWith("/setup")) {
-    redirect("/setup?enroll=2fa")
+  if (
+    !pathname.startsWith("/security") &&
+    company.require2fa &&
+    !session.user.twoFactorEnabled
+  ) {
+    // Only queried on the path that can redirect, which is the rare one.
+    const credential = await prisma.account.findFirst({
+      where: { userId: session.user.id, providerId: "credential" },
+      select: { id: true },
+    })
+    const mustEnroll = needsTwoFactorEnrollment({
+      companyRequires2fa: company.require2fa,
+      userHasTwoFactor: session.user.twoFactorEnabled ?? false,
+      userHasPassword: credential !== null,
+    })
+    if (mustEnroll) redirect("/security")
   }
 
   const openAlerts = await getOpenAlertCount(session.user.companyId)
