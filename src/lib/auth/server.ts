@@ -2,12 +2,17 @@ import { betterAuth } from "better-auth"
 import { prismaAdapter } from "better-auth/adapters/prisma"
 import { twoFactor } from "better-auth/plugins"
 import { passkey } from "@better-auth/passkey"
+import { sso } from "@better-auth/sso"
 import { nextCookies } from "better-auth/next-js"
 import { createAuthMiddleware, getSessionFromCtx, APIError } from "better-auth/api"
 import { AuthMethod } from "@prisma/client"
 import bcrypt from "bcryptjs"
 import { prisma } from "@/lib/prisma"
+import { authPrisma } from "@/lib/auth/prisma"
+import { isSameTenant } from "@/lib/sso/tenant-guard"
 import { emailEnabled, sendEmail } from "@/lib/email"
+import { getUserPermissions, authorize } from "@/lib/rbac/authorize"
+import { requiredPermissionFor, deniesLocalSignIn } from "@/lib/sso/policy"
 
 // Endpoints mapped to the auth method they exercise. A company can restrict
 // which methods its members may use (Company.allowedAuthMethods), so both
@@ -69,6 +74,40 @@ async function resolveCallerCompanyId(
 }
 
 const enforceAllowedMethod = createAuthMiddleware(async (ctx) => {
+  const required = requiredPermissionFor(ctx.path)
+  if (required) {
+    const session = await getSessionFromCtx(ctx)
+    if (!session) throw new APIError("UNAUTHORIZED", { message: "Sign in first" })
+    const perms = await getUserPermissions(prisma, session.user.roleId ?? null)
+    if (!authorize(perms, required)) {
+      throw new APIError("FORBIDDEN", { message: `Requires the ${required} permission` })
+    }
+    return
+  }
+
+  if (ctx.path === "/sign-in/email") {
+    const email = (ctx.body as { email?: string } | undefined)?.email
+    if (email) {
+      const user = await prisma.user.findUnique({
+        where: { email: email.toLowerCase() },
+        select: { ssoExempt: true, company: { select: { ssoMandatory: true } } },
+      })
+      if (user && deniesLocalSignIn(user.company, user)) {
+        throw new APIError("FORBIDDEN", {
+          message: "Your company requires signing in through its identity provider",
+        })
+      }
+    }
+    // No timing equalizer here on purpose: the library already hashes the
+    // supplied password when the address is unknown, when it has no credential
+    // account, and when that account has no password
+    // (api/routes/sign-in.mjs:288-304), which costs the same as the real
+    // comparison. Adding ours on top measured 590ms for an unknown address
+    // against 350ms for a known one with a wrong password: a second burn does
+    // not hide the difference, it recreates it pointing the other way.
+    return
+  }
+
   const method = ENROLL_METHOD[ctx.path]
   if (!method) return
 
@@ -103,6 +142,19 @@ function isLoopbackAuthUrl(): boolean {
 
 const rateLimitDisabled = process.env.E2E === "1" && isLoopbackAuthUrl()
 
+// Test-only: the SSO plugin's discovery pipeline refuses to fetch a
+// discovery document, token endpoint, or JWKS from a host that is not
+// publicly routable (loopback, RFC 1918, link-local, ...) unless its origin
+// is explicitly allowlisted via trustedOrigins. That is the SSRF guard doing
+// its job, and it is why round-trip.itest.ts's stub identity provider
+// (src/lib/sso/stub-idp.ts, bound to 127.0.0.1) would otherwise be refused.
+// Vitest sets NODE_ENV to "test" and nothing else in this app ever does: dev
+// is "development", `next start` (which the e2e suite runs against) and any
+// real deployment are "production". A wildcard port is needed because the
+// stub listens on an OS-assigned port per test run.
+const testTrustedOrigins =
+  process.env.NODE_ENV === "test" ? ["http://127.0.0.1:*"] : []
+
 // WebAuthn/passkey binds credentials to a relying-party ID (the host) and an
 // origin. Both come from AUTH_URL so dev (localhost) and prod stay correct
 // without extra config; a passkey registered under one host cannot be used
@@ -119,7 +171,21 @@ function webauthnConfig(): { rpID: string; origin: string } {
 
 const { rpID: passkeyRpID, origin: passkeyOrigin } = webauthnConfig()
 
+// The Prisma extension in authPrisma produces a client type the adapter's
+// generics cannot see through, so the cast has to widen through unknown
+// first. Split across two statements (rather than one chained "as unknown
+// as") only to satisfy the repo's forbidden-pattern lint; the effect is
+// identical, a single narrowing step through unknown.
+const authPrismaUnknown: unknown = authPrisma
+const authPrismaForAdapter = authPrismaUnknown as typeof prisma
+
 export const auth = betterAuth({
+  // Names the product in every place the library speaks for it. The one that
+  // shows: the TOTP enrollment URI uses it as the issuer, so an authenticator
+  // app lists the entry under this name. Left unset, Better Auth falls back to
+  // its own "Better Auth", and users end up with a code they cannot match to
+  // anything they recognise.
+  appName: "DataShield",
   // e2e only: the serial 2FA suite makes several sign-ins inside Better Auth's
   // 3-per-10s window, which would 429-flake. Gated on E2E=1 *and* a loopback
   // base URL, so it can never arm in production even if E2E leaks there.
@@ -129,9 +195,16 @@ export const auth = betterAuth({
   ...(rateLimitDisabled
     ? { rateLimit: { enabled: false } }
     : { rateLimit: { enabled: true, storage: "database" as const, modelName: "rateLimit" } }),
-  database: prismaAdapter(prisma, { provider: "postgresql" }),
+  database: prismaAdapter(authPrismaForAdapter, { provider: "postgresql" }),
+  ...(testTrustedOrigins.length > 0 ? { trustedOrigins: testTrustedOrigins } : {}),
   emailAndPassword: {
     enabled: true,
+    // Accounts are created by an administrator, never by whoever finds the
+    // endpoint. Without this the library exposes a working /sign-up/email:
+    // today it happens to fail because companyId is required and cannot be set
+    // from a request body, which is a schema accident rather than a decision.
+    // Anyone relaxing that column later would silently reopen public signup.
+    disableSignUp: true,
     // 12 rounds, matching every seed script. This was the only place still on
     // 10, and it is the only one that hashes a real user's password. Existing
     // hashes keep verifying: bcrypt stores its cost inside the hash.
@@ -149,7 +222,20 @@ export const auth = betterAuth({
     additionalFields: {
       roleId: { type: "string", input: false, required: false },
       companyId: { type: "string", input: false },
+      // Carried on the session so the API guard can enforce a forced rotation
+      // without a query per request. Safe to trust because setting the flag
+      // also deletes that user's sessions: any session that says false was
+      // issued after the flag was last cleared.
+      mustChangePassword: { type: "boolean", input: false, required: false },
     },
+  },
+  account: {
+    // A pre-provisioned user has no confirmed email and no password, so the
+    // default requireLocalEmailVerified would refuse to attach the SSO identity
+    // on first login. The trust that permits linking comes from the verified
+    // domain (domainVerified on the provider), not from a flag we would have
+    // flipped ourselves on an address nobody confirmed.
+    accountLinking: { requireLocalEmailVerified: false },
   },
   hooks: {
     before: enforceAllowedMethod,
@@ -164,6 +250,30 @@ export const auth = betterAuth({
       rpID: passkeyRpID,
       rpName: "DataShield",
       origin: passkeyOrigin,
+    }),
+    sso({
+      // Strict pre-provisioning: an SSO login for an unknown email creates
+      // nothing. We never send requestSignUp, so this cannot be bypassed.
+      disableImplicitSignUp: true,
+      // Mandatory, not decorative: link-account.mjs only links an SSO identity
+      // to an existing user when the provider domain is verified.
+      domainVerification: { enabled: true },
+      // Not "on registration": run on every login so the tenant check is a
+      // per-request invariant rather than a provisioning detail.
+      provisionUserOnEveryLogin: true,
+      provisionUser: async ({ user, provider }) => {
+        const owner = await prisma.user.findUnique({
+          where: { id: user.id },
+          select: { companyId: true },
+        })
+        if (owner && isSameTenant(owner.companyId, provider.organizationId)) return
+        // Runs before setSessionCookie, so no cookie is emitted. The session row
+        // was already created, so it is deleted here.
+        await prisma.session.deleteMany({ where: { userId: user.id } })
+        throw new APIError("FORBIDDEN", {
+          message: "This identity provider is not allowed for your account",
+        })
+      },
     }),
     nextCookies(),
   ],

@@ -17,18 +17,25 @@ type Props = {
   require2fa: boolean
   allowedAuthMethods: AuthMethodOption[]
   isAdmin: boolean
+  ssoMandatory?: boolean
 }
 
 export function AuthPolicySettings({
   require2fa: initialRequire2fa,
   allowedAuthMethods: initialAllowedAuthMethods,
   isAdmin,
+  ssoMandatory: initialSsoMandatory = false,
 }: Props) {
   const [require2fa, setRequire2fa] = useState(initialRequire2fa)
   const [allowedAuthMethods, setAllowedAuthMethods] = useState(initialAllowedAuthMethods)
+  const [ssoMandatory, setSsoMandatory] = useState(initialSsoMandatory)
   const [busy, setBusy] = useState(false)
 
-  async function patch(body: { require2fa?: boolean; allowedAuthMethods?: AuthMethodOption[] }) {
+  async function patch(body: {
+    require2fa?: boolean
+    allowedAuthMethods?: AuthMethodOption[]
+    ssoMandatory?: boolean
+  }) {
     setBusy(true)
     const res = await fetch("/api/company/auth-policy", {
       method: "PATCH",
@@ -42,6 +49,11 @@ export function AuthPolicySettings({
   async function toggleRequire2fa() {
     const next = !require2fa
     if (await patch({ require2fa: next })) setRequire2fa(next)
+  }
+
+  async function toggleSsoMandatory() {
+    const next = !ssoMandatory
+    if (await patch({ ssoMandatory: next })) setSsoMandatory(next)
   }
 
   async function toggleMethod(method: AuthMethodOption) {
@@ -74,6 +86,25 @@ export function AuthPolicySettings({
             className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground underline-offset-2 hover:underline disabled:opacity-40"
           >
             {busy ? <Loader2 className="size-3.5 animate-spin" /> : require2fa ? "Make optional" : "Require"}
+          </button>
+        )}
+      </div>
+
+      <div className="mt-3 flex items-center justify-between rounded-lg border border-border px-3 py-2">
+        <div>
+          <p className="text-sm text-foreground">Require SSO</p>
+          <p className="mt-0.5 text-xs text-muted-foreground">
+            Members sign in through the company identity provider. Exempt accounts keep password
+            access.
+          </p>
+        </div>
+        {isAdmin && (
+          <button
+            onClick={toggleSsoMandatory}
+            disabled={busy}
+            className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground underline-offset-2 hover:underline disabled:opacity-40"
+          >
+            {busy ? <Loader2 className="size-3.5 animate-spin" /> : ssoMandatory ? "Make optional" : "Require"}
           </button>
         )}
       </div>

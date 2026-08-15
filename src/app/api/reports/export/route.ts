@@ -1,4 +1,5 @@
 import { requireAuth } from "@/lib/apiAuth"
+import { rateLimit } from "@/lib/rateLimit"
 import { getReportData } from "@/lib/reports"
 import { parseReportFilters } from "@/lib/reports/filters"
 import { reportCsv, type CsvSection } from "@/lib/reports/csv"
@@ -50,6 +51,15 @@ function reportFilename(orgName: string, generatedAt: string, part: string): str
 export async function GET(request: Request): Promise<Response> {
   const { session, error } = await requireAuth()
   if (error) return error
+
+  // Rendering a PDF walks the whole company's data and costs real CPU, so it
+  // gets a tighter ceiling than an ordinary read.
+  if (!(await rateLimit(`report-export:${session.user.companyId}`, 10, 60_000))) {
+    return new Response(JSON.stringify({ error: "Too many exports" }), {
+      status: 429,
+      headers: { "content-type": "application/json" },
+    })
+  }
 
   const sp = new URL(request.url).searchParams
   const section = sp.get("section") ?? "all"

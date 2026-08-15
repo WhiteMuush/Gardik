@@ -38,6 +38,7 @@ test("2FA-enrolled user must pass a TOTP challenge to sign in", async ({ page, r
 
   await page.goto("/login")
   await page.getByLabel("Email").fill(EMAIL)
+  await page.getByRole("button", { name: "Continue" }).click()
   await page.getByLabel("Password").fill(PASSWORD)
   await page.getByRole("button", { name: "Sign in", exact: true }).click()
 
@@ -67,6 +68,7 @@ test("2FA user can complete the email-code challenge", async ({ page, request })
   try {
     await page.goto("/login")
     await page.getByLabel("Email").fill(EMAIL)
+    await page.getByRole("button", { name: "Continue" }).click()
     await page.getByLabel("Password").fill(PASSWORD)
     await page.getByRole("button", { name: "Sign in", exact: true }).click()
 

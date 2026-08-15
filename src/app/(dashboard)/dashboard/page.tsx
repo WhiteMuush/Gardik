@@ -1,3 +1,4 @@
+import { guardPage } from "@/lib/rbac/guard-page"
 import { getSession } from "@/lib/auth/session"
 import { VIEWER_ROLE } from "@/lib/rbac/presets"
 import { getDashboardData, buildTrendData, buildBreachSources, buildDataTypes } from "@/lib/dashboard"
@@ -29,6 +30,9 @@ import { redirect } from "next/navigation"
 import type { DashboardPreset } from "@/types/dashboard"
 
 export default async function DashboardPage() {
+  const denied = await guardPage("dashboard:read")
+  if (denied) return denied
+
   const session = await getSession()
 
   const [employeeCount, apiKeyCount] = await Promise.all([

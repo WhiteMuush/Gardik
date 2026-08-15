@@ -1,7 +1,7 @@
 import { test, expect } from "@playwright/test"
 import { setAllowedMethods } from "./helpers/totp"
 import { addVirtualAuthenticator, tryGeneratePasskeyOptions } from "./helpers/passkey"
-import { resetPasskeys } from "./helpers/reset"
+import { resetPasskeys, resetStepUp } from "./helpers/reset"
 
 const PASSKEY_USER = { email: "passkey@datashield.local", password: "ChangeMe123!" }
 
@@ -16,6 +16,9 @@ test.describe.configure({ mode: "serial" })
 // credential nothing can satisfy.
 test.beforeAll(async () => {
   await resetPasskeys(PASSKEY_USER.email)
+  // The account section sits behind a step-up whose grant outlives a single
+  // test, so clear it or the form this spec fills may not be there at all.
+  await resetStepUp(PASSKEY_USER.email)
 })
 
 // The policy gate must refuse passkey registration server-side, not merely hide
@@ -41,13 +44,17 @@ test("a registered passkey signs the user in", async ({ page, request }) => {
   // Password sign-in (no 2FA on this user) to reach the setup page.
   await page.goto("/login")
   await page.getByLabel("Email").fill(PASSKEY_USER.email)
+  await page.getByRole("button", { name: "Continue" }).click()
   await page.getByLabel("Password").fill(PASSKEY_USER.password)
   await page.getByRole("button", { name: "Sign in", exact: true }).click()
   await page.waitForURL("**/dashboard")
 
-  // Register a passkey. enroll=2fa keeps the setup page from bouncing to the
-  // dashboard now that the workspace has an employee.
-  await page.goto("/setup?enroll=2fa")
+  // Register a passkey from the account page, which stays reachable for the
+  // life of the workspace (unlike the onboarding checklist). It sits behind a
+  // step-up, so re-prove identity first.
+  await page.goto("/security")
+  await page.getByPlaceholder("Password").fill(PASSKEY_USER.password)
+  await page.getByRole("button", { name: "Continue" }).click()
   await page.getByPlaceholder("Name this device (optional)").fill("E2E Key")
   await page.getByRole("button", { name: "Add a passkey" }).click()
   await expect(page.getByText("E2E Key")).toBeVisible()

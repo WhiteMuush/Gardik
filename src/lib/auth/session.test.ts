@@ -7,6 +7,8 @@ const findCompany = vi.fn()
 const findRole = vi.fn()
 vi.mock("@/lib/prisma", () => ({
   prisma: {
+    // The API guard rate-limits per user, which goes through a raw upsert.
+    $queryRaw: async () => [{ count: 1 }],
     company: { findUnique: (a: unknown) => findCompany(a) },
     role: { findUnique: (a: unknown) => findRole(a) },
   },

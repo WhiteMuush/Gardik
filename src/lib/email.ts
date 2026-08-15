@@ -43,6 +43,26 @@ export async function sendBreachAlert(recipients: string[], alert: BreachAlert):
   }
 }
 
+// The invitation link is the credential, so the body carries nothing else: no
+// temporary password, no account details worth harvesting if the mailbox is
+// later compromised, and an explicit expiry so a stale link found months later
+// is obviously stale.
+export async function sendInvitation(
+  recipient: string,
+  link: string,
+  expiresAt: Date
+): Promise<boolean> {
+  const html = [
+    `<div style="font-family:system-ui,sans-serif;font-size:14px;color:#111;line-height:1.5">`,
+    `<p>You have been given access to DataShield.</p>`,
+    `<p><a href="${link}">Choose your password</a> to activate the account.</p>`,
+    `<p>This link works once and stops working on ${expiresAt.toUTCString()}.</p>`,
+    `<p>If you were not expecting this, ignore the message: nothing changes until the link is used.</p>`,
+    `</div>`,
+  ].join("")
+  return sendEmail([recipient], "Your DataShield account", html)
+}
+
 export type EmailAttachment = { filename: string; content: string } // content: base64
 
 // Generic transactional send (HTML body plus optional attachments). Returns

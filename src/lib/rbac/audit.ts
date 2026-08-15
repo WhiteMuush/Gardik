@@ -9,7 +9,15 @@ export const AUDIT_ACTIONS = {
   ROLE_CREATE: "role.create",
   ROLE_UPDATE: "role.update",
   ROLE_DELETE: "role.delete",
+  USER_CREATE: "user.create",
   USER_ROLE_ASSIGN: "user.role.assign",
+  USER_INVITE: "user.invite",
+  USER_INVITE_ACCEPT: "user.invite.accept",
+  USER_PASSWORD_ROTATION_REQUIRED: "user.password.rotation_required",
+  SSO_PROVIDER_CREATE: "sso.provider.create",
+  SSO_PROVIDER_UPDATE: "sso.provider.update",
+  SSO_PROVIDER_DELETE: "sso.provider.delete",
+  SSO_DOMAIN_VERIFY: "sso.domain.verify",
 } as const
 
 export type AuditAction = (typeof AUDIT_ACTIONS)[keyof typeof AUDIT_ACTIONS]
