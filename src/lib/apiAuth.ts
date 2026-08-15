@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server"
 import { getSession } from "@/lib/auth/session"
 import { prisma } from "@/lib/prisma"
+import { rateLimit } from "@/lib/rateLimit"
 import { getUserPermissions, authorize } from "@/lib/rbac/authorize"
 import type { Permission } from "@/lib/rbac/permissions"
 import { hasValidStepUp } from "@/lib/rbac/step-up"
@@ -27,6 +28,30 @@ const passwordChangeRequired = () =>
     { error: "Password change required", code: "PASSWORD_CHANGE_REQUIRED" },
     { status: 403 }
   )
+
+// A ceiling on how fast one account can call the API at all, applied in the
+// guard every authenticated route already goes through rather than route by
+// route, where the next route added would be the one nobody remembers.
+//
+// Sized for a dashboard: a page load makes a handful of calls, so a person
+// never approaches this, while a script hammering an endpoint does within
+// seconds. Endpoints that deserve a stricter ceiling (signing in, redeeming an
+// invitation, changing a password, proving identity again, scanning) keep their
+// own tighter limit on top of this one.
+//
+// The cost is one indexed upsert per API call. That is the price of the ceiling
+// existing at all rather than living in the routes somebody remembers to guard.
+export const API_RATE_LIMIT = 120
+export const API_RATE_WINDOW_MS = 60_000
+
+const tooManyRequests = () =>
+  NextResponse.json({ error: "Too many requests" }, { status: 429 })
+
+function enforceApiRate(userId: string): Promise<NextResponse | null> {
+  return rateLimit(`api:${userId}`, API_RATE_LIMIT, API_RATE_WINDOW_MS).then((ok) =>
+    ok ? null : tooManyRequests()
+  )
+}
 
 // A forced rotation has to hold at the API, not only in the layout redirect.
 // Otherwise the user simply keeps calling the endpoints the pages would have
@@ -58,6 +83,8 @@ async function enforce2fa(session: AuthResult): Promise<NextResponse | null> {
 export async function requireAuth(): Promise<Guard> {
   const session = await getSession()
   if (!session) return { session: null, error: unauthorized() }
+  const flood = await enforceApiRate(session.user.id)
+  if (flood) return { session: null, error: flood }
   const rotation = enforcePasswordRotation(session)
   if (rotation) return { session: null, error: rotation }
   const gate = await enforce2fa(session)
@@ -68,6 +95,8 @@ export async function requireAuth(): Promise<Guard> {
 export async function requirePermission(perm: Permission): Promise<Guard> {
   const session = await getSession()
   if (!session) return { session: null, error: unauthorized() }
+  const flood = await enforceApiRate(session.user.id)
+  if (flood) return { session: null, error: flood }
   const rotation = enforcePasswordRotation(session)
   if (rotation) return { session: null, error: rotation }
   const perms = await getUserPermissions(prisma, session.user.roleId ?? null)

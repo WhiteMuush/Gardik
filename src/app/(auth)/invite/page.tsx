@@ -1,5 +1,6 @@
 "use client"
 
+import { PasswordInput } from "@/components/ui/password-input"
 import { Suspense, useState } from "react"
 import { useRouter, useSearchParams } from "next/navigation"
 import { ShieldCheck } from "lucide-react"
@@ -52,8 +53,7 @@ function InviteForm() {
         This link works once. Your password is never seen by anyone else, including
         the administrator who invited you.
       </p>
-      <input
-        type="password"
+      <PasswordInput
         autoComplete="new-password"
         required
         minLength={MIN_PASSWORD_LENGTH}
@@ -62,8 +62,7 @@ function InviteForm() {
         placeholder={`Password (${MIN_PASSWORD_LENGTH} characters minimum)`}
         className="w-full rounded-lg border border-input bg-background px-3 py-2 text-sm"
       />
-      <input
-        type="password"
+      <PasswordInput
         autoComplete="new-password"
         required
         value={confirmation}

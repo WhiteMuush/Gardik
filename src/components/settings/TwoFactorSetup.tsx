@@ -1,5 +1,6 @@
 "use client"
 
+import { PasswordInput } from "@/components/ui/password-input"
 import { useState } from "react"
 import QRCode from "qrcode"
 import { twoFactor } from "@/lib/auth/client"
@@ -50,8 +51,7 @@ export function TwoFactorSetup({
     <div className="space-y-4">
       {!qr ? (
         <div className="space-y-2">
-          <input
-            type="password"
+          <PasswordInput
             value={password}
             onChange={(e) => setPassword(e.target.value)}
             placeholder="Confirm your password"
