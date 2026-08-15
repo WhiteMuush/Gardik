@@ -633,7 +633,44 @@ describe("POST /api/sso/resolve", () => {
 
     await prisma.ssoProvider.update({ where: { providerId }, data: { domainVerified: true } })
 
-    const verified = await resolveSso(resolveRequest(adminUser.email))
+    const verified = await resolveSso(resolveRequest(`anyone@${company.domain}`))
     expect(await verified.json()).toEqual({ sso: true, providerId })
+  })
+
+  // The property the domain-based lookup exists for. The answer must depend on
+  // the domain and nothing else: an address nobody has ever created gets the
+  // same reply as a real one, so the endpoint cannot be walked to learn which
+  // people have accounts. It used to answer from the User row, and "sso: true"
+  // then meant "this person exists here".
+  it("answers the same for an address that has no account at all", async () => {
+    const { company, adminUser } = await setupCompanyWithViewerAndAdmin("resolve-oracle")
+
+    const providerId = `itest-resolve-oracle-${Date.now()}`
+    await authPrisma.ssoProvider.create({
+      data: {
+        issuer: "https://idp.example.com/resolve-oracle",
+        providerId,
+        domain: company.domain,
+        organizationId: company.id,
+        userId: adminUser.id,
+        domainVerified: true,
+        oidcConfig: JSON.stringify({ clientId: "abc", clientSecret: "shh" }),
+      },
+    })
+
+    const strangerEmail = `nobody-here-${Date.now()}@${company.domain}`
+    expect(await prisma.user.count({ where: { email: strangerEmail } })).toBe(0)
+
+    const stranger = await resolveSso(resolveRequest(strangerEmail))
+    expect(await stranger.json()).toEqual({ sso: true, providerId })
+  })
+
+  // The other half: holding an account is not enough either. An address at a
+  // domain with no verified provider is refused, whoever it belongs to.
+  it("answers sso:false for a real account whose domain has no provider", async () => {
+    const { adminUser } = await setupCompanyWithViewerAndAdmin("resolve-nodomain")
+
+    const res = await resolveSso(resolveRequest(adminUser.email))
+    expect(await res.json()).toEqual({ sso: false })
   })
 })
