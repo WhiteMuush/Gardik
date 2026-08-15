@@ -10,6 +10,7 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { ADMINISTRATOR } from "@/lib/rbac/presets"
 import { DashboardEditContext } from "@/contexts/DashboardEditContext"
 import { DashboardConfigContext } from "@/contexts/DashboardConfigContext"
 import { DetailDrawerProvider } from "@/contexts/DetailDrawerContext"
@@ -419,7 +420,7 @@ export function DashboardCanvas({
     [],
   )
 
-  const isAdmin = userRole === "ADMIN"
+  const isAdmin = userRole === ADMINISTRATOR
   const canEditPreset = activePreset
     ? activePreset.scope === "PERSONAL" || isAdmin
     : false

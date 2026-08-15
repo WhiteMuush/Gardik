@@ -23,10 +23,12 @@ export function SetupChecklist({
   hasEmployees,
   hasApiKey,
   isAdmin,
+  children,
 }: {
   hasEmployees: boolean
   hasApiKey: boolean
   isAdmin: boolean
+  children?: React.ReactNode
 }) {
   const steps: Step[] = [
     {
@@ -126,6 +128,8 @@ export function SetupChecklist({
             <ExternalLink className="size-3" />
           </a>
         </div>
+
+        {children && <div className="mt-8">{children}</div>}
       </div>
     </div>
   )

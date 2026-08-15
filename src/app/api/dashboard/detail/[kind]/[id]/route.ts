@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { requireAuth } from "@/lib/apiAuth"
+import { requirePermission } from "@/lib/apiAuth"
 import { prisma } from "@/lib/prisma"
 
 // Rich detail for the dashboard drawer. Each widget element links to one of
@@ -26,7 +26,7 @@ export async function GET(
   _req: Request,
   { params }: { params: Promise<{ kind: string; id: string }> }
 ) {
-  const { session, error } = await requireAuth()
+  const { session, error } = await requirePermission("employees:read")
   if (error) return error
 
   const { kind, id } = await params

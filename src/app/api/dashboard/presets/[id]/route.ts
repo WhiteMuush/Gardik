@@ -1,23 +1,26 @@
-import { auth } from "@/auth"
+import { getSession } from "@/lib/auth/session"
 import { prisma } from "@/lib/prisma"
 import { NextResponse } from "next/server"
 import type { SavedDashboardConfig } from "@/types/dashboard"
+import { getUserPermissions, authorize } from "@/lib/rbac/authorize"
 
-async function getPresetAndCheck(id: string, userId: string, role: string, companyId: string) {
+async function getPresetAndCheck(id: string, userId: string, canManageShared: boolean, companyId: string) {
   const preset = await prisma.dashboardPreset.findUnique({ where: { id } })
   if (!preset) return { preset: null, error: "Not found", status: 404 }
   if (preset.companyId !== companyId) return { preset: null, error: "Forbidden", status: 403 }
   if (preset.scope === "PERSONAL" && preset.userId !== userId) return { preset: null, error: "Forbidden", status: 403 }
-  if (preset.scope === "COMPANY" && role !== "ADMIN") return { preset: null, error: "Only admins can modify company presets", status: 403 }
+  if (preset.scope === "COMPANY" && !canManageShared) return { preset: null, error: "Only admins can modify company presets", status: 403 }
   return { preset, error: null, status: 200 }
 }
 
 export async function PUT(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const session = await auth()
+  const session = await getSession()
   if (!session?.user?.id) return NextResponse.json(null, { status: 401 })
 
   const { id } = await params
-  const { preset, error, status } = await getPresetAndCheck(id, session.user.id, session.user.role, session.user.companyId)
+  const perms = await getUserPermissions(prisma, session.user.roleId ?? null)
+  const canManageShared = authorize(perms, "dashboard:manage_shared")
+  const { preset, error, status } = await getPresetAndCheck(id, session.user.id, canManageShared, session.user.companyId)
   if (error) return NextResponse.json({ error }, { status })
 
   const body: { name?: string; layout?: SavedDashboardConfig["layout"]; widgets?: SavedDashboardConfig["widgets"] } = await req.json()
@@ -35,11 +38,13 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
 }
 
 export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const session = await auth()
+  const session = await getSession()
   if (!session?.user?.id) return NextResponse.json(null, { status: 401 })
 
   const { id } = await params
-  const { preset, error, status } = await getPresetAndCheck(id, session.user.id, session.user.role, session.user.companyId)
+  const perms = await getUserPermissions(prisma, session.user.roleId ?? null)
+  const canManageShared = authorize(perms, "dashboard:manage_shared")
+  const { preset, error, status } = await getPresetAndCheck(id, session.user.id, canManageShared, session.user.companyId)
   if (error) return NextResponse.json({ error }, { status })
 
   await prisma.$transaction([

@@ -1,4 +1,5 @@
 import { prisma } from "@/lib/prisma"
+import { parseOutboundUrl, resolvesToPublicHost } from "@/lib/ssrf"
 import { decryptConfig } from "@/lib/directory/crypto"
 import { emailEnabled, sendBreachAlert } from "@/lib/email"
 import { slackPayload, summaryLine, teamsPayload } from "@/lib/notify/payloads"
@@ -41,8 +42,15 @@ export function listWebhooks(companyId: string): Promise<WebhookRow[]> {
 }
 
 async function postJson(url: string, body: unknown): Promise<boolean> {
+  // Re-checked at delivery, not only when the row was written: DNS can be
+  // repointed into the private space long after an endpoint was accepted.
+  const parsed = parseOutboundUrl(url)
+  if ("error" in parsed) return false
+  if (!(await resolvesToPublicHost(parsed.url.hostname))) return false
+
   try {
     const res = await fetch(url, {
+      redirect: "error",
       method: "POST",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify(body),

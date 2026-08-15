@@ -1,5 +1,6 @@
 import { NextResponse } from "next/server"
-import { requireAdmin } from "@/lib/apiAuth"
+import { requirePermission } from "@/lib/apiAuth"
+import { rateLimit } from "@/lib/rateLimit"
 import { prisma } from "@/lib/prisma"
 import { decryptConfig } from "@/lib/directory/crypto"
 import { testAzureConnection } from "@/lib/directory/azure"
@@ -13,8 +14,15 @@ export async function POST(
   _req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { session, error } = await requireAdmin()
+  const { session, error } = await requirePermission("connectors:sync")
   if (error) return error
+
+  // Each call opens a connection to somebody else's directory (LDAP, Azure,
+  // Okta). Spamming it turns this endpoint into a way to hammer a third party
+  // from our address, so it is bounded well below the general API ceiling.
+  if (!(await rateLimit(`directory-test:${session.user.companyId}`, 10, 60_000))) {
+    return NextResponse.json({ error: "Too many attempts" }, { status: 429 })
+  }
 
   const { id } = await params
 

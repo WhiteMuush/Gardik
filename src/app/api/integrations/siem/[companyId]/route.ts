@@ -9,7 +9,7 @@ const FORMATS: SiemFormat[] = ["cef", "syslog", "json"]
 export async function GET(req: Request, { params }: { params: Promise<{ companyId: string }> }) {
   const { companyId } = await params
 
-  if (!checkSiemRateLimit(companyId))
+  if (!(await checkSiemRateLimit(companyId)))
     return NextResponse.json({ error: "Rate limit exceeded" }, { status: 429 })
 
   if (!(await authenticateSiem(req, companyId)))

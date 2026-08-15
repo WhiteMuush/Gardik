@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { requireAdmin } from "@/lib/apiAuth"
+import { requirePermission } from "@/lib/apiAuth"
 import { prisma } from "@/lib/prisma"
 
 const MIN_INTERVAL_MINUTES = 5
@@ -18,7 +18,7 @@ export async function PATCH(
   req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { session, error } = await requireAdmin()
+  const { session, error } = await requirePermission("connectors:manage")
   if (error) return error
 
   const { id } = await params
@@ -52,7 +52,7 @@ export async function DELETE(
   _req: Request,
   { params }: { params: Promise<{ id: string }> }
 ) {
-  const { session, error } = await requireAdmin()
+  const { session, error } = await requirePermission("connectors:manage")
   if (error) return error
 
   const { id } = await params

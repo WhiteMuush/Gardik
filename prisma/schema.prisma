@@ -7,33 +7,37 @@ datasource db {
 }
 
 model Company {
-  id        String   @id @default(cuid())
-  name      String
-  domain    String   @unique
-  logoUrl   String?
+  id                  String    @id @default(cuid())
+  name                String
+  domain              String    @unique
+  logoUrl             String?
   // Auto-scan cadence in minutes (null = disabled); lastScanAt tracks the last
   // scheduler-triggered scan so the next one is only due after the interval.
   scanIntervalMinutes Int?
   lastScanAt          DateTime?
   // Per-company override of the per-employee risk weights (see lib/risk.ts).
   // Null falls back to DEFAULT_RISK_WEIGHTS.
-  riskWeights Json?
+  riskWeights         Json?
   // Master switch for live remediation (force reset / revoke sessions) against
   // the connected directory. Off by default: actions on the customer's IdP must
   // be deliberately enabled in settings before they can run.
-  remediationEnabled Boolean @default(false)
+  remediationEnabled  Boolean   @default(false)
   // Encrypted bearer token for the SIEM pull feed, plus a non-secret hint shown
   // in settings. Null when no SIEM export is configured.
-  siemTokenEnc  String?
-  siemTokenHint String?
+  siemTokenEnc        String?
+  siemTokenHint       String?
   // Optional SIEM push: alerts are POSTed in batches to this HTTPS endpoint by
   // the scheduler. siemPushSince tracks the last delivered alert.
-  siemPushUrlEnc  String?
-  siemPushHint    String?
-  siemPushFormat  String?
-  siemPushSince   DateTime?
-  createdAt DateTime @default(now())
-  updatedAt DateTime @updatedAt
+  siemPushUrlEnc      String?
+  siemPushHint        String?
+  siemPushFormat      String?
+  siemPushSince       DateTime?
+  createdAt           DateTime  @default(now())
+  updatedAt           DateTime  @updatedAt
+
+  require2fa         Boolean      @default(false)
+  allowedAuthMethods AuthMethod[] @default([TOTP])
+  ssoMandatory       Boolean      @default(false)
 
   users                User[]
   employees            Employee[]
@@ -45,6 +49,9 @@ model Company {
   remediationActions   RemediationAction[]
   exposureRegister     ExposureRegisterEntry[]
   reportSchedules      ReportSchedule[]
+  roles                Role[]
+  auditLogs            AuditLog[]
+  ssoProviders         SsoProvider[]
 }
 
 // A recurring report emailed to a recipient list (driven by the scheduler).
@@ -124,20 +131,20 @@ enum RemediationStatus {
 }
 
 model DirectoryConnection {
-  id              String        @id @default(cuid())
-  companyId       String
-  type            DirectoryType
-  name            String
-  encryptedConfig String
-  status          ConnectStatus @default(PENDING)
-  lastSyncAt      DateTime?
-  lastSyncCount   Int?
-  errorMessage    String?
+  id                      String        @id @default(cuid())
+  companyId               String
+  type                    DirectoryType
+  name                    String
+  encryptedConfig         String
+  status                  ConnectStatus @default(PENDING)
+  lastSyncAt              DateTime?
+  lastSyncCount           Int?
+  errorMessage            String?
   // Auto-sync cadence in minutes (null = disabled). The scheduler enqueues a
   // SyncJob once lastSyncAt is older than this interval.
   autoSyncIntervalMinutes Int?
-  createdAt       DateTime      @default(now())
-  updatedAt       DateTime      @updatedAt
+  createdAt               DateTime      @default(now())
+  updatedAt               DateTime      @updatedAt
 
   company  Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
   syncJobs SyncJob[]
@@ -214,19 +221,178 @@ enum ApiProvider {
 }
 
 model User {
-  id             String   @id @default(cuid())
-  email          String   @unique
-  hashedPassword String
-  role           Role     @default(VIEWER)
-  companyId      String
-  createdAt      DateTime @default(now())
+  id               String   @id @default(cuid())
+  email            String   @unique
+  emailVerified    Boolean  @default(false)
+  name             String   @default("")
+  image            String?
+  roleId           String?
+  companyId        String
+  twoFactorEnabled Boolean  @default(false)
+  ssoExempt        Boolean  @default(false)
+  // Set when an administrator forces a rotation, cleared the moment a new
+  // password is set. Enforced server-side, in the API guard and the dashboard
+  // layout both, so it cannot be skipped by calling the API directly.
+  mustChangePassword Boolean @default(false)
+  createdAt        DateTime @default(now())
+  updatedAt        DateTime @updatedAt
 
-  activePresetId  String?
+  activePresetId String?
 
   company          Company           @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  role             Role?             @relation(fields: [roleId], references: [id], onDelete: SetNull)
   dashboardConfig  DashboardConfig?
   dashboardPresets DashboardPreset[] @relation("UserPresets")
   activePreset     DashboardPreset?  @relation("ActivePreset", fields: [activePresetId], references: [id], onDelete: SetNull)
+  sessions         Session[]
+  accounts         Account[]
+  twoFactor        TwoFactor[]
+  passkeys         Passkey[]
+  auditActions     AuditLog[]        @relation("AuditActor")
+  stepUpGrants     StepUpGrant[]
+  ssoProviders     SsoProvider[]
+  invitations      UserInvitation[]
+}
+
+// A single-use link that lets an invited person set their own first password.
+// Only the SHA-256 of the token is stored: a database read yields nothing that
+// can be replayed against this endpoint. The row is kept after consumption
+// (rather than deleted) so the audit trail can point at something.
+model UserInvitation {
+  id              String    @id @default(cuid())
+  userId          String
+  tokenHash       String    @unique
+  expiresAt       DateTime
+  consumedAt      DateTime?
+  createdByUserId String?
+  createdAt       DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
+}
+
+model Session {
+  id        String   @id @default(cuid())
+  expiresAt DateTime
+  token     String   @unique
+  ipAddress String?
+  userAgent String?
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Account {
+  id                    String    @id @default(cuid())
+  accountId             String
+  providerId            String
+  userId                String
+  user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+  accessToken           String?
+  refreshToken          String?
+  idToken               String?
+  accessTokenExpiresAt  DateTime?
+  refreshTokenExpiresAt DateTime?
+  scope                 String?
+  password              String?
+  createdAt             DateTime  @default(now())
+  updatedAt             DateTime  @updatedAt
+}
+
+model Verification {
+  id         String   @id @default(cuid())
+  identifier String
+  value      String
+  expiresAt  DateTime
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+}
+
+model TwoFactor {
+  id                      String    @id @default(cuid())
+  secret                  String
+  backupCodes             String
+  userId                  String
+  verified                Boolean   @default(true)
+  failedVerificationCount Int       @default(0)
+  lockedUntil             DateTime?
+  user                    User      @relation(fields: [userId], references: [id], onDelete: Cascade)
+}
+
+model Role {
+  id           String   @id @default(cuid())
+  companyId    String
+  name         String
+  description  String   @default("")
+  permissions  String[]
+  isSystem     Boolean  @default(false)
+  isAssignable Boolean  @default(true)
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  users   User[]
+
+  @@unique([companyId, name])
+  @@index([companyId])
+}
+
+model AuditLog {
+  id          String   @id @default(cuid())
+  companyId   String
+  actorUserId String?
+  action      String
+  targetType  String
+  targetId    String?
+  before      Json?
+  after       Json?
+  ip          String?
+  createdAt   DateTime @default(now())
+
+  company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  actor   User?   @relation("AuditActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([companyId, createdAt])
+}
+
+model StepUpGrant {
+  id        String   @id @default(cuid())
+  userId    String
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId, expiresAt])
+}
+
+// WebAuthn credentials for the passkey plugin (@better-auth/passkey). Field
+// names mirror the plugin's expected schema. A credentialID is globally unique
+// and looked up on every authentication, so it is indexed and unique.
+model Passkey {
+  id           String   @id @default(cuid())
+  name         String?
+  publicKey    String
+  userId       String
+  credentialID String   @unique
+  counter      Int
+  deviceType   String
+  backedUp     Boolean
+  transports   String?
+  aaguid       String?
+  createdAt    DateTime @default(now())
+  user         User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+}
+
+enum AuthMethod {
+  TOTP
+  EMAIL_OTP
+  PASSKEY
 }
 
 model DashboardConfig {
@@ -250,17 +416,12 @@ model DashboardPreset {
   createdAt DateTime    @default(now())
   updatedAt DateTime    @updatedAt
 
-  user        User?    @relation("UserPresets", fields: [userId], references: [id], onDelete: Cascade)
-  company     Company  @relation(fields: [companyId], references: [id], onDelete: Cascade)
-  activeUsers User[]   @relation("ActivePreset")
+  user        User?   @relation("UserPresets", fields: [userId], references: [id], onDelete: Cascade)
+  company     Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
+  activeUsers User[]  @relation("ActivePreset")
 
   @@index([userId])
   @@index([companyId])
-}
-
-enum Role {
-  ADMIN
-  VIEWER
 }
 
 enum PresetScope {
@@ -317,22 +478,22 @@ enum ArtifactKind {
 }
 
 model BreachRecord {
-  id          String         @id @default(cuid())
-  employeeId  String
-  breachId    String
-  exposedData String[]
-  artifacts   ArtifactKind[]
+  id            String         @id @default(cuid())
+  employeeId    String
+  breachId      String
+  exposedData   String[]
+  artifacts     ArtifactKind[]
   // Intelligence providers that reported this exposure. The scan merges hits
   // for the same canonical breach into one record, so two tools confirming the
   // same data appear here together instead of producing duplicate records and
   // alerts. Corroboration by independent tools raises the alert confidence.
-  sources     ApiProvider[]
+  sources       ApiProvider[]
   // Infection metadata, present only for stealer-log findings whose feed
   // exposes it (machine identifier, malware family, capture time).
   machineId     String?
   malwareFamily String?
   capturedAt    DateTime?
-  detectedAt  DateTime @default(now())
+  detectedAt    DateTime       @default(now())
 
   employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
   breach   Breach   @relation(fields: [breachId], references: [id], onDelete: Cascade)
@@ -341,7 +502,7 @@ model BreachRecord {
 }
 
 model Alert {
-  id         String      @id @default(cuid())
+  id         String          @id @default(cuid())
   companyId  String
   employeeId String?
   breachId   String?
@@ -351,10 +512,10 @@ model Alert {
   // severe whoever reported it, but a low-confidence hit (noisy OSINT feed) is
   // flagged so a responder verifies before acting.
   confidence AlertConfidence @default(MEDIUM)
-  status     AlertStatus @default(OPEN)
+  status     AlertStatus     @default(OPEN)
   message    String
-  createdAt  DateTime    @default(now())
-  updatedAt  DateTime    @updatedAt
+  createdAt  DateTime        @default(now())
+  updatedAt  DateTime        @updatedAt
 
   company  Company   @relation(fields: [companyId], references: [id], onDelete: Cascade)
   employee Employee? @relation(fields: [employeeId], references: [id], onDelete: SetNull)
@@ -404,4 +565,51 @@ enum AlertConfidence {
   HIGH
   MEDIUM
   LOW
+}
+
+// Better Auth's own limiter, moved off in-memory storage so the sign-in window
+// is shared by every instance and survives a deploy. Field names and types are
+// dictated by Better Auth (storage: "database").
+model RateLimit {
+  id          String @id
+  key         String
+  count       Int
+  lastRequest BigInt
+
+  @@index([key])
+}
+
+// The application limiter behind scan, SCIM and SIEM. Same reasoning: a
+// per-process Map divides the limit by the number of instances and resets on
+// every deploy.
+model ApiRateLimit {
+  key   String   @id
+  count Int
+  reset DateTime
+
+  @@index([reset])
+}
+
+// Owned by @better-auth/sso: the field names come from the plugin's schema and
+// must not be renamed. `organizationId` is our companyId; the plugin only reads
+// it inside paths guarded by hasPlugin("organization"), which we do not install.
+// `oidcConfig` holds the client secret and is encrypted by the Prisma extension
+// in src/lib/sso/encryption.ts, so it is ciphertext at rest.
+model SsoProvider {
+  id             String   @id @default(cuid())
+  issuer         String
+  oidcConfig     String?
+  samlConfig     String?
+  userId         String?
+  providerId     String   @unique
+  organizationId String?
+  domain         String
+  domainVerified Boolean  @default(false)
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+
+  user    User?    @relation(fields: [userId], references: [id], onDelete: SetNull)
+  company Company? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId])
 }

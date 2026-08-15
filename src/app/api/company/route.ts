@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { requireAdmin } from "@/lib/apiAuth"
+import { requirePermission } from "@/lib/apiAuth"
 import { prisma } from "@/lib/prisma"
 import { resolveRiskWeights, type RiskWeights } from "@/lib/risk"
 import { encryptConfig } from "@/lib/directory/crypto"
@@ -17,7 +17,7 @@ function parseInterval(value: unknown): number | null | undefined {
 // Update company-wide settings: auto-scan cadence (null disables scheduled
 // scans) and/or the per-employee risk weights.
 export async function PATCH(req: Request) {
-  const { session, error } = await requireAdmin()
+  const { session, error } = await requirePermission("policy:manage")
   if (error) return error
 
   const body = (await req.json()) as {

@@ -1,5 +1,5 @@
 import { NextResponse } from "next/server"
-import { requireAuth, requireAdmin } from "@/lib/apiAuth"
+import { requirePermission } from "@/lib/apiAuth"
 import { prisma } from "@/lib/prisma"
 import { isReportSection } from "@/lib/reportSchedules"
 import { isEmail } from "@/lib/validators"
@@ -15,7 +15,7 @@ const SELECT = {
 } as const
 
 export async function GET() {
-  const { session, error } = await requireAuth()
+  const { session, error } = await requirePermission("reports:read")
   if (error) return error
   return NextResponse.json(
     await prisma.reportSchedule.findMany({
@@ -27,7 +27,7 @@ export async function GET() {
 }
 
 export async function POST(req: Request) {
-  const { session, error } = await requireAdmin()
+  const { session, error } = await requirePermission("reports:schedule")
   if (error) return error
 
   const body = (await req.json()) as {

@@ -1,4 +1,5 @@
-import { auth } from "@/auth"
+import { guardPage } from "@/lib/rbac/guard-page"
+import { getSession } from "@/lib/auth/session"
 import { prisma } from "@/lib/prisma"
 import { getReportData } from "@/lib/reports"
 import { parseReportFilters, filtersToQuery } from "@/lib/reports/filters"
@@ -21,7 +22,10 @@ function formatGeneratedAt(iso: string): string {
 type SearchParams = Record<string, string | string[] | undefined>
 
 export default async function ReportsPage({ searchParams }: { searchParams: Promise<SearchParams> }) {
-  const session = await auth()
+  const denied = await guardPage("reports:read")
+  if (denied) return denied
+
+  const session = await getSession()
   const companyId = session!.user.companyId
 
   const sp = await searchParams

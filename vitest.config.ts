@@ -10,5 +10,6 @@ export default defineConfig({
   oxc: { jsx: { runtime: "automatic" } },
   test: {
     include: ["src/**/*.test.ts"],
+    exclude: ["**/node_modules/**", "src/**/*.itest.ts"],
   },
 })
