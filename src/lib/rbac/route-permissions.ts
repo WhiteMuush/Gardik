@@ -13,6 +13,14 @@ export const ROUTE_PERMISSIONS: Record<string, Permission | "PUBLIC" | "AUTH_ONL
   // Runs before sign-in: the login page calls it to learn whether a typed
   // email's company has a verified SSO provider, so there is no session yet.
   "sso/resolve": "PUBLIC",
+  // The invitee has no account to authenticate with yet; the single-use token
+  // in the body is the authorization.
+  "invitations/accept": "PUBLIC",
+  // Checks the session itself rather than going through requireAuth, because a
+  // user under a forced rotation is refused by that guard everywhere else and
+  // this is the one call that must still go through. It re-verifies the current
+  // password before writing.
+  "account/password": "PUBLIC",
 
   "alerts/[id]": "alerts:status",
   "alerts/[id]/remediate": "alerts:remediate",
@@ -38,6 +46,8 @@ export const ROUTE_PERMISSIONS: Record<string, Permission | "PUBLIC" | "AUTH_ONL
   "sso/provider/domain": "sso:config",
   "users": "users:manage",
   "users/[id]/role": "users:manage",
+  "users/[id]/invite": "users:manage",
+  "users/[id]/require-password-change": "users:manage",
   "reports/schedules": "reports:schedule",
   "reports/schedules/[id]": "reports:schedule",
   "webhooks": "notifications:manage",

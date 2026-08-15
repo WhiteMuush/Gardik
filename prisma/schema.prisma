@@ -230,6 +230,10 @@ model User {
   companyId        String
   twoFactorEnabled Boolean  @default(false)
   ssoExempt        Boolean  @default(false)
+  // Set when an administrator forces a rotation, cleared the moment a new
+  // password is set. Enforced server-side, in the API guard and the dashboard
+  // layout both, so it cannot be skipped by calling the API directly.
+  mustChangePassword Boolean @default(false)
   createdAt        DateTime @default(now())
   updatedAt        DateTime @updatedAt
 
@@ -247,6 +251,26 @@ model User {
   auditActions     AuditLog[]        @relation("AuditActor")
   stepUpGrants     StepUpGrant[]
   ssoProviders     SsoProvider[]
+  invitations      UserInvitation[]
+}
+
+// A single-use link that lets an invited person set their own first password.
+// Only the SHA-256 of the token is stored: a database read yields nothing that
+// can be replayed against this endpoint. The row is kept after consumption
+// (rather than deleted) so the audit trail can point at something.
+model UserInvitation {
+  id              String    @id @default(cuid())
+  userId          String
+  tokenHash       String    @unique
+  expiresAt       DateTime
+  consumedAt      DateTime?
+  createdByUserId String?
+  createdAt       DateTime  @default(now())
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@index([userId])
+  @@index([expiresAt])
 }
 
 model Session {
