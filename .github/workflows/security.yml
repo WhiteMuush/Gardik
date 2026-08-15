@@ -30,6 +30,24 @@ jobs:
       - name: npm audit
         run: npm audit --audit-level=high
 
+  licenses:
+    name: License gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    steps:
+      - uses: actions/checkout@v7
+
+      - name: Setup Node.js
+        uses: actions/setup-node@v7
+        with:
+          node-version: 20
+
+      # Reads package-lock.json only, so no install step is needed. Fails on a
+      # runtime license nobody has reviewed, and on notices that no longer match
+      # the dependency tree.
+      - name: Check licenses and notices
+        run: npm run licenses
+
   secrets:
     name: Secret scan
     runs-on: ubuntu-latest
