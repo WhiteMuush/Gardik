@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll, vi } from "vitest"
+import { describe, it, expect, beforeAll, afterAll, vi } from "vitest"
 import { prisma } from "@/lib/prisma"
 import { seedPresetsForCompany, resolvePresetRoleId } from "@/lib/rbac/seed-roles"
 import type { AuditEntry } from "@/lib/rbac/audit"
@@ -73,6 +73,12 @@ beforeAll(async () => {
     roleId: administratorRoleId,
     twoFactorEnabled: true,
   }
+})
+
+// Deleting the company is enough: the admin, every user the route creates
+// under it, and the audit rows all cascade with it.
+afterAll(async () => {
+  await prisma.company.deleteMany({ where: { id: companyId } })
 })
 
 describe("POST /api/users", () => {

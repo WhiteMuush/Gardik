@@ -1,4 +1,4 @@
-import { describe, it, expect, beforeAll } from "vitest"
+import { describe, it, expect, beforeAll, afterAll } from "vitest"
 import { prisma } from "@/lib/prisma"
 import { seedPresetsForCompany } from "./seed-roles"
 import { PRESETS } from "./presets"
@@ -10,6 +10,11 @@ beforeAll(async () => {
     data: { name: "Seed Test Co", domain: `seed-${Date.now()}.test` },
   })
   companyId = c.id
+})
+
+// Deleting the company is enough: the roles seeded into it cascade with it.
+afterAll(async () => {
+  await prisma.company.deleteMany({ where: { id: companyId } })
 })
 
 describe("seedPresetsForCompany (real DB)", () => {
