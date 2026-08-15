@@ -3,37 +3,23 @@ import { getSession } from "@/lib/auth/session"
 import { prisma } from "@/lib/prisma"
 import { getUserPermissions, authorize } from "@/lib/rbac/authorize"
 import { SetupChecklist } from "@/components/dashboard/SetupChecklist"
-import { TwoFactorSetup } from "@/components/settings/TwoFactorSetup"
-import { PasskeySetup } from "@/components/settings/PasskeySetup"
-import { AuthPolicySettings } from "@/components/settings/AuthPolicySettings"
-import { SsoSettings } from "@/components/settings/SsoSettings"
+import { SecuritySettings } from "@/components/settings/SecuritySettings"
 
-export default async function SetupPage({
-  searchParams,
-}: {
-  searchParams: Promise<{ enroll?: string }>
-}) {
-  const { enroll } = await searchParams
-  const enrolling = enroll === "2fa"
-
+// Onboarding only. The security blocks below now have a permanent home at
+// /settings, so this page no longer needs the enroll=2fa escape that used to
+// keep it reachable after onboarding was over.
+export default async function SetupPage() {
   const session = await getSession()
   const companyId = session!.user.companyId
-  const twoFactorEnabled = session!.user.twoFactorEnabled ?? false
   const perms = await getUserPermissions(prisma, session!.user.roleId ?? null)
   const isAdmin = authorize(perms, "users:manage")
-  const canReadSso = authorize(perms, "sso:read")
-  const canConfigureSso = authorize(perms, "sso:config")
 
-  const [employeeCount, apiKeyCount, company] = await Promise.all([
+  const [employeeCount, apiKeyCount] = await Promise.all([
     prisma.employee.count({ where: { companyId } }),
     prisma.apiCredential.count({ where: { companyId } }),
-    prisma.company.findUnique({
-      where: { id: companyId },
-      select: { require2fa: true, allowedAuthMethods: true, ssoMandatory: true },
-    }),
   ])
 
-  if ((employeeCount > 0 || apiKeyCount > 0) && !enrolling) redirect("/dashboard")
+  if (employeeCount > 0 || apiKeyCount > 0) redirect("/dashboard")
 
   return (
     <SetupChecklist
@@ -41,38 +27,7 @@ export default async function SetupPage({
       hasApiKey={apiKeyCount > 0}
       isAdmin={isAdmin}
     >
-      {(company?.allowedAuthMethods.includes("TOTP") ?? true) && (
-        <div className="rounded-xl border border-border/60 bg-card p-4">
-          <h3 className="text-sm font-medium text-foreground">Two-factor authentication</h3>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Add an authenticator app for an extra layer of account security.
-          </p>
-          <div className="mt-3">
-            <TwoFactorSetup enabled={twoFactorEnabled} />
-          </div>
-        </div>
-      )}
-      {company?.allowedAuthMethods.includes("PASSKEY") && (
-        <div className="rounded-xl border border-border/60 bg-card p-4">
-          <h3 className="text-sm font-medium text-foreground">Passkeys</h3>
-          <p className="mt-1 text-xs text-muted-foreground">
-            Sign in with your device (Face ID, Windows Hello, or a security key)
-            instead of a password.
-          </p>
-          <div className="mt-3">
-            <PasskeySetup />
-          </div>
-        </div>
-      )}
-      {isAdmin && company && (
-        <AuthPolicySettings
-          require2fa={company.require2fa}
-          allowedAuthMethods={company.allowedAuthMethods}
-          isAdmin={isAdmin}
-          ssoMandatory={company.ssoMandatory}
-        />
-      )}
-      {canReadSso && <SsoSettings canConfigure={canConfigureSso} />}
+      <SecuritySettings />
     </SetupChecklist>
   )
 }

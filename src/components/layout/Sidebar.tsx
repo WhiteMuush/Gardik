@@ -15,6 +15,7 @@ import {
   KeyRound,
   Send,
   LogOut,
+  Lock,
   ShieldCheck,
 } from "lucide-react"
 
@@ -28,6 +29,7 @@ const navItems = [
   { href: "/data-api", label: "Data API", icon: KeyRound },
   { href: "/notifications", label: "Notifications", icon: Send },
   { href: "/access", label: "Access", icon: ShieldCheck },
+  { href: "/security", label: "Security", icon: Lock },
 ]
 
 // Layers (within the aside stacking context): labels z-10 sit UNDER the rail

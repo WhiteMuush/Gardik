@@ -12,6 +12,7 @@ const ROUTES = [
   "/reports",
   "/data-sources",
   "/data-api",
+  "/security",
 ]
 
 export function RoutePrefetcher() {
