@@ -13,7 +13,7 @@
 - Node `22.x`; package manager npm.
 - ASCII only in source and docs. No em dash, no accented characters (CI compliance blocks them).
 - No comments unless the WHY is non-obvious. No multi-line docstrings.
-- No `Co-Authored-By` lines in commits. Conventional Commits; subject 50 chars or fewer.
+- No AI co-authorship trailer in commits. Conventional Commits; subject 50 chars or fewer.
 - Validate at system boundaries only; trust framework guarantees.
 - Gates before any PR: `npm run lint -- --max-warnings 0`, `npx tsc --noEmit`, `npx prisma validate`, `npm run build`.
 - Do not push to remote unless explicitly asked.

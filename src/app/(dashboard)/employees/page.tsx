@@ -1,9 +1,13 @@
+import { guardPage } from "@/lib/rbac/guard-page"
 import { getSession } from "@/lib/auth/session"
 import { getEmployees } from "@/lib/employees"
 import { EmployeeTable } from "@/components/employees/EmployeeTable"
 import { ScanButton } from "@/components/employees/ScanButton"
 
 export default async function EmployeesPage() {
+  const denied = await guardPage("employees:read")
+  if (denied) return denied
+
   const session = await getSession()
   const employees = await getEmployees(session!.user.companyId)
 

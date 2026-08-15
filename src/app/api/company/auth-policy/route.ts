@@ -12,9 +12,10 @@ export async function PATCH(req: Request) {
   const body = (await req.json()) as {
     require2fa?: boolean
     allowedAuthMethods?: string[]
+    ssoMandatory?: boolean
   }
 
-  const data: { require2fa?: boolean; allowedAuthMethods?: AuthMethod[] } = {}
+  const data: { require2fa?: boolean; allowedAuthMethods?: AuthMethod[]; ssoMandatory?: boolean } = {}
 
   if (typeof body.require2fa === "boolean") data.require2fa = body.require2fa
 
@@ -26,6 +27,22 @@ export async function PATCH(req: Request) {
       return NextResponse.json({ error: "Unknown method" }, { status: 400 })
     }
     data.allowedAuthMethods = body.allowedAuthMethods as AuthMethod[]
+  }
+
+  if (typeof body.ssoMandatory === "boolean") {
+    if (body.ssoMandatory) {
+      const provider = await prisma.ssoProvider.findFirst({
+        where: { organizationId: session.user.companyId, domainVerified: true },
+        select: { id: true },
+      })
+      if (!provider) {
+        return NextResponse.json(
+          { error: "Configure and verify an SSO provider before making it mandatory" },
+          { status: 409 }
+        )
+      }
+    }
+    data.ssoMandatory = body.ssoMandatory
   }
 
   if (Object.keys(data).length === 0) {

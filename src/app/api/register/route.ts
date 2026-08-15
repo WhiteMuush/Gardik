@@ -1,11 +1,11 @@
 import { NextResponse } from "next/server"
-import { requireAuth, requirePermission } from "@/lib/apiAuth"
+import { requirePermission } from "@/lib/apiAuth"
 import { prisma } from "@/lib/prisma"
 import { listRegister } from "@/lib/register"
 import { mapToGdprCategories } from "@/lib/gdpr"
 
 export async function GET() {
-  const { session, error } = await requireAuth()
+  const { session, error } = await requirePermission("register:read")
   if (error) return error
   return NextResponse.json(await listRegister(session.user.companyId))
 }

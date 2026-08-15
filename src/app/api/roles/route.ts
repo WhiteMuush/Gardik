@@ -4,7 +4,7 @@ import { requirePermission, assertStepUp } from "@/lib/apiAuth"
 import { prisma } from "@/lib/prisma"
 import { getUserPermissions } from "@/lib/rbac/authorize"
 import { isPermission } from "@/lib/rbac/permissions"
-import { excessPermissions } from "@/lib/rbac/escalation"
+import { excessPermissions, isSubsetOf } from "@/lib/rbac/escalation"
 import { containsCrownJewel } from "@/lib/rbac/crown-jewels"
 import { writeAudit, AUDIT_ACTIONS } from "@/lib/rbac/audit"
 
@@ -15,7 +15,18 @@ export async function GET() {
     where: { companyId: session.user.companyId },
     orderBy: { name: "asc" },
   })
-  return NextResponse.json({ roles })
+
+  // grantable answers "would the server let me hand this out", so a picker can
+  // offer exactly what will be accepted. The server decides; the client only
+  // renders the answer. Not a substitute for the check on the write paths,
+  // which is where the rule is actually enforced.
+  const actorPerms = await getUserPermissions(prisma, session.user.roleId ?? null)
+  return NextResponse.json({
+    roles: roles.map((role) => ({
+      ...role,
+      grantable: role.isAssignable && isSubsetOf(actorPerms, role.permissions),
+    })),
+  })
 }
 
 export async function POST(req: Request) {

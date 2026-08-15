@@ -110,6 +110,14 @@ jobs:
           --health-retries 20
     env:
       DATABASE_URL: postgresql://ci:ci@localhost:5432/datashield
+      # Placeholders, same shape as the build and e2e jobs. The integration
+      # suite writes SsoProvider rows, and the Prisma extension that seals
+      # oidcConfig refuses to run without a key, so the suite cannot start
+      # without one. Never a real secret: it only ever encrypts throwaway rows
+      # in a database this job creates and discards.
+      DIRECTORY_ENCRYPTION_KEY: ci-placeholder-encryption-key-32-chars-minimum
+      AUTH_SECRET: ci-placeholder-auth-secret
+      AUTH_URL: http://localhost:3000
     steps:
       - uses: actions/checkout@v7
 
