@@ -23,7 +23,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v7
         with:
-          node-version: 20
+          node-version: 26
 
       # Fails the build on high or critical advisories only; moderate and below
       # are reported by Dependabot to avoid blocking on unfixable transitives.
@@ -40,7 +40,7 @@ jobs:
       - name: Setup Node.js
         uses: actions/setup-node@v7
         with:
-          node-version: 20
+          node-version: 26
 
       # Reads package-lock.json only, so no install step is needed. Fails on a
       # runtime license nobody has reviewed, and on notices that no longer match

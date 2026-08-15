@@ -1,6 +1,6 @@
 # Development image: runs `next dev` with the source bind-mounted from the host,
 # so a machine only needs Docker, no Node or nvm. Not for production.
-FROM node:22-bookworm-slim
+FROM node:26-bookworm-slim
 
 # Prisma needs openssl at runtime.
 RUN apt-get update \
