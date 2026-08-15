@@ -135,6 +135,19 @@ function isLoopbackAuthUrl(): boolean {
 
 const rateLimitDisabled = process.env.E2E === "1" && isLoopbackAuthUrl()
 
+// Test-only: the SSO plugin's discovery pipeline refuses to fetch a
+// discovery document, token endpoint, or JWKS from a host that is not
+// publicly routable (loopback, RFC 1918, link-local, ...) unless its origin
+// is explicitly allowlisted via trustedOrigins. That is the SSRF guard doing
+// its job, and it is why round-trip.itest.ts's stub identity provider
+// (src/lib/sso/stub-idp.ts, bound to 127.0.0.1) would otherwise be refused.
+// Vitest sets NODE_ENV to "test" and nothing else in this app ever does: dev
+// is "development", `next start` (which the e2e suite runs against) and any
+// real deployment are "production". A wildcard port is needed because the
+// stub listens on an OS-assigned port per test run.
+const testTrustedOrigins =
+  process.env.NODE_ENV === "test" ? ["http://127.0.0.1:*"] : []
+
 // WebAuthn/passkey binds credentials to a relying-party ID (the host) and an
 // origin. Both come from AUTH_URL so dev (localhost) and prod stay correct
 // without extra config; a passkey registered under one host cannot be used
@@ -170,6 +183,7 @@ export const auth = betterAuth({
     ? { rateLimit: { enabled: false } }
     : { rateLimit: { enabled: true, storage: "database" as const, modelName: "rateLimit" } }),
   database: prismaAdapter(authPrismaForAdapter, { provider: "postgresql" }),
+  ...(testTrustedOrigins.length > 0 ? { trustedOrigins: testTrustedOrigins } : {}),
   emailAndPassword: {
     enabled: true,
     // 12 rounds, matching every seed script. This was the only place still on
