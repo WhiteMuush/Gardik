@@ -173,6 +173,12 @@ const authPrismaUnknown: unknown = authPrisma
 const authPrismaForAdapter = authPrismaUnknown as typeof prisma
 
 export const auth = betterAuth({
+  // Names the product in every place the library speaks for it. The one that
+  // shows: the TOTP enrollment URI uses it as the issuer, so an authenticator
+  // app lists the entry under this name. Left unset, Better Auth falls back to
+  // its own "Better Auth", and users end up with a code they cannot match to
+  // anything they recognise.
+  appName: "DataShield",
   // e2e only: the serial 2FA suite makes several sign-ins inside Better Auth's
   // 3-per-10s window, which would 429-flake. Gated on E2E=1 *and* a loopback
   // base URL, so it can never arm in production even if E2E leaks there.
@@ -186,6 +192,12 @@ export const auth = betterAuth({
   ...(testTrustedOrigins.length > 0 ? { trustedOrigins: testTrustedOrigins } : {}),
   emailAndPassword: {
     enabled: true,
+    // Accounts are created by an administrator, never by whoever finds the
+    // endpoint. Without this the library exposes a working /sign-up/email:
+    // today it happens to fail because companyId is required and cannot be set
+    // from a request body, which is a schema accident rather than a decision.
+    // Anyone relaxing that column later would silently reopen public signup.
+    disableSignUp: true,
     // 12 rounds, matching every seed script. This was the only place still on
     // 10, and it is the only one that hashes a real user's password. Existing
     // hashes keep verifying: bcrypt stores its cost inside the hash.
