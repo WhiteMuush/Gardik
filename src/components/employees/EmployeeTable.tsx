@@ -1,16 +1,19 @@
 "use client"
 
 import { useState, useMemo } from "react"
+import { flexRender, type SortingState } from "@tanstack/react-table"
+// v9 dropped the v8 hook and row-model factories from the main entry. The
+// /legacy subpath keeps them as a compat shim; port to useTable + tableFeatures
+// before v10 removes it.
 import {
-  useReactTable,
+  useLegacyTable,
   getCoreRowModel,
   getSortedRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
-  flexRender,
-  createColumnHelper,
-  type SortingState,
-} from "@tanstack/react-table"
+  legacyCreateColumnHelper,
+  type LegacyColumnDef,
+} from "@tanstack/react-table/legacy"
 import { ChevronUp, ChevronDown, ChevronsUpDown, ChevronLeft, ChevronRight, Search, Download } from "lucide-react"
 import { RiskBadge } from "@/components/ui/RiskBadge"
 import { EmployeeDrawer } from "@/components/employees/EmployeeDrawer"
@@ -18,9 +21,12 @@ import type { EmployeeRow, RiskLevel } from "@/lib/employees"
 import { downloadCsv } from "@/lib/csv"
 import { cn } from "@/lib/utils"
 
-const col = createColumnHelper<EmployeeRow>()
+const col = legacyCreateColumnHelper<EmployeeRow>()
 
-const columns = [
+// v9 made ColumnDef invariant in TValue through the footer template, so a
+// mixed-value array no longer widens to the unknown-valued element type.
+// eslint-disable-next-line @typescript-eslint/no-explicit-any
+const columns: LegacyColumnDef<EmployeeRow, any>[] = [
   col.accessor((r) => `${r.firstName} ${r.lastName}`, {
     id: "name",
     header: "Name",
@@ -99,7 +105,7 @@ export function EmployeeTable({ data }: { data: EmployeeRow[] }) {
     )
   }
 
-  const table = useReactTable({
+  const table = useLegacyTable({
     data: filtered,
     columns,
     state: { sorting },
@@ -108,7 +114,7 @@ export function EmployeeTable({ data }: { data: EmployeeRow[] }) {
     getSortedRowModel: getSortedRowModel(),
     getFilteredRowModel: getFilteredRowModel(),
     getPaginationRowModel: getPaginationRowModel(),
-    initialState: { pagination: { pageSize: 20 } },
+    initialState: { pagination: { pageIndex: 0, pageSize: 20 } },
   })
 
   return (
