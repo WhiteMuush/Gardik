@@ -9,7 +9,7 @@ Generated from `package-lock.json`; do not edit by hand. Regenerate with
 `npm run licenses:write`. Build-time-only dependencies are excluded: they
 are not part of anything that ships.
 
-Runtime packages: 549.
+Runtime packages: 551.
 
 ## Obligations worth knowing
 
@@ -23,7 +23,7 @@ Runtime packages: 549.
 
 ## Packages by license
 
-### MIT (399)
+### MIT (401)
 
 - @authenio/xml-encryption@2.0.2
 - @babel/runtime@7.29.7
@@ -158,8 +158,10 @@ Runtime packages: 549.
 - @simplewebauthn/server@13.3.2
 - @standard-schema/spec@1.1.0
 - @standard-schema/utils@0.3.0
-- @tanstack/react-table@8.21.3
-- @tanstack/table-core@8.21.3
+- @tanstack/react-store@0.11.1
+- @tanstack/react-table@9.1.0
+- @tanstack/store@0.11.1
+- @tanstack/table-core@9.1.0
 - @tybys/wasm-util@0.10.3
 - @types/chai@5.2.3
 - @types/d3-array@3.0.3
