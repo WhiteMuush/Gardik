@@ -574,7 +574,7 @@ Runtime packages: 551.
 - asn1js@3.0.10
 - bcryptjs@3.0.3
 - d3-ease@3.0.1
-- deepmerge-ts@7.1.5
+- deepmerge-ts@8.0.2
 - fast-uri@3.1.5
 - source-map-js@1.2.1
 
