@@ -1,6 +1,6 @@
-# Gardik
-
 <div align="center">
+
+<img src="./assets/banner.png" alt="Gardik. Know what leaked. Without leaking more." width="100%">
 
 <!-- CI -->
 [![CI](https://github.com/WhiteMuush/Gardik/actions/workflows/ci.yml/badge.svg)](https://github.com/WhiteMuush/Gardik/actions/workflows/ci.yml)
