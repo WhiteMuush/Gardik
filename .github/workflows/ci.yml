@@ -91,9 +91,18 @@ jobs:
         run: npm run build
 
   integration:
-    name: Integration (DB)
+    # Run the suite twice, against a UTC database and against one provisioned in
+    # a regional timezone. Everything Prisma writes is UTC wall-clock digits, so
+    # any raw SQL that compares such a column against now() silently changes
+    # meaning with the session timezone. A UTC-only job cannot see that class of
+    # bug: the offset is zero and the fault is invisible.
+    name: Integration (DB, ${{ matrix.timezone }})
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        timezone: [UTC, Europe/Paris]
     services:
       postgres:
         image: postgres:16
@@ -101,6 +110,9 @@ jobs:
           POSTGRES_USER: ci
           POSTGRES_PASSWORD: ci
           POSTGRES_DB: datashield
+          # initdb reads TZ, so the cluster comes up in this timezone the way a
+          # managed instance provisioned in a region would.
+          TZ: ${{ matrix.timezone }}
         ports:
           - 5432:5432
         options: >-

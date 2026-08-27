@@ -59,6 +59,47 @@ describe("rateLimit", () => {
   })
 })
 
+// The bug this guards: "reset" is a `timestamp without time zone` holding UTC
+// digits, and comparing it against a bare `now()` coerced it to the session
+// timezone. On a session ahead of UTC every window read as already expired, so
+// the counter reset on each call and the limiter refused nothing. CI runs its
+// database in UTC, where the offset is zero and the fault is invisible, so
+// these two pin the timezone themselves rather than trusting the environment.
+//
+// set_config(..., true) is SET LOCAL with a bind parameter: it holds for the
+// current transaction only, and only on the connection that transaction owns.
+// That is why the limiter takes a client here instead of reaching for the
+// pooled singleton.
+describe("rateLimit under a non-UTC session", () => {
+  it("still refuses past the limit on a session ahead of UTC", async () => {
+    const key = freshKey("tz-ahead")
+    await prisma.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT set_config('TimeZone', ${"Pacific/Kiritimati"}, true)` // UTC+14
+      expect(await rateLimit(key, 2, 60_000, tx)).toBe(true)
+      expect(await rateLimit(key, 2, 60_000, tx)).toBe(true)
+      expect(await rateLimit(key, 2, 60_000, tx)).toBe(false)
+    })
+  })
+
+  // The other direction locks people out rather than letting them through: a
+  // session behind UTC pushes every "reset" into the future, so a window that
+  // has long passed never rolls over. Seeded as an already-expired row instead
+  // of by waiting, because now() is the transaction start time and does not
+  // advance inside the transaction that pins the timezone.
+  it("still rolls an expired window over on a session behind UTC", async () => {
+    const key = freshKey("tz-behind")
+    const fiveMinutesAgo = new Date(Date.now() - 5 * 60_000)
+    await prisma.apiRateLimit.create({ data: { key, count: 99, reset: fiveMinutesAgo } })
+
+    await prisma.$transaction(async (tx) => {
+      await tx.$queryRaw`SELECT set_config('TimeZone', ${"Pacific/Niue"}, true)` // UTC-11
+      expect(await rateLimit(key, 1, 60_000, tx)).toBe(true)
+    })
+
+    expect((await prisma.apiRateLimit.findUnique({ where: { key } }))?.count).toBe(1)
+  })
+})
+
 describe("pruneRateLimits", () => {
   it("drops rows whose window has passed and keeps live ones", async () => {
     const stale = freshKey("stale")
