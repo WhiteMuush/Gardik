@@ -1,6 +1,6 @@
-# DataShield
-
 <div align="center">
+
+<img src="./assets/banner.png" alt="DataShield. Know what leaked. Without leaking more." width="100%">
 
 <!-- CI -->
 [![CI](https://github.com/WhiteMuush/DataShield/actions/workflows/ci.yml/badge.svg)](https://github.com/WhiteMuush/DataShield/actions/workflows/ci.yml)
