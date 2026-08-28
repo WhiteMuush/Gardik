@@ -48,7 +48,7 @@ export function RiskGauge({ riskScore }: { riskScore: number }) {
   const bgPath = ringPath(cx, cy, ro, ri, 180, 360)
   const fgPath = riskScore > 0 ? ringPath(cx, cy, ro, ri, 180, scoreDeg) : ""
 
-  // Tick marks at 0, 25, 50, 75, 100 → angles 180, 225, 270, 315, 360
+  // Tick marks at 0, 25, 50, 75, 100 -> angles 180, 225, 270, 315, 360
   const ticks = [180, 225, 270, 315, 360].map((deg) => {
     const outer = polarToCartesian(cx, cy, ro + 6, deg)
     const inner = polarToCartesian(cx, cy, ro + 2, deg)

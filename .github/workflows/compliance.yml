@@ -47,6 +47,9 @@ jobs:
           xargs -a /tmp/changed.txt -d '\n' \
             sh .githooks/lib/run-all.sh "$base:package.json" "HEAD:package.json" /tmp/added.txt --
 
+      - name: Check the whole tree is ASCII
+        run: sh .githooks/lib/check-ascii-tree.sh
+
   codeowners:
     name: codeowners
     runs-on: ubuntu-latest

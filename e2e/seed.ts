@@ -112,6 +112,23 @@ async function main() {
   })
   await setPassword(narrow.id, NARROW_PASSWORD)
 
+  // One register row so the rbac spec can assert on the evidence download.
+  // Without a row the control is absent for everybody and the assertion would
+  // pass while proving nothing.
+  await prisma.exposureRegisterEntry.upsert({
+    where: { id: "e2e-register-entry" },
+    update: {},
+    create: {
+      id: "e2e-register-entry",
+      companyId: company.id,
+      title: "E2E fixture exposure",
+      detectedAt: new Date("2026-01-15T00:00:00Z"),
+      status: "ASSESSING",
+      affectedCount: 3,
+      dataCategories: ["email", "password"],
+    },
+  })
+
   // Passkey fixture: its own company so the passkey spec can flip PASSKEY in and
   // out of allowedAuthMethods without racing the two-factor spec, which mutates
   // the shared gardik.dev policy. Seeded with PASSKEY allowed so enrollment

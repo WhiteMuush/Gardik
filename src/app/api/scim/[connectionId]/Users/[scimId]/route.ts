@@ -6,9 +6,9 @@ type SCIMPatch = {
   Operations?: { op?: string; path?: string; value?: unknown }[]
 }
 
-// Détecte une désactivation sous les deux formes prévues par la RFC 7644 :
-// { op: "replace", path: "active", value: false } ou { op: "replace", value: { active: false } }.
-// Le verbe op est traité sans tenir compte de la casse ("Replace" / "replace").
+// Detects a deactivation in both shapes RFC 7644 allows:
+// { op: "replace", path: "active", value: false } or { op: "replace", value: { active: false } }.
+// The op verb is matched case-insensitively ("Replace" / "replace").
 function isDeactivation(body: SCIMPatch): boolean {
   return (body.Operations ?? []).some((op) => {
     if (op.op?.toLowerCase() !== "replace") return false
@@ -32,7 +32,7 @@ export async function PATCH(
 
   const body = (await req.json()) as SCIMPatch
 
-  // Désactivation : on ne supprime pas (les employés portent des historiques de fuite), on acquitte.
+  // Deactivation: nothing is deleted, because employees carry breach history. Acknowledge instead.
   if (isDeactivation(body)) return new NextResponse(null, { status: 204 })
 
   const employee = await prisma.employee.findFirst({
@@ -57,7 +57,7 @@ export async function DELETE(
   const ctx = await authenticateScim(req, connectionId)
   if (!ctx) return NextResponse.json({ status: 401, detail: "Unauthorized" }, { status: 401 })
 
-  // Pas de suppression dure (historiques de fuite liés) : on acquitte pour rester conforme SCIM.
+  // No hard delete, because breach history hangs off the employee. Acknowledge to stay SCIM-compliant.
   void scimId
   return new NextResponse(null, { status: 204 })
 }

@@ -46,3 +46,37 @@ export function requiredPermissionForPage(pathname: string): Permission | "AUTH_
   }
   return best?.permission ?? null
 }
+
+/**
+ * The declared paths a permission set may open, in declaration order.
+ *
+ * The dashboard layout resolves this once per request and hands the result to
+ * every component that renders links, so no client component re-derives the
+ * rule and the two copies cannot drift. AUTH_ONLY counts as satisfied: those
+ * pages are about the caller's own account rather than the company's data.
+ */
+export function visiblePages(perms: ReadonlySet<string>): string[] {
+  return Object.keys(PAGE_PERMISSIONS).filter((path) => {
+    const permission = PAGE_PERMISSIONS[path]
+    return permission === "AUTH_ONLY" || perms.has(permission)
+  })
+}
+
+/**
+ * Where to send someone who has just signed in, or who asked for the site root.
+ *
+ * Resolved from what the role can open rather than hardcoded. Sending everyone
+ * to /dashboard meant a role without dashboard:read met a refusal as its first
+ * screen, which reads as a broken product rather than as a permission it was
+ * never granted.
+ *
+ * Prefers a section root: landing on a sub-page like the widget library is
+ * disorienting, and it is only ever the first candidate when a role holds
+ * dashboard:customize without dashboard:read, which is a misconfigured role
+ * rather than a case to design around. The AUTH_ONLY pages are the floor, so a
+ * role granted nothing still lands on its own account instead of nowhere.
+ */
+export function landingPath(perms: ReadonlySet<string>): string {
+  const open = visiblePages(perms)
+  return open.find((path) => path.lastIndexOf("/") === 0) ?? open[0] ?? "/login"
+}

@@ -123,3 +123,62 @@ test("admin creates a role through the management UI", async ({ page }) => {
   const del = await page.request.delete(`/api/roles/${created!.id}`)
   expect(del.ok()).toBeTruthy()
 })
+
+// The other half of the rule the test above covers. That one proves the guard
+// refuses the target; this one proves the interface stops offering the way in.
+// A Viewer holds every ":read" permission and none of the actions, so it opens
+// all three of these pages legitimately and must find no control on them that
+// leads to a refusal. Each assertion is paired with the admin case, because a
+// selector that matches nothing passes whether or not the code is right.
+test("a read-only role is offered no control it cannot use", async ({ page }) => {
+  await login(page, MEMBER)
+
+  // reports:read without reports:export.
+  await page.goto("/reports")
+  await expect(page.getByRole("heading", { name: "Reports" }).first()).toBeVisible()
+  await expect(page.getByRole("button", { name: "CSV" })).toHaveCount(0)
+  await expect(page.getByRole("link", { name: "PDF" })).toHaveCount(0)
+
+  // register:read without register:evidence.
+  await page.goto("/register")
+  await expect(page.getByText("E2E fixture exposure")).toBeVisible()
+  await expect(page.getByTitle("Download evidence pack (CSV)")).toHaveCount(0)
+
+  // dashboard:read without dashboard:customize.
+  await page.goto("/dashboard")
+  await page.getByRole("button", { name: "Customize" }).click()
+  await expect(page.getByRole("link", { name: "Library" })).toHaveCount(0)
+
+  // dashboard:manage_shared, the one change on this branch that alters what a
+  // role may do rather than only what it is shown. The client used to decide
+  // this by comparing the role's name to "Administrator" while the preset
+  // routes check the permission, so the two could disagree in both directions.
+  // Without it the button makes a personal preset outright and never offers the
+  // company scope, which is what the API would refuse. That click is a real
+  // write, and the extra personal preset it leaves behind is the price of
+  // testing the branch that has no menu to inspect.
+  await page.getByTitle("Add preset").click()
+  await expect(page.getByText("Company preset")).toHaveCount(0)
+})
+
+test("an admin is offered the same controls, so the selectors above mean something", async ({
+  page,
+}) => {
+  await login(page, ADMIN)
+
+  await page.goto("/reports")
+  await expect(page.getByRole("button", { name: "CSV" })).toBeVisible()
+  await expect(page.getByRole("link", { name: "PDF" })).toBeVisible()
+
+  await page.goto("/register")
+  await expect(page.getByTitle("Download evidence pack (CSV)").first()).toBeVisible()
+
+  await page.goto("/dashboard")
+  await page.getByRole("button", { name: "Customize" }).click()
+  await expect(page.getByRole("link", { name: "Library" })).toBeVisible()
+
+  // Holding dashboard:manage_shared, the same button opens the scope menu
+  // instead of writing anything.
+  await page.getByTitle("Add preset").click()
+  await expect(page.getByText("Company preset")).toBeVisible()
+})

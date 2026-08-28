@@ -24,6 +24,7 @@ export const ROUTE_PERMISSIONS: Record<string, Permission | "PUBLIC" | "AUTH_ONL
 
   "alerts/[id]": "alerts:status",
   "alerts/[id]/remediate": "alerts:remediate",
+  "audit": "audit:read",
   "company": "policy:manage",
   "company/auth-policy": "policy:manage",
   "credentials": "api_credentials:manage",
@@ -39,6 +40,7 @@ export const ROUTE_PERMISSIONS: Record<string, Permission | "PUBLIC" | "AUTH_ONL
   "employees/scan": "employees:scan",
   "register": "register:manage",
   "register/[id]": "register:manage",
+  "register/[id]/evidence": "register:evidence",
   "rbac/step-up": "AUTH_ONLY",
   "roles": "roles:manage",
   "roles/[id]": "roles:manage",

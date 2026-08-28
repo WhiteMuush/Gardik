@@ -1,0 +1,8 @@
+# Normalize every text file to LF in the repository and in the working tree.
+# Shell scripts break outright when checked out with CRLF: `sh` reads the
+# trailing carriage return as part of the argument and rejects `set -u`.
+* text=auto eol=lf
+
+# Binary assets must never be touched by end-of-line conversion.
+*.png binary
+*.woff2 binary

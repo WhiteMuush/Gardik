@@ -19,7 +19,20 @@ function countdown(row: RegisterRow): { text: string; className: string } {
   return { text: `${row.hoursRemaining}h left`, className: "text-muted-foreground" }
 }
 
-export function ExposureRegister({ initial, isAdmin }: { initial: RegisterRow[]; isAdmin: boolean }) {
+export function ExposureRegister({
+  initial,
+  isAdmin,
+  canDownloadEvidence,
+}: {
+  initial: RegisterRow[]
+  isAdmin: boolean
+  /**
+   * Mirrors register:evidence, which the evidence route enforces. Distinct
+   * from isAdmin, which is register:manage: this link sits outside that block
+   * and was offered to every reader of the register.
+   */
+  canDownloadEvidence: boolean
+}) {
   const router = useRouter()
   const [rows, setRows] = useState(initial)
   const [title, setTitle] = useState("")
@@ -142,13 +155,15 @@ export function ExposureRegister({ initial, isAdmin }: { initial: RegisterRow[];
                       </button>
                     </>
                   )}
-                  <a
-                    href={`/api/register/${r.id}/evidence`}
-                    className="flex size-7 shrink-0 items-center justify-center rounded-md border border-border text-muted-foreground hover:bg-muted"
-                    title="Download evidence pack (CSV)"
-                  >
-                    <Download className="size-3.5" />
-                  </a>
+                  {canDownloadEvidence && (
+                    <a
+                      href={`/api/register/${r.id}/evidence`}
+                      className="flex size-7 shrink-0 items-center justify-center rounded-md border border-border text-muted-foreground hover:bg-muted"
+                      title="Download evidence pack (CSV)"
+                    >
+                      <Download className="size-3.5" />
+                    </a>
+                  )}
                 </div>
                 {r.categoryLabels.length > 0 && (
                   <div className="mt-2 flex flex-wrap gap-1">

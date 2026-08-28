@@ -1,6 +1,8 @@
 import { guardPage } from "@/lib/rbac/guard-page"
 import { getSession } from "@/lib/auth/session"
-import { VIEWER_ROLE } from "@/lib/rbac/presets"
+import { authorize } from "@/lib/rbac/authorize"
+import { permissionsForRole } from "@/lib/rbac/session-permissions"
+import { visiblePages } from "@/lib/rbac/page-permissions"
 import { getDashboardData, buildTrendData, buildBreachSources, buildDataTypes } from "@/lib/dashboard"
 import { providerMeta } from "@/lib/credentials/providers"
 import { prisma } from "@/lib/prisma"
@@ -55,11 +57,15 @@ export default async function DashboardPage() {
     }),
     prisma.user.findUnique({
       where: { id: session!.user.id },
-      select: { activePresetId: true, role: { select: { name: true } } },
+      select: { activePresetId: true },
     }),
   ])
 
   let activePresetId = user?.activePresetId ?? null
+
+  const perms = await permissionsForRole(session!.user.roleId ?? null)
+  const canManageShared = authorize(perms, "dashboard:manage_shared")
+  const visible = visiblePages(perms)
 
   if (presets.length === 0) {
     const created = await prisma.dashboardPreset.create({
@@ -121,7 +127,7 @@ export default async function DashboardPage() {
   }
 
   const widgets: WidgetEntry[] = [
-    // ── Default visible ─────────────────────────────────────────────
+    // --- Default visible
     {
       instanceId: "stats-row",
       type: "stats-row",
@@ -203,7 +209,7 @@ export default async function DashboardPage() {
       minSize: { w: 3, h: 4 },
       content: <AlertsFeed data={data.recentAlerts} />,
     },
-    // ── Hidden by default — activate via Widget Library ──────────────
+    // --- Hidden by default: activate via Widget Library
     {
       instanceId: "risk-gauge",
       type: "risk-gauge",
@@ -319,7 +325,8 @@ export default async function DashboardPage() {
       widgets={widgets}
       presets={typedPresets}
       activePresetId={activePresetId}
-      userRole={user?.role?.name ?? VIEWER_ROLE}
+      canManageShared={canManageShared}
+      visible={visible}
       sourceOptions={sourceOptions}
     />
   )

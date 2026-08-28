@@ -14,7 +14,7 @@ import type {
   DirectoryUser,
 } from "./types"
 
-const BATCH_SIZE = 25 // borne la concurrence des écritures pour ne pas saturer le pool de connexions
+const BATCH_SIZE = 25 // caps write concurrency so the connection pool is not exhausted
 
 async function getUsersForConnection(
   type: string,
@@ -32,13 +32,13 @@ async function getUsersForConnection(
     case "OKTA":
       return fetchOktaUsers(decryptConfig<OktaConfig>(encryptedConfig))
     case "SCIM":
-      throw new Error("Les connexions SCIM sont en push, le sync est déclenché par votre IdP.")
+      throw new Error("SCIM connections are push-based: your IdP triggers the sync.")
     default:
-      throw new Error(`Type d'annuaire inconnu: ${type}`)
+      throw new Error(`Unknown directory type: ${type}`)
   }
 }
 
-// Ne met à jour que les champs réellement fournis : évite d'écraser des données existantes par "".
+// Only updates the fields actually supplied, so existing data is never overwritten with "".
 function buildUpdate(user: DirectoryUser): Record<string, string | boolean> {
   const update: Record<string, string | boolean> = {}
   if (user.firstName) update.firstName = user.firstName
@@ -83,7 +83,7 @@ export async function syncDirectoryConnection(
     throw e
   }
 
-  // Écriture par lots bornés plutôt qu'un round-trip séquentiel par utilisateur.
+  // Bounded batches rather than one sequential round-trip per user.
   for (let i = 0; i < users.length; i += BATCH_SIZE) {
     await Promise.all(users.slice(i, i + BATCH_SIZE).map((u) => upsertEmployee(u, companyId)))
   }

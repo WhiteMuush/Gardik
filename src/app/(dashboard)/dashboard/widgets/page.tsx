@@ -3,6 +3,8 @@ import { getSession } from "@/lib/auth/session"
 import { getDashboardData } from "@/lib/dashboard"
 import { prisma } from "@/lib/prisma"
 import { WIDGETS } from "@/lib/widgetRegistry"
+import { permissionsForRole } from "@/lib/rbac/session-permissions"
+import { visiblePages } from "@/lib/rbac/page-permissions"
 import { WidgetLibrary } from "@/components/dashboard/WidgetLibrary"
 import { DetailDrawerProvider } from "@/contexts/DetailDrawerContext"
 import { StatsRow } from "@/components/dashboard/StatsRow"
@@ -51,10 +53,15 @@ export default async function WidgetsPage() {
     }),
   ])
 
-  if (presets.length === 0) redirect("/dashboard")
+  // Nothing to customise. Through the root: dashboard:customize opens this
+  // page and does not imply dashboard:read.
+  if (presets.length === 0) redirect("/")
 
   const activePreset =
     presets.find((p) => p.id === user?.activePresetId) ?? presets[0]
+
+  const perms = await permissionsForRole(session!.user.roleId ?? null)
+  const visible = visiblePages(perms)
 
   const preset: DashboardPreset = {
     id: activePreset.id,
@@ -96,6 +103,7 @@ export default async function WidgetsPage() {
         preset={preset}
         allWidgets={WIDGETS}
         widgetPreviews={widgetPreviews}
+        visible={visible}
       />
     </DetailDrawerProvider>
   )

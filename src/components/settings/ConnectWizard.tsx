@@ -528,7 +528,7 @@ export function ConnectWizard({ onClose, onCreated }: Props) {
                   </code>
                 </div>
                 <p className="mt-1 text-xs text-muted-foreground">
-                  Copy this token now — it will not be shown again.
+                  Copy this token now, it will not be shown again.
                 </p>
               </div>
             </div>

@@ -22,12 +22,19 @@ type Step = {
 export function SetupChecklist({
   hasEmployees,
   hasApiKey,
-  isAdmin,
+  visible,
   children,
 }: {
   hasEmployees: boolean
   hasApiKey: boolean
-  isAdmin: boolean
+  /**
+   * Paths this role may open, resolved server-side from the same map the
+   * layout enforces. A step whose target is not in here keeps its title and
+   * description and loses only its link: the person should still learn what
+   * the company is missing, which is what the "managed by admins" note below
+   * then accounts for.
+   */
+  visible: string[]
   children?: React.ReactNode
 }) {
   const steps: Step[] = [
@@ -92,7 +99,7 @@ export function SetupChecklist({
                   </h3>
                 </div>
                 <p className="mt-1 text-sm text-muted-foreground">{step.description}</p>
-                {!step.done && (
+                {!step.done && visible.includes(step.href) && (
                   <Link
                     href={step.href}
                     className="mt-2 inline-flex items-center gap-1 text-sm font-medium text-sidebar-primary hover:underline"
@@ -106,7 +113,11 @@ export function SetupChecklist({
           ))}
         </ol>
 
-        {!isAdmin && (
+        {/* The explanation for the buttons that are not there, so it appears
+            exactly when one is missing. It used to be keyed on users:manage,
+            which governs neither the steps nor their links: a role holding it
+            without connectors:read saw stripped steps and no account of why. */}
+        {steps.some((step) => !step.done && !visible.includes(step.href)) && (
           <p className="mt-4 text-xs text-muted-foreground">
             Data sources and API keys are managed by admins. Ask an admin to complete the setup.
           </p>

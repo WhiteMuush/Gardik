@@ -59,7 +59,7 @@ export async function testAWSConnection(config: AWSDirectoryConfig): Promise<Tes
         MaxResults: 1,
       })
     )
-    // ListUsers doesn't return total count — fetch one page to verify access
+    // ListUsers doesn't return a total count, so fetch one page to verify access
     void DescribeUserCommand
     return { ok: true, userCount: res.Users?.length ?? 0 }
   } catch (e) {

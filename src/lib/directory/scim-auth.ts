@@ -15,7 +15,7 @@ export function checkScimRateLimit(connectionId: string): Promise<boolean> {
   return rateLimit(`scim:${connectionId}`, SCIM_RATE_LIMIT, SCIM_RATE_WINDOW_MS)
 }
 
-// Comparaison à temps constant pour neutraliser les attaques temporelles sur le token.
+// Constant-time comparison, so a timing attack cannot recover the token.
 function safeEqual(a: string, b: string): boolean {
   const bufA = Buffer.from(a)
   const bufB = Buffer.from(b)
@@ -23,8 +23,8 @@ function safeEqual(a: string, b: string): boolean {
   return timingSafeEqual(bufA, bufB)
 }
 
-// Authentifie une requête SCIM entrante via le bearer token de la connexion.
-// Renvoie le companyId associé, ou null (jamais d'exception) pour répondre 401.
+// Authenticates an inbound SCIM request against the connection's bearer token.
+// Returns the matching companyId, or null (never a throw) so the caller answers 401.
 export async function authenticateScim(
   req: Request,
   connectionId: string
@@ -42,6 +42,6 @@ export async function authenticateScim(
     const config = decryptConfig<SCIMConfig>(conn.encryptedConfig)
     return safeEqual(config.bearerToken, token) ? { companyId: conn.companyId } : null
   } catch {
-    return null // config illisible : 401 plutôt que 500
+    return null // unreadable config: answer 401 rather than 500
   }
 }

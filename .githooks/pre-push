@@ -16,3 +16,11 @@ sh "$lib/added-lines.sh" range "$base" | sh "$lib/check-ascii.sh" || {
   echo "CI compliance rejects these. Do not bypass with --no-verify."
   exit 1
 }
+
+echo "[pre-push] ascii-only (whole tree)"
+sh "$lib/check-ascii-tree.sh" || {
+  echo ""
+  echo "Push blocked: non-ASCII characters already in the tree."
+  echo "The added-lines check above cannot see them. Do not bypass with --no-verify."
+  exit 1
+}

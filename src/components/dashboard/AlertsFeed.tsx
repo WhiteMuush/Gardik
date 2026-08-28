@@ -96,11 +96,11 @@ export function AlertsFeed({ data }: { data: Alert[] }) {
               <div className={cn("size-1.5 shrink-0 rounded-full", SEVERITY_DOT[alert.severity])} />
               <div className="flex-1 min-w-0">
                 <p className="text-xs font-medium text-foreground truncate">
-                  {alert.employeeName ?? "—"}
+                  {alert.employeeName ?? "-"}
                 </p>
                 <p className="text-[11px] text-muted-foreground truncate">
                   {alert.breachName ?? alert.severity}
-                  {alert.department && <span className="text-muted-foreground/60"> · {alert.department}</span>}
+                  {alert.department && <span className="text-muted-foreground/60"> - {alert.department}</span>}
                 </p>
               </div>
               <div className="shrink-0 flex flex-col items-end gap-1">

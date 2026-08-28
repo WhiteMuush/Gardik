@@ -1,6 +1,6 @@
 import { createCipheriv, createDecipheriv, createHash, randomBytes } from "crypto"
 
-const IV_LENGTH = 12 // nonce recommandé pour AES-GCM
+const IV_LENGTH = 12 // recommended nonce length for AES-GCM
 const TAG_LENGTH = 16
 
 // sha256 normalizes any input length to exactly 32 bytes (AES-256 key).

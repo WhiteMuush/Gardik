@@ -1,7 +1,8 @@
 import { guardPage } from "@/lib/rbac/guard-page"
 import { getSession } from "@/lib/auth/session"
 import { prisma } from "@/lib/prisma"
-import { getUserPermissions, authorize } from "@/lib/rbac/authorize"
+import { authorize } from "@/lib/rbac/authorize"
+import { permissionsForRole } from "@/lib/rbac/session-permissions"
 import { DirectoryConnections } from "@/components/settings/DirectoryConnections"
 import { RemediationSettings } from "@/components/settings/RemediationSettings"
 import { SiemExport } from "@/components/settings/SiemExport"
@@ -12,7 +13,7 @@ export default async function SettingsPage() {
   if (denied) return denied
 
   const session = await getSession()
-  const perms = await getUserPermissions(prisma, session!.user.roleId ?? null)
+  const perms = await permissionsForRole(session!.user.roleId ?? null)
   const isAdmin = authorize(perms, "connectors:manage")
   const companyId = session!.user.companyId
 

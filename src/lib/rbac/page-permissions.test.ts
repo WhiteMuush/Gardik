@@ -1,8 +1,13 @@
 import { describe, it, expect } from "vitest"
 import { readdirSync, readFileSync, statSync } from "node:fs"
 import { join } from "node:path"
-import { PAGE_PERMISSIONS, requiredPermissionForPage } from "./page-permissions"
-import { isPermission } from "./permissions"
+import {
+  PAGE_PERMISSIONS,
+  requiredPermissionForPage,
+  visiblePages,
+  landingPath,
+} from "./page-permissions"
+import { isPermission, PERMISSIONS } from "./permissions"
 
 const DASHBOARD_DIR = join(process.cwd(), "src/app/(dashboard)")
 
@@ -79,5 +84,56 @@ describe("requiredPermissionForPage", () => {
   it("returns null for an undeclared path rather than guessing", () => {
     expect(requiredPermissionForPage("/brand-new-page")).toBeNull()
     expect(requiredPermissionForPage("/employeesx")).toBeNull()
+  })
+})
+
+describe("visiblePages", () => {
+  const AUTH_ONLY = Object.keys(PAGE_PERMISSIONS).filter(
+    (path) => PAGE_PERMISSIONS[path] === "AUTH_ONLY"
+  )
+  // Compared sorted: the contract is which paths come back, not the order
+  // PAGE_PERMISSIONS happens to declare them in.
+  const sorted = (paths: string[]) => [...paths].sort()
+
+  it("gives a role holding nothing only the pages about its own account", () => {
+    expect(sorted(visiblePages(new Set()))).toEqual(sorted(AUTH_ONLY))
+  })
+
+  it("adds the page a held permission opens", () => {
+    expect(sorted(visiblePages(new Set(["employees:read"])))).toEqual(
+      sorted(["/employees", ...AUTH_ONLY])
+    )
+  })
+
+  it("ignores a permission that guards no page", () => {
+    expect(sorted(visiblePages(new Set(["alerts:remediate"])))).toEqual(sorted(AUTH_ONLY))
+  })
+
+  it("gives every declared page to a role holding every permission", () => {
+    expect(sorted(visiblePages(new Set(PERMISSIONS)))).toEqual(
+      sorted(Object.keys(PAGE_PERMISSIONS))
+    )
+  })
+})
+
+describe("landingPath", () => {
+  it("sends a full role to the dashboard", () => {
+    expect(landingPath(new Set(PERMISSIONS))).toBe("/dashboard")
+  })
+
+  it("sends a role without dashboard:read to a page it can actually open", () => {
+    expect(landingPath(new Set(["alerts:read"]))).toBe("/alerts")
+  })
+
+  // Landing on the widget library is disorienting, and it is only reachable
+  // this way when a role holds dashboard:customize without dashboard:read,
+  // which is a misconfigured role rather than a case to design around.
+  it("skips a sub-page in favour of a section root", () => {
+    expect(landingPath(new Set(["dashboard:customize"]))).toBe("/security")
+  })
+
+  // A role granted nothing still has somewhere to be: its own account.
+  it("falls back to the caller's own pages when the role holds nothing", () => {
+    expect(landingPath(new Set())).toBe("/security")
   })
 })

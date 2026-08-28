@@ -1,7 +1,8 @@
 import { guardPage } from "@/lib/rbac/guard-page"
 import { getSession } from "@/lib/auth/session"
 import { prisma } from "@/lib/prisma"
-import { getUserPermissions, authorize } from "@/lib/rbac/authorize"
+import { authorize } from "@/lib/rbac/authorize"
+import { permissionsForRole } from "@/lib/rbac/session-permissions"
 import { Webhooks } from "@/components/credentials/Webhooks"
 import { ReportSchedules } from "@/components/reports/ReportSchedules"
 import { listWebhooks } from "@/lib/webhooks"
@@ -11,7 +12,7 @@ export default async function NotificationsPage() {
   if (denied) return denied
 
   const session = await getSession()
-  const perms = await getUserPermissions(prisma, session!.user.roleId ?? null)
+  const perms = await permissionsForRole(session!.user.roleId ?? null)
   const isAdmin = authorize(perms, "notifications:manage")
 
   const webhooks = await listWebhooks(session!.user.companyId)

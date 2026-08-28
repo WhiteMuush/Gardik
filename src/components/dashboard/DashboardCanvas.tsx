@@ -10,7 +10,6 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { ADMINISTRATOR } from "@/lib/rbac/presets"
 import { DashboardEditContext } from "@/contexts/DashboardEditContext"
 import { DashboardConfigContext } from "@/contexts/DashboardConfigContext"
 import { DetailDrawerProvider } from "@/contexts/DetailDrawerContext"
@@ -53,13 +52,23 @@ export function DashboardCanvas({
   widgets,
   presets: initialPresets,
   activePresetId: initialActivePresetId,
-  userRole,
+  canManageShared,
+  visible,
   sourceOptions = [],
 }: {
   widgets: WidgetEntry[]
   presets: DashboardPreset[]
   activePresetId: string | null
-  userRole: string
+  /**
+   * Mirrors dashboard:manage_shared, the permission the preset routes check
+   * themselves. This used to compare the role's name against "Administrator",
+   * which disagreed with the server in both directions: a custom role holding
+   * the permission was denied the control the API would have accepted, and a
+   * role merely named Administrator was shown one the API refuses.
+   */
+  canManageShared: boolean
+  /** Paths this role may open, resolved server-side. */
+  visible: string[]
   sourceOptions?: SourceOption[]
 }) {
   const router = useRouter()
@@ -367,7 +376,7 @@ export function DashboardCanvas({
   // Controlled layout fed to RGL via the `layouts` prop (not per-child data-grid,
   // which RGL only reads on first mount). Widgets with no saved position get
   // y: Infinity so vertical compaction drops them into the first free space.
-  // Note: we never set `static` here — drag/resize locking outside Customize is
+  // Note: we never set `static` here. Drag/resize locking outside Customize is
   // handled by isDraggable/isResizable={editing}. A `static` item is excluded from
   // compaction, which would make newly-added widgets overlap instead of flowing in.
   const rglLayout = visibleWidgets.map((w) => {
@@ -420,9 +429,8 @@ export function DashboardCanvas({
     [],
   )
 
-  const isAdmin = userRole === ADMINISTRATOR
   const canEditPreset = activePreset
-    ? activePreset.scope === "PERSONAL" || isAdmin
+    ? activePreset.scope === "PERSONAL" || canManageShared
     : false
 
   // Editing always renders at 1x so RGL's drag/resize pointer math stays correct.
@@ -435,7 +443,7 @@ export function DashboardCanvas({
       <DashboardConfigContext.Provider value={{ getTitle, setTitle, editing, requestRows }}>
         <div className="flex flex-1 flex-col min-h-0">
 
-          {/* ── Toolbar ─────────────────────────────────────────────────── */}
+          {/* --- Toolbar */}
           <div className="flex shrink-0 items-center gap-2 border-b border-border px-4 py-2">
 
             {/* Preset tabs */}
@@ -445,8 +453,8 @@ export function DashboardCanvas({
                   key={p.id}
                   preset={p}
                   active={p.id === activePreset?.id}
-                  canDelete={presets.length > 1 && (p.scope === "PERSONAL" || isAdmin)}
-                  canRename={p.scope === "PERSONAL" || isAdmin}
+                  canDelete={presets.length > 1 && (p.scope === "PERSONAL" || canManageShared)}
+                  canRename={p.scope === "PERSONAL" || canManageShared}
                   onClick={() => switchPreset(p)}
                   onRename={(name) => renamePreset(p.id, name)}
                   onDelete={() => deletePreset(p.id)}
@@ -454,16 +462,16 @@ export function DashboardCanvas({
               ))}
             </div>
 
-            {/* New preset button — outside overflow container to avoid clipping */}
+            {/* New preset button, outside the overflow container to avoid clipping */}
             <div ref={addMenuRef} className="relative shrink-0">
               <button
-                onClick={() => isAdmin ? setAddMenuOpen((o) => !o) : createPreset("PERSONAL")}
+                onClick={() => canManageShared ? setAddMenuOpen((o) => !o) : createPreset("PERSONAL")}
                 className="flex h-8 w-8 items-center justify-center rounded-md text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
                 title="Add preset"
               >
                 <Plus className="size-3.5" />
               </button>
-              {addMenuOpen && isAdmin && (
+              {addMenuOpen && canManageShared && (
                 <div className="absolute left-0 top-full z-50 mt-1 min-w-[160px] rounded-md border border-border bg-popover shadow-md">
                   <button
                     onClick={() => { createPreset("PERSONAL"); setAddMenuOpen(false) }}
@@ -488,15 +496,17 @@ export function DashboardCanvas({
               {editing && (
                 <>
                   <p className="text-xs text-muted-foreground">
-                    Drag · Resize · Rename
+                    Drag - Resize - Rename
                   </p>
-                  <Link
-                    href="/dashboard/widgets"
-                    className="flex h-8 items-center gap-1.5 rounded-md border border-border px-3 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-                  >
-                    <LayoutGrid className="size-3.5" />
-                    Library
-                  </Link>
+                  {visible.includes("/dashboard/widgets") && (
+                    <Link
+                      href="/dashboard/widgets"
+                      className="flex h-8 items-center gap-1.5 rounded-md border border-border px-3 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
+                    >
+                      <LayoutGrid className="size-3.5" />
+                      Library
+                    </Link>
+                  )}
                   <button
                     onClick={reset}
                     disabled={!canEditPreset}
@@ -527,7 +537,7 @@ export function DashboardCanvas({
             </div>
           </div>
 
-          {/* ── Scrollable grid ──────────────────────────────────────────── */}
+          {/* --- Scrollable grid */}
           <div
             ref={containerRef}
             className={cn(
@@ -639,7 +649,7 @@ export function DashboardCanvas({
                       )}
                       {editing && (
                         <>
-                          {/* Dedicated drag handle — the only place that starts a drag,
+                          {/* Dedicated drag handle: the only place that starts a drag,
                               so chart tooltips and in-widget settings stay clickable. */}
                           <button
                             type="button"

@@ -24,7 +24,7 @@ export function TopBreaches({ data }: { data: BreachSource[] }) {
   const sorted = [...data]
     .sort((a, b) => b.affectedEmployees - a.affectedEmployees)
     .slice(0, 8)
-    .map((b) => ({ ...b, shortName: b.name.length > 20 ? b.name.slice(0, 18) + "…" : b.name }))
+    .map((b) => ({ ...b, shortName: b.name.length > 20 ? b.name.slice(0, 18) + "..." : b.name }))
 
   const isEmpty = sorted.length === 0
 

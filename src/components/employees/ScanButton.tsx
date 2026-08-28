@@ -39,13 +39,13 @@ export function ScanButton() {
     <div className="flex items-center gap-3">
       {result && (
         <p className="text-xs text-muted-foreground">
-          {result.scanned} scanned · {result.newRecords} new exposure{result.newRecords !== 1 ? "s" : ""} · {result.newAlerts} alert{result.newAlerts !== 1 ? "s" : ""} created
+          {result.scanned} scanned - {result.newRecords} new exposure{result.newRecords !== 1 ? "s" : ""} - {result.newAlerts} alert{result.newAlerts !== 1 ? "s" : ""} created
         </p>
       )}
       {error && <p className="text-xs text-destructive">{error}</p>}
       <Button variant="outline" size="sm" onClick={scan} disabled={loading} className="gap-1.5">
         {loading ? <Loader2 className="size-3.5 animate-spin" /> : <ScanSearch className="size-3.5" />}
-        {loading ? "Scanning…" : "Scan employees"}
+        {loading ? "Scanning..." : "Scan employees"}
       </Button>
     </div>
   )
