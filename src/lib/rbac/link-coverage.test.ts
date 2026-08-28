@@ -108,6 +108,27 @@ describe("link -> permission coverage", () => {
     ).toEqual([])
   })
 
+  // The other way to put someone in front of a refusal, and the one the href
+  // rule above cannot see: sending them there in code. Signing in used to do
+  // exactly this, hardcoding /dashboard for a role that might not hold
+  // dashboard:read. The site root resolves the destination from the role now,
+  // so a redirect to a gated page is always the wrong instrument.
+  it("never sends someone to a gated page in code", () => {
+    const NAVIGATION = /(?:redirect|router\.(?:push|replace))\(\s*["'`](\/[^"'`\s]*)["'`]/g
+    const offenders: string[] = []
+    for (const file of tsxFiles(SRC)) {
+      const source = readFileSync(file, "utf8")
+      for (const match of source.matchAll(NAVIGATION)) {
+        const path = match[1].split(/[?#]/)[0]
+        if (isGatedPage(path)) offenders.push(`${relative(SRC, file)} -> ${path}`)
+      }
+    }
+    expect(
+      offenders,
+      `Redirects to a permission-gated page, route through "/" instead: ${offenders.join(", ")}`
+    ).toEqual([])
+  })
+
   it("every declared API link names the permission its route actually enforces", () => {
     for (const [file, permission] of Object.entries(API_LINK_PERMISSIONS)) {
       const enforced = apiLinks(readFileSync(join(SRC, file), "utf8")).map((path) =>

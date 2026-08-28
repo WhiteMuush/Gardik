@@ -1,7 +1,6 @@
 import { redirect } from "next/navigation"
 import { getSession } from "@/lib/auth/session"
-import { prisma } from "@/lib/prisma"
-import { getUserPermissions } from "@/lib/rbac/authorize"
+import { permissionsForRole } from "@/lib/rbac/session-permissions"
 import { landingPath } from "@/lib/rbac/page-permissions"
 
 // The one place that decides where a signed-in person starts. Every path that
@@ -11,6 +10,6 @@ export default async function Home() {
   const session = await getSession()
   if (!session) redirect("/login")
 
-  const perms = await getUserPermissions(prisma, session.user.roleId ?? null)
+  const perms = await permissionsForRole(session.user.roleId ?? null)
   redirect(landingPath(perms))
 }

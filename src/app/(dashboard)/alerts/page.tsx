@@ -1,7 +1,8 @@
 import { guardPage } from "@/lib/rbac/guard-page"
 import { getSession } from "@/lib/auth/session"
 import { prisma } from "@/lib/prisma"
-import { getUserPermissions, authorize } from "@/lib/rbac/authorize"
+import { authorize } from "@/lib/rbac/authorize"
+import { permissionsForRole } from "@/lib/rbac/session-permissions"
 import { getAlerts } from "@/lib/alerts"
 import { AlertTable } from "@/components/alerts/AlertTable"
 
@@ -14,7 +15,7 @@ export default async function AlertsPage() {
   const [alerts, company, perms] = await Promise.all([
     getAlerts(companyId),
     prisma.company.findUnique({ where: { id: companyId }, select: { remediationEnabled: true } }),
-    getUserPermissions(prisma, session!.user.roleId ?? null),
+    permissionsForRole(session!.user.roleId ?? null),
   ])
 
   return (

@@ -7,7 +7,8 @@ import { RoutePrefetcher } from "@/components/layout/RoutePrefetcher"
 import { NoAccess } from "@/components/layout/NoAccess"
 import { getOpenAlertCount } from "@/lib/alerts"
 import { needsTwoFactorEnrollment } from "@/lib/auth/two-factor-gate"
-import { getUserPermissions, authorize } from "@/lib/rbac/authorize"
+import { authorize } from "@/lib/rbac/authorize"
+import { permissionsForRole } from "@/lib/rbac/session-permissions"
 import { requiredPermissionForPage, visiblePages } from "@/lib/rbac/page-permissions"
 
 export default async function DashboardLayout({
@@ -54,7 +55,7 @@ export default async function DashboardLayout({
   // still covered, and a page nobody registered is refused rather than left
   // open. Pages keep their finer-grained checks for what to draw once inside.
   const pathname = (await headers()).get("x-pathname") ?? ""
-  const perms = await getUserPermissions(prisma, session.user.roleId ?? null)
+  const perms = await permissionsForRole(session.user.roleId ?? null)
   const may = (permission: ReturnType<typeof requiredPermissionForPage>) =>
     permission !== null && (permission === "AUTH_ONLY" || authorize(perms, permission))
 
@@ -67,7 +68,7 @@ export default async function DashboardLayout({
 
   return (
     <>
-      <RoutePrefetcher />
+      <RoutePrefetcher visible={visible} />
       <DashboardShell openAlerts={openAlerts} visible={visible}>
         {may(requiredPermissionForPage(pathname)) ? children : <NoAccess />}
       </DashboardShell>

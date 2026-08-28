@@ -1,7 +1,7 @@
 import { redirect } from "next/navigation"
 import { getSession } from "@/lib/auth/session"
-import { prisma } from "@/lib/prisma"
-import { getUserPermissions, authorize } from "@/lib/rbac/authorize"
+import { authorize } from "@/lib/rbac/authorize"
+import { permissionsForRole } from "@/lib/rbac/session-permissions"
 import { guardPage } from "@/lib/rbac/guard-page"
 import { RolesManager } from "@/components/rbac/RolesManager"
 import { UserCreateForm } from "@/components/rbac/UserCreateForm"
@@ -15,7 +15,7 @@ export default async function AccessPage() {
 
   const session = await getSession()
   if (!session) redirect("/login")
-  const perms = await getUserPermissions(prisma, session.user.roleId ?? null)
+  const perms = await permissionsForRole(session.user.roleId ?? null)
 
   // users:manage, not users:read: the section exists only to reassign roles, and
   // READ_ONLY grants every ":read" permission, so gating on read would show a

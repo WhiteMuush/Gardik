@@ -1,6 +1,7 @@
 import { guardPage } from "@/lib/rbac/guard-page"
 import { getSession } from "@/lib/auth/session"
-import { getUserPermissions, authorize } from "@/lib/rbac/authorize"
+import { authorize } from "@/lib/rbac/authorize"
+import { permissionsForRole } from "@/lib/rbac/session-permissions"
 import { visiblePages } from "@/lib/rbac/page-permissions"
 import { getDashboardData, buildTrendData, buildBreachSources, buildDataTypes } from "@/lib/dashboard"
 import { providerMeta } from "@/lib/credentials/providers"
@@ -62,7 +63,7 @@ export default async function DashboardPage() {
 
   let activePresetId = user?.activePresetId ?? null
 
-  const perms = await getUserPermissions(prisma, session!.user.roleId ?? null)
+  const perms = await permissionsForRole(session!.user.roleId ?? null)
   const canManageShared = authorize(perms, "dashboard:manage_shared")
   const visible = visiblePages(perms)
 

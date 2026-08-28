@@ -1,7 +1,7 @@
 import { guardPage } from "@/lib/rbac/guard-page"
 import { getSession } from "@/lib/auth/session"
-import { prisma } from "@/lib/prisma"
-import { getUserPermissions, authorize } from "@/lib/rbac/authorize"
+import { authorize } from "@/lib/rbac/authorize"
+import { permissionsForRole } from "@/lib/rbac/session-permissions"
 import { listRegister } from "@/lib/register"
 import { ExposureRegister } from "@/components/register/ExposureRegister"
 
@@ -10,7 +10,7 @@ export default async function RegisterPage() {
   if (denied) return denied
 
   const session = await getSession()
-  const perms = await getUserPermissions(prisma, session!.user.roleId ?? null)
+  const perms = await permissionsForRole(session!.user.roleId ?? null)
   const isAdmin = authorize(perms, "register:manage")
   const canDownloadEvidence = authorize(perms, "register:evidence")
   const entries = await listRegister(session!.user.companyId)

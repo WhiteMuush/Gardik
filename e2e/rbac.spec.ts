@@ -148,6 +148,17 @@ test("a read-only role is offered no control it cannot use", async ({ page }) =>
   await page.goto("/dashboard")
   await page.getByRole("button", { name: "Customize" }).click()
   await expect(page.getByRole("link", { name: "Library" })).toHaveCount(0)
+
+  // dashboard:manage_shared, the one change on this branch that alters what a
+  // role may do rather than only what it is shown. The client used to decide
+  // this by comparing the role's name to "Administrator" while the preset
+  // routes check the permission, so the two could disagree in both directions.
+  // Without it the button makes a personal preset outright and never offers the
+  // company scope, which is what the API would refuse. That click is a real
+  // write, and the extra personal preset it leaves behind is the price of
+  // testing the branch that has no menu to inspect.
+  await page.getByTitle("Add preset").click()
+  await expect(page.getByText("Company preset")).toHaveCount(0)
 })
 
 test("an admin is offered the same controls, so the selectors above mean something", async ({
@@ -165,4 +176,9 @@ test("an admin is offered the same controls, so the selectors above mean somethi
   await page.goto("/dashboard")
   await page.getByRole("button", { name: "Customize" }).click()
   await expect(page.getByRole("link", { name: "Library" })).toBeVisible()
+
+  // Holding dashboard:manage_shared, the same button opens the scope menu
+  // instead of writing anything.
+  await page.getByTitle("Add preset").click()
+  await expect(page.getByText("Company preset")).toBeVisible()
 })
