@@ -1,7 +1,12 @@
 import { describe, it, expect } from "vitest"
 import { readdirSync, readFileSync, statSync } from "node:fs"
 import { join } from "node:path"
-import { PAGE_PERMISSIONS, requiredPermissionForPage, visiblePages } from "./page-permissions"
+import {
+  PAGE_PERMISSIONS,
+  requiredPermissionForPage,
+  visiblePages,
+  landingPath,
+} from "./page-permissions"
 import { isPermission, PERMISSIONS } from "./permissions"
 
 const DASHBOARD_DIR = join(process.cwd(), "src/app/(dashboard)")
@@ -108,5 +113,27 @@ describe("visiblePages", () => {
     expect(sorted(visiblePages(new Set(PERMISSIONS)))).toEqual(
       sorted(Object.keys(PAGE_PERMISSIONS))
     )
+  })
+})
+
+describe("landingPath", () => {
+  it("sends a full role to the dashboard", () => {
+    expect(landingPath(new Set(PERMISSIONS))).toBe("/dashboard")
+  })
+
+  it("sends a role without dashboard:read to a page it can actually open", () => {
+    expect(landingPath(new Set(["alerts:read"]))).toBe("/alerts")
+  })
+
+  // Landing on the widget library is disorienting, and it is only reachable
+  // this way when a role holds dashboard:customize without dashboard:read,
+  // which is a misconfigured role rather than a case to design around.
+  it("skips a sub-page in favour of a section root", () => {
+    expect(landingPath(new Set(["dashboard:customize"]))).toBe("/security")
+  })
+
+  // A role granted nothing still has somewhere to be: its own account.
+  it("falls back to the caller's own pages when the role holds nothing", () => {
+    expect(landingPath(new Set())).toBe("/security")
   })
 })

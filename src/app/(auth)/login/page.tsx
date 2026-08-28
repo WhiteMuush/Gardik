@@ -94,10 +94,13 @@ export default function LoginPage() {
   }, [])
 
   // Every successful path funnels through here so the transition screen is the
-  // single thing standing between authentication and the dashboard.
+  // single thing standing between authentication and the workspace. The root
+  // resolves where that is: this component cannot know which pages the role
+  // holds, and hardcoding /dashboard sent a role without dashboard:read to a
+  // refusal as the first thing it saw after signing in.
   function enterWorkspace() {
     setEntering(true)
-    router.push("/dashboard")
+    router.push("/")
   }
 
   function chooseEmail() {

@@ -21,7 +21,9 @@ export default async function SetupPage() {
     prisma.apiCredential.count({ where: { companyId } }),
   ])
 
-  if (employeeCount > 0 || apiKeyCount > 0) redirect("/dashboard")
+  // Onboarding is over. Through the root, because a role that reaches this
+  // page is not guaranteed to hold dashboard:read.
+  if (employeeCount > 0 || apiKeyCount > 0) redirect("/")
 
   return (
     <SetupChecklist

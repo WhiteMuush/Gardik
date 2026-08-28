@@ -35,8 +35,9 @@ export default async function SecurePage() {
     userHasPassword: credential !== null,
   })
 
-  // Nothing owed: this page has no reason to exist for this user.
-  if (!mustChangePassword && !mustEnrollTwoFactor) redirect("/dashboard")
+  // Nothing owed: this page has no reason to exist for this user. The root
+  // decides where they belong instead, since not every role opens /dashboard.
+  if (!mustChangePassword && !mustEnrollTwoFactor) redirect("/")
 
   return (
     <div className="flex min-h-screen items-center justify-center p-6">
