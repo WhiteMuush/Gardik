@@ -46,3 +46,18 @@ export function requiredPermissionForPage(pathname: string): Permission | "AUTH_
   }
   return best?.permission ?? null
 }
+
+/**
+ * The declared paths a permission set may open, in declaration order.
+ *
+ * The dashboard layout resolves this once per request and hands the result to
+ * every component that renders links, so no client component re-derives the
+ * rule and the two copies cannot drift. AUTH_ONLY counts as satisfied: those
+ * pages are about the caller's own account rather than the company's data.
+ */
+export function visiblePages(perms: ReadonlySet<string>): string[] {
+  return Object.keys(PAGE_PERMISSIONS).filter((path) => {
+    const permission = PAGE_PERMISSIONS[path]
+    return permission === "AUTH_ONLY" || perms.has(permission)
+  })
+}

@@ -1,8 +1,8 @@
 import { describe, it, expect } from "vitest"
 import { readdirSync, readFileSync, statSync } from "node:fs"
 import { join } from "node:path"
-import { PAGE_PERMISSIONS, requiredPermissionForPage } from "./page-permissions"
-import { isPermission } from "./permissions"
+import { PAGE_PERMISSIONS, requiredPermissionForPage, visiblePages } from "./page-permissions"
+import { isPermission, PERMISSIONS } from "./permissions"
 
 const DASHBOARD_DIR = join(process.cwd(), "src/app/(dashboard)")
 
@@ -79,5 +79,34 @@ describe("requiredPermissionForPage", () => {
   it("returns null for an undeclared path rather than guessing", () => {
     expect(requiredPermissionForPage("/brand-new-page")).toBeNull()
     expect(requiredPermissionForPage("/employeesx")).toBeNull()
+  })
+})
+
+describe("visiblePages", () => {
+  const AUTH_ONLY = Object.keys(PAGE_PERMISSIONS).filter(
+    (path) => PAGE_PERMISSIONS[path] === "AUTH_ONLY"
+  )
+  // Compared sorted: the contract is which paths come back, not the order
+  // PAGE_PERMISSIONS happens to declare them in.
+  const sorted = (paths: string[]) => [...paths].sort()
+
+  it("gives a role holding nothing only the pages about its own account", () => {
+    expect(sorted(visiblePages(new Set()))).toEqual(sorted(AUTH_ONLY))
+  })
+
+  it("adds the page a held permission opens", () => {
+    expect(sorted(visiblePages(new Set(["employees:read"])))).toEqual(
+      sorted(["/employees", ...AUTH_ONLY])
+    )
+  })
+
+  it("ignores a permission that guards no page", () => {
+    expect(sorted(visiblePages(new Set(["alerts:remediate"])))).toEqual(sorted(AUTH_ONLY))
+  })
+
+  it("gives every declared page to a role holding every permission", () => {
+    expect(sorted(visiblePages(new Set(PERMISSIONS)))).toEqual(
+      sorted(Object.keys(PAGE_PERMISSIONS))
+    )
   })
 })

@@ -1,6 +1,7 @@
 import { guardPage } from "@/lib/rbac/guard-page"
 import { getSession } from "@/lib/auth/session"
 import { prisma } from "@/lib/prisma"
+import { getUserPermissions, authorize } from "@/lib/rbac/authorize"
 import { getReportData } from "@/lib/reports"
 import { parseReportFilters, filtersToQuery } from "@/lib/reports/filters"
 import { PRESET_DATA_TYPES } from "@/lib/dataTypes"
@@ -27,6 +28,9 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
 
   const session = await getSession()
   const companyId = session!.user.companyId
+
+  const perms = await getUserPermissions(prisma, session!.user.roleId ?? null)
+  const canExport = authorize(perms, "reports:export")
 
   const sp = await searchParams
   const params = new URLSearchParams()
@@ -71,7 +75,7 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
           <h2 className="text-lg font-semibold text-foreground">Reports</h2>
           <p className="text-sm text-muted-foreground">Exposure, employees, trends and compliance overview</p>
         </div>
-        <ReportToolbar generatedAt={data.generatedAt} filterQuery={filterQuery} />
+        <ReportToolbar generatedAt={data.generatedAt} filterQuery={filterQuery} canExport={canExport} />
       </div>
 
       <div className="no-print mb-4">

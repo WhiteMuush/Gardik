@@ -3,6 +3,8 @@ import { getSession } from "@/lib/auth/session"
 import { getDashboardData } from "@/lib/dashboard"
 import { prisma } from "@/lib/prisma"
 import { WIDGETS } from "@/lib/widgetRegistry"
+import { getUserPermissions } from "@/lib/rbac/authorize"
+import { visiblePages } from "@/lib/rbac/page-permissions"
 import { WidgetLibrary } from "@/components/dashboard/WidgetLibrary"
 import { DetailDrawerProvider } from "@/contexts/DetailDrawerContext"
 import { StatsRow } from "@/components/dashboard/StatsRow"
@@ -56,6 +58,9 @@ export default async function WidgetsPage() {
   const activePreset =
     presets.find((p) => p.id === user?.activePresetId) ?? presets[0]
 
+  const perms = await getUserPermissions(prisma, session!.user.roleId ?? null)
+  const visible = visiblePages(perms)
+
   const preset: DashboardPreset = {
     id: activePreset.id,
     name: activePreset.name,
@@ -96,6 +101,7 @@ export default async function WidgetsPage() {
         preset={preset}
         allWidgets={WIDGETS}
         widgetPreviews={widgetPreviews}
+        visible={visible}
       />
     </DetailDrawerProvider>
   )

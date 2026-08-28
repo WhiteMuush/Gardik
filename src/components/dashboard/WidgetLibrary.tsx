@@ -57,10 +57,16 @@ export function WidgetLibrary({
   preset,
   allWidgets,
   widgetPreviews,
+  visible,
 }: {
   preset: DashboardPreset
   allWidgets: WidgetDef[]
   widgetPreviews: Record<string, ReactNode>
+  /**
+   * Paths this role may open. Reaching this page needs dashboard:customize,
+   * which does not imply dashboard:read, so the way back is not guaranteed.
+   */
+  visible: string[]
 }) {
   const [metas, setMetas] = useState<WidgetMeta[]>(preset.widgets)
   const [isPending, startTransition] = useTransition()
@@ -93,14 +99,18 @@ export function WidgetLibrary({
       <div className="shrink-0 border-b border-border bg-card px-6 py-4">
         <div className="flex items-center justify-between">
           <div className="flex items-center gap-3">
-            <Link
-              href="/dashboard"
-              className="flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
-            >
-              <ArrowLeft className="size-3.5" />
-              Back to dashboard
-            </Link>
-            <span className="text-muted-foreground">-</span>
+            {visible.includes("/dashboard") && (
+              <>
+                <Link
+                  href="/dashboard"
+                  className="flex items-center gap-1.5 text-xs text-muted-foreground transition-colors hover:text-foreground"
+                >
+                  <ArrowLeft className="size-3.5" />
+                  Back to dashboard
+                </Link>
+                <span className="text-muted-foreground">-</span>
+              </>
+            )}
             <h1 className="text-sm font-semibold text-foreground">Widget Library</h1>
           </div>
           <div className="flex items-center gap-2">

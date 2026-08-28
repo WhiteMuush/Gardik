@@ -21,7 +21,20 @@ function formatTimestamp(iso: string): string {
   })
 }
 
-export function ReportToolbar({ generatedAt, filterQuery = "" }: { generatedAt: string; filterQuery?: string }) {
+export function ReportToolbar({
+  generatedAt,
+  filterQuery = "",
+  canExport,
+}: {
+  generatedAt: string
+  filterQuery?: string
+  /**
+   * Mirrors reports:export, which /api/reports/export enforces. Without it
+   * both controls below lead to a 403, so neither is offered. The generated
+   * timestamp stays: it is information, not an action.
+   */
+  canExport: boolean
+}) {
   const [open, setOpen] = useState(false)
   const suffix = filterQuery ? `&${filterQuery}` : ""
 
@@ -30,44 +43,48 @@ export function ReportToolbar({ generatedAt, filterQuery = "" }: { generatedAt: 
       <span className="mr-1 hidden text-xs text-muted-foreground sm:inline">
         Generated {formatTimestamp(generatedAt)}
       </span>
-      <div className="relative">
-        <Button variant="outline" size="sm" onClick={() => setOpen((o) => !o)}>
-          <Download className="size-3.5" />
-          CSV
-          <ChevronDown className="size-3" />
-        </Button>
-        {open && (
-          <>
-            <button
-              type="button"
-              aria-label="Close export menu"
-              className="fixed inset-0 z-10 cursor-default"
-              onClick={() => setOpen(false)}
-            />
-            <div className="absolute right-0 top-full z-20 mt-1 w-44 rounded-lg border border-border bg-card p-1 shadow-md">
-              {CSV_SECTIONS.map((s) => (
-                <a
-                  key={s.key}
-                  href={`/api/reports/export?section=${s.key}${suffix}`}
-                  download
+      {canExport && (
+        <>
+          <div className="relative">
+            <Button variant="outline" size="sm" onClick={() => setOpen((o) => !o)}>
+              <Download className="size-3.5" />
+              CSV
+              <ChevronDown className="size-3" />
+            </Button>
+            {open && (
+              <>
+                <button
+                  type="button"
+                  aria-label="Close export menu"
+                  className="fixed inset-0 z-10 cursor-default"
                   onClick={() => setOpen(false)}
-                  className="block rounded-md px-2.5 py-1.5 text-sm text-foreground hover:bg-muted"
-                >
-                  {s.label}
-                </a>
-              ))}
-            </div>
-          </>
-        )}
-      </div>
-      <a
-        href={`/api/reports/export?format=pdf&section=all${suffix}`}
-        download
-        className={buttonVariants({ variant: "outline", size: "sm" })}
-      >
-        <Printer className="size-3.5" />
-        PDF
-      </a>
+                />
+                <div className="absolute right-0 top-full z-20 mt-1 w-44 rounded-lg border border-border bg-card p-1 shadow-md">
+                  {CSV_SECTIONS.map((s) => (
+                    <a
+                      key={s.key}
+                      href={`/api/reports/export?section=${s.key}${suffix}`}
+                      download
+                      onClick={() => setOpen(false)}
+                      className="block rounded-md px-2.5 py-1.5 text-sm text-foreground hover:bg-muted"
+                    >
+                      {s.label}
+                    </a>
+                  ))}
+                </div>
+              </>
+            )}
+          </div>
+          <a
+            href={`/api/reports/export?format=pdf&section=all${suffix}`}
+            download
+            className={buttonVariants({ variant: "outline", size: "sm" })}
+          >
+            <Printer className="size-3.5" />
+            PDF
+          </a>
+        </>
+      )}
     </div>
   )
 }
