@@ -15,23 +15,27 @@ function routeFiles(dir: string, base = ""): { key: string; file: string }[] {
   return out
 }
 
-const MUTATING = /export\s+async\s+function\s+(POST|PATCH|PUT|DELETE)/
+// Every exported handler, not only the mutating ones. Reading is the half
+// that leaks: a GET serves the company's data, and the first version of this
+// test could not see one. A route file with no entry in ROUTE_PERMISSIONS is
+// the omission this catches, whichever verb it answers.
+const HANDLER = /export\s+async\s+function\s+(GET|POST|PATCH|PUT|DELETE)/
 
 describe("route->permission coverage", () => {
-  it("every mutating API route declares a permission (or is explicitly PUBLIC/AUTH_ONLY)", () => {
+  it("every API route declares a permission (or is explicitly PUBLIC/AUTH_ONLY)", () => {
     const missing: string[] = []
     for (const { key, file } of routeFiles(API_DIR)) {
-      if (!MUTATING.test(readFileSync(file, "utf8"))) continue
+      if (!HANDLER.test(readFileSync(file, "utf8"))) continue
       if (!(key in ROUTE_PERMISSIONS)) missing.push(key)
     }
-    expect(missing, `Unregistered mutating routes: ${missing.join(", ")}`).toEqual([])
+    expect(missing, `Unregistered routes: ${missing.join(", ")}`).toEqual([])
   })
 
-  // The gap that let eight read endpoints serve the company's data to a role
-  // holding nothing: the checks above only ever looked at mutating handlers, so
-  // a GET could sit on requireAuth (any valid session) while the POST beside it
-  // demanded a permission, and nothing noticed. Pages were fixed; the APIs
-  // behind them were not.
+  // What let eight read endpoints serve the company's data to a role holding
+  // nothing: a GET could sit on requireAuth (any valid session) while the POST
+  // beside it demanded a permission, and nothing noticed. Pages were fixed; the
+  // APIs behind them were not. The check above now reads every verb, so an
+  // undeclared route is caught whichever one it answers.
   it("a route that declares a permission never falls back to a bare session check", () => {
     // Two endpoints authenticate on their own terms and are documented as
     // doing so: minting a step-up grant, and setting a new password under a

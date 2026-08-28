@@ -24,6 +24,7 @@ export const ROUTE_PERMISSIONS: Record<string, Permission | "PUBLIC" | "AUTH_ONL
 
   "alerts/[id]": "alerts:status",
   "alerts/[id]/remediate": "alerts:remediate",
+  "audit": "audit:read",
   "company": "policy:manage",
   "company/auth-policy": "policy:manage",
   "credentials": "api_credentials:manage",
