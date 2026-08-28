@@ -84,7 +84,7 @@ export function CriticalAlertsList({ data }: { data: UrgentAlert[] }) {
                     </span>
                   )}
                 </p>
-                <p className="truncate text-[11px] text-muted-foreground">{alert.breachName ?? "—"}</p>
+                <p className="truncate text-[11px] text-muted-foreground">{alert.breachName ?? "-"}</p>
               </div>
               <span className="shrink-0 text-[10px] text-muted-foreground whitespace-nowrap">
                 {new Date(alert.createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })}

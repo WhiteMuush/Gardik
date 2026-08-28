@@ -18,7 +18,8 @@ function extractEmail(user: SCIMUser): string | null {
   return (primary ?? user.emails?.[0]?.value ?? user.userName ?? null)?.toLowerCase() ?? null
 }
 
-// Extrait la valeur de `userName eq "..."` du filtre SCIM (le seul filtre émis par les IdP au provisioning).
+// Extracts the value of `userName eq "..."` from the SCIM filter, the only
+// filter an IdP emits while provisioning.
 function parseUserNameFilter(filter: string | null): string | undefined {
   return filter?.match(/userName\s+eq\s+"([^"]+)"/i)?.[1]?.toLowerCase()
 }
@@ -37,7 +38,7 @@ export async function POST(
   const email = extractEmail(body)
   if (!email) return NextResponse.json({ status: 400, detail: "No email found" }, { status: 400 })
 
-  // Un POST avec active=false ne crée rien : on acquitte sans corps.
+  // A POST carrying active=false creates nothing: acknowledge with an empty body.
   if (body.active === false) return new NextResponse(null, { status: 204 })
 
   const employee = await prisma.employee.upsert({
@@ -80,7 +81,7 @@ export async function GET(
   const startIndex = Math.max(1, parseInt(url.searchParams.get("startIndex") ?? "1", 10))
   const count = Math.min(MAX_PAGE, Math.max(0, parseInt(url.searchParams.get("count") ?? "100", 10)))
 
-  // Le filtre doit être appliqué côté serveur, sinon le matching de provisioning de l'IdP casse.
+  // The filter has to be applied server-side, or the IdP's provisioning match breaks.
   const where = { companyId: ctx.companyId, ...(email ? { email } : {}) }
 
   const [totalResults, employees] = await Promise.all([

@@ -22,7 +22,7 @@ async function getToken(config: GoogleWorkspaceConfig, scope: string = READONLY_
 
   const sign = createSign("RSA-SHA256")
   sign.update(`${header}.${payload}`)
-  // privateKey may arrive with literal \n — normalize them
+  // privateKey may arrive with literal \n, so normalize them
   const privateKey = config.privateKey.replace(/\\n/g, "\n")
   const signature = sign.sign(privateKey, "base64url")
 

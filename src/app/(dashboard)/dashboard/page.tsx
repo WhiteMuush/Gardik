@@ -121,7 +121,7 @@ export default async function DashboardPage() {
   }
 
   const widgets: WidgetEntry[] = [
-    // ── Default visible ─────────────────────────────────────────────
+    // --- Default visible
     {
       instanceId: "stats-row",
       type: "stats-row",
@@ -203,7 +203,7 @@ export default async function DashboardPage() {
       minSize: { w: 3, h: 4 },
       content: <AlertsFeed data={data.recentAlerts} />,
     },
-    // ── Hidden by default — activate via Widget Library ──────────────
+    // --- Hidden by default: activate via Widget Library
     {
       instanceId: "risk-gauge",
       type: "risk-gauge",

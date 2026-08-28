@@ -119,7 +119,7 @@ export function ApiCredentials({ initial, isAdmin }: Props) {
                   <div className="mt-3 flex items-center gap-2">
                     <PasswordInput
                       autoComplete="off"
-                      placeholder={cred ? "Replace key…" : "Paste API key…"}
+                      placeholder={cred ? "Replace key..." : "Paste API key..."}
                       value={drafts[meta.id] ?? ""}
                       onChange={(e) =>
                         setDrafts((prev) => ({ ...prev, [meta.id]: e.target.value }))

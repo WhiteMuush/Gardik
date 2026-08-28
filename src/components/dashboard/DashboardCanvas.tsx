@@ -367,7 +367,7 @@ export function DashboardCanvas({
   // Controlled layout fed to RGL via the `layouts` prop (not per-child data-grid,
   // which RGL only reads on first mount). Widgets with no saved position get
   // y: Infinity so vertical compaction drops them into the first free space.
-  // Note: we never set `static` here — drag/resize locking outside Customize is
+  // Note: we never set `static` here. Drag/resize locking outside Customize is
   // handled by isDraggable/isResizable={editing}. A `static` item is excluded from
   // compaction, which would make newly-added widgets overlap instead of flowing in.
   const rglLayout = visibleWidgets.map((w) => {
@@ -435,7 +435,7 @@ export function DashboardCanvas({
       <DashboardConfigContext.Provider value={{ getTitle, setTitle, editing, requestRows }}>
         <div className="flex flex-1 flex-col min-h-0">
 
-          {/* ── Toolbar ─────────────────────────────────────────────────── */}
+          {/* --- Toolbar */}
           <div className="flex shrink-0 items-center gap-2 border-b border-border px-4 py-2">
 
             {/* Preset tabs */}
@@ -454,7 +454,7 @@ export function DashboardCanvas({
               ))}
             </div>
 
-            {/* New preset button — outside overflow container to avoid clipping */}
+            {/* New preset button, outside the overflow container to avoid clipping */}
             <div ref={addMenuRef} className="relative shrink-0">
               <button
                 onClick={() => isAdmin ? setAddMenuOpen((o) => !o) : createPreset("PERSONAL")}
@@ -488,7 +488,7 @@ export function DashboardCanvas({
               {editing && (
                 <>
                   <p className="text-xs text-muted-foreground">
-                    Drag · Resize · Rename
+                    Drag - Resize - Rename
                   </p>
                   <Link
                     href="/dashboard/widgets"
@@ -527,7 +527,7 @@ export function DashboardCanvas({
             </div>
           </div>
 
-          {/* ── Scrollable grid ──────────────────────────────────────────── */}
+          {/* --- Scrollable grid */}
           <div
             ref={containerRef}
             className={cn(
@@ -639,7 +639,7 @@ export function DashboardCanvas({
                       )}
                       {editing && (
                         <>
-                          {/* Dedicated drag handle — the only place that starts a drag,
+                          {/* Dedicated drag handle: the only place that starts a drag,
                               so chart tooltips and in-widget settings stay clickable. */}
                           <button
                             type="button"

@@ -100,7 +100,7 @@ export function WidgetLibrary({
               <ArrowLeft className="size-3.5" />
               Back to dashboard
             </Link>
-            <span className="text-muted-foreground">·</span>
+            <span className="text-muted-foreground">-</span>
             <h1 className="text-sm font-semibold text-foreground">Widget Library</h1>
           </div>
           <div className="flex items-center gap-2">
@@ -175,7 +175,7 @@ export function WidgetLibrary({
                             {widget.defaultTitle}
                           </p>
                           <p className="text-[10px] text-muted-foreground">
-                            {widget.defaultSize.w}×{widget.defaultSize.h} cells
+                            {widget.defaultSize.w}x{widget.defaultSize.h} cells
                           </p>
                         </div>
 

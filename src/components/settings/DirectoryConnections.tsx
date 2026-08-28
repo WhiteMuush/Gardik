@@ -221,13 +221,13 @@ export function DirectoryConnections({ initial, isAdmin }: Props) {
                       <span className="text-xs text-muted-foreground">
                         {STATUS_LABEL[conn.status]}
                       </span>
-                      <span className="text-xs text-muted-foreground">·</span>
+                      <span className="text-xs text-muted-foreground">-</span>
                       <span className="text-xs text-muted-foreground">
                         Last sync: {formatDate(conn.lastSyncAt)}
                       </span>
                       {conn.lastSyncCount !== null && (
                         <>
-                          <span className="text-xs text-muted-foreground">·</span>
+                          <span className="text-xs text-muted-foreground">-</span>
                           <span className="text-xs text-muted-foreground">
                             {conn.lastSyncCount} employee{conn.lastSyncCount !== 1 ? "s" : ""}
                           </span>

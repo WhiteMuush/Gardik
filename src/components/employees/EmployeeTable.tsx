@@ -38,7 +38,7 @@ const columns: LegacyColumnDef<EmployeeRow, any>[] = [
   }),
   col.accessor("department", {
     header: "Department",
-    cell: (info) => info.getValue() ?? <span className="text-muted-foreground">—</span>,
+    cell: (info) => info.getValue() ?? <span className="text-muted-foreground">-</span>,
   }),
   col.accessor("riskLevel", {
     header: "Risk",
@@ -58,7 +58,7 @@ const columns: LegacyColumnDef<EmployeeRow, any>[] = [
       const val = info.getValue()
       return val
         ? new Date(val).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })
-        : <span className="text-muted-foreground">—</span>
+        : <span className="text-muted-foreground">-</span>
     },
   }),
 ]
@@ -124,7 +124,7 @@ export function EmployeeTable({ data }: { data: EmployeeRow[] }) {
         <div className="relative flex-1 max-w-sm">
           <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
           <input
-            placeholder="Search name or email…"
+            placeholder="Search name or email..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
             className="w-full rounded-lg border border-input bg-card py-2 pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"

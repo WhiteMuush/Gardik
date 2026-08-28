@@ -123,7 +123,7 @@ export function DataTypeBreakdown({ data }: DataTypeBreakdownProps) {
                 value={newType}
                 onChange={(e) => setNewType(e.target.value)}
                 onKeyDown={(e) => e.key === "Enter" && addCustom()}
-                placeholder="ex: customer_data, api_keys…"
+                placeholder="ex: customer_data, api_keys..."
                 className="flex-1 rounded-md border border-input bg-card px-3 py-1.5 text-xs text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
               />
               <button
@@ -165,7 +165,7 @@ export function DataTypeBreakdown({ data }: DataTypeBreakdownProps) {
                   {type.replace(/_/g, " ")}
                 </span>
                 <span className="text-xs tabular-nums text-muted-foreground">
-                  {count > 0 ? `${count} exposure${count > 1 ? "s" : ""} · ${percentage}%` : "not detected"}
+                  {count > 0 ? `${count} exposure${count > 1 ? "s" : ""} - ${percentage}%` : "not detected"}
                 </span>
               </div>
               <div className="h-1.5 overflow-hidden rounded-full bg-muted">
