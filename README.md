@@ -173,8 +173,10 @@ No Docker? Point `DATABASE_URL` at your own PostgreSQL, then run
 
 ### Environment variables
 
-All variables live in `.env.local` (copied from `.env.example`). `AUTH_SECRET`
-must be set; the rest have working defaults for local development.
+All variables live in `.env.local` (copied from `.env.example`).
+`BETTER_AUTH_SECRET` and `DIRECTORY_ENCRYPTION_KEY` must both be set to real
+random values; the rest have working defaults for local development. Set
+`CRON_SECRET` too if you want the scheduler to run.
 
 ## Documentation
 
