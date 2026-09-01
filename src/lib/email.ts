@@ -1,6 +1,7 @@
+import { appBaseUrl } from "@/lib/appUrl"
+
 const KEY = process.env.RESEND_API_KEY
 const FROM = process.env.EMAIL_FROM
-const APP_URL = process.env.AUTH_URL ?? "http://localhost:3000"
 
 export function emailEnabled(): boolean {
   return Boolean(KEY && FROM)
@@ -20,7 +21,7 @@ function render(a: BreachAlert): string {
     `<p><strong>${a.severity}</strong> exposure detected.</p>`,
     `<p>${a.employeeName} was found in the <strong>${a.breachName}</strong> breach.</p>`,
     `<p>Exposed data: ${types}.</p>`,
-    `<p><a href="${APP_URL}/alerts">View the alert in Gardik</a></p>`,
+    `<p><a href="${appBaseUrl()}/alerts">View the alert in Gardik</a></p>`,
     `</div>`,
   ].join("")
 }

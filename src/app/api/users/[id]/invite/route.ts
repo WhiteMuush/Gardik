@@ -5,10 +5,9 @@ import { issueInvitation } from "@/lib/auth/invitation"
 import { writeAudit, AUDIT_ACTIONS } from "@/lib/rbac/audit"
 import { emailEnabled, sendInvitation } from "@/lib/email"
 import { deniesLocalSignIn } from "@/lib/sso/policy"
+import { appBaseUrl } from "@/lib/appUrl"
 
 type Params = { params: Promise<{ id: string }> }
-
-const APP_URL = process.env.AUTH_URL ?? "http://localhost:3000"
 
 // Issues a single-use link that lets somebody set their own first password.
 // Deliberately not "generate a temporary password and show it to the admin":
@@ -66,7 +65,7 @@ export async function POST(_req: Request, { params }: Params) {
     return issued
   })
 
-  const link = `${APP_URL}/invite?token=${encodeURIComponent(token)}`
+  const link = `${appBaseUrl()}/invite?token=${encodeURIComponent(token)}`
 
   if (emailEnabled()) {
     if (await sendInvitation(target.email, link, expiresAt)) {
