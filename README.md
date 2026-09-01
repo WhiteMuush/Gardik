@@ -6,6 +6,8 @@
   <img src="./assets/banner-light.png" alt="Gardik. Know what leaked. Without leaking more." width="100%">
 </picture>
 
+**Know what leaked. Without leaking more.**
+
 <!-- CI -->
 [![CI](https://github.com/WhiteMuush/Gardik/actions/workflows/ci.yml/badge.svg)](https://github.com/WhiteMuush/Gardik/actions/workflows/ci.yml)
 [![Security](https://github.com/WhiteMuush/Gardik/actions/workflows/security.yml/badge.svg)](https://github.com/WhiteMuush/Gardik/actions/workflows/security.yml)
@@ -13,35 +15,97 @@
 [![CodeQL](https://github.com/WhiteMuush/Gardik/actions/workflows/codeql.yml/badge.svg)](https://github.com/WhiteMuush/Gardik/actions/workflows/codeql.yml)
 
 <!-- Stack -->
-![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=next.js&logoColor=white)
+![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js&logoColor=white)
+![React](https://img.shields.io/badge/React-19-61dafb?logo=react&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript&logoColor=white)
-![PostgreSQL](https://img.shields.io/badge/PostgreSQL-prisma-4169e1?logo=postgresql&logoColor=white)
+![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Prisma%207-4169e1?logo=postgresql&logoColor=white)
+![Self-hosted](https://img.shields.io/badge/deployment-self--hosted-2ea44f)
+
+[Live demo](https://gardik.melvinpetit.com) (read only, no signup)
 
 </div>
 
-Self-hosted service that tells a business whether its employees' data has
-surfaced in known breaches, with severity-based alerting and a customizable
-security dashboard.
+Your company knows exactly how many laptops it owns. It does not know how many
+of its employees have a password in circulation.
+
+Gardik is a self-hosted service that answers that question continuously. It
+syncs your existing directory, checks every employee against known breach
+sources, and turns the result into a prioritized, auditable view of who is
+exposed and how badly.
 
 ## Status
 
-v1.0.0. The production readiness checklist is tracked in
+v1.2.1. The production readiness checklist is tracked in
 [docs/production-readiness.md](docs/production-readiness.md).
 
 ## Features
 
-- Breach exposure monitoring per employee (Have I Been Pwned and manual sources)
-- Customizable widget dashboard (drag and drop, saved presets)
-- Employee directory sync: Microsoft Entra ID (Azure AD), Google Workspace,
-  LDAP / Active Directory, AWS IAM Identity Center, Okta, and inbound SCIM 2.0
-- Alerting by severity and status
+### Exposure monitoring
+
+- Continuous per-employee breach monitoring, not one-off lookups on a single
+  address
+- Six breach sources: Have I Been Pwned (including stealer logs), DeHashed,
+  Intelligence X, LeakCheck and Snusbase
+- Severity-based alerting with assignment, status workflow, comments and
+  remediation tracking
+
+### Directory sync
+
+Your directory stays the source of truth, so you never retype your headcount.
+Six connectors, in [`src/lib/directory`](src/lib/directory):
+
+| Connector | Source |
+| --- | --- |
+| Microsoft Entra ID (Azure AD) | `azure.ts` |
+| Google Workspace | `google.ts` |
+| LDAP / Active Directory | `ldap.ts` |
+| Okta | `okta.ts` |
+| AWS IAM Identity Center | `aws.ts` |
+| Inbound SCIM 2.0 | `scim-auth.ts` |
+
+Connector credentials are encrypted at rest. See
+[docs/encryption.md](docs/encryption.md).
+
+### Dashboard
+
+- 20 widgets, drag and drop, with saved presets and dashboards shared across
+  teams (see [`src/lib/widgetRegistry.ts`](src/lib/widgetRegistry.ts))
+- Breakdowns by severity, department, breach source, data type and trend over
+  time
+
+### Compliance and reporting
+
+- GDPR exposure register with evidence attachments
+- Scheduled reports in PDF, CSV and HTML
+- Full audit log
+
+### Integrations
+
+- SIEM export to feed your SOC
+- Outbound webhooks to your own tooling
+- Data API with scoped credentials
+
+### Access control
+
+- Better Auth with SSO (OIDC), passkeys and TOTP two-factor
+- RBAC over a fixed vocabulary of 36 permissions, with role presets, step-up
+  authentication on sensitive actions and last-admin protection
+- Details in [docs/auth.md](docs/auth.md)
+
+## Privacy model
+
+Gardik is self-hosted on purpose. Your employee data stays on your
+infrastructure, directory credentials are encrypted at rest, and the only
+outbound requests are the ones you configure. Nothing reports back to the
+author.
 
 ## Tech stack
 
-- Next.js 15 (App Router), React 19, TypeScript in strict mode
+- Next.js 16 (App Router), React 19, TypeScript in strict mode
 - Prisma 7 with PostgreSQL
-- Auth.js (next-auth v5)
+- Better Auth (SSO, passkeys, TOTP)
 - Tailwind CSS
+- Vitest for unit and integration tests, Playwright for end-to-end
 
 ## Getting started
 
@@ -112,6 +176,14 @@ No Docker? Point `DATABASE_URL` at your own PostgreSQL, then run
 All variables live in `.env.local` (copied from `.env.example`). `AUTH_SECRET`
 must be set; the rest have working defaults for local development.
 
+## Documentation
+
+- [Authentication and RBAC](docs/auth.md)
+- [Encryption at rest](docs/encryption.md)
+- [Backup and restore](docs/backup.md)
+- [Scheduler](docs/scheduler.md)
+- [Production readiness](docs/production-readiness.md)
+
 ## Quality and security
 
 Every push and pull request runs an automated pipeline: ESLint (zero warnings
@@ -130,4 +202,7 @@ Please also read [CONTRIBUTING.md](.github/CONTRIBUTING.md) and [CODE_OF_CONDUCT
 
 ## License
 
-See [LICENSE](LICENSE).
+Source-available, not open source. You may read, run, modify, fork and
+redistribute Gardik, including commercially, but you may not resell the
+software itself as a standalone product. See [LICENSE](LICENSE) for the exact
+terms.
