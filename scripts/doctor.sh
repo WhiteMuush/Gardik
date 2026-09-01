@@ -60,18 +60,18 @@ if [ ! -f .env.local ]; then
 else
   pass ".env.local present"
   [ -n "$(getv DATABASE_URL)" ] && pass "DATABASE_URL set" || err "DATABASE_URL empty"
-  as="$(getv AUTH_SECRET)"
-  if [ -z "$as" ]; then err "AUTH_SECRET empty"; fx_auth=1
-  elif [ "${as#change-me}" != "$as" ]; then err "AUTH_SECRET still the placeholder"; fx_auth=1
-  else pass "AUTH_SECRET set"; fi
+  as="$(getv BETTER_AUTH_SECRET)"
+  if [ -z "$as" ]; then err "BETTER_AUTH_SECRET empty"; fx_auth=1
+  elif [ "${as#change-me}" != "$as" ]; then err "BETTER_AUTH_SECRET still the placeholder"; fx_auth=1
+  else pass "BETTER_AUTH_SECRET set"; fi
   ek="$(getv DIRECTORY_ENCRYPTION_KEY)"
   ekl="$(printf %s "$ek" | wc -c | tr -d ' ')"
   if [ -z "$ek" ]; then err "DIRECTORY_ENCRYPTION_KEY empty (app refuses directory configs)"; fx_enc=1
   elif [ "${ek#change-me}" != "$ek" ]; then err "DIRECTORY_ENCRYPTION_KEY still the placeholder"; fx_enc=1
   elif [ "$ekl" -lt 32 ]; then err "DIRECTORY_ENCRYPTION_KEY too short ($ekl chars, need >= 32)"; fx_enc=1
   else pass "DIRECTORY_ENCRYPTION_KEY set ($ekl chars)"; fi
-  if [ -n "$(getv AUTH_URL)" ]; then pass "AUTH_URL set"
-  else wrn "AUTH_URL empty (defaults to http://localhost:3000)"; fx_authurl=1; fi
+  if [ -n "$(getv BETTER_AUTH_URL)" ]; then pass "BETTER_AUTH_URL set"
+  else wrn "BETTER_AUTH_URL empty (defaults to http://localhost:3000)"; fx_authurl=1; fi
   if [ -n "$(getv CRON_SECRET)" ]; then pass "CRON_SECRET set"
   else wrn "CRON_SECRET empty (scheduler endpoint /api/cron returns 503)"; fx_cron=1; fi
   [ -n "$(getv HIBP_API_KEY)" ] && pass "HIBP_API_KEY set" || wrn "HIBP_API_KEY empty (no breach lookups unless a per-company key is stored)"
@@ -148,18 +148,18 @@ if [ "$do_err" = "1" ]; then
   fi
   if [ "$fx_env" = "1" ]; then
     cp .env.example .env.local
-    setval AUTH_SECRET "$(openssl rand -base64 32)"
+    setval BETTER_AUTH_SECRET "$(openssl rand -base64 32)"
     setval DIRECTORY_ENCRYPTION_KEY "$(openssl rand -base64 32)"
     echo "fixed: created .env.local with generated secrets"; applied=1
   else
-    if [ "$fx_auth" = "1" ]; then setval AUTH_SECRET "$(openssl rand -base64 32)"; echo "fixed: AUTH_SECRET"; applied=1; fi
+    if [ "$fx_auth" = "1" ]; then setval BETTER_AUTH_SECRET "$(openssl rand -base64 32)"; echo "fixed: BETTER_AUTH_SECRET"; applied=1; fi
     if [ "$fx_enc" = "1" ]; then setval DIRECTORY_ENCRYPTION_KEY "$(openssl rand -base64 32)"; echo "fixed: DIRECTORY_ENCRYPTION_KEY"; applied=1; fi
   fi
   if [ "$fx_install" = "1" ]; then npm install; applied=1; fi
   if [ "$fx_generate" = "1" ]; then npx prisma generate; applied=1; fi
 fi
 if [ "$do_warn" = "1" ]; then
-  if [ "$fx_authurl" = "1" ]; then setval AUTH_URL "http://localhost:3000"; echo "fixed: AUTH_URL"; applied=1; fi
+  if [ "$fx_authurl" = "1" ]; then setval BETTER_AUTH_URL "http://localhost:3000"; echo "fixed: BETTER_AUTH_URL"; applied=1; fi
   if [ "$fx_cron" = "1" ]; then setval CRON_SECRET "$(openssl rand -base64 32)"; echo "fixed: CRON_SECRET"; applied=1; fi
   if [ "$fx_dbup" = "1" ]; then
     npm run db:up

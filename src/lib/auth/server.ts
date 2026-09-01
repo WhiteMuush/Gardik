@@ -10,6 +10,7 @@ import bcrypt from "bcryptjs"
 import { prisma } from "@/lib/prisma"
 import { authPrisma } from "@/lib/auth/prisma"
 import { isSameTenant } from "@/lib/sso/tenant-guard"
+import { appBaseUrl } from "@/lib/appUrl"
 import { emailEnabled, sendEmail } from "@/lib/email"
 import { getUserPermissions, authorize } from "@/lib/rbac/authorize"
 import { requiredPermissionFor, deniesLocalSignIn } from "@/lib/sso/policy"
@@ -162,10 +163,12 @@ const enforceAllowedMethod = createAuthMiddleware(async (ctx) => {
 // serves on localhost, real deployments never do. Requiring both E2E=1 and a
 // loopback AUTH_URL means a leaked E2E=1 in prod does nothing on its own.
 function isLoopbackAuthUrl(): boolean {
-  const raw = process.env.AUTH_URL ?? process.env.BETTER_AUTH_URL
-  if (!raw) return false
+  // Checked before appBaseUrl() on purpose: with neither variable set it
+  // defaults to localhost, and treating "unconfigured" as "loopback" would let
+  // a leaked E2E=1 disable rate limiting on its own.
+  if (!process.env.AUTH_URL && !process.env.BETTER_AUTH_URL) return false
   try {
-    const host = new URL(raw).hostname
+    const host = new URL(appBaseUrl()).hostname
     return host === "localhost" || host === "127.0.0.1" || host === "::1"
   } catch {
     return false
@@ -192,9 +195,8 @@ const testTrustedOrigins =
 // without extra config; a passkey registered under one host cannot be used
 // under another, which is the point.
 function webauthnConfig(): { rpID: string; origin: string } {
-  const raw = process.env.AUTH_URL ?? process.env.BETTER_AUTH_URL ?? "http://localhost:3000"
   try {
-    const url = new URL(raw)
+    const url = new URL(appBaseUrl())
     return { rpID: url.hostname, origin: url.origin }
   } catch {
     return { rpID: "localhost", origin: "http://localhost:3000" }

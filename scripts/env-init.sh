@@ -14,6 +14,6 @@ fi
 cp .env.example .env.local
 auth="$(openssl rand -base64 32)"
 enc="$(openssl rand -base64 32)"
-sed -i "s|^AUTH_SECRET=.*|AUTH_SECRET=$auth|" .env.local
+sed -i "s|^BETTER_AUTH_SECRET=.*|BETTER_AUTH_SECRET=$auth|" .env.local
 sed -i "s|^DIRECTORY_ENCRYPTION_KEY=.*|DIRECTORY_ENCRYPTION_KEY=$enc|" .env.local
-echo ".env.local created with generated AUTH_SECRET and DIRECTORY_ENCRYPTION_KEY."
+echo ".env.local created with generated BETTER_AUTH_SECRET and DIRECTORY_ENCRYPTION_KEY."
