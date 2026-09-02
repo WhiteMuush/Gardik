@@ -35,7 +35,7 @@ exposed and how badly.
 
 ## Status
 
-v1.2.2. The production readiness checklist is tracked in
+v1.2.3. The production readiness checklist is tracked in
 [docs/production-readiness.md](docs/production-readiness.md).
 
 ## Features
