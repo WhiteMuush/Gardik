@@ -16,6 +16,9 @@ const securityHeaders = [
 ];
 
 const nextConfig: NextConfig = {
+  // Emit a self-contained server bundle (.next/standalone) so the production
+  // Docker image can ship without node_modules. See Dockerfile.
+  output: "standalone",
   serverExternalPackages: ["pg", "@prisma/adapter-pg"],
   // Next 16.3 makes `next dev` append its own block to AGENTS.md on every run.
   // The block ships a non-ASCII character, which the pre-push ASCII gate

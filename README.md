@@ -178,6 +178,29 @@ All variables live in `.env.local` (copied from `.env.example`).
 random values; the rest have working defaults for local development. Set
 `CRON_SECRET` too if you want the scheduler to run.
 
+## Docker image
+
+Two images live in this repository. `Dockerfile.dev` is the development one
+built by `compose.yml`: it bind-mounts the source and runs `next dev`.
+`Dockerfile` is the production one, a multi-stage build that ships the Next.js
+standalone server, runs as an unprivileged user and applies pending migrations
+on start.
+
+```bash
+docker build -t gardik:local .
+docker run --rm -p 3000:3000 --env-file .env.local gardik:local
+```
+
+The container needs `DATABASE_URL`, `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL` and
+`DIRECTORY_ENCRYPTION_KEY`; it refuses to start without a database URL. Set
+`RUN_MIGRATIONS=false` when a separate job already applies the schema, for
+instance when several replicas start at once.
+
+Tagged releases are published to Docker Hub by
+[`docker-publish.yml`](.github/workflows/docker-publish.yml), which needs the
+`DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` secrets. Set the `DOCKERHUB_IMAGE`
+repository variable to publish under a different name than the default.
+
 ## Documentation
 
 - [Authentication and RBAC](docs/auth.md)
