@@ -16,6 +16,9 @@ jobs:
   publish:
     name: Build and push
     runs-on: ubuntu-latest
+    # Gated environment: the job waits for a manual approval before anything is
+    # pushed publicly, and it is where the Docker Hub credentials live.
+    environment: dockerhub
     timeout-minutes: 45
     steps:
       - uses: actions/checkout@v7

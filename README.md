@@ -197,9 +197,12 @@ The container needs `DATABASE_URL`, `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL` and
 instance when several replicas start at once.
 
 Tagged releases are published to Docker Hub by
-[`docker-publish.yml`](.github/workflows/docker-publish.yml), which needs the
-`DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` secrets. Set the `DOCKERHUB_IMAGE`
-repository variable to publish under a different name than the default.
+[`docker-publish.yml`](.github/workflows/docker-publish.yml). The job runs in
+the protected `dockerhub` environment, so a publication waits for a manual
+approval and only runs from `main`, `develop` or a `v*.*.*` tag. The
+`DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` secrets belong to that environment.
+Set the `DOCKERHUB_IMAGE` repository variable to publish under a different name
+than the default.
 
 ## Documentation
 
