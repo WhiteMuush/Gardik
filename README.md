@@ -202,7 +202,9 @@ the protected `dockerhub` environment, so a publication waits for a manual
 approval and only runs from `main`, `develop` or a `v*.*.*` tag. The
 `DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` secrets belong to that environment.
 Set the `DOCKERHUB_IMAGE` repository variable to publish under a different name
-than the default.
+than the default. The Docker Hub page has its own README,
+[`docker/README.hub.md`](docker/README.hub.md), written for operators deploying
+the image rather than contributors; the same workflow keeps it in sync.
 
 ## Documentation
 
