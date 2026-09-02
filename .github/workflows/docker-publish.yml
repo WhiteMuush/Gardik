@@ -55,3 +55,16 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      # The Docker Hub page has its own audience (operators deploying the
+      # image), hence its own README. Never fatal: a description that fails to
+      # sync must not fail a publish that already pushed the image.
+      - name: Sync the Docker Hub description
+        uses: peter-evans/dockerhub-description@v4
+        continue-on-error: true
+        with:
+          username: ${{ secrets.DOCKERHUB_USERNAME }}
+          password: ${{ secrets.DOCKERHUB_TOKEN }}
+          repository: ${{ vars.DOCKERHUB_IMAGE || 'whitemuush/gardik' }}
+          short-description: "Self-hosted breach exposure monitoring for your employees' credentials"
+          readme-filepath: ./docker/README.hub.md
