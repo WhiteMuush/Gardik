@@ -9,7 +9,7 @@ Generated from `package-lock.json`; do not edit by hand. Regenerate with
 `npm run licenses:write`. Build-time-only dependencies are excluded: they
 are not part of anything that ships.
 
-Runtime packages: 551.
+Runtime packages: 549.
 
 ## Obligations worth knowing
 
@@ -23,7 +23,7 @@ Runtime packages: 551.
 
 ## Packages by license
 
-### MIT (401)
+### MIT (400)
 
 - @authenio/xml-encryption@2.0.2
 - @babel/runtime@7.29.7
@@ -281,7 +281,7 @@ Runtime packages: 551.
 - grammex@3.1.13
 - graphmatch@1.1.1
 - hsl-to-hex@1.0.0
-- iconv-lite@0.7.2
+- iconv-lite@0.7.3
 - immer@11.1.11
 - is-fullwidth-code-point@3.0.0
 - is-property@1.0.2
@@ -303,7 +303,7 @@ Runtime packages: 551.
 - lru.min@1.1.4
 - magic-string@0.30.21
 - media-engine@1.0.3
-- mysql2@3.15.3
+- mysql2@3.24.3
 - named-placeholders@1.1.6
 - nanoid@3.3.18
 - nanostores@1.4.2
@@ -378,11 +378,10 @@ Runtime packages: 551.
 - samlify@2.13.1
 - scheduler@0.25.0-rc-603e6108-20241029
 - scheduler@0.27.0
-- seq-queue@0.0.5
 - set-cookie-parser@3.1.2
 - shebang-command@2.0.0
 - shebang-regex@3.0.0
-- sqlstring@2.3.3
+- sql-escaper@1.5.1
 - stackback@0.0.2
 - std-env@3.10.0
 - std-env@4.1.0
@@ -427,7 +426,7 @@ Runtime packages: 551.
 - zeptomatch@2.1.0
 - zod@4.4.3
 
-### Apache-2.0 (67)
+### Apache-2.0 (66)
 
 - @aws-sdk/client-identitystore@3.1107.0
 - @aws-sdk/core@3.977.6
@@ -484,9 +483,8 @@ Runtime packages: 551.
 - @smithy/signature-v4@5.6.12
 - @smithy/types@4.16.1
 - @swc/helpers@0.5.15
-- baseline-browser-mapping@2.10.44
+- baseline-browser-mapping@2.11.20
 - class-variance-authority@0.7.1
-- denque@2.1.0
 - detect-libc@2.1.2
 - expect-type@1.3.0
 - long@5.3.2
@@ -605,7 +603,7 @@ Runtime packages: 551.
 
 ### CC-BY-4.0 (1)
 
-- caniuse-lite@1.0.30001806
+- caniuse-lite@1.0.30001810
 
 ### BSD-2-Clause (1)
 
