@@ -3,6 +3,7 @@ import { PrismaPg } from "@prisma/adapter-pg"
 import bcrypt from "bcryptjs"
 import { seedPresetsForCompany, resolvePresetRoleId } from "@/lib/rbac/seed-roles"
 import { ADMINISTRATOR } from "@/lib/rbac/presets"
+import { CREDENTIAL_ISSUER } from "@/lib/auth/account"
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! })
 const prisma = new PrismaClient({ adapter })
@@ -45,6 +46,7 @@ async function main() {
       data: {
         accountId: user.id,
         providerId: "credential",
+        issuer: CREDENTIAL_ISSUER,
         userId: user.id,
         password: hashedPassword,
       },

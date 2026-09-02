@@ -3,6 +3,7 @@ import { PrismaPg } from "@prisma/adapter-pg"
 import bcrypt from "bcryptjs"
 import { seedPresetsForCompany, resolvePresetRoleId } from "@/lib/rbac/seed-roles"
 import { ADMINISTRATOR, VIEWER_ROLE } from "@/lib/rbac/presets"
+import { CREDENTIAL_ISSUER } from "@/lib/auth/account"
 
 // E2E fixture: one employee so a fresh instance counts as set up
 // (the dashboard redirects empty workspaces to /setup), plus a dedicated
@@ -38,7 +39,7 @@ async function setPassword(userId: string, password: string): Promise<void> {
     await prisma.account.update({ where: { id: cred.id }, data: { password: hashed } })
   } else {
     await prisma.account.create({
-      data: { accountId: userId, providerId: "credential", userId, password: hashed },
+      data: { accountId: userId, providerId: "credential", issuer: CREDENTIAL_ISSUER, userId, password: hashed },
     })
   }
 }

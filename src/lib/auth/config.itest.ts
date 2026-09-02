@@ -3,6 +3,7 @@ import bcrypt from "bcryptjs"
 import { convertSetCookieToCookie } from "better-auth/test"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth/server"
+import { CREDENTIAL_ISSUER } from "@/lib/auth/account"
 
 // Covers two settings whose absence leaves no trace in this codebase, because
 // the wrong behaviour is the library's default rather than anything written
@@ -36,6 +37,7 @@ beforeAll(async () => {
     data: {
       accountId: user.id,
       providerId: "credential",
+      issuer: CREDENTIAL_ISSUER,
       userId: user.id,
       password: await bcrypt.hash(password, 12),
     },
@@ -65,7 +67,12 @@ describe("auth configuration", () => {
     })
     const headers = convertSetCookieToCookie(signIn.headers)
 
-    const { totpURI } = await auth.api.enableTwoFactor({ body: { password }, headers })
+    const enrollment = await auth.api.enableTwoFactor({
+      body: { password, method: "totp" },
+      headers,
+    })
+    if (enrollment.method !== "totp") throw new Error(`expected a TOTP enrollment, got ${enrollment.method}`)
+    const { totpURI } = enrollment
 
     // otpauth://totp/<issuer>:<account>?...&issuer=<issuer>
     expect(totpURI).toContain("Gardik")

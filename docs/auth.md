@@ -28,6 +28,22 @@ this project), configured explicitly on the `emailAndPassword.password`
 option in `src/lib/auth/server.ts`, rather than Better Auth's default
 hashing algorithm.
 
+## Account identity
+
+Better Auth 1.7 looks up an account by `(issuer, accountId)` rather than by
+`(providerId, accountId)`, so an identity survives a provider being renamed.
+Every `Account` row therefore carries an `issuer`:
+
+- password accounts store the synthetic `local:credential`, exported as
+  `CREDENTIAL_ISSUER` from `src/lib/auth/account.ts`,
+- SSO accounts store the issuer the identity provider advertises, the same
+  value held on the matching `SsoProvider` row.
+
+Any code that writes an account row by hand (accepting an invitation, the seed
+scripts) has to set it, because a row without the right issuer authenticates
+against nothing. The `20260902072500_add_account_issuer` migration backfills
+existing rows from what they already say about themselves.
+
 ## Two-factor authentication
 
 The `twoFactor` plugin enables TOTP-based two-factor authentication.

@@ -11,6 +11,7 @@ import { findCompanyProvider, takeOwnership, maskedProvider } from "@/lib/sso/pr
 import { GET, POST, PATCH, DELETE } from "@/app/api/sso/provider/route"
 import { POST as domainPOST, PUT as domainPUT } from "@/app/api/sso/provider/domain/route"
 import { POST as resolveSso } from "@/app/api/sso/resolve/route"
+import { CREDENTIAL_ISSUER } from "@/lib/auth/account"
 
 const PROVIDER_ID = "itest-sso-provider"
 
@@ -127,7 +128,7 @@ describe("sso:config gate", () => {
       data: { email: viewerEmail, companyId: company.id, roleId: viewerRoleId, emailVerified: true },
     })
     await prisma.account.create({
-      data: { accountId: viewerUser.id, providerId: "credential", userId: viewerUser.id, password: hashedPassword },
+      data: { accountId: viewerUser.id, providerId: "credential", issuer: CREDENTIAL_ISSUER, userId: viewerUser.id, password: hashedPassword },
     })
 
     const adminEmail = `sso-gate-admin-${Date.now()}@test.local`
@@ -135,7 +136,7 @@ describe("sso:config gate", () => {
       data: { email: adminEmail, companyId: company.id, roleId: administratorRoleId, emailVerified: true },
     })
     await prisma.account.create({
-      data: { accountId: adminUser.id, providerId: "credential", userId: adminUser.id, password: hashedPassword },
+      data: { accountId: adminUser.id, providerId: "credential", issuer: CREDENTIAL_ISSUER, userId: adminUser.id, password: hashedPassword },
     })
 
     const registrationBody = (providerId: string) => ({
@@ -263,7 +264,7 @@ async function setupCompanyWithViewerAndAdmin(label: string) {
     data: { email: viewerEmail, companyId: company.id, roleId: viewerRoleId, emailVerified: true },
   })
   await prisma.account.create({
-    data: { accountId: viewerUser.id, providerId: "credential", userId: viewerUser.id, password: hashedPassword },
+    data: { accountId: viewerUser.id, providerId: "credential", issuer: CREDENTIAL_ISSUER, userId: viewerUser.id, password: hashedPassword },
   })
 
   const adminEmail = `${label}-admin-${Date.now()}@test.local`
@@ -271,7 +272,7 @@ async function setupCompanyWithViewerAndAdmin(label: string) {
     data: { email: adminEmail, companyId: company.id, roleId: administratorRoleId, emailVerified: true },
   })
   await prisma.account.create({
-    data: { accountId: adminUser.id, providerId: "credential", userId: adminUser.id, password: hashedPassword },
+    data: { accountId: adminUser.id, providerId: "credential", issuer: CREDENTIAL_ISSUER, userId: adminUser.id, password: hashedPassword },
   })
 
   const viewerHeaders = await signInAndGetCookieHeaders(viewerEmail, password)
