@@ -2,6 +2,7 @@ import { describe, it, expect, beforeAll, afterAll } from "vitest"
 import bcrypt from "bcryptjs"
 import { prisma } from "@/lib/prisma"
 import { issueInvitation, consumeInvitation, hashToken, INVITATION_TTL_HOURS } from "./invitation"
+import { CREDENTIAL_ISSUER } from "@/lib/auth/account"
 
 // The security properties of the invitation flow, against a real database:
 // single use under concurrency, expiry, session revocation, and the fact that
@@ -24,6 +25,7 @@ async function makeUser(label: string, opts: { withPassword?: boolean } = {}) {
       data: {
         accountId: user.id,
         providerId: "credential",
+        issuer: CREDENTIAL_ISSUER,
         userId: user.id,
         password: await bcrypt.hash("old-password-that-works", 12),
       },

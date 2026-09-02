@@ -23,9 +23,15 @@ export function TwoFactorSetup({
 
   async function enable() {
     setError(null)
-    const { data, error } = await twoFactor.enable({ password })
+    // The response is a union keyed on the method that was enabled, and only
+    // the TOTP arm carries a URI to render, so ask for it by name.
+    const { data, error } = await twoFactor.enable({ password, method: "totp" })
     if (error || !data) {
       setError("Wrong password")
+      return
+    }
+    if (data.method !== "totp") {
+      setError("Authenticator setup is unavailable")
       return
     }
     setQr(await QRCode.toDataURL(data.totpURI))

@@ -10,6 +10,7 @@ import { createOTP } from "@better-auth/utils/otp"
 import { base32 } from "@better-auth/utils/base32"
 import { seedPresetsForCompany, resolvePresetRoleId } from "@/lib/rbac/seed-roles"
 import { ADMINISTRATOR } from "@/lib/rbac/presets"
+import { CREDENTIAL_ISSUER } from "@/lib/auth/account"
 
 const BASE_URL = process.env.BASE_URL ?? "http://localhost:3000"
 const email = process.env.MFA_USER_EMAIL ?? "mfa@gardik.local"
@@ -47,7 +48,7 @@ async function main() {
     await prisma.account.update({ where: { id: cred.id }, data: { password: hashed } })
   } else {
     await prisma.account.create({
-      data: { accountId: user.id, providerId: "credential", userId: user.id, password: hashed },
+      data: { accountId: user.id, providerId: "credential", issuer: CREDENTIAL_ISSUER, userId: user.id, password: hashed },
     })
   }
 

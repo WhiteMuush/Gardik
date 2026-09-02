@@ -6,6 +6,7 @@ import { API_RATE_LIMIT, API_RATE_WINDOW_MS } from "@/lib/apiAuth"
 import { seedPresetsForCompany, resolvePresetRoleId } from "@/lib/rbac/seed-roles"
 import { grantStepUp } from "@/lib/rbac/step-up"
 import { AUDIT_ACTIONS } from "@/lib/rbac/audit"
+import { CREDENTIAL_ISSUER } from "@/lib/auth/account"
 
 // Route-level behaviour of the invitation and forced-rotation endpoints. The
 // unit and DB tests next door cover the token itself; what matters here is the
@@ -62,6 +63,7 @@ async function makeUser(label: string, opts: { companyId?: string; password?: st
       data: {
         accountId: user.id,
         providerId: "credential",
+        issuer: CREDENTIAL_ISSUER,
         userId: user.id,
         password: await bcrypt.hash(opts.password, 12),
       },
