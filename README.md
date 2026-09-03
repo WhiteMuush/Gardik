@@ -20,8 +20,9 @@
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript&logoColor=white)
 ![PostgreSQL](https://img.shields.io/badge/PostgreSQL-Prisma%207-4169e1?logo=postgresql&logoColor=white)
 ![Self-hosted](https://img.shields.io/badge/deployment-self--hosted-2ea44f)
+[![Docker Hub](https://img.shields.io/docker/v/whitemuush/gardik?logo=docker&logoColor=white&label=Docker%20Hub&sort=semver)](https://hub.docker.com/r/whitemuush/gardik)
 
-[Live demo](https://gardik.melvinpetit.com) (read only, no signup)
+[Live demo](https://gardik.melvinpetit.com) (read only, no signup) - [Docker image](https://hub.docker.com/r/whitemuush/gardik)
 
 </div>
 
@@ -185,6 +186,16 @@ built by `compose.yml`: it bind-mounts the source and runs `next dev`.
 `Dockerfile` is the production one, a multi-stage build that ships the Next.js
 standalone server, runs as an unprivileged user and applies pending migrations
 on start.
+
+The published image lives on Docker Hub at
+[`whitemuush/gardik`](https://hub.docker.com/r/whitemuush/gardik), so a
+deployment can pull it directly instead of building.
+
+```bash
+docker pull whitemuush/gardik:latest
+```
+
+To build it yourself instead:
 
 ```bash
 docker build -t gardik:local .
