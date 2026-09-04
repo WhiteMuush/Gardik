@@ -201,7 +201,7 @@ Runtime packages: 537.
 - @vitest/spy@4.1.11
 - @vitest/utils@4.1.11
 - @xmldom/is-dom-node@1.0.1
-- @xmldom/xmldom@0.8.14
+- @xmldom/xmldom@0.8.15
 - @xmldom/xmldom@0.9.12
 - abs-svg-path@0.1.1
 - ajv@8.20.0
