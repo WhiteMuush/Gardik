@@ -24,9 +24,15 @@ RUN npm ci --ignore-scripts \
 FROM node:${NODE_VERSION} AS migrator
 WORKDIR /opt/prisma
 COPY package.json package-lock.json ./
+# The overrides that pin vulnerable transitive dependencies live in the app
+# manifest, but `npm init -y` starts from an empty one, so this tree used to
+# install them unconstrained. Carrying the block over keeps the two in sync
+# without a second list to maintain.
 RUN PRISMA_VERSION=$(node -p "require('./package-lock.json').packages['node_modules/prisma'].version") \
+  && OVERRIDES=$(node -p "JSON.stringify(require('./package.json').overrides || {})") \
   && rm package.json package-lock.json \
   && npm init -y > /dev/null \
+  && node -e "const fs=require('fs'),p=require('./package.json');p.overrides=JSON.parse(process.argv[1]);fs.writeFileSync('package.json',JSON.stringify(p,null,2))" "$OVERRIDES" \
   # Scripts stay enabled here on purpose: @prisma/engines fetches the schema
   # engine binary in its postinstall, and migrate deploy needs it at runtime.
   && npm install --no-audit --no-fund "prisma@${PRISMA_VERSION}"
@@ -50,9 +56,14 @@ FROM node:${NODE_VERSION} AS runner
 WORKDIR /app
 
 # openssl is required by the Prisma CLI that applies migrations on start.
+# npm is not: the entrypoint resolves the Prisma bundle with `node`, the CMD is
+# `node server.js`, and the healthcheck is `node -e`. Dropping it removes the
+# CVEs carried by its own bundled dependency tree, which no override in this
+# repository can reach.
 RUN apt-get update \
   && apt-get install -y --no-install-recommends openssl \
-  && rm -rf /var/lib/apt/lists/*
+  && rm -rf /var/lib/apt/lists/* \
+  && rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
 
 ENV NODE_ENV=production \
     NEXT_TELEMETRY_DISABLED=1 \
