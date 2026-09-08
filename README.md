@@ -4,8 +4,6 @@
 
 **Know what leaked. Without leaking more.**
 
-**Know what leaked. Without leaking more.**
-
 <!-- CI -->
 [![CI](https://github.com/WhiteMuush/Gardik/actions/workflows/ci.yml/badge.svg)](https://github.com/WhiteMuush/Gardik/actions/workflows/ci.yml)
 [![Security](https://github.com/WhiteMuush/Gardik/actions/workflows/security.yml/badge.svg)](https://github.com/WhiteMuush/Gardik/actions/workflows/security.yml)
