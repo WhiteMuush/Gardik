@@ -10,7 +10,7 @@ import { excessPermissions } from "@/lib/rbac/escalation"
 describe("role assignment invariants (real DB)", () => {
   it("Viewer's permissions are a subset of the admin's", async () => {
     const admin = await prisma.user.findUniqueOrThrow({
-      where: { email: "admin@datashield.local" },
+      where: { email: "admin@gardik.local" },
     })
     const viewerId = await resolvePresetRoleId(prisma, admin.companyId, VIEWER_ROLE)
     const viewer = await prisma.role.findUniqueOrThrow({ where: { id: viewerId } })

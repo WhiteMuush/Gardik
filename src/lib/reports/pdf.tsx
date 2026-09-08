@@ -2,7 +2,7 @@ import { Document, Page, Text, View, StyleSheet, renderToBuffer } from "@react-p
 import type { ReportData, Finding, FindingSeverity } from "./types"
 import type { ReportSection } from "./html"
 
-// - Palette (DataShield brand: violet primary, orange accent, warm cream) -
+// - Palette (Gardik brand: violet primary, orange accent, warm cream) -
 const C = {
   brand: "#7F27FF", // primary violet
   brandDark: "#1B1037", // deep violet (cover band, headings)
@@ -179,7 +179,7 @@ function Cover({ d }: { d: ReportData }) {
         <Text style={s.coverFootText}>
           {`Confidential. This document contains security information intended solely for ${d.org.name}.`}
         </Text>
-        <Text style={s.coverFootText}>{`Generated ${stamp(d.generatedAt)} by DataShield.`}</Text>
+        <Text style={s.coverFootText}>{`Generated ${stamp(d.generatedAt)} by Gardik.`}</Text>
       </View>
     </Page>
   )
@@ -419,7 +419,7 @@ export function reportPdf(sections: ReportSection[], data: ReportData): Promise<
   const details = SECTION_ORDER.filter((sec) => want.has(sec))
 
   const doc = (
-    <Document title={`DataShield report - ${data.org.name}`} author="DataShield" subject="Security exposure report">
+    <Document title={`Gardik report - ${data.org.name}`} author="Gardik" subject="Security exposure report">
       <Cover d={data} />
 
       <Page size="A4" style={s.page}>

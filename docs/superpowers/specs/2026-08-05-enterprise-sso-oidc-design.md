@@ -7,7 +7,7 @@
 ## Goal
 
 Let a client company bring its own identity provider (Azure AD, Okta) and have
-its members sign in to DataShield through it, while identity stays self-hosted:
+its members sign in to Gardik through it, while identity stays self-hosted:
 Better Auth remains the source of truth, the `User` row and its `Role` are ours,
 and the IdP only proves who the person is.
 

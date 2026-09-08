@@ -7,14 +7,14 @@ import { ADMINISTRATOR } from "@/lib/rbac/presets"
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! })
 const prisma = new PrismaClient({ adapter })
 
-const email = process.env.SEED_ADMIN_EMAIL ?? "admin@datashield.local"
+const email = process.env.SEED_ADMIN_EMAIL ?? "admin@gardik.local"
 const password = process.env.SEED_ADMIN_PASSWORD ?? "ChangeMe123!"
 
 async function main() {
   const company = await prisma.company.upsert({
-    where: { domain: "datashield.dev" },
+    where: { domain: "gardik.dev" },
     update: {},
-    create: { name: "DataShield Dev", domain: "datashield.dev" },
+    create: { name: "Gardik Dev", domain: "gardik.dev" },
   })
 
   await seedPresetsForCompany(prisma, company.id)

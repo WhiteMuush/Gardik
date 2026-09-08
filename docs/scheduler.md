@@ -1,6 +1,6 @@
 # Scheduling (auto scan + sync)
 
-DataShield does periodic work, exposure scans and directory syncs, without a
+Gardik does periodic work, exposure scans and directory syncs, without a
 dedicated worker process. The model is "internal cron + table": schedule state
 lives in the database, and a single tick endpoint advances it. An external
 scheduler calls the endpoint on a fixed interval.

@@ -1,7 +1,7 @@
 import type { Severity } from "@prisma/client"
 import type { SiemAlert } from "./types"
 
-// ArcSight CEF severity is 0-10. Map DataShield severities onto that scale.
+// ArcSight CEF severity is 0-10. Map Gardik severities onto that scale.
 const CEF_SEVERITY: Record<Severity, number> = { CRITICAL: 10, HIGH: 8, MEDIUM: 5, LOW: 2 }
 
 // CEF prefix fields (before the extension) escape backslash and pipe.
@@ -36,8 +36,8 @@ export function toCef(alert: SiemAlert): string {
 
   const header = [
     "CEF:0",
-    "DataShield",
-    "DataShield",
+    "Gardik",
+    "Gardik",
     "1.0",
     "breach-exposure",
     escapeHeader(alert.message),

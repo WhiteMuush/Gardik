@@ -7,7 +7,7 @@ import "./globals.css";
 export const dynamic = "force-dynamic";
 
 export const metadata: Metadata = {
-  title: "DataShield",
+  title: "Gardik",
   description: "Self-hosted employee data breach monitoring",
 };
 

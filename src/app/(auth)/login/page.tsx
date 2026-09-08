@@ -18,7 +18,7 @@ const RESOLVE_TIMEOUT_MS = 5000
 // reach are translated; the rest fall back, and the raw code stays server-side.
 const SSO_ERRORS: Record<string, string> = {
   "account not linked": "This company's domain is not verified yet. Ask an administrator to finish the SSO setup.",
-  signup_disabled: "No DataShield account exists for this address. Ask an administrator to create it.",
+  signup_disabled: "No Gardik account exists for this address. Ask an administrator to create it.",
   invalid_provider: "The identity provider rejected the sign-in. Ask an administrator to check the SSO configuration.",
 }
 
@@ -320,7 +320,7 @@ export default function LoginPage() {
         <div className="flex flex-col items-center gap-3">
           <div className="text-center">
             <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-              DataShield
+              Gardik
             </h1>
             <p className="mt-1 text-sm text-muted-foreground">
               {!needsTotp

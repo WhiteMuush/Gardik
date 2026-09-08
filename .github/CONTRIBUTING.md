@@ -1,9 +1,9 @@
-# Contributing to DataShield
+# Contributing to Gardik
 
 ## Getting started
 
 1. Fork the repository
-2. Clone your fork: `git clone https://github.com/your-username/DataShield.git`
+2. Clone your fork: `git clone https://github.com/your-username/Gardik.git`
 3. Install dependencies: `npm install`
 4. Create a branch: `git checkout -b feat/your-feature`
 
@@ -39,6 +39,6 @@ If you use an AI assistant to contribute, please read [AGENTS.md](AGENTS.md).
 
 ## Contributors
 
-<a href="https://github.com/WhiteMuush/DataShield/graphs/contributors">
-  <img src="https://contrib.rocks/image?repo=WhiteMuush/DataShield" />
+<a href="https://github.com/WhiteMuush/Gardik/graphs/contributors">
+  <img src="https://contrib.rocks/image?repo=WhiteMuush/Gardik" />
 </a>

@@ -3,12 +3,12 @@
 # machine has Docker or Podman. Sourced by the db-* scripts. POSIX sh.
 
 # Local database settings (override via env or .env.local).
-DB_CONTAINER="datashield-db"
+DB_CONTAINER="gardik-db"
 DB_IMAGE="postgres:16"
-DB_VOLUME="datashield-db-data"
+DB_VOLUME="gardik-db-data"
 DB_USER="${POSTGRES_USER:-user}"
 DB_PASSWORD="${POSTGRES_PASSWORD:-password}"
-DB_NAME="${POSTGRES_DB:-datashield}"
+DB_NAME="${POSTGRES_DB:-gardik}"
 DB_PORT="${POSTGRES_PORT:-5432}"
 
 # Resolve the container engine and, if present, a compose command. Prefers

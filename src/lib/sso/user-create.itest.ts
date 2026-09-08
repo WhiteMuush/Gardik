@@ -44,7 +44,7 @@ let viewerRoleId = ""
 
 beforeAll(async () => {
   // A dedicated throwaway company/admin rather than the shared seeded
-  // admin@datashield.local: itest files run in parallel against one seeded
+  // admin@gardik.local: itest files run in parallel against one seeded
   // DB, and reading/depending on that shared row races other suites that
   // mutate it (see PR #144). This suite only needs a User row to exist for
   // the stubbed session's id (the audit write's actorUserId FK), so a plain
@@ -87,13 +87,13 @@ describe("POST /api/users", () => {
     const res = await createUser(
       new Request("http://localhost/api/users", {
         method: "POST",
-        body: JSON.stringify({ email: "itest-shell@datashield.local", name: "Shell", roleId: viewerRoleId }),
+        body: JSON.stringify({ email: "itest-shell@gardik.local", name: "Shell", roleId: viewerRoleId }),
       })
     )
     expect(res.status).toBe(201)
 
     const created = await prisma.user.findUniqueOrThrow({
-      where: { email: "itest-shell@datashield.local" },
+      where: { email: "itest-shell@gardik.local" },
       include: { accounts: true },
     })
     expect(created.companyId).toBe(companyId)
@@ -123,7 +123,7 @@ describe("POST /api/users", () => {
     const res = await createUser(
       new Request("http://localhost/api/users", {
         method: "POST",
-        body: JSON.stringify({ email: "itest-shell2@datashield.local", name: "Shell", roleId: notAssignable.id }),
+        body: JSON.stringify({ email: "itest-shell2@gardik.local", name: "Shell", roleId: notAssignable.id }),
       })
     )
     expect(res.status).toBe(400)
@@ -144,19 +144,19 @@ describe("POST /api/users", () => {
     const res = await createUser(
       new Request("http://localhost/api/users", {
         method: "POST",
-        body: JSON.stringify({ email: "itest-shell3@datashield.local", name: "Shell", roleId: otherViewerRoleId }),
+        body: JSON.stringify({ email: "itest-shell3@gardik.local", name: "Shell", roleId: otherViewerRoleId }),
       })
     )
     expect(res.status).toBe(400)
     expect(
-      await prisma.user.findUnique({ where: { email: "itest-shell3@datashield.local" } })
+      await prisma.user.findUnique({ where: { email: "itest-shell3@gardik.local" } })
     ).toBeNull()
 
     await prisma.company.delete({ where: { id: otherCompany.id } })
   })
 
   it("returns 409, not 500, for an email that already has an account", async () => {
-    const email = `itest-shell-dup-${Date.now()}@datashield.local`
+    const email = `itest-shell-dup-${Date.now()}@gardik.local`
     const first = await createUser(
       new Request("http://localhost/api/users", {
         method: "POST",
@@ -189,7 +189,7 @@ describe("POST /api/users", () => {
     // prisma.user.create -- which must hit the real unique constraint on
     // User.email and have its P2002 caught and turned into a 409, not an
     // unhandled 500.
-    const email = `itest-shell-race-${Date.now()}@datashield.local`
+    const email = `itest-shell-race-${Date.now()}@gardik.local`
     const existing = await prisma.user.create({
       data: { email, name: "Already here", companyId, roleId: viewerRoleId, emailVerified: false },
     })
@@ -220,7 +220,7 @@ describe("POST /api/users", () => {
     // has run (but before the transaction commits), Prisma must roll the
     // whole transaction back, leaving neither the user row nor an audit row
     // behind. Forced via the writeAudit wrapper mocked in above.
-    const email = `itest-shell-rollback-${Date.now()}@datashield.local`
+    const email = `itest-shell-rollback-${Date.now()}@gardik.local`
     auditShouldFail = true
     lastAuditEntry = null
     try {
@@ -260,7 +260,7 @@ describe("POST /api/users, no-escalation", () => {
     const previous = stub.user
     stub.user = { ...previous, roleId: managerRoleId }
     try {
-      const email = `itest-escalation-${Date.now()}@datashield.local`
+      const email = `itest-escalation-${Date.now()}@gardik.local`
       const res = await createUser(
         new Request("http://localhost/api/users", {
           method: "POST",
@@ -283,7 +283,7 @@ describe("POST /api/users, no-escalation", () => {
     const actorId = stub.user.id as string
     await prisma.stepUpGrant.deleteMany({ where: { userId: actorId } })
 
-    const email = `itest-crownjewel-${Date.now()}@datashield.local`
+    const email = `itest-crownjewel-${Date.now()}@gardik.local`
     const res = await createUser(
       new Request("http://localhost/api/users", {
         method: "POST",

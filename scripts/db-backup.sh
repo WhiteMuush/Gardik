@@ -14,7 +14,7 @@ if ! "$CT_ENGINE" exec "$DB_CONTAINER" pg_isready -U "$DB_USER" -d "$DB_NAME" >/
 fi
 
 mkdir -p backups
-out="backups/datashield-$(date +%Y%m%d-%H%M%S).dump"
+out="backups/gardik-$(date +%Y%m%d-%H%M%S).dump"
 
 echo "[db-backup] dumping to $out"
 "$CT_ENGINE" exec "$DB_CONTAINER" pg_dump -Fc -U "$DB_USER" "$DB_NAME" > "$out.tmp"

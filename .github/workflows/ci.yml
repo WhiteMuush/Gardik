@@ -109,19 +109,19 @@ jobs:
         env:
           POSTGRES_USER: ci
           POSTGRES_PASSWORD: ci
-          POSTGRES_DB: datashield
+          POSTGRES_DB: gardik
           # initdb reads TZ, so the cluster comes up in this timezone the way a
           # managed instance provisioned in a region would.
           TZ: ${{ matrix.timezone }}
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U ci -d datashield"
+          --health-cmd "pg_isready -U ci -d gardik"
           --health-interval 3s
           --health-timeout 3s
           --health-retries 20
     env:
-      DATABASE_URL: postgresql://ci:ci@localhost:5432/datashield
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/gardik
       # Placeholders, same shape as the build and e2e jobs. The integration
       # suite writes SsoProvider rows, and the Prisma extension that seals
       # oidcConfig refuses to run without a key, so the suite cannot start
@@ -161,16 +161,16 @@ jobs:
         env:
           POSTGRES_USER: ci
           POSTGRES_PASSWORD: ci
-          POSTGRES_DB: datashield
+          POSTGRES_DB: gardik
         ports:
           - 5432:5432
         options: >-
-          --health-cmd "pg_isready -U ci -d datashield"
+          --health-cmd "pg_isready -U ci -d gardik"
           --health-interval 3s
           --health-timeout 3s
           --health-retries 20
     env:
-      DATABASE_URL: postgresql://ci:ci@localhost:5432/datashield
+      DATABASE_URL: postgresql://ci:ci@localhost:5432/gardik
       AUTH_SECRET: ci-placeholder-auth-secret
       AUTH_URL: http://localhost:3000
       DIRECTORY_ENCRYPTION_KEY: ci-placeholder-encryption-key-32-chars-minimum

@@ -91,7 +91,7 @@ export function EmployeeTable({ data }: { data: EmployeeRow[] }) {
 
   function exportCsv() {
     downloadCsv(
-      "datashield-employees.csv",
+      "gardik-employees.csv",
       ["name", "email", "department", "risk", "breaches", "exposed data", "last detected"],
       filtered.map((e) => [
         `${e.firstName} ${e.lastName}`,

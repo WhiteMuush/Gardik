@@ -3,9 +3,9 @@ import { enrollTwoFactor, totpCode, setAllowedMethods, tryEnableTotp } from "./h
 import { latestEmailOtp, trySendEmailOtp } from "./helpers/email-otp"
 import { resetTwoFactorEnrollment } from "./helpers/reset"
 
-const EMAIL = "mfa@datashield.local"
+const EMAIL = "mfa@gardik.local"
 const PASSWORD = "ChangeMe123!"
-const ADMIN = { email: "admin@datashield.local", password: "ChangeMe123!" }
+const ADMIN = { email: "admin@gardik.local", password: "ChangeMe123!" }
 
 // Serial: both tests move the shared company policy, so they must not overlap.
 // smoke.spec uses password-only admin login, which allowedAuthMethods does not

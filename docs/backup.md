@@ -1,6 +1,6 @@
 # Database backup and restore
 
-How to back up and restore the DataShield PostgreSQL database. The strategy
+How to back up and restore the Gardik PostgreSQL database. The strategy
 applies to any self-hosted deployment; the tooling targets the local compose
 stack.
 
@@ -29,12 +29,12 @@ The encryption key warning above still applies.
 
 Crontab example (daily at 02:00, prune local dumps after 7 days):
 
-    0 2 * * * cd /path/to/DataShield && npm run db:backup && find backups -name '*.dump' -mtime +7 -delete
+    0 2 * * * cd /path/to/Gardik && npm run db:backup && find backups -name '*.dump' -mtime +7 -delete
 
 ## Compose stack commands
 
 - `make backup` (or `npm run db:backup`): writes
-  `backups/datashield-<timestamp>.dump`.
+  `backups/gardik-<timestamp>.dump`.
 - `make restore FILE=backups/<file>.dump` (or
   `npm run db:restore -- backups/<file>.dump`): destructive, asks for
   confirmation, then runs `pg_restore --clean --if-exists`.
@@ -50,9 +50,9 @@ local compose stack), never production.
 1. `npm run db:init` to get a seeded database.
 2. `make backup`; note the dump file name.
 3. Note the employee count:
-   `docker compose exec -T db psql -U user -d datashield -tAc 'SELECT count(*) FROM "Employee";'`
+   `docker compose exec -T db psql -U user -d gardik -tAc 'SELECT count(*) FROM "Employee";'`
 4. Wipe the table:
-   `docker compose exec -T db psql -U user -d datashield -c 'TRUNCATE "Employee" CASCADE;'`
+   `docker compose exec -T db psql -U user -d gardik -c 'TRUNCATE "Employee" CASCADE;'`
 5. `make restore FILE=backups/<file>.dump` and confirm with `yes`.
 6. The count from step 3 is back, and `npx prisma migrate status` reports the
    schema is up to date.

@@ -1,5 +1,5 @@
 name: Bug Report
-description: Report a bug in DataShield
+description: Report a bug in Gardik
 labels: ["bug"]
 body:
   - type: textarea

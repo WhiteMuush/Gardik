@@ -2,13 +2,13 @@
 
 ## Project status
 
-DataShield is under active development and has not reached a stable release. There are no versioned releases yet. Security reports are still welcome and will be addressed.
+Gardik is under active development and has not reached a stable release. There are no versioned releases yet. Security reports are still welcome and will be addressed.
 
 ## Reporting a vulnerability
 
 Please **do not** open a public GitHub issue for security vulnerabilities.
 
-Report them privately via [GitHub Security Advisories](https://github.com/WhiteMuush/DataShield/security/advisories/new).
+Report them privately via [GitHub Security Advisories](https://github.com/WhiteMuush/Gardik/security/advisories/new).
 
 Include:
 - A description of the vulnerability

@@ -68,7 +68,7 @@ describe("auth configuration", () => {
     const { totpURI } = await auth.api.enableTwoFactor({ body: { password }, headers })
 
     // otpauth://totp/<issuer>:<account>?...&issuer=<issuer>
-    expect(totpURI).toContain("DataShield")
+    expect(totpURI).toContain("Gardik")
     expect(totpURI).not.toContain("Better%20Auth")
     expect(totpURI).toContain(encodeURIComponent(email))
   })

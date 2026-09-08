@@ -5,7 +5,7 @@ import { writeAudit, AUDIT_ACTIONS } from "@/lib/rbac/audit"
 describe("audit read (real DB)", () => {
   it("returns entries newest first, scoped to the company", async () => {
     const admin = await prisma.user.findUniqueOrThrow({
-      where: { email: "admin@datashield.local" },
+      where: { email: "admin@gardik.local" },
     })
     await writeAudit(prisma, {
       companyId: admin.companyId,

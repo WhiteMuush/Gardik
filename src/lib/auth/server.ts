@@ -39,7 +39,7 @@ async function sendLoginOtp(email: string, otp: string): Promise<void> {
   }
   await sendEmail(
     [email],
-    "Your DataShield sign-in code",
+    "Your Gardik sign-in code",
     `<div style="font-family:system-ui,sans-serif;font-size:14px;color:#111;line-height:1.5">` +
       `<p>Your sign-in code is <strong style="font-size:18px;letter-spacing:2px">${otp}</strong>.</p>` +
       `<p>It expires shortly. If you did not try to sign in, ignore this email.</p>` +
@@ -217,7 +217,7 @@ export const auth = betterAuth({
   // app lists the entry under this name. Left unset, Better Auth falls back to
   // its own "Better Auth", and users end up with a code they cannot match to
   // anything they recognise.
-  appName: "DataShield",
+  appName: "Gardik",
   // e2e only: the serial 2FA suite makes several sign-ins inside Better Auth's
   // 3-per-10s window, which would 429-flake. Gated on E2E=1 *and* a loopback
   // base URL, so it can never arm in production even if E2E leaks there.
@@ -280,7 +280,7 @@ export const auth = betterAuth({
     }),
     passkey({
       rpID: passkeyRpID,
-      rpName: "DataShield",
+      rpName: "Gardik",
       origin: passkeyOrigin,
     }),
     sso({

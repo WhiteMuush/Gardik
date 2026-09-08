@@ -9,7 +9,7 @@ import { Settings2, Check, GripHorizontal, Eye, EyeOff, RotateCcw } from "lucide
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
-const STORAGE_KEY = "datashield:reports:layout:v5"
+const STORAGE_KEY = "gardik:reports:layout:v5"
 const COLS = 12
 const ROW_H = 50
 const MARGIN_Y = 16

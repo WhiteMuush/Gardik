@@ -12,12 +12,12 @@
 
 - Build on branch `develop`. Do not merge to `main`.
 - Node 22 is pinned (`engine-strict=true`). The dev shell may run Node 24; `npm run`, `npx tsc`, `npx vitest`, `npx prisma` all work under it. Only `npm install` is blocked; if a task installs a package, run `npm install <pkg> --engine-strict=false`. This plan installs nothing.
-- Local DB runs via `npm run db:up` (auto-detects Docker or Podman; container `datashield-db` on `localhost:5432`). Env is loaded with `npx dotenv -e .env.local -- <cmd>` for anything touching the DB.
+- Local DB runs via `npm run db:up` (auto-detects Docker or Podman; container `gardik-db` on `localhost:5432`). Env is loaded with `npx dotenv -e .env.local -- <cmd>` for anything touching the DB.
 - After any `prisma migrate dev`, run `npx prisma generate` explicitly; `migrate dev` does not reliably regenerate the client in this repo.
 - No `console.log(` anywhere under `src/` (pre-commit blocks it). Use `console.warn`/`console.error` if needed.
 - Never use the em dash character (Unicode U+2014) anywhere. Use a comma, colon, or parentheses instead.
 - Commit messages follow Conventional Commits and must contain no AI-attribution trailers; the repo commit-msg hook enforces both.
-- Tests: unit tests mock Prisma; DB-backed integration tests run in-process against the real `auth`/`prisma` with `datashield-db` up (pattern: build a `Request`, call `auth.handler`, or call the route function directly). Run integration with `npx dotenv -e .env.local -- npx vitest run <file>`.
+- Tests: unit tests mock Prisma; DB-backed integration tests run in-process against the real `auth`/`prisma` with `gardik-db` up (pattern: build a `Request`, call `auth.handler`, or call the route function directly). Run integration with `npx dotenv -e .env.local -- npx vitest run <file>`.
 - Existing guard lives in `src/lib/apiAuth.ts` (`requireAuth`, `requireAdmin`, `forbidden()`, `enforce2fa`). Extend it; keep `requireAuth` and `enforce2fa` behavior intact.
 
 ---
@@ -598,7 +598,7 @@ import { seedPresetsForCompany, resolvePresetRoleId } from "./seed-roles"
 // preset, then asserts a Viewer lacks policy:manage but holds policy:read.
 describe("requirePermission (real DB, in-process)", () => {
   it("Viewer is denied policy:manage but allowed policy:read", async () => {
-    const admin = await prisma.user.findUniqueOrThrow({ where: { email: "admin@datashield.local" } })
+    const admin = await prisma.user.findUniqueOrThrow({ where: { email: "admin@gardik.local" } })
     await seedPresetsForCompany(prisma, admin.companyId)
     const viewerId = await resolvePresetRoleId(prisma, admin.companyId, "Viewer")
     await prisma.user.update({ where: { id: admin.id }, data: { roleId: viewerId } })

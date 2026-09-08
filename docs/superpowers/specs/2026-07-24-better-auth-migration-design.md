@@ -139,7 +139,7 @@ by `requireAdmin`) sets `require2fa` and the allowed methods.
 - Replace the hand-rolled `rateLimit` call in `authorize` with Better Auth's
   built-in rate limiting on sign-in.
 - Passwords: existing bcrypt hashes preserved through custom `hash` / `verify`
-  (bcryptjs), so the seeded `admin@datashield.local` logs in unchanged.
+  (bcryptjs), so the seeded `admin@gardik.local` logs in unchanged.
 - TOTP secret and backup codes encrypted; CSRF and secure cookies native to
   Better Auth; 2FA enforcement is server-side.
 - Env: `BETTER_AUTH_SECRET` and `BETTER_AUTH_URL` (mapped from the existing

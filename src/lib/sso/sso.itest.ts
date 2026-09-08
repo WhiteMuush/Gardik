@@ -32,13 +32,13 @@ afterAll(async () => {
 
 describe("SsoProvider model", () => {
   it("stores a provider linked to a company and defaults domainVerified to false", async () => {
-    const admin = await prisma.user.findUniqueOrThrow({ where: { email: "admin@datashield.local" } })
+    const admin = await prisma.user.findUniqueOrThrow({ where: { email: "admin@gardik.local" } })
 
     const created = await prisma.ssoProvider.create({
       data: {
         issuer: "https://login.microsoftonline.com/tenant/v2.0",
         providerId: PROVIDER_ID,
-        domain: "datashield.local",
+        domain: "gardik.local",
         organizationId: admin.companyId,
         userId: admin.id,
         oidcConfig: JSON.stringify({ clientId: "abc", clientSecret: "shh" }),
@@ -50,7 +50,7 @@ describe("SsoProvider model", () => {
   })
 
   it("defaults the new policy columns", async () => {
-    const admin = await prisma.user.findUniqueOrThrow({ where: { email: "admin@datashield.local" } })
+    const admin = await prisma.user.findUniqueOrThrow({ where: { email: "admin@gardik.local" } })
     const company = await prisma.company.findUniqueOrThrow({ where: { id: admin.companyId } })
     expect(company.ssoMandatory).toBe(false)
     expect(admin.ssoExempt).toBe(false)
@@ -59,14 +59,14 @@ describe("SsoProvider model", () => {
 
 describe("oidcConfig at rest", () => {
   it("is unreadable through the plain client and readable through the extended one", async () => {
-    const admin = await prisma.user.findUniqueOrThrow({ where: { email: "admin@datashield.local" } })
+    const admin = await prisma.user.findUniqueOrThrow({ where: { email: "admin@gardik.local" } })
     const raw = JSON.stringify({ clientId: "abc", clientSecret: "shh" })
 
     await authPrisma.ssoProvider.create({
       data: {
         issuer: "https://idp.example.com",
         providerId: "itest-sealed",
-        domain: "datashield.local",
+        domain: "gardik.local",
         organizationId: admin.companyId,
         oidcConfig: raw,
       },
@@ -103,7 +103,7 @@ async function signInAndGetCookieHeaders(email: string, password: string): Promi
 describe("sso:config gate", () => {
   it("refuses registration for a Viewer and lets an Administrator past the permission check", async () => {
     // A dedicated company/users, never the shared seeded admin: itest files
-    // run in parallel against one seeded DB, and mutating admin@datashield.local's
+    // run in parallel against one seeded DB, and mutating admin@gardik.local's
     // role races every other suite that reads it (see require-permission.itest.ts's
     // history, fixed the same way in PR #144). No role mutation here means no
     // restore step is needed either.
@@ -174,13 +174,13 @@ describe("sso:config gate", () => {
 
 describe("provider helpers", () => {
   it("finds the company provider and masks its secret", async () => {
-    const admin = await prisma.user.findUniqueOrThrow({ where: { email: "admin@datashield.local" } })
+    const admin = await prisma.user.findUniqueOrThrow({ where: { email: "admin@gardik.local" } })
     await prisma.ssoProvider.deleteMany({ where: { organizationId: admin.companyId } })
     await authPrisma.ssoProvider.create({
       data: {
         issuer: "https://idp.example.com",
         providerId: "itest-masked",
-        domain: "datashield.local",
+        domain: "gardik.local",
         organizationId: admin.companyId,
         oidcConfig: JSON.stringify({ clientId: "client-1234", clientSecret: "shh", discoveryEndpoint: "https://idp.example.com/.well-known/openid-configuration" }),
       },
@@ -195,7 +195,7 @@ describe("provider helpers", () => {
   })
 
   it("re-points ownership at the calling admin", async () => {
-    const admin = await prisma.user.findUniqueOrThrow({ where: { email: "admin@datashield.local" } })
+    const admin = await prisma.user.findUniqueOrThrow({ where: { email: "admin@gardik.local" } })
     await takeOwnership("itest-masked", admin.id)
     const row = await prisma.ssoProvider.findUniqueOrThrow({ where: { providerId: "itest-masked" } })
     expect(row.userId).toBe(admin.id)
@@ -608,7 +608,7 @@ describe("POST /api/sso/resolve", () => {
 
   it("answers sso:false while the company's provider is unverified, then sso:true with its providerId once verified", async () => {
     // A dedicated company/user rather than the shared seeded admin: mutating
-    // admin@datashield.local's SsoProvider rows would race every other itest
+    // admin@gardik.local's SsoProvider rows would race every other itest
     // file that reads that company's provider state (see PR #144, where
     // mutating the shared admin caused real CI flakiness).
     // setupCompanyWithViewerAndAdmin already suffixes its emails with

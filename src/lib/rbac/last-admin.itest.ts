@@ -7,7 +7,7 @@ import { ADMINISTRATOR, VIEWER_ROLE } from "@/lib/rbac/presets"
 describe("last-admin guard (real DB)", () => {
   it("blocks demoting the only admin, allows when another admin exists", async () => {
     const admin = await prisma.user.findUniqueOrThrow({
-      where: { email: "admin@datashield.local" },
+      where: { email: "admin@gardik.local" },
     })
     const viewerId = await resolvePresetRoleId(prisma, admin.companyId, VIEWER_ROLE)
     const adminRoleId = await resolvePresetRoleId(prisma, admin.companyId, ADMINISTRATOR)

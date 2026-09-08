@@ -19,7 +19,7 @@ native backups when available.
 - Dump format: `pg_dump -Fc` (custom format). Compressed, supports selective
   restore via `pg_restore`.
 - Dumps land in `backups/` at the repo root, gitignored, named
-  `datashield-YYYYMMDD-HHMMSS.dump`.
+  `gardik-YYYYMMDD-HHMMSS.dump`.
 - Restore is destructive: explicit file argument required, interactive
   confirmation (`yes`) before overwriting.
 - Canonical documentation lives in `docs/backup.md` (reviewed, versioned with
@@ -48,8 +48,8 @@ native backups when available.
 - Fail with a clear message if the `db` compose service is not running
   (suggest `npm run db:up`).
 - `mkdir -p backups`, then
-  `docker compose exec -T db pg_dump -Fc -U ${POSTGRES_USER:-user} ${POSTGRES_DB:-datashield}`
-  redirected to `backups/datashield-<timestamp>.dump` (same env defaults as
+  `docker compose exec -T db pg_dump -Fc -U ${POSTGRES_USER:-user} ${POSTGRES_DB:-gardik}`
+  redirected to `backups/gardik-<timestamp>.dump` (same env defaults as
   `compose.yml`).
 - Print the resulting path and size.
 

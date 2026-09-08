@@ -9,7 +9,7 @@ import { prisma } from "@/lib/prisma"
 describe("step-up route wiring (real DB)", () => {
   it("a minted grant is observable via hasValidStepUp", async () => {
     const admin = await prisma.user.findUniqueOrThrow({
-      where: { email: "admin@datashield.local" },
+      where: { email: "admin@gardik.local" },
     })
     await prisma.stepUpGrant.create({
       data: { userId: admin.id, expiresAt: new Date(Date.now() + 60_000) },

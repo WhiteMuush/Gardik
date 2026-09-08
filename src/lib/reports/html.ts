@@ -99,7 +99,7 @@ export function reportHtml(sections: ReportSection[], data: ReportData): string 
     .join("")
 
   return `<!doctype html><html><body style="font-family:system-ui,sans-serif;color:#111;max-width:760px;margin:0 auto;padding:24px">
-    <h1 style="font-size:20px;margin:0">DataShield report</h1>
+    <h1 style="font-size:20px;margin:0">Gardik report</h1>
     <p style="color:#666;font-size:12px;margin:4px 0 0">Generated ${esc(new Date(data.generatedAt).toUTCString())}</p>
     ${blocks}
   </body></html>`

@@ -13,12 +13,12 @@
 - Build on branch `develop`. Do not merge to `main`.
 - Approved design source: `docs/superpowers/specs/2026-07-25-identity-access-rbac-design.md`. Do not re-design; this plan implements the RBAC-management + audit + step-up slice of it. SSO (OIDC lean) is the NEXT plan, not part of this one.
 - Node 22 is pinned (`engine-strict=true`). `npm run`, `npx tsc`, `npx vitest`, `npx prisma` all work; only `npm install` is blocked (this plan installs nothing).
-- Local DB runs via `npm run db:up` (container `datashield-db` on `localhost:5432`). Anything touching the DB is run with `npx dotenv -e .env.local -- <cmd>`.
+- Local DB runs via `npm run db:up` (container `gardik-db` on `localhost:5432`). Anything touching the DB is run with `npx dotenv -e .env.local -- <cmd>`.
 - After any `prisma migrate dev`, run `npx prisma generate` explicitly; `migrate dev` does not reliably regenerate the client in this repo.
 - No `console.log(` anywhere under `src/` (pre-commit blocks it). Use `console.warn`/`console.error`.
 - ASCII only. Never use the em dash character (U+2014) or accented letters anywhere in code, comments, console output, or commit messages. Use a comma, colon, or parentheses instead. A pre-push hook blocks non-ASCII in added lines.
 - Commit messages follow Conventional Commits and carry no AI-attribution trailers; the commit-msg hook enforces both.
-- Tests: unit tests mock Prisma; DB-backed integration tests (`*.itest.ts`) run in-process against the real `auth`/`prisma` with `datashield-db` up. Run unit with `npx vitest run <file>`; run integration with `npx dotenv -e .env.local -- npx vitest run <file>`.
+- Tests: unit tests mock Prisma; DB-backed integration tests (`*.itest.ts`) run in-process against the real `auth`/`prisma` with `gardik-db` up. Run unit with `npx vitest run <file>`; run integration with `npx dotenv -e .env.local -- npx vitest run <file>`.
 - The guard lives in `src/lib/apiAuth.ts`; RBAC logic lives in `src/lib/rbac/`. Extend them; keep `requireAuth`, `requirePermission`, and `enforce2fa` behavior intact.
 - Every new mutating API route (`POST`/`PATCH`/`PUT`/`DELETE`) MUST be added to `src/lib/rbac/route-permissions.ts` or the coverage test (`src/lib/rbac/route-coverage.test.ts`) fails the build.
 
@@ -591,7 +591,7 @@ import { prisma } from "@/lib/prisma"
 describe("step-up route wiring (real DB)", () => {
   it("a minted grant is observable via hasValidStepUp", async () => {
     const admin = await prisma.user.findUniqueOrThrow({
-      where: { email: "admin@datashield.local" },
+      where: { email: "admin@gardik.local" },
     })
     await prisma.stepUpGrant.create({
       data: { userId: admin.id, expiresAt: new Date(Date.now() + 60_000) },
@@ -735,7 +735,7 @@ import { excessPermissions } from "@/lib/rbac/escalation"
 describe("role create invariants (real DB)", () => {
   it("admin can cover any preset role's permissions (no-escalation holds)", async () => {
     const admin = await prisma.user.findUniqueOrThrow({
-      where: { email: "admin@datashield.local" },
+      where: { email: "admin@gardik.local" },
     })
     const analystId = await resolvePresetRoleId(prisma, admin.companyId, "SOC Analyst")
     const analyst = await prisma.role.findUniqueOrThrow({ where: { id: analystId } })
@@ -912,7 +912,7 @@ import { ADMINISTRATOR } from "@/lib/rbac/presets"
 describe("role edit/delete invariants (real DB)", () => {
   it("the Administrator preset is a system role (edit/delete must be refused)", async () => {
     const admin = await prisma.user.findUniqueOrThrow({
-      where: { email: "admin@datashield.local" },
+      where: { email: "admin@gardik.local" },
     })
     const adminRoleId = await resolvePresetRoleId(prisma, admin.companyId, ADMINISTRATOR)
     const role = await prisma.role.findUniqueOrThrow({ where: { id: adminRoleId } })
@@ -921,7 +921,7 @@ describe("role edit/delete invariants (real DB)", () => {
 
   it("a role with users assigned reports a non-zero assignment count", async () => {
     const admin = await prisma.user.findUniqueOrThrow({
-      where: { email: "admin@datashield.local" },
+      where: { email: "admin@gardik.local" },
     })
     const count = await prisma.user.count({ where: { roleId: admin.roleId } })
     expect(count).toBeGreaterThan(0)
@@ -1010,7 +1010,7 @@ import { ADMINISTRATOR, VIEWER_ROLE } from "@/lib/rbac/presets"
 describe("last-admin guard (real DB)", () => {
   it("blocks demoting the only admin, allows when another admin exists", async () => {
     const admin = await prisma.user.findUniqueOrThrow({
-      where: { email: "admin@datashield.local" },
+      where: { email: "admin@gardik.local" },
     })
     const viewerId = await resolvePresetRoleId(prisma, admin.companyId, VIEWER_ROLE)
     const adminRoleId = await resolvePresetRoleId(prisma, admin.companyId, ADMINISTRATOR)
@@ -1158,7 +1158,7 @@ import { excessPermissions } from "@/lib/rbac/escalation"
 describe("role assignment invariants (real DB)", () => {
   it("Viewer's permissions are a subset of the admin's", async () => {
     const admin = await prisma.user.findUniqueOrThrow({
-      where: { email: "admin@datashield.local" },
+      where: { email: "admin@gardik.local" },
     })
     const viewerId = await resolvePresetRoleId(prisma, admin.companyId, VIEWER_ROLE)
     const viewer = await prisma.role.findUniqueOrThrow({ where: { id: viewerId } })
@@ -1238,7 +1238,7 @@ import { writeAudit, AUDIT_ACTIONS } from "@/lib/rbac/audit"
 describe("audit read (real DB)", () => {
   it("returns entries newest first, scoped to the company", async () => {
     const admin = await prisma.user.findUniqueOrThrow({
-      where: { email: "admin@datashield.local" },
+      where: { email: "admin@gardik.local" },
     })
     await writeAudit(prisma, {
       companyId: admin.companyId,
@@ -1921,22 +1921,22 @@ git commit -m "feat(rbac): add user assignment and audit trail UI"
 
 - [ ] **Step 1: Add e2e fixtures**
 
-In `e2e/seed.ts`, inside `main()` after the mfa user block, add a manager user assigned the "Security Manager" preset (holds `users:manage`, `roles:read`, but NOT `roles:manage`) and a plain member with the Viewer preset, both in the `datashield.dev` company, both password `ChangeMe123!`. Use `resolvePresetRoleId(prisma, company.id, "Security Manager")` and `resolvePresetRoleId(prisma, company.id, "Viewer")`, and set each password via the existing `setPassword` helper already in the file.
+In `e2e/seed.ts`, inside `main()` after the mfa user block, add a manager user assigned the "Security Manager" preset (holds `users:manage`, `roles:read`, but NOT `roles:manage`) and a plain member with the Viewer preset, both in the `gardik.dev` company, both password `ChangeMe123!`. Use `resolvePresetRoleId(prisma, company.id, "Security Manager")` and `resolvePresetRoleId(prisma, company.id, "Viewer")`, and set each password via the existing `setPassword` helper already in the file.
 
 ```ts
   const managerRoleId = await resolvePresetRoleId(prisma, company.id, "Security Manager")
   const manager = await prisma.user.upsert({
-    where: { email: "manager@datashield.local" },
+    where: { email: "manager@gardik.local" },
     update: {},
-    create: { email: "manager@datashield.local", name: "Manager", roleId: managerRoleId, companyId: company.id },
+    create: { email: "manager@gardik.local", name: "Manager", roleId: managerRoleId, companyId: company.id },
   })
   await setPassword(manager.id, "ChangeMe123!")
 
   const viewerRoleId = await resolvePresetRoleId(prisma, company.id, "Viewer")
   const member = await prisma.user.upsert({
-    where: { email: "member@datashield.local" },
+    where: { email: "member@gardik.local" },
     update: {},
-    create: { email: "member@datashield.local", name: "Member", roleId: viewerRoleId, companyId: company.id },
+    create: { email: "member@gardik.local", name: "Member", roleId: viewerRoleId, companyId: company.id },
   })
   await setPassword(member.id, "ChangeMe123!")
 ```
@@ -1947,8 +1947,8 @@ In `e2e/seed.ts`, inside `main()` after the mfa user block, add a manager user a
 // e2e/rbac.spec.ts
 import { test, expect } from "@playwright/test"
 
-const ADMIN = { email: "admin@datashield.local", password: "ChangeMe123!" }
-const MEMBER = { email: "member@datashield.local", password: "ChangeMe123!" }
+const ADMIN = { email: "admin@gardik.local", password: "ChangeMe123!" }
+const MEMBER = { email: "member@gardik.local", password: "ChangeMe123!" }
 
 test.describe.configure({ mode: "serial" })
 

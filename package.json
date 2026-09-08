@@ -1,14 +1,14 @@
 {
-  "name": "datashield",
+  "name": "gardik",
   "version": "1.0.0",
-  "description": "DataShield is a self-hosted service that lets businesses know if these employees haven't had compromised data",
-  "homepage": "https://github.com/WhiteMuush/DataShield#readme",
+  "description": "Gardik is a self-hosted service that lets businesses know if these employees haven't had compromised data",
+  "homepage": "https://github.com/WhiteMuush/Gardik#readme",
   "bugs": {
-    "url": "https://github.com/WhiteMuush/DataShield/issues"
+    "url": "https://github.com/WhiteMuush/Gardik/issues"
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/WhiteMuush/DataShield.git"
+    "url": "git+https://github.com/WhiteMuush/Gardik.git"
   },
   "license": "SEE LICENSE IN LICENSE",
   "author": "Melvin PETIT (WhiteMuush)",

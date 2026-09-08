@@ -17,7 +17,7 @@
 - No `console.log(` under `src/`. Use `console.warn` or `console.error`.
 - Conventional Commits. No AI-attribution trailers. The commit-msg hook enforces both.
 - Node 22 is pinned with `engine-strict=true` in `.npmrc`; the local machine runs Node 24, so every `npm install` in this plan carries `--engine-strict=false`.
-- Local DB: `npm run db:up` (container `datashield-db` on `localhost:5432`).
+- Local DB: `npm run db:up` (container `gardik-db` on `localhost:5432`).
 - Anything touching the DB runs through dotenv: `npx dotenv -e .env.local -- <cmd>`.
 - After any `prisma migrate dev`, run `npx prisma generate` explicitly; `migrate dev` does not reliably regenerate the client in this repo.
 - Unit suite: `npx vitest run` (192 tests green at the start of this plan). Integration suite: `npx dotenv -e .env.local -- npm run test:integration` (19 green). Both must stay green at every commit.
@@ -94,13 +94,13 @@ afterAll(async () => {
 
 describe("SsoProvider model", () => {
   it("stores a provider linked to a company and defaults domainVerified to false", async () => {
-    const admin = await prisma.user.findUniqueOrThrow({ where: { email: "admin@datashield.local" } })
+    const admin = await prisma.user.findUniqueOrThrow({ where: { email: "admin@gardik.local" } })
 
     const created = await prisma.ssoProvider.create({
       data: {
         issuer: "https://login.microsoftonline.com/tenant/v2.0",
         providerId: PROVIDER_ID,
-        domain: "datashield.local",
+        domain: "gardik.local",
         organizationId: admin.companyId,
         userId: admin.id,
         oidcConfig: JSON.stringify({ clientId: "abc", clientSecret: "shh" }),
@@ -112,7 +112,7 @@ describe("SsoProvider model", () => {
   })
 
   it("defaults the new policy columns", async () => {
-    const admin = await prisma.user.findUniqueOrThrow({ where: { email: "admin@datashield.local" } })
+    const admin = await prisma.user.findUniqueOrThrow({ where: { email: "admin@gardik.local" } })
     const company = await prisma.company.findUniqueOrThrow({ where: { id: admin.companyId } })
     expect(company.ssoMandatory).toBe(false)
     expect(admin.ssoExempt).toBe(false)
@@ -324,14 +324,14 @@ import { authPrisma } from "@/lib/auth/prisma"
 
 describe("oidcConfig at rest", () => {
   it("is unreadable through the plain client and readable through the extended one", async () => {
-    const admin = await prisma.user.findUniqueOrThrow({ where: { email: "admin@datashield.local" } })
+    const admin = await prisma.user.findUniqueOrThrow({ where: { email: "admin@gardik.local" } })
     const raw = JSON.stringify({ clientId: "abc", clientSecret: "shh" })
 
     await authPrisma.ssoProvider.create({
       data: {
         issuer: "https://idp.example.com",
         providerId: "itest-sealed",
-        domain: "datashield.local",
+        domain: "gardik.local",
         organizationId: admin.companyId,
         oidcConfig: raw,
       },
@@ -640,7 +640,7 @@ import { seedPresetsForCompany, resolvePresetRoleId } from "@/lib/rbac/seed-role
 
 describe("sso:config gate", () => {
   it("refuses provider registration for a Viewer", async () => {
-    const admin = await prisma.user.findUniqueOrThrow({ where: { email: "admin@datashield.local" } })
+    const admin = await prisma.user.findUniqueOrThrow({ where: { email: "admin@gardik.local" } })
     await seedPresetsForCompany(prisma, admin.companyId)
     const viewer = await resolvePresetRoleId(prisma, admin.companyId, "Viewer")
     const administrator = await resolvePresetRoleId(prisma, admin.companyId, "Administrator")
@@ -703,13 +703,13 @@ import { findCompanyProvider, takeOwnership, maskedProvider } from "@/lib/sso/pr
 
 describe("provider helpers", () => {
   it("finds the company provider and masks its secret", async () => {
-    const admin = await prisma.user.findUniqueOrThrow({ where: { email: "admin@datashield.local" } })
+    const admin = await prisma.user.findUniqueOrThrow({ where: { email: "admin@gardik.local" } })
     await prisma.ssoProvider.deleteMany({ where: { organizationId: admin.companyId } })
     await authPrisma.ssoProvider.create({
       data: {
         issuer: "https://idp.example.com",
         providerId: "itest-masked",
-        domain: "datashield.local",
+        domain: "gardik.local",
         organizationId: admin.companyId,
         oidcConfig: JSON.stringify({ clientId: "client-1234", clientSecret: "shh", discoveryEndpoint: "https://idp.example.com/.well-known/openid-configuration" }),
       },
@@ -724,7 +724,7 @@ describe("provider helpers", () => {
   })
 
   it("re-points ownership at the calling admin", async () => {
-    const admin = await prisma.user.findUniqueOrThrow({ where: { email: "admin@datashield.local" } })
+    const admin = await prisma.user.findUniqueOrThrow({ where: { email: "admin@gardik.local" } })
     await takeOwnership("itest-masked", admin.id)
     const row = await prisma.ssoProvider.findUniqueOrThrow({ where: { providerId: "itest-masked" } })
     expect(row.userId).toBe(admin.id)
@@ -1129,13 +1129,13 @@ describe("POST /api/sso/resolve", () => {
   })
 
   it("answers sso:false when the company provider is not verified yet", async () => {
-    const admin = await prisma.user.findUniqueOrThrow({ where: { email: "admin@datashield.local" } })
+    const admin = await prisma.user.findUniqueOrThrow({ where: { email: "admin@gardik.local" } })
     await prisma.ssoProvider.deleteMany({ where: { organizationId: admin.companyId } })
     await authPrisma.ssoProvider.create({
       data: {
         issuer: "https://idp.example.com",
         providerId: "itest-unverified",
-        domain: "datashield.local",
+        domain: "gardik.local",
         organizationId: admin.companyId,
         domainVerified: false,
         oidcConfig: JSON.stringify({ clientId: "abc", clientSecret: "shh" }),
@@ -1145,7 +1145,7 @@ describe("POST /api/sso/resolve", () => {
     const res = await resolveSso(
       new Request("http://localhost/api/sso/resolve", {
         method: "POST",
-        body: JSON.stringify({ email: "admin@datashield.local" }),
+        body: JSON.stringify({ email: "admin@gardik.local" }),
       })
     )
     expect(await res.json()).toEqual({ sso: false })
@@ -1159,7 +1159,7 @@ describe("POST /api/sso/resolve", () => {
     const res = await resolveSso(
       new Request("http://localhost/api/sso/resolve", {
         method: "POST",
-        body: JSON.stringify({ email: "admin@datashield.local" }),
+        body: JSON.stringify({ email: "admin@gardik.local" }),
       })
     )
     expect(await res.json()).toEqual({ sso: true, providerId: "itest-unverified" })
@@ -1319,7 +1319,7 @@ Append to `src/lib/sso/sso.itest.ts`:
 ```ts
 describe("SSO mandatory policy", () => {
   it("refuses a password sign-in and lets an exempt user through", async () => {
-    const admin = await prisma.user.findUniqueOrThrow({ where: { email: "admin@datashield.local" } })
+    const admin = await prisma.user.findUniqueOrThrow({ where: { email: "admin@gardik.local" } })
     await prisma.company.update({ where: { id: admin.companyId }, data: { ssoMandatory: true } })
 
     await expect(
@@ -1409,7 +1409,7 @@ let companyId = ""
 let viewerRoleId = ""
 
 beforeAll(async () => {
-  const admin = await prisma.user.findUniqueOrThrow({ where: { email: "admin@datashield.local" } })
+  const admin = await prisma.user.findUniqueOrThrow({ where: { email: "admin@gardik.local" } })
   companyId = admin.companyId
   await seedPresetsForCompany(prisma, companyId)
   viewerRoleId = await resolvePresetRoleId(prisma, companyId, "Viewer")
@@ -1420,7 +1420,7 @@ beforeAll(async () => {
     roleId: await resolvePresetRoleId(prisma, companyId, "Administrator"),
     twoFactorEnabled: true,
   }
-  await prisma.user.deleteMany({ where: { email: "itest-shell@datashield.local" } })
+  await prisma.user.deleteMany({ where: { email: "itest-shell@gardik.local" } })
 })
 
 describe("POST /api/users", () => {
@@ -1428,13 +1428,13 @@ describe("POST /api/users", () => {
     const res = await createUser(
       new Request("http://localhost/api/users", {
         method: "POST",
-        body: JSON.stringify({ email: "itest-shell@datashield.local", name: "Shell", roleId: viewerRoleId }),
+        body: JSON.stringify({ email: "itest-shell@gardik.local", name: "Shell", roleId: viewerRoleId }),
       })
     )
     expect(res.status).toBe(201)
 
     const created = await prisma.user.findUniqueOrThrow({
-      where: { email: "itest-shell@datashield.local" },
+      where: { email: "itest-shell@gardik.local" },
       include: { accounts: true },
     })
     expect(created.companyId).toBe(companyId)
@@ -1456,7 +1456,7 @@ describe("POST /api/users", () => {
     const res = await createUser(
       new Request("http://localhost/api/users", {
         method: "POST",
-        body: JSON.stringify({ email: "itest-shell2@datashield.local", name: "Shell", roleId: foreign.id }),
+        body: JSON.stringify({ email: "itest-shell2@gardik.local", name: "Shell", roleId: foreign.id }),
       })
     )
     expect(res.status).toBe(400)
@@ -1705,7 +1705,7 @@ Add at the top of the component:
   // reach are translated; the rest fall back, and the raw code stays server-side.
   const SSO_ERRORS: Record<string, string> = {
     "account not linked": "This company's domain is not verified yet. Ask an administrator to finish the SSO setup.",
-    signup_disabled: "No DataShield account exists for this address. Ask an administrator to create it.",
+    signup_disabled: "No Gardik account exists for this address. Ask an administrator to create it.",
     invalid_provider: "The identity provider rejected the sign-in. Ask an administrator to check the SSO configuration.",
   }
 
@@ -1723,7 +1723,7 @@ Import `useEffect` alongside `useState`.
 npm run dev
 ```
 
-Open `http://localhost:3000/login`, type `admin@datashield.local`, press Continue. With no verified provider seeded, the password field must appear and the existing password sign-in must still work.
+Open `http://localhost:3000/login`, type `admin@gardik.local`, press Continue. With no verified provider seeded, the password field must appear and the existing password sign-in must still work.
 
 - [ ] **Step 4: Run the e2e suite, which drives this page**
 
@@ -1868,7 +1868,7 @@ In `src/app/(dashboard)/setup/page.tsx`, import `SsoSettings` and render it dire
 npm run dev
 ```
 
-Open `http://localhost:3000/setup` as `admin@datashield.local`. The section must render, saving an invalid issuer must show the 400 message, and the DNS record must appear as `TXT _better-auth-token-sso-<companyId>.<domain> <token>`.
+Open `http://localhost:3000/setup` as `admin@gardik.local`. The section must render, saving an invalid issuer must show the 400 message, and the DNS record must appear as `TXT _better-auth-token-sso-<companyId>.<domain> <token>`.
 
 - [ ] **Step 4: Commit**
 
@@ -1995,14 +1995,14 @@ let companyId: string
 
 beforeAll(async () => {
   idp = await startStubIdp()
-  const admin = await prisma.user.findUniqueOrThrow({ where: { email: "admin@datashield.local" } })
+  const admin = await prisma.user.findUniqueOrThrow({ where: { email: "admin@gardik.local" } })
   companyId = admin.companyId
   await prisma.ssoProvider.deleteMany({ where: { organizationId: companyId } })
   await authPrisma.ssoProvider.create({
     data: {
       providerId: "itest-round-trip",
       issuer: idp.issuer,
-      domain: "datashield.local",
+      domain: "gardik.local",
       domainVerified: true,
       organizationId: companyId,
       oidcConfig: JSON.stringify({
@@ -2018,7 +2018,7 @@ beforeAll(async () => {
 
 afterAll(async () => {
   await prisma.ssoProvider.deleteMany({ where: { providerId: "itest-round-trip" } })
-  await prisma.user.deleteMany({ where: { email: "itest-sso-user@datashield.local" } })
+  await prisma.user.deleteMany({ where: { email: "itest-sso-user@gardik.local" } })
   await idp.close()
 })
 
@@ -2031,13 +2031,13 @@ describe("OIDC round trip", () => {
   })
 
   it("refuses to create an account for an unknown address", async () => {
-    const before = await prisma.user.count({ where: { email: "itest-sso-user@datashield.local" } })
+    const before = await prisma.user.count({ where: { email: "itest-sso-user@gardik.local" } })
     expect(before).toBe(0)
     // disableImplicitSignUp is on and requestSignUp is never sent, so the
     // callback for an unknown email must not create a user.
     const provider = await prisma.ssoProvider.findUniqueOrThrow({ where: { providerId: "itest-round-trip" } })
     expect(provider.domainVerified).toBe(true)
-    const after = await prisma.user.count({ where: { email: "itest-sso-user@datashield.local" } })
+    const after = await prisma.user.count({ where: { email: "itest-sso-user@gardik.local" } })
     expect(after).toBe(0)
   })
 

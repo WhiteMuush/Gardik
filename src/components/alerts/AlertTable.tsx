@@ -85,7 +85,7 @@ export function AlertTable({
 
   function exportCsv() {
     downloadCsv(
-      "datashield-alerts.csv",
+      "gardik-alerts.csv",
       ["severity", "confidence", "status", "employee", "breach", "message", "created"],
       filtered.map((a) => [
         a.severity,

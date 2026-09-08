@@ -46,7 +46,7 @@ function InviteForm() {
     <form onSubmit={submit} className="w-full max-w-sm space-y-3">
       <div className="mb-6 flex items-center gap-2">
         <ShieldCheck className="size-5 text-primary" />
-        <span className="text-base font-semibold text-foreground">DataShield</span>
+        <span className="text-base font-semibold text-foreground">Gardik</span>
       </div>
       <h1 className="text-lg font-semibold text-foreground">Choose your password</h1>
       <p className="text-sm text-muted-foreground">

@@ -3,7 +3,7 @@
 import { useState, useEffect } from "react"
 
 export function useWidgetConfig<T>(widgetId: string, defaultValue: T): [T, (value: T) => void] {
-  const key = `datashield-widget-${widgetId}`
+  const key = `gardik-widget-${widgetId}`
   const [config, setConfig] = useState<T>(defaultValue)
 
   useEffect(() => {

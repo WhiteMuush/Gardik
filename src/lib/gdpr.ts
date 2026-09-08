@@ -3,7 +3,7 @@
 export const NOTIFICATION_DEADLINE_HOURS = 72
 const HOUR_MS = 60 * 60 * 1000
 
-// Map DataShield data-type keys onto GDPR data categories. Unknown types fall
+// Map Gardik data-type keys onto GDPR data categories. Unknown types fall
 // back to "other_personal_data" so nothing is silently dropped from the record.
 const DATA_TYPE_TO_CATEGORY: Record<string, string> = {
   credit_card: "financial",

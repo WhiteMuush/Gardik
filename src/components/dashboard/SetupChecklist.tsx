@@ -42,7 +42,7 @@ export function SetupChecklist({
     {
       icon: KeyRound,
       title: "Add a breach intelligence key",
-      description: "A provider key (HIBP, Dehashed...) lets DataShield look your employees up against known breaches.",
+      description: "A provider key (HIBP, Dehashed...) lets Gardik look your employees up against known breaches.",
       href: "/data-api",
       cta: "Add an API key",
       done: hasApiKey,
@@ -61,7 +61,7 @@ export function SetupChecklist({
     <div className="h-full overflow-y-auto p-6">
       <div className="mx-auto max-w-2xl">
         <div className="mb-8">
-          <h2 className="text-xl font-semibold text-foreground">Welcome to DataShield</h2>
+          <h2 className="text-xl font-semibold text-foreground">Welcome to Gardik</h2>
           <p className="mt-1 text-sm text-muted-foreground">
             Self-hosted monitoring of your employees exposure in known data breaches. Complete
             these steps to start monitoring.
@@ -113,13 +113,13 @@ export function SetupChecklist({
         )}
 
         <div className="mt-8 rounded-xl border border-border/60 bg-muted/30 p-4">
-          <p className="text-sm text-foreground">Thanks for trying DataShield.</p>
+          <p className="text-sm text-foreground">Thanks for trying Gardik.</p>
           <p className="mt-1 text-xs text-muted-foreground">
             It is an open-source project built to make breach exposure visible and actionable.
             Found a bug or have an idea? Your feedback genuinely helps it grow.
           </p>
           <a
-            href="https://github.com/WhiteMuush/DataShield/issues"
+            href="https://github.com/WhiteMuush/Gardik/issues"
             target="_blank"
             rel="noreferrer"
             className="mt-2 inline-flex items-center gap-1 text-xs font-medium text-sidebar-primary hover:underline"

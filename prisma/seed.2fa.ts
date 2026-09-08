@@ -12,7 +12,7 @@ import { seedPresetsForCompany, resolvePresetRoleId } from "@/lib/rbac/seed-role
 import { ADMINISTRATOR } from "@/lib/rbac/presets"
 
 const BASE_URL = process.env.BASE_URL ?? "http://localhost:3000"
-const email = process.env.MFA_USER_EMAIL ?? "mfa@datashield.local"
+const email = process.env.MFA_USER_EMAIL ?? "mfa@gardik.local"
 const password = process.env.MFA_USER_PASSWORD ?? "ChangeMe123!"
 
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! })
@@ -25,9 +25,9 @@ function cookieFrom(res: Response): string {
 
 async function main() {
   const company = await prisma.company.upsert({
-    where: { domain: "datashield.dev" },
+    where: { domain: "gardik.dev" },
     update: {},
-    create: { name: "DataShield Dev", domain: "datashield.dev" },
+    create: { name: "Gardik Dev", domain: "gardik.dev" },
   })
 
   await seedPresetsForCompany(prisma, company.id)

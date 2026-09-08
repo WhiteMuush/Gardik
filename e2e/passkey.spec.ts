@@ -3,11 +3,11 @@ import { setAllowedMethods } from "./helpers/totp"
 import { addVirtualAuthenticator, tryGeneratePasskeyOptions } from "./helpers/passkey"
 import { resetPasskeys, resetStepUp } from "./helpers/reset"
 
-const PASSKEY_USER = { email: "passkey@datashield.local", password: "ChangeMe123!" }
+const PASSKEY_USER = { email: "passkey@gardik.local", password: "ChangeMe123!" }
 
 // Serial: both tests move the passkey company's policy. This spec uses its own
-// company (passkey.datashield.dev, seeded in e2e/seed.ts), separate from the
-// datashield.dev company the two-factor spec mutates, so the two files do not
+// company (passkey.gardik.dev, seeded in e2e/seed.ts), separate from the
+// gardik.dev company the two-factor spec mutates, so the two files do not
 // race on a shared allowedAuthMethods across workers.
 test.describe.configure({ mode: "serial" })
 

@@ -59,7 +59,7 @@ export default async function SettingsPage() {
       <div className="mb-8">
         <h2 className="text-lg font-semibold text-foreground">Data Sources</h2>
         <p className="text-sm text-muted-foreground">
-          Connect directories and breach feeds that power your DataShield workspace.
+          Connect directories and breach feeds that power your Gardik workspace.
         </p>
       </div>
 

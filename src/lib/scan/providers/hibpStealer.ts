@@ -11,7 +11,7 @@ export const hibpStealer: BreachProvider = {
   source: "STEALER_LOG",
   async lookup(email, apiKey) {
     const res = await fetch(`${API}/${encodeURIComponent(email)}`, {
-      headers: { "hibp-api-key": apiKey, "user-agent": "DataShield" },
+      headers: { "hibp-api-key": apiKey, "user-agent": "Gardik" },
     })
     if (res.status === 404) return []
     if (!res.ok) throw new Error(`HIBP stealer logs error ${res.status}`)

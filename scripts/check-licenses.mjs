@@ -65,7 +65,7 @@ const OBLIGATIONS = [
     "LGPL-3.0-or-later",
     "Used as a pre-built shared library (libvips, pulled in by sharp) that is " +
       "loaded at runtime and never modified. The license reaches the library, " +
-      "not the application linking against it. Redistributing DataShield as " +
+      "not the application linking against it. Redistributing Gardik as " +
       "software means passing along this notice and the library's own license " +
       "text; running it as a hosted service triggers nothing.",
   ],
@@ -73,7 +73,7 @@ const OBLIGATIONS = [
     "MPL-2.0",
     "File-level copyleft. Only changes made to the MPL-covered files themselves " +
       "must be published under the MPL. Depending on these packages places no " +
-      "condition on DataShield's own source.",
+      "condition on Gardik's own source.",
   ],
   [
     "EPL-2.0",
@@ -125,7 +125,7 @@ function render(packages) {
   const lines = [
     "# Third-party notices",
     "",
-    "DataShield itself is licensed under the terms in `LICENSE`. This file lists",
+    "Gardik itself is licensed under the terms in `LICENSE`. This file lists",
     "the third-party packages it depends on at runtime and their licenses, so a",
     "redistribution under Section 3.d of that license carries the attribution",
     "those packages require.",

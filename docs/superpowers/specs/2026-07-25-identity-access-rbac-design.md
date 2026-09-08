@@ -1,8 +1,8 @@
 # Identity, Access, and RBAC design
 
 Design for how login accounts (Users) authenticate and what they may do in
-DataShield. Users sign in through their company's Active Directory / IdP (no
-self-signup); roles and permissions are defined and assigned inside DataShield
+Gardik. Users sign in through their company's Active Directory / IdP (no
+self-signup); roles and permissions are defined and assigned inside Gardik
 by authorized people only. A sealed local break-glass account exists for the
 case where SSO is unavailable.
 
@@ -27,7 +27,7 @@ here anticipates it (an `alerts:assign` permission exists).
 ### Three separate authentication planes
 
 1. **Interactive login SSO** (new): a User proves identity through the company's
-   IdP (OIDC or SAML) and gets a DataShield session.
+   IdP (OIDC or SAML) and gets a Gardik session.
 2. **Break-glass local login** (reuses password + passkey/2FA): sealed accounts,
    normally locked, for emergency access when SSO is down.
 3. **Directory sync** (existing, untouched): app-as-itself reads `Employee`s.
@@ -46,10 +46,10 @@ a login.
   a **no-access "pending" state by default** (no permissions until granted); a
   connection may instead set a least-privilege default role (`Viewer`) via
   `SsoConnection.defaultRoleId`. An authorized admin then assigns the real role
-  **inside DataShield**. IdP
+  **inside Gardik**. IdP
   group->role auto-mapping is an opt-in secondary mode per connection, off by
   default. Azure App Roles / claim-driven roles are a possible later option, not
-  in v1, because roles are managed in DataShield.
+  in v1, because roles are managed in Gardik.
 - **RBAC = customizable roles built from a granular permission catalog**, with
   seeded presets. Roles are per-company DB entities. This is the Azure-inspired
   "custom roles" model, with strict anti-escalation rules (below).

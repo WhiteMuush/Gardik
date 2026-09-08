@@ -19,7 +19,7 @@ test("the anti-lockout escape hatch skips the SSO lookup entirely", async ({ pag
   })
 
   await page.goto("/login")
-  await page.getByLabel("Email").fill("exempt@datashield.local")
+  await page.getByLabel("Email").fill("exempt@gardik.local")
   await page.getByRole("button", { name: "Use a password instead" }).click()
 
   await expect(page.getByLabel("Password")).toBeVisible()
@@ -44,7 +44,7 @@ test("the pageshow listener clears the pending state on a restore", async ({ pag
   })
 
   await page.goto("/login")
-  await page.getByLabel("Email").fill("stalled@datashield.local")
+  await page.getByLabel("Email").fill("stalled@gardik.local")
   await page.getByRole("button", { name: "Continue" }).click()
 
   const checking = page.getByRole("button", { name: "Checking..." })

@@ -15,7 +15,7 @@ const alert: SiemAlert = {
 describe("toCef", () => {
   it("emits a CEF header with mapped severity and extension fields", () => {
     const line = toCef(alert)
-    expect(line.startsWith("CEF:0|DataShield|DataShield|1.0|breach-exposure|Jane Doe found in Acme breach|10|")).toBe(true)
+    expect(line.startsWith("CEF:0|Gardik|Gardik|1.0|breach-exposure|Jane Doe found in Acme breach|10|")).toBe(true)
     expect(line).toContain("suser=jane@acme.com")
     expect(line).toContain("cs1=Acme")
     expect(line).toContain("cs3=LOW")
@@ -32,7 +32,7 @@ describe("toSyslog", () => {
   it("emits RFC 5424 with the right priority and structured data", () => {
     const line = toSyslog(alert)
     // facility 10 * 8 + severity 2 (crit) = 82
-    expect(line.startsWith("<82>1 2026-06-22T10:00:00.000Z datashield datashield - breach-exposure ")).toBe(true)
+    expect(line.startsWith("<82>1 2026-06-22T10:00:00.000Z gardik gardik - breach-exposure ")).toBe(true)
     expect(line).toContain('alertId="al_1"')
     expect(line).toContain('confidence="LOW"')
     expect(line).toContain('employee="jane@acme.com"')

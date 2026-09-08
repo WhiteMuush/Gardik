@@ -46,9 +46,9 @@ export async function sendScheduledReport(schedule: Schedule): Promise<boolean> 
   const pdf = await reportPdf(sections, data)
   const date = new Date().toISOString().slice(0, 10)
 
-  return sendEmail(schedule.recipients, `DataShield report - ${date}`, html, [
-    { filename: `datashield-report-${date}.pdf`, content: pdf.toString("base64") },
-    { filename: `datashield-report-${date}.csv`, content: Buffer.from(csv).toString("base64") },
+  return sendEmail(schedule.recipients, `Gardik report - ${date}`, html, [
+    { filename: `gardik-report-${date}.pdf`, content: pdf.toString("base64") },
+    { filename: `gardik-report-${date}.csv`, content: Buffer.from(csv).toString("base64") },
   ])
 }
 

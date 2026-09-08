@@ -28,7 +28,7 @@ export default async function NotificationsPage() {
       <div className="mb-8">
         <h2 className="text-lg font-semibold text-foreground">Notifications</h2>
         <p className="text-sm text-muted-foreground">
-          Where DataShield delivers alerts and reports: webhooks for real-time
+          Where Gardik delivers alerts and reports: webhooks for real-time
           notifications and scheduled report emails.
         </p>
       </div>

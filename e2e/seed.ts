@@ -11,19 +11,19 @@ import { ADMINISTRATOR, VIEWER_ROLE } from "@/lib/rbac/presets"
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! })
 const prisma = new PrismaClient({ adapter })
 
-const MFA_EMAIL = "mfa@datashield.local"
+const MFA_EMAIL = "mfa@gardik.local"
 const MFA_PASSWORD = "ChangeMe123!"
 
-const PASSKEY_EMAIL = "passkey@datashield.local"
+const PASSKEY_EMAIL = "passkey@gardik.local"
 const PASSKEY_PASSWORD = "ChangeMe123!"
 
-const MANAGER_EMAIL = "manager@datashield.local"
+const MANAGER_EMAIL = "manager@gardik.local"
 const MANAGER_PASSWORD = "ChangeMe123!"
 
-const MEMBER_EMAIL = "member@datashield.local"
+const MEMBER_EMAIL = "member@gardik.local"
 const MEMBER_PASSWORD = "ChangeMe123!"
 
-const NARROW_EMAIL = "narrow@datashield.local"
+const NARROW_EMAIL = "narrow@gardik.local"
 const NARROW_PASSWORD = "ChangeMe123!"
 
 // Sets (or resets) the credential-provider password for a user. Better Auth
@@ -45,16 +45,16 @@ async function setPassword(userId: string, password: string): Promise<void> {
 
 async function main() {
   const company = await prisma.company.findUniqueOrThrow({
-    where: { domain: "datashield.dev" },
+    where: { domain: "gardik.dev" },
   })
 
   await prisma.employee.upsert({
     where: {
-      email_companyId: { email: "jane.doe@datashield.dev", companyId: company.id },
+      email_companyId: { email: "jane.doe@gardik.dev", companyId: company.id },
     },
     update: {},
     create: {
-      email: "jane.doe@datashield.dev",
+      email: "jane.doe@gardik.dev",
       firstName: "Jane",
       lastName: "Doe",
       department: "Engineering",
@@ -114,15 +114,15 @@ async function main() {
 
   // Passkey fixture: its own company so the passkey spec can flip PASSKEY in and
   // out of allowedAuthMethods without racing the two-factor spec, which mutates
-  // the shared datashield.dev policy. Seeded with PASSKEY allowed so enrollment
+  // the shared gardik.dev policy. Seeded with PASSKEY allowed so enrollment
   // works out of the box; the gate test removes it temporarily. One employee so
   // the workspace counts as set up and /dashboard does not bounce to /setup.
   const passkeyCompany = await prisma.company.upsert({
-    where: { domain: "passkey.datashield.dev" },
+    where: { domain: "passkey.gardik.dev" },
     update: { allowedAuthMethods: ["PASSKEY", "TOTP"] },
     create: {
-      name: "DataShield Passkey",
-      domain: "passkey.datashield.dev",
+      name: "Gardik Passkey",
+      domain: "passkey.gardik.dev",
       allowedAuthMethods: ["PASSKEY", "TOTP"],
     },
   })
@@ -131,11 +131,11 @@ async function main() {
 
   await prisma.employee.upsert({
     where: {
-      email_companyId: { email: "sam.key@passkey.datashield.dev", companyId: passkeyCompany.id },
+      email_companyId: { email: "sam.key@passkey.gardik.dev", companyId: passkeyCompany.id },
     },
     update: {},
     create: {
-      email: "sam.key@passkey.datashield.dev",
+      email: "sam.key@passkey.gardik.dev",
       firstName: "Sam",
       lastName: "Key",
       department: "Security",

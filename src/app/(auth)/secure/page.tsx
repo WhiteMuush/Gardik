@@ -43,7 +43,7 @@ export default async function SecurePage() {
       <div className="w-full max-w-sm space-y-4">
         <div className="flex items-center gap-2">
           <ShieldCheck className="size-5 text-primary" />
-          <span className="text-base font-semibold text-foreground">DataShield</span>
+          <span className="text-base font-semibold text-foreground">Gardik</span>
         </div>
 
         {mustChangePassword ? (

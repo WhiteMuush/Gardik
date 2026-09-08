@@ -7,14 +7,14 @@ import { ADMINISTRATOR } from "@/lib/rbac/presets"
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! })
 const prisma = new PrismaClient({ adapter })
 
-const adminEmail = process.env.SEED_ADMIN_EMAIL ?? "admin@datashield.local"
+const adminEmail = process.env.SEED_ADMIN_EMAIL ?? "admin@gardik.local"
 const adminPassword = process.env.SEED_ADMIN_PASSWORD ?? "ChangeMe123!"
 
 async function main() {
   const company = await prisma.company.upsert({
-    where: { domain: "datashield.dev" },
+    where: { domain: "gardik.dev" },
     update: {},
-    create: { name: "DataShield Dev", domain: "datashield.dev" },
+    create: { name: "Gardik Dev", domain: "gardik.dev" },
   })
 
   await seedPresetsForCompany(prisma, company.id)
@@ -99,31 +99,31 @@ async function main() {
 
   // ─── EMPLOYEES ─────────────────────────────────────────────────────────────
   const employeeData = [
-    { email: "alice.martin@datashield.dev",     firstName: "Alice",     lastName: "Martin",    department: "Engineering" },
-    { email: "bob.dupont@datashield.dev",       firstName: "Bob",       lastName: "Dupont",    department: "Engineering" },
-    { email: "claire.bernard@datashield.dev",   firstName: "Claire",    lastName: "Bernard",   department: "Marketing" },
-    { email: "david.leroy@datashield.dev",      firstName: "David",     lastName: "Leroy",     department: "Sales" },
-    { email: "emma.petit@datashield.dev",       firstName: "Emma",      lastName: "Petit",     department: "HR" },
-    { email: "francois.moreau@datashield.dev",  firstName: "François",  lastName: "Moreau",    department: "Finance" },
-    { email: "grace.simon@datashield.dev",      firstName: "Grace",     lastName: "Simon",     department: "Engineering" },
-    { email: "hugo.laurent@datashield.dev",     firstName: "Hugo",      lastName: "Laurent",   department: "Sales" },
-    { email: "isabelle.thomas@datashield.dev",  firstName: "Isabelle",  lastName: "Thomas",    department: "Legal" },
-    { email: "julien.robert@datashield.dev",    firstName: "Julien",    lastName: "Robert",    department: "Product" },
-    { email: "karine.richard@datashield.dev",   firstName: "Karine",    lastName: "Richard",   department: "Marketing" },
-    { email: "luca.garcia@datashield.dev",      firstName: "Luca",      lastName: "Garcia",    department: "Engineering" },
-    { email: "marie.andre@datashield.dev",      firstName: "Marie",     lastName: "André",     department: "HR" },
-    { email: "nicolas.blanc@datashield.dev",    firstName: "Nicolas",   lastName: "Blanc",     department: "DevOps" },
-    { email: "olivia.weber@datashield.dev",     firstName: "Olivia",    lastName: "Weber",     department: "Finance" },
-    { email: "paul.henry@datashield.dev",       firstName: "Paul",      lastName: "Henry",     department: "Sales" },
-    { email: "quentin.rousseau@datashield.dev", firstName: "Quentin",   lastName: "Rousseau",  department: "DevOps" },
-    { email: "rachel.girard@datashield.dev",    firstName: "Rachel",    lastName: "Girard",    department: "Product" },
-    { email: "samuel.roux@datashield.dev",      firstName: "Samuel",    lastName: "Roux",      department: "Engineering" },
-    { email: "therese.vincent@datashield.dev",  firstName: "Thérèse",   lastName: "Vincent",   department: "Management" },
-    { email: "ugo.lefebvre@datashield.dev",     firstName: "Ugo",       lastName: "Lefebvre",  department: "Support" },
-    { email: "valerie.chevalier@datashield.dev",firstName: "Valérie",   lastName: "Chevalier", department: "Legal" },
-    { email: "william.perrin@datashield.dev",   firstName: "William",   lastName: "Perrin",    department: "Management" },
-    { email: "xavier.morel@datashield.dev",     firstName: "Xavier",    lastName: "Morel",     department: "DevOps" },
-    { email: "yasmine.colin@datashield.dev",    firstName: "Yasmine",   lastName: "Colin",     department: "Marketing" },
+    { email: "alice.martin@gardik.dev",     firstName: "Alice",     lastName: "Martin",    department: "Engineering" },
+    { email: "bob.dupont@gardik.dev",       firstName: "Bob",       lastName: "Dupont",    department: "Engineering" },
+    { email: "claire.bernard@gardik.dev",   firstName: "Claire",    lastName: "Bernard",   department: "Marketing" },
+    { email: "david.leroy@gardik.dev",      firstName: "David",     lastName: "Leroy",     department: "Sales" },
+    { email: "emma.petit@gardik.dev",       firstName: "Emma",      lastName: "Petit",     department: "HR" },
+    { email: "francois.moreau@gardik.dev",  firstName: "François",  lastName: "Moreau",    department: "Finance" },
+    { email: "grace.simon@gardik.dev",      firstName: "Grace",     lastName: "Simon",     department: "Engineering" },
+    { email: "hugo.laurent@gardik.dev",     firstName: "Hugo",      lastName: "Laurent",   department: "Sales" },
+    { email: "isabelle.thomas@gardik.dev",  firstName: "Isabelle",  lastName: "Thomas",    department: "Legal" },
+    { email: "julien.robert@gardik.dev",    firstName: "Julien",    lastName: "Robert",    department: "Product" },
+    { email: "karine.richard@gardik.dev",   firstName: "Karine",    lastName: "Richard",   department: "Marketing" },
+    { email: "luca.garcia@gardik.dev",      firstName: "Luca",      lastName: "Garcia",    department: "Engineering" },
+    { email: "marie.andre@gardik.dev",      firstName: "Marie",     lastName: "André",     department: "HR" },
+    { email: "nicolas.blanc@gardik.dev",    firstName: "Nicolas",   lastName: "Blanc",     department: "DevOps" },
+    { email: "olivia.weber@gardik.dev",     firstName: "Olivia",    lastName: "Weber",     department: "Finance" },
+    { email: "paul.henry@gardik.dev",       firstName: "Paul",      lastName: "Henry",     department: "Sales" },
+    { email: "quentin.rousseau@gardik.dev", firstName: "Quentin",   lastName: "Rousseau",  department: "DevOps" },
+    { email: "rachel.girard@gardik.dev",    firstName: "Rachel",    lastName: "Girard",    department: "Product" },
+    { email: "samuel.roux@gardik.dev",      firstName: "Samuel",    lastName: "Roux",      department: "Engineering" },
+    { email: "therese.vincent@gardik.dev",  firstName: "Thérèse",   lastName: "Vincent",   department: "Management" },
+    { email: "ugo.lefebvre@gardik.dev",     firstName: "Ugo",       lastName: "Lefebvre",  department: "Support" },
+    { email: "valerie.chevalier@gardik.dev",firstName: "Valérie",   lastName: "Chevalier", department: "Legal" },
+    { email: "william.perrin@gardik.dev",   firstName: "William",   lastName: "Perrin",    department: "Management" },
+    { email: "xavier.morel@gardik.dev",     firstName: "Xavier",    lastName: "Morel",     department: "DevOps" },
+    { email: "yasmine.colin@gardik.dev",    firstName: "Yasmine",   lastName: "Colin",     department: "Marketing" },
   ]
 
   const employees = await Promise.all(
@@ -267,7 +267,7 @@ async function main() {
   ]
 
   for (const r of records) {
-    const employee = eMap[r.emp.replace("@datashield.dev", "")]
+    const employee = eMap[r.emp.replace("@gardik.dev", "")]
     const breach = bMap[r.breach]
     if (!employee || !breach) { console.warn(`Skipping: ${r.emp} / ${r.breach}`); continue }
     await prisma.breachRecord.upsert({

@@ -14,4 +14,4 @@ npx prisma migrate deploy
 echo "[db-init] seeding demo data"
 npm run seed:dev
 
-echo "[db-init] done. login: ${SEED_ADMIN_EMAIL:-admin@datashield.local} / ${SEED_ADMIN_PASSWORD:-ChangeMe123!}"
+echo "[db-init] done. login: ${SEED_ADMIN_EMAIL:-admin@gardik.local} / ${SEED_ADMIN_PASSWORD:-ChangeMe123!}"

@@ -1,8 +1,8 @@
 import { test, expect } from "@playwright/test"
 
-const ADMIN = { email: "admin@datashield.local", password: "ChangeMe123!" }
-const MEMBER = { email: "member@datashield.local", password: "ChangeMe123!" }
-const NARROW = { email: "narrow@datashield.local", password: "ChangeMe123!" }
+const ADMIN = { email: "admin@gardik.local", password: "ChangeMe123!" }
+const MEMBER = { email: "member@gardik.local", password: "ChangeMe123!" }
+const NARROW = { email: "narrow@gardik.local", password: "ChangeMe123!" }
 
 test.describe.configure({ mode: "serial" })
 
@@ -37,7 +37,7 @@ test("a page the role cannot open refuses, and its rail entry is absent", async 
   // this address was in the HTML of /employees for a role without
   // employees:read.
   await page.goto("/employees")
-  expect(await page.content()).not.toContain("jane.doe@datashield.dev")
+  expect(await page.content()).not.toContain("jane.doe@gardik.dev")
 
   const rail = page.getByRole("navigation")
   await expect(rail.getByRole("link", { name: "Alerts" })).toBeAttached()

@@ -25,7 +25,7 @@ test.afterEach(() => {
 
 test("admin signs in, sees dashboard and alerts", async ({ page }) => {
   await page.goto("/login")
-  await page.getByLabel("Email").fill("admin@datashield.local")
+  await page.getByLabel("Email").fill("admin@gardik.local")
   await page.getByRole("button", { name: "Continue" }).click()
   await page.getByLabel("Password").fill("ChangeMe123!")
   await page.getByRole("button", { name: "Sign in", exact: true }).click()
@@ -48,13 +48,13 @@ test("admin signs in, sees dashboard and alerts", async ({ page }) => {
 test("security settings are reachable from the sidebar", async ({ page }) => {
   // Another spec may have proved this admin's identity minutes ago, and the
   // grant would carry the gate away with it.
-  await resetStepUp("admin@datashield.local")
+  await resetStepUp("admin@gardik.local")
 
   // Scoped to the sidebar and exact: getByRole matches accessible names by
   // substring, and the dashboard carries other links whose text contains this
   // one.
   await page.goto("/login")
-  await page.getByLabel("Email").fill("admin@datashield.local")
+  await page.getByLabel("Email").fill("admin@gardik.local")
   await page.getByRole("button", { name: "Continue" }).click()
   await page.getByLabel("Password").fill("ChangeMe123!")
   await page.getByRole("button", { name: "Sign in", exact: true }).click()

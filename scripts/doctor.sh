@@ -1,5 +1,5 @@
 #!/usr/bin/env sh
-# Full setup diagnosis for DataShield: toolchain, env, Docker, database, Prisma.
+# Full setup diagnosis for Gardik: toolchain, env, Docker, database, Prisma.
 # After the report, offers to auto-fix detected issues (interactive only),
 # separating failures from warnings. Exits non-zero when failures remain.
 set -u
@@ -34,7 +34,7 @@ setval() {
   fi
 }
 
-echo "DataShield doctor"
+echo "Gardik doctor"
 echo "================="
 
 echo "Toolchain:"
@@ -89,8 +89,8 @@ if [ -n "$engine" ]; then pass "$engine available ($($engine --version 2>/dev/nu
 elif command -v docker >/dev/null 2>&1; then err "docker installed but daemon not running (start Docker Desktop / enable WSL integration)"
 else err "no container engine found (install Docker or Podman for the local database)"; fi
 if [ -n "$engine" ]; then
-  if "$engine" exec datashield-db pg_isready >/dev/null 2>&1; then pass "db container running"
-  elif "$engine" container inspect datashield-db >/dev/null 2>&1; then wrn "db container present but not ready (run 'make db-up')"; fx_dbup=1
+  if "$engine" exec gardik-db pg_isready >/dev/null 2>&1; then pass "db container running"
+  elif "$engine" container inspect gardik-db >/dev/null 2>&1; then wrn "db container present but not ready (run 'make db-up')"; fx_dbup=1
   else wrn "db container not found (run 'make db-up')"; fx_dbup=1; fi
 fi
 

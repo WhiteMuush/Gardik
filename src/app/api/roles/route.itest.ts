@@ -13,7 +13,7 @@ import { excessPermissions } from "@/lib/rbac/escalation"
 describe("role create invariants (real DB)", () => {
   it("admin can cover any preset role's permissions (no-escalation holds)", async () => {
     const admin = await prisma.user.findUniqueOrThrow({
-      where: { email: "admin@datashield.local" },
+      where: { email: "admin@gardik.local" },
     })
     const analystId = await resolvePresetRoleId(prisma, admin.companyId, "SOC Analyst")
     const analyst = await prisma.role.findUniqueOrThrow({ where: { id: analystId } })

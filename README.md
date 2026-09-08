@@ -3,14 +3,14 @@
 <picture>
   <source media="(prefers-color-scheme: dark)" srcset="./assets/banner-dark.png">
   <source media="(prefers-color-scheme: light)" srcset="./assets/banner-light.png">
-  <img src="./assets/banner-light.png" alt="DataShield. Know what leaked. Without leaking more." width="100%">
+  <img src="./assets/banner-light.png" alt="Gardik. Know what leaked. Without leaking more." width="100%">
 </picture>
 
 <!-- CI -->
-[![CI](https://github.com/WhiteMuush/DataShield/actions/workflows/ci.yml/badge.svg)](https://github.com/WhiteMuush/DataShield/actions/workflows/ci.yml)
-[![Security](https://github.com/WhiteMuush/DataShield/actions/workflows/security.yml/badge.svg)](https://github.com/WhiteMuush/DataShield/actions/workflows/security.yml)
-[![Compliance](https://github.com/WhiteMuush/DataShield/actions/workflows/compliance.yml/badge.svg)](https://github.com/WhiteMuush/DataShield/actions/workflows/compliance.yml)
-[![CodeQL](https://github.com/WhiteMuush/DataShield/actions/workflows/codeql.yml/badge.svg)](https://github.com/WhiteMuush/DataShield/actions/workflows/codeql.yml)
+[![CI](https://github.com/WhiteMuush/Gardik/actions/workflows/ci.yml/badge.svg)](https://github.com/WhiteMuush/Gardik/actions/workflows/ci.yml)
+[![Security](https://github.com/WhiteMuush/Gardik/actions/workflows/security.yml/badge.svg)](https://github.com/WhiteMuush/Gardik/actions/workflows/security.yml)
+[![Compliance](https://github.com/WhiteMuush/Gardik/actions/workflows/compliance.yml/badge.svg)](https://github.com/WhiteMuush/Gardik/actions/workflows/compliance.yml)
+[![CodeQL](https://github.com/WhiteMuush/Gardik/actions/workflows/codeql.yml/badge.svg)](https://github.com/WhiteMuush/Gardik/actions/workflows/codeql.yml)
 
 <!-- Stack -->
 ![Next.js](https://img.shields.io/badge/Next.js-15-black?logo=next.js&logoColor=white)
@@ -73,7 +73,7 @@ work if you prefer them.
 Open http://localhost:3000 and sign in with the seeded admin account:
 
 ```
-admin@datashield.local / ChangeMe123!
+admin@gardik.local / ChangeMe123!
 ```
 
 ### Switching machines / after `git pull`

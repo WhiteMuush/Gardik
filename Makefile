@@ -1,4 +1,4 @@
-# DataShield developer tasks. Thin wrapper over the npm scripts and
+# Gardik developer tasks. Thin wrapper over the npm scripts and
 # scripts/db-init.sh so a fresh clone can be brought up with a single command.
 # Requires Node 22 and, for the local database, a container engine: Docker or
 # Podman (auto-detected by scripts/container.sh, no config needed).

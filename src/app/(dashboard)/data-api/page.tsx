@@ -28,7 +28,7 @@ export default async function DataApiPage() {
       <div className="mb-8">
         <h2 className="text-lg font-semibold text-foreground">Data API</h2>
         <p className="text-sm text-muted-foreground">
-          Manage the breach intelligence API keys that feed your DataShield scans.
+          Manage the breach intelligence API keys that feed your Gardik scans.
         </p>
       </div>
 

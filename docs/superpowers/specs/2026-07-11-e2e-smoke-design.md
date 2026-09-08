@@ -14,7 +14,7 @@ one browser (chromium). Broader coverage is v1.1 territory.
 
 - Tool: `@playwright/test` (devDependency), chromium only.
 - One spec, `e2e/smoke.spec.ts`: sign in with the seeded admin
-  (`admin@datashield.local` / `ChangeMe123!`), assert the dashboard renders,
+  (`admin@gardik.local` / `ChangeMe123!`), assert the dashboard renders,
   navigate to the alerts page, assert it renders.
 - The spec collects browser console messages and fails on any CSP violation
   (`Refused to` / `Content Security Policy`), so the strict CSP from step 2

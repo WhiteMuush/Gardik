@@ -15,7 +15,7 @@ import { startStubIdp } from "./stub-idp"
 // exercised at least once.
 //
 // A dedicated pair of throwaway companies and users, never the shared seeded
-// admin@datashield.local: itest files run in parallel against one seeded DB,
+// admin@gardik.local: itest files run in parallel against one seeded DB,
 // and mutating that shared row races every other suite that reads it (see
 // PR #144, and sso.itest.ts's setupCompanyWithViewerAndAdmin comment).
 

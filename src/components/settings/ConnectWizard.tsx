@@ -95,7 +95,7 @@ const FIELDS: Record<DirectoryType, FieldDef[]> = {
     {
       key: "serviceAccountEmail",
       label: "Service account email",
-      placeholder: "datashield@my-project.iam.gserviceaccount.com",
+      placeholder: "gardik@my-project.iam.gserviceaccount.com",
       hint: "Google Cloud Console > IAM > Service accounts",
     },
     {
@@ -350,7 +350,7 @@ export function ConnectWizard({ onClose, onCreated }: Props) {
           {step === "configure" && selectedType === "SCIM" && (
             <div className="space-y-4">
               <p className="text-sm text-muted-foreground">
-                DataShield will generate a unique endpoint URL and bearer token.
+                Gardik will generate a unique endpoint URL and bearer token.
                 You will configure your identity provider with these values after saving.
               </p>
               <div>
@@ -446,7 +446,7 @@ export function ConnectWizard({ onClose, onCreated }: Props) {
           {step === "test" && (
             <div className="space-y-4">
               <p className="text-sm text-muted-foreground">
-                Connection saved. Test it now to verify that DataShield can reach your directory.
+                Connection saved. Test it now to verify that Gardik can reach your directory.
               </p>
 
               {testResult && (
@@ -496,7 +496,7 @@ export function ConnectWizard({ onClose, onCreated }: Props) {
                 </div>
               </div>
               <p className="text-sm text-muted-foreground">
-                Run a sync from the Settings page to import your employees into DataShield.
+                Run a sync from the Settings page to import your employees into Gardik.
               </p>
             </div>
           )}

@@ -1,6 +1,6 @@
 # AI Agent Rules
 
-Rules for AI assistants (Claude Code, Codex, Cursor, etc.) contributing to this project.
+Rules for AI assistants contributing to this project.
 
 ## Scope discipline
 

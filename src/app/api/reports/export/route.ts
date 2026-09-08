@@ -40,12 +40,12 @@ function slug(value: string): string {
     .toLowerCase()
 }
 
-// e.g. datashield_acme-corp_report_2026-06-25 or
-//      datashield_acme-corp_employees_2026-06-25
+// e.g. gardik_acme-corp_report_2026-06-25 or
+//      gardik_acme-corp_employees_2026-06-25
 function reportFilename(orgName: string, generatedAt: string, part: string): string {
   const company = slug(orgName) || "report"
   const date = generatedAt.slice(0, 10)
-  return `datashield_${company}_${part}_${date}`
+  return `gardik_${company}_${part}_${date}`
 }
 
 export async function GET(request: Request): Promise<Response> {

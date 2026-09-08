@@ -11,7 +11,7 @@ export const hibp: BreachProvider = {
   source: "HIBP",
   async lookup(email, apiKey) {
     const res = await fetch(`${API}/${encodeURIComponent(email)}?truncateResponse=false`, {
-      headers: { "hibp-api-key": apiKey, "user-agent": "DataShield" },
+      headers: { "hibp-api-key": apiKey, "user-agent": "Gardik" },
     })
     if (res.status === 404) return []
     if (!res.ok) throw new Error(`HIBP error ${res.status}`)

@@ -17,7 +17,7 @@
 - Validate at system boundaries only; trust framework guarantees.
 - Gates before any PR: `npm run lint -- --max-warnings 0`, `npx tsc --noEmit`, `npx prisma validate`, `npm run build`.
 - Do not push to remote unless explicitly asked.
-- Existing seeded account `admin@datashield.local` / `ChangeMe123!` must still log in after migration (bcrypt hash preserved).
+- Existing seeded account `admin@gardik.local` / `ChangeMe123!` must still log in after migration (bcrypt hash preserved).
 - Work happens on the current branch `docs/better-auth-migration-spec` or a fresh feature branch, never directly on `main`.
 
 ---
@@ -237,10 +237,10 @@ Replace the admin-user creation so the password lands in an `Account` row instea
 ```typescript
 const hashed = await bcrypt.hash("ChangeMe123!", 10)
 const user = await prisma.user.upsert({
-  where: { email: "admin@datashield.local" },
+  where: { email: "admin@gardik.local" },
   update: {},
   create: {
-    email: "admin@datashield.local",
+    email: "admin@gardik.local",
     name: "Admin",
     role: "ADMIN",
     company: { connect: { id: company.id } },
@@ -618,7 +618,7 @@ Keep the existing markup for the email/password form (now calling `handlePasswor
 
 - [ ] **Step 3: Manual smoke of the password path**
 
-Run: `npm run dev`, open `http://localhost:3000/login`, sign in with `admin@datashield.local` / `ChangeMe123!`.
+Run: `npm run dev`, open `http://localhost:3000/login`, sign in with `admin@gardik.local` / `ChangeMe123!`.
 Expected: redirect to `/dashboard` (admin has no 2FA yet, so no code step).
 
 - [ ] **Step 4: Type-check and lint**
