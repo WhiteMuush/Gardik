@@ -42,7 +42,7 @@ jobs:
             type=semver,pattern={{major}}.{{minor}}
             type=raw,value=edge,enable=${{ github.event_name == 'workflow_dispatch' }}
 
-      - name: Build and push
+      - name: Build the image
         uses: docker/build-push-action@v6
         with:
           context: .
@@ -50,11 +50,39 @@ jobs:
           # Add linux/arm64 here once the extra emulated build time is
           # acceptable: a QEMU arm64 `next build` roughly triples the run.
           platforms: linux/amd64
-          push: true
+          # Loaded into the local daemon instead of pushed, so the scan below
+          # gets to veto a release before anything reaches Docker Hub.
+          load: true
+          push: false
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      # Scanning before the push is the whole point: a scan that runs after it
+      # only tells us a vulnerable image is already public. `ignore-unfixed`
+      # keeps the gate on findings that can actually be acted on, otherwise a
+      # base-image CVE with no upstream patch blocks every release.
+      - name: Scan the image for vulnerabilities
+        uses: aquasecurity/trivy-action@0.28.0
+        with:
+          image-ref: ${{ fromJSON(steps.meta.outputs.json).tags[0] }}
+          format: table
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
+
+      # Layers are already in the GHA cache, so this re-runs in seconds.
+      - name: Push the image
+        uses: docker/build-push-action@v6
+        with:
+          context: .
+          file: ./Dockerfile
+          platforms: linux/amd64
+          push: true
+          tags: ${{ steps.meta.outputs.tags }}
+          labels: ${{ steps.meta.outputs.labels }}
+          cache-from: type=gha
 
       # The Docker Hub page has its own audience (operators deploying the
       # image), hence its own README. Never fatal: a description that fails to
