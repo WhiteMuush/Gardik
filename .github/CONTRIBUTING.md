@@ -23,6 +23,13 @@ This project follows [Conventional Commits](https://www.conventionalcommits.org/
 - `style:` formatting, no logic change
 - `revert:` reverts a previous commit
 
+## Project naming
+
+This project was originally named DataShield and renamed to Gardik in
+September 2026. Older commits, tags, branches and pull requests can still
+mention DataShield. That is expected: it is the same codebase under its
+original name, not a different project. See [docs/naming.md](../docs/naming.md).
+
 ## Pull requests
 
 - One feature per PR

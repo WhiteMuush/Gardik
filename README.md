@@ -1,10 +1,8 @@
 <div align="center">
 
-<picture>
-  <source media="(prefers-color-scheme: dark)" srcset="./assets/banner-dark.png">
-  <source media="(prefers-color-scheme: light)" srcset="./assets/banner-light.png">
-  <img src="./assets/banner-light.png" alt="Gardik. Know what leaked. Without leaking more." width="100%">
-</picture>
+# Gardik
+
+**Know what leaked. Without leaking more.**
 
 **Know what leaked. Without leaking more.**
 
@@ -38,6 +36,10 @@ exposed and how badly.
 
 v1.2.3. The production readiness checklist is tracked in
 [docs/production-readiness.md](docs/production-readiness.md).
+
+This project was previously named DataShield. See
+[docs/naming.md](docs/naming.md) for why it changed and what that means
+when you browse older commits.
 
 ## Features
 
