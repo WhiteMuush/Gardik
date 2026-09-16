@@ -190,3 +190,55 @@ describe("consumeInvitation", () => {
     expect(await prisma.session.count({ where: { userId: user.id } })).toBe(0)
   })
 })
+
+describe("issueInvitation parameters", () => {
+  it("accepts a null creator, for an invitation nobody issued by hand", async () => {
+    const user = await makeUser("null-creator")
+    await issueInvitation(prisma, { userId: user.id, createdByUserId: null })
+
+    const row = await prisma.userInvitation.findFirst({ where: { userId: user.id } })
+    expect(row?.createdByUserId).toBeNull()
+  })
+
+  it("stores the hash of a supplied token instead of generating one", async () => {
+    const user = await makeUser("supplied-token")
+    const supplied = `supplied-${suffix}-${"x".repeat(32)}`
+
+    const { token } = await issueInvitation(prisma, {
+      userId: user.id,
+      createdByUserId: null,
+      token: supplied,
+    })
+
+    expect(token).toBe(supplied)
+    const row = await prisma.userInvitation.findFirst({ where: { userId: user.id } })
+    expect(row?.tokenHash).toBe(hashToken(supplied))
+  })
+
+  it("honours a shorter ttl than the default", async () => {
+    const user = await makeUser("short-ttl")
+    const now = new Date()
+
+    const { expiresAt } = await issueInvitation(prisma, {
+      userId: user.id,
+      createdByUserId: null,
+      now,
+      ttlHours: 24,
+    })
+
+    expect(expiresAt.getTime()).toBe(now.getTime() + 24 * 60 * 60 * 1000)
+  })
+
+  it("still defaults to the standard ttl when none is given", async () => {
+    const user = await makeUser("default-ttl")
+    const now = new Date()
+
+    const { expiresAt } = await issueInvitation(prisma, {
+      userId: user.id,
+      createdByUserId: null,
+      now,
+    })
+
+    expect(expiresAt.getTime()).toBe(now.getTime() + INVITATION_TTL_HOURS * 60 * 60 * 1000)
+  })
+})
