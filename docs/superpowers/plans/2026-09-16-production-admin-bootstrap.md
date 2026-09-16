@@ -971,6 +971,9 @@ The container then logs two lines, and no secret:
     [bootstrap] Created company acme.com and administrator admin@acme.com.
     [bootstrap] Open https://gardik.example.com/invite with the token you supplied.
 
+On a later restart the first line reads `Reissued the invitation for ...`
+instead, because nothing was created that time.
+
 Open `<BETTER_AUTH_URL>/invite?token=<BOOTSTRAP_INVITE_TOKEN>`, choose a
 password, and enrol a second factor if the company requires one. Remove both
 variables afterwards.
@@ -983,9 +986,9 @@ bootstrapped has no way in at all.
 password, so it cannot be used later to add an administrator to a running
 instance.
 
-**If the link expires or is lost,** restart the container with a fresh
-`BOOTSTRAP_INVITE_TOKEN`. A new link is issued for as long as nobody has set a
-password, and the previous one is voided. The window is 24 hours.
+**The window is 24 hours.** If the link expires or is lost, restart the
+container. The same token is reissued with a fresh window for as long as nobody
+has set a password, so there is nothing to change and nothing to clean up.
 ```
 
 - [ ] **Step 3: Add both variables to the optional configuration table in `docker/README.hub.md`**
