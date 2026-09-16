@@ -50,6 +50,28 @@ The `twoFactor` plugin enables TOTP-based two-factor authentication.
 Enrollment is per user; companies can require it for their members as part
 of their auth policy.
 
+## First administrator
+
+A deployed image has no company and no account, and `disableSignUp: true` means
+nobody can create one. `src/lib/auth/bootstrap.ts`, wired through
+`src/instrumentation.ts`, closes that gap at start-up when
+`BOOTSTRAP_ADMIN_EMAIL` and `BOOTSTRAP_INVITE_TOKEN` are both set.
+
+It issues an invitation rather than setting a password. Validation, hashing,
+email verification and the forced second factor already exist in
+`invitation.ts` and `(auth)/secure`, and a second implementation of those rules
+would eventually disagree with the first.
+
+The token is supplied by the operator, not generated. A generated token would
+have to be printed to be usable, and `production-readiness.md` forbids writing
+secrets to the logs.
+
+The gate asks whether any account carries a password, not whether any user
+exists. The stricter-looking rule is the more fragile one: a link lost before use
+would lock the operator out permanently. Testing for a password instead lets a
+restart reissue the invitation, while still closing the door the instant anybody
+can genuinely sign in.
+
 ## Migration note
 
 This project previously used `next-auth` (Auth.js) v5 beta. The migration to

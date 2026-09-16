@@ -36,6 +36,9 @@ services:
       BETTER_AUTH_SECRET: replace-with-openssl-rand-base64-32
       BETTER_AUTH_URL: https://gardik.example.com
       DIRECTORY_ENCRYPTION_KEY: replace-with-openssl-rand-base64-32
+      # First start only, both together. See First administrator below.
+      BOOTSTRAP_ADMIN_EMAIL: admin@yourdomain.com
+      BOOTSTRAP_INVITE_TOKEN: replace-with-openssl-rand-base64-32
     ports:
       - "3000:3000"
 
@@ -65,6 +68,45 @@ docker compose up -d
 The app answers on port 3000. Generate every secret with
 `openssl rand -base64 32`; never reuse the placeholders above.
 
+## First administrator
+
+A fresh database holds no accounts, and public sign-up is disabled, so the first
+administrator is created at start-up or not at all. Set both variables before the
+first `docker compose up -d`:
+
+    BOOTSTRAP_ADMIN_EMAIL=admin@acme.com
+    BOOTSTRAP_INVITE_TOKEN=$(openssl rand -base64 32)
+
+Both are required together: one without the other is refused, and the container
+says which one is missing. A token shorter than 32 characters is refused too.
+
+The domain of the address becomes the company. `admin@acme.com` creates a company
+named `acme.com`, which you can rename later in the settings.
+
+On start the container logs two lines, and no secret:
+
+    [bootstrap] Created company acme.com and administrator admin@acme.com.
+    [bootstrap] Open https://gardik.example.com/invite with the token you supplied.
+
+Open `<BETTER_AUTH_URL>/invite?token=<BOOTSTRAP_INVITE_TOKEN>`, choose a password,
+and enrol a second factor if the company requires one. You are then signed in.
+Remove both variables afterwards.
+
+**The link is the only credential.** No password is ever read from the
+environment, and there is no default account to change: an image nobody has
+bootstrapped has no way in at all. The token is never written to the logs, which
+is why you supply it rather than the container generating one.
+
+**It closes for good.** The step is skipped as soon as any account has a
+password, so it cannot be used later to add an administrator to a running
+instance.
+
+**The link lasts 24 hours.** If it expires, or you lose it, restart the
+container. The same token is reissued with a fresh window for as long as nobody
+has set a password, so there is nothing to rotate and nothing to clean up. A
+restart logs `Reissued the invitation for ...` instead of `Created ...`, because
+nothing was created that time.
+
 ## Configuration
 
 Required. The container refuses to start without a database URL, and the app
@@ -86,6 +128,8 @@ Optional.
 | `RESEND_API_KEY`, `EMAIL_FROM` | Email alerts to company admins. Both are needed, otherwise alerts are skipped. |
 | `DIRECTORY_ENCRYPTION_KEY_PREVIOUS` | Former encryption key, read during a key rotation. |
 | `RUN_MIGRATIONS` | Set to `false` to skip `prisma migrate deploy` on start, when a separate job owns the schema. |
+| `BOOTSTRAP_ADMIN_EMAIL` | Creates the first administrator on start. See First administrator. |
+| `BOOTSTRAP_INVITE_TOKEN` | Invitation token for that administrator. 32 characters minimum. Required alongside the address. |
 
 ## Operating notes
 
