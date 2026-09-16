@@ -3,6 +3,7 @@ import { issueInvitation, hashToken } from "@/lib/auth/invitation"
 import { seedPresetsForCompany, resolvePresetRoleId } from "@/lib/rbac/seed-roles"
 import { ADMINISTRATOR } from "@/lib/rbac/presets"
 import { writeAudit, AUDIT_ACTIONS } from "@/lib/rbac/audit"
+import { appBaseUrl } from "@/lib/appUrl"
 
 // 24 hours rather than the 72 that INVITATION_TTL_HOURS gives a colleague being
 // invited: a deployment is finished in one sitting or the next morning, and an
@@ -30,6 +31,12 @@ export type ResolveResult =
 export type BootstrapEnv = {
   BOOTSTRAP_ADMIN_EMAIL?: string
   BOOTSTRAP_INVITE_TOKEN?: string
+  // Without this index signature, TS treats BootstrapEnv as a "weak type" (every
+  // property optional) and refuses to assign process.env to it: ProcessEnv is
+  // itself an index signature with no named property in common. This restates
+  // that shape rather than widening it: every value here is already a string or
+  // undefined.
+  [key: string]: string | undefined
 }
 
 export function resolveBootstrapConfig(env: BootstrapEnv): ResolveResult {
@@ -136,4 +143,63 @@ export async function createFirstAdmin(db: Db, config: BootstrapConfig): Promise
   const entry = { companyId: company.id, actorUserId: null, targetType: "user", targetId: user.id }
   if (!existing) await writeAudit(db, { ...entry, action: AUDIT_ACTIONS.USER_CREATE })
   await writeAudit(db, { ...entry, action: AUDIT_ACTIONS.USER_INVITE })
+}
+
+/**
+ * Called once per server process at start-up. Refuses far more often than it
+ * acts, and says so at most once, because the overwhelmingly common case is an
+ * instance that was bootstrapped months ago.
+ *
+ * Nothing here throws. A replica that starts before the schema is ready, an
+ * unreachable database, a half-supplied pair of variables: every one of them is
+ * a log line. A failed bootstrap must not turn a running instance into a dead
+ * one.
+ */
+export async function bootstrapFirstAdmin(
+  client: PrismaClient,
+  env: BootstrapEnv = process.env
+): Promise<void> {
+  const resolved = resolveBootstrapConfig(env)
+  if (!resolved.ok) {
+    if (!resolved.silent) console.warn(`[bootstrap] Refused: ${resolved.reason}.`)
+    return
+  }
+
+  const { email, domain } = resolved.config
+
+  try {
+    const state = await client.$transaction(async (tx) => {
+      const current = await bootstrapState(tx, email)
+      if (current !== "closed") await createFirstAdmin(tx, resolved.config)
+      return current
+    })
+
+    if (state === "closed") return
+
+    // The token is never printed. It came from the operator's own configuration,
+    // so they already hold it, and a log line carrying it would outlive the link
+    // in whatever aggregator collects it.
+    // Said differently on a resume, because a container that keeps the variables
+    // runs this on every restart and "Created" would be a lie from the second one
+    // onwards. The link is reissued either way, so the second line always holds.
+    console.info(
+      state === "fresh"
+        ? `[bootstrap] Created company ${domain} and administrator ${email}.`
+        : `[bootstrap] Reissued the invitation for ${email} at company ${domain}.`
+    )
+    console.info(`[bootstrap] Open ${appBaseUrl()}/invite with the token you supplied.`)
+  } catch (error) {
+    // A second replica booting at the same moment loses the race on one of the
+    // unique constraints. That is the design holding, not a failure, so it reads
+    // as one sentence rather than a constraint violation an operator would have
+    // to decode on their first deploy.
+    const raced =
+      typeof error === "object" && error !== null && "code" in error && error.code === "P2002"
+    if (raced) {
+      console.info("[bootstrap] Another replica bootstrapped first, nothing to do.")
+      return
+    }
+    const detail = error instanceof Error ? error.message : String(error)
+    console.warn(`[bootstrap] Refused: ${detail}.`)
+  }
 }

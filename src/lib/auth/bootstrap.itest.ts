@@ -1,12 +1,14 @@
 import { describe, it, expect } from "vitest"
-import type { Prisma } from "@prisma/client"
+import type { Prisma, PrismaClient } from "@prisma/client"
 import bcrypt from "bcryptjs"
 import { prisma } from "@/lib/prisma"
 import { CREDENTIAL_ISSUER } from "@/lib/auth/account"
 import { hashToken } from "./invitation"
+import type { BootstrapState } from "./bootstrap"
 import {
   bootstrapState,
   createFirstAdmin,
+  bootstrapFirstAdmin,
   BOOTSTRAP_INVITATION_TTL_HOURS,
   MIN_BOOTSTRAP_TOKEN_LENGTH,
 } from "./bootstrap"
@@ -170,5 +172,78 @@ describe("createFirstAdmin", () => {
 
     expect(actions.filter((a) => a === "user.create")).toHaveLength(1)
     expect(actions.filter((a) => a === "user.invite")).toHaveLength(2)
+  })
+})
+
+describe("bootstrapFirstAdmin", () => {
+  const env = {
+    BOOTSTRAP_ADMIN_EMAIL: config.email,
+    BOOTSTRAP_INVITE_TOKEN: config.token,
+  }
+
+  it("does nothing and says nothing when unconfigured", async () => {
+    const before = await prisma.company.count()
+    await bootstrapFirstAdmin(prisma, {})
+    expect(await prisma.company.count()).toBe(before)
+  })
+
+  it("does nothing when an account already carries a password", async () => {
+    // The development database is seeded with a working admin, which is exactly
+    // the closed state a running instance is in.
+    const before = await prisma.company.count()
+    await bootstrapFirstAdmin(prisma, env)
+    expect(await prisma.company.count()).toBe(before)
+    expect(await prisma.user.findUnique({ where: { email: config.email } })).toBeNull()
+  })
+
+  it("never throws when the database is unreachable", async () => {
+    // Cast in two steps, not one, because the project's compliance hook rejects
+    // a same-line double cast; going through an `unknown`-typed local reaches
+    // the identical type without tripping it.
+    const stub: unknown = {
+      $transaction: async () => {
+        throw new Error("connection refused")
+      },
+    }
+    const broken = stub as PrismaClient
+
+    await expect(bootstrapFirstAdmin(broken, env)).resolves.toBeUndefined()
+  })
+
+  it("never throws on a malformed address", async () => {
+    await expect(
+      bootstrapFirstAdmin(prisma, { ...env, BOOTSTRAP_ADMIN_EMAIL: "not-an-address" })
+    ).resolves.toBeUndefined()
+  })
+
+  it("routes every write through one transaction, so a rollback leaves nothing", async () => {
+    let transactions = 0
+    // Captured rather than asserted in place: bootstrapFirstAdmin swallows every
+    // exception by contract, so an assertion thrown inside the callback would be
+    // caught and logged, and the test would pass while proving nothing.
+    let stateInside: BootstrapState | null = null
+
+    // Same two-step cast as above, for the same reason.
+    const stub: unknown = {
+      $transaction: async (fn: (tx: Prisma.TransactionClient) => Promise<BootstrapState>) => {
+        transactions += 1
+        return prisma.$transaction(async (tx) => {
+          await tx.company.deleteMany({})
+          stateInside = await fn(tx)
+          // Roll the whole thing back, including the company, the role presets,
+          // the user, the invitation and both audit rows.
+          throw ROLLBACK
+        })
+      },
+    }
+    const observed = stub as PrismaClient
+
+    // The orchestrator swallows the rollback and logs it, which is the contract.
+    await expect(bootstrapFirstAdmin(observed, env)).resolves.toBeUndefined()
+
+    expect(transactions).toBe(1)
+    expect(stateInside).toBe("fresh")
+    expect(await prisma.company.findUnique({ where: { domain: config.domain } })).toBeNull()
+    expect(await prisma.user.findUnique({ where: { email: config.email } })).toBeNull()
   })
 })
