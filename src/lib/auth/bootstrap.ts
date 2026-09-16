@@ -18,7 +18,15 @@ export type ResolveResult =
   | { ok: true; config: BootstrapConfig }
   | { ok: false; silent: boolean; reason: string }
 
-export function resolveBootstrapConfig(env: NodeJS.ProcessEnv): ResolveResult {
+// Only the two keys this actually reads. Next.js augments NodeJS.ProcessEnv with a
+// required NODE_ENV, so a test passing an object literal against that type would
+// not compile; process.env stays assignable to this one.
+export type BootstrapEnv = {
+  BOOTSTRAP_ADMIN_EMAIL?: string
+  BOOTSTRAP_INVITE_TOKEN?: string
+}
+
+export function resolveBootstrapConfig(env: BootstrapEnv): ResolveResult {
   const email = (env.BOOTSTRAP_ADMIN_EMAIL ?? "").trim().toLowerCase()
   const token = (env.BOOTSTRAP_INVITE_TOKEN ?? "").trim()
 
