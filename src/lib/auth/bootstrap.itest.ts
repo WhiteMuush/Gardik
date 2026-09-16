@@ -1,4 +1,4 @@
-import { describe, it, expect } from "vitest"
+import { describe, it, expect, vi } from "vitest"
 import type { Prisma } from "@prisma/client"
 import bcrypt from "bcryptjs"
 import { prisma } from "@/lib/prisma"
@@ -204,6 +204,28 @@ describe("bootstrapFirstAdmin", () => {
     }
 
     await expect(bootstrapFirstAdmin(broken, env)).resolves.toBeUndefined()
+  })
+
+  it("treats a lost race between replicas as a no-op, not a failure", async () => {
+    const raced: BootstrapClient = {
+      $transaction: async () => {
+        // The shape Prisma raises when a second replica loses on a unique
+        // constraint. Asserting on the log is the only way to tell this branch
+        // from the generic one: both end in the same silent resolve.
+        throw Object.assign(new Error("Unique constraint failed"), { code: "P2002" })
+      },
+    }
+
+    const info = vi.spyOn(console, "info").mockImplementation(() => {})
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {})
+    try {
+      await expect(bootstrapFirstAdmin(raced, env)).resolves.toBeUndefined()
+      expect(info).toHaveBeenCalledWith(expect.stringContaining("Another replica"))
+      expect(warn).not.toHaveBeenCalled()
+    } finally {
+      info.mockRestore()
+      warn.mockRestore()
+    }
   })
 
   it("never throws on a malformed address", async () => {
