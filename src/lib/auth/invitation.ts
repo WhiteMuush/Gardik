@@ -58,10 +58,26 @@ export function isExpired(expiresAt: Date, now: Date = new Date()): boolean {
  */
 export async function issueInvitation(
   db: Db,
-  { userId, createdByUserId, now = new Date() }: { userId: string; createdByUserId: string; now?: Date }
+  {
+    userId,
+    createdByUserId,
+    now = new Date(),
+    // Defaulted here rather than at the call site so the generated path stays the
+    // one nothing has to think about. The bootstrap supplies its own, because a
+    // token it generated would have to be printed to be usable.
+    token = generateToken(),
+    ttlHours = INVITATION_TTL_HOURS,
+  }: {
+    userId: string
+    // Null for an invitation the system issued with no administrator behind it.
+    // The column has always been nullable; only this signature was narrower.
+    createdByUserId: string | null
+    now?: Date
+    token?: string
+    ttlHours?: number
+  }
 ): Promise<{ token: string; expiresAt: Date }> {
-  const token = generateToken()
-  const expiresAt = new Date(now.getTime() + INVITATION_TTL_HOURS * 60 * 60 * 1000)
+  const expiresAt = new Date(now.getTime() + ttlHours * 60 * 60 * 1000)
 
   await db.userInvitation.updateMany({
     where: { userId, consumedAt: null },
