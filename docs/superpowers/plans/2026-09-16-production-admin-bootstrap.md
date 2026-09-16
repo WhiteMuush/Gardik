@@ -691,12 +691,17 @@ describe("bootstrapFirstAdmin", () => {
 
   it("routes every write through one transaction, so a rollback leaves nothing", async () => {
     let transactions = 0
+    // Captured rather than asserted in place: bootstrapFirstAdmin swallows every
+    // exception by contract, so an assertion thrown inside the callback would be
+    // caught and logged, and the test would pass while proving nothing.
+    let createdInside: boolean | null = null
+
     const observed = {
       $transaction: async (fn: (tx: Prisma.TransactionClient) => Promise<boolean>) => {
         transactions += 1
         return prisma.$transaction(async (tx) => {
           await tx.company.deleteMany({})
-          expect(await fn(tx)).toBe(true)
+          createdInside = await fn(tx)
           // Roll the whole thing back, including the company, the role presets,
           // the user, the invitation and both audit rows.
           throw ROLLBACK
@@ -708,6 +713,7 @@ describe("bootstrapFirstAdmin", () => {
     await expect(bootstrapFirstAdmin(observed, env)).resolves.toBeUndefined()
 
     expect(transactions).toBe(1)
+    expect(createdInside).toBe(true)
     expect(await prisma.company.findUnique({ where: { domain: config.domain } })).toBeNull()
     expect(await prisma.user.findUnique({ where: { email: config.email } })).toBeNull()
   })
