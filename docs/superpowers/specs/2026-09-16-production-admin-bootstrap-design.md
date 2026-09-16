@@ -175,10 +175,15 @@ second, which is caught and logged like any other refusal.
 
 ## Changes to existing code
 
-`src/lib/auth/invitation.ts`, two edits:
+`src/lib/auth/invitation.ts`, three edits, each of them a widening so every
+existing call site keeps compiling untouched:
 
 - `issueInvitation` accepts `createdByUserId: string | null`. The database column
   is already nullable, so this is a TypeScript signature change only.
+- `issueInvitation` accepts an optional `token`, defaulting to `generateToken()`.
+  The bootstrap has to supply its own, because a token the container generated
+  would have to be printed to be usable, and that is the one thing the logging
+  policy rules out.
 - `issueInvitation` accepts an optional `ttlHours`, defaulting to
   `INVITATION_TTL_HOURS`, so the bootstrap can pass its shorter window without a
   second code path.
