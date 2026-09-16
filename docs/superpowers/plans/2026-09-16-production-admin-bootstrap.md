@@ -960,7 +960,7 @@ administrator is created at start-up, once.
 Set both variables before the first `docker compose up -d`:
 
     BOOTSTRAP_ADMIN_EMAIL=admin@acme.com
-    BOOTSTRAP_INVITE_TOKEN=$(openssl rand -base64 32)
+    BOOTSTRAP_INVITE_TOKEN=<the output of: openssl rand -hex 32>
 
 The domain of the address becomes the company: `admin@acme.com` creates a
 company named `acme.com`, which you can rename later in the settings. A token

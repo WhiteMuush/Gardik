@@ -38,7 +38,7 @@ services:
       DIRECTORY_ENCRYPTION_KEY: replace-with-openssl-rand-base64-32
       # First start only, both together. See First administrator below.
       BOOTSTRAP_ADMIN_EMAIL: admin@yourdomain.com
-      BOOTSTRAP_INVITE_TOKEN: replace-with-openssl-rand-base64-32
+      BOOTSTRAP_INVITE_TOKEN: replace-with-openssl-rand-hex-32
     ports:
       - "3000:3000"
 
@@ -75,7 +75,12 @@ administrator is created at start-up or not at all. Set both variables before th
 first `docker compose up -d`:
 
     BOOTSTRAP_ADMIN_EMAIL=admin@acme.com
-    BOOTSTRAP_INVITE_TOKEN=$(openssl rand -base64 32)
+    BOOTSTRAP_INVITE_TOKEN=<the output of: openssl rand -hex 32>
+
+Generate this one with `-hex`, not the `-base64` used for the other secrets.
+The token travels in a URL, and base64 output contains `+` and `/`, which a
+query string decodes as something else: the link would fail with "no longer
+valid" and no clue why. Hex is URL-safe, so it can be pasted as it is.
 
 Both are required together: one without the other is refused, and the container
 says which one is missing. A token shorter than 32 characters is refused too.
@@ -129,7 +134,7 @@ Optional.
 | `DIRECTORY_ENCRYPTION_KEY_PREVIOUS` | Former encryption key, read during a key rotation. |
 | `RUN_MIGRATIONS` | Set to `false` to skip `prisma migrate deploy` on start, when a separate job owns the schema. |
 | `BOOTSTRAP_ADMIN_EMAIL` | Creates the first administrator on start. See First administrator. |
-| `BOOTSTRAP_INVITE_TOKEN` | Invitation token for that administrator. 32 characters minimum. Required alongside the address. |
+| `BOOTSTRAP_INVITE_TOKEN` | Invitation token for that administrator. 32 characters minimum, URL-safe, from `openssl rand -hex 32`. Required alongside the address. |
 
 ## Operating notes
 
