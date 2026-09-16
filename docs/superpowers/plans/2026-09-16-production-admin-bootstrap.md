@@ -669,7 +669,8 @@ The glue. Everything it does is already tested; what this task adds is the guara
 
 **Interfaces:**
 - Consumes: `resolveBootstrapConfig`, `bootstrapState`, `createFirstAdmin` from Tasks 1 and 3.
-- Produces: `bootstrapFirstAdmin(client: PrismaClient, env?: BootstrapEnv): Promise<void>` and `register(): Promise<void>`.
+- Produces: `type BootstrapClient = { $transaction: (fn: (tx: Prisma.TransactionClient) => Promise<BootstrapState>) => Promise<BootstrapState> }`,
+  `bootstrapFirstAdmin(client: BootstrapClient, env?: BootstrapEnv): Promise<void>` and `register(): Promise<void>`.
 
 - [ ] **Step 1: Write the failing tests**
 
@@ -698,11 +699,11 @@ describe("bootstrapFirstAdmin", () => {
   })
 
   it("never throws when the database is unreachable", async () => {
-    const broken = {
+    const broken: BootstrapClient = {
       $transaction: async () => {
         throw new Error("connection refused")
       },
-    } as unknown as PrismaClient
+    }
 
     await expect(bootstrapFirstAdmin(broken, env)).resolves.toBeUndefined()
   })
@@ -720,8 +721,8 @@ describe("bootstrapFirstAdmin", () => {
     // caught and logged, and the test would pass while proving nothing.
     let stateInside: BootstrapState | null = null
 
-    const observed = {
-      $transaction: async (fn: (tx: Prisma.TransactionClient) => Promise<BootstrapState>) => {
+    const observed: BootstrapClient = {
+      $transaction: async (fn) => {
         transactions += 1
         return prisma.$transaction(async (tx) => {
           await tx.company.deleteMany({})
@@ -731,7 +732,7 @@ describe("bootstrapFirstAdmin", () => {
           throw ROLLBACK
         })
       },
-    } as unknown as PrismaClient
+    }
 
     // The orchestrator swallows the rollback and logs it, which is the contract.
     await expect(bootstrapFirstAdmin(observed, env)).resolves.toBeUndefined()
@@ -783,8 +784,16 @@ client in instead.
  * a log line. A failed bootstrap must not turn a running instance into a dead
  * one.
  */
+// Only the transaction entry point, not the whole client. It states the single
+// method this depends on, and it lets a test hand in a stub as a plain typed
+// object: casting a fake PrismaClient would need a double cast, which this
+// repository forbids for good reason.
+export type BootstrapClient = {
+  $transaction: (fn: (tx: Prisma.TransactionClient) => Promise<BootstrapState>) => Promise<BootstrapState>
+}
+
 export async function bootstrapFirstAdmin(
-  client: PrismaClient,
+  client: BootstrapClient,
   env: BootstrapEnv = process.env
 ): Promise<void> {
   const resolved = resolveBootstrapConfig(env)
@@ -837,7 +846,7 @@ export async function bootstrapFirstAdmin(
 
 Run: `npx dotenv -e .env.local -- npx vitest run --config vitest.integration.config.ts src/lib/auth/bootstrap.itest.ts`
 
-Expected: PASS, 13 tests.
+Expected: PASS, 15 tests (the 10 from Task 3 plus the 5 here).
 
 - [ ] **Step 5: Create the start-up hook**
 
