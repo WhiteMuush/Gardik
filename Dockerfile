@@ -60,7 +60,13 @@ WORKDIR /app
 # `node server.js`, and the healthcheck is `node -e`. Dropping it removes the
 # CVEs carried by its own bundled dependency tree, which no override in this
 # repository can reach.
+# The upgrade closes base-image CVEs that Debian has already patched but the
+# upstream node image has not rebuilt against yet. Without it the runner ships
+# whatever the base was frozen with, however old the advisory: libpcre2 stayed
+# on the vulnerable 10.42-1 through a rebuild because the fix only exists in
+# the archive, not in the published base layer.
 RUN apt-get update \
+  && apt-get upgrade -y \
   && apt-get install -y --no-install-recommends openssl \
   && rm -rf /var/lib/apt/lists/* \
   && rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
