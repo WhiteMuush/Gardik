@@ -18,6 +18,9 @@ Tracks #59. Completed for v1.0.0; the README WIP banner is gone.
 - Provider/sync errors log the error message only, not the credentials or the
   request body.
 - The healthcheck and cron endpoints return no PII.
+- The first-administrator bootstrap logs the company and the administrator
+  address, never the invitation token. The token is supplied through
+  `BOOTSTRAP_INVITE_TOKEN` precisely so the container never has one to print.
 
 ## Security headers
 
