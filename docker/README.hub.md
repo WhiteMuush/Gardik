@@ -4,7 +4,11 @@ Self-hosted service that tells a business whether its employees' data has
 surfaced in known breaches, with severity-based alerting and a customizable
 security dashboard.
 
-Source, issues and full documentation: https://github.com/WhiteMuush/Gardik
+Full documentation: https://github.com/WhiteMuush/Gardik/wiki
+Source and issues: https://github.com/WhiteMuush/Gardik
+
+This page covers deploying the image. Everything else, configuring the features,
+connecting a directory, troubleshooting, is in the wiki.
 
 ## Tags
 

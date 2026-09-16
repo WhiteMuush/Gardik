@@ -219,6 +219,14 @@ the image rather than contributors; the same workflow keeps it in sync.
 
 ## Documentation
 
+The [project wiki](https://github.com/WhiteMuush/Gardik/wiki) is the official
+documentation: installation, configuration, every feature, and troubleshooting.
+New here? Start at
+[Getting Started](https://github.com/WhiteMuush/Gardik/wiki/Getting-Started).
+
+The files below live beside the code so they change with it. They record design
+decisions and their reasoning, which is a different job from the wiki's.
+
 - [Authentication and RBAC](docs/auth.md)
 - [Encryption at rest](docs/encryption.md)
 - [Backup and restore](docs/backup.md)
