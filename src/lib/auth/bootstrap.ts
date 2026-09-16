@@ -155,8 +155,16 @@ export async function createFirstAdmin(db: Db, config: BootstrapConfig): Promise
  * a log line. A failed bootstrap must not turn a running instance into a dead
  * one.
  */
+// Only the transaction entry point, not the whole client. It states the single
+// method this depends on, and it lets a test hand in a stub as a plain typed
+// object: casting a fake PrismaClient would need a double cast, which this
+// repository forbids for good reason.
+export type BootstrapClient = {
+  $transaction: (fn: (tx: Prisma.TransactionClient) => Promise<BootstrapState>) => Promise<BootstrapState>
+}
+
 export async function bootstrapFirstAdmin(
-  client: PrismaClient,
+  client: BootstrapClient,
   env: BootstrapEnv = process.env
 ): Promise<void> {
   const resolved = resolveBootstrapConfig(env)

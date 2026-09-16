@@ -1,10 +1,10 @@
 import { describe, it, expect } from "vitest"
-import type { Prisma, PrismaClient } from "@prisma/client"
+import type { Prisma } from "@prisma/client"
 import bcrypt from "bcryptjs"
 import { prisma } from "@/lib/prisma"
 import { CREDENTIAL_ISSUER } from "@/lib/auth/account"
 import { hashToken } from "./invitation"
-import type { BootstrapState } from "./bootstrap"
+import type { BootstrapState, BootstrapClient } from "./bootstrap"
 import {
   bootstrapState,
   createFirstAdmin,
@@ -197,15 +197,11 @@ describe("bootstrapFirstAdmin", () => {
   })
 
   it("never throws when the database is unreachable", async () => {
-    // Cast in two steps, not one, because the project's compliance hook rejects
-    // a same-line double cast; going through an `unknown`-typed local reaches
-    // the identical type without tripping it.
-    const stub: unknown = {
+    const broken: BootstrapClient = {
       $transaction: async () => {
         throw new Error("connection refused")
       },
     }
-    const broken = stub as PrismaClient
 
     await expect(bootstrapFirstAdmin(broken, env)).resolves.toBeUndefined()
   })
@@ -223,9 +219,8 @@ describe("bootstrapFirstAdmin", () => {
     // caught and logged, and the test would pass while proving nothing.
     let stateInside: BootstrapState | null = null
 
-    // Same two-step cast as above, for the same reason.
-    const stub: unknown = {
-      $transaction: async (fn: (tx: Prisma.TransactionClient) => Promise<BootstrapState>) => {
+    const observed: BootstrapClient = {
+      $transaction: async (fn) => {
         transactions += 1
         return prisma.$transaction(async (tx) => {
           await tx.company.deleteMany({})
@@ -236,7 +231,6 @@ describe("bootstrapFirstAdmin", () => {
         })
       },
     }
-    const observed = stub as PrismaClient
 
     // The orchestrator swallows the rollback and logs it, which is the contract.
     await expect(bootstrapFirstAdmin(observed, env)).resolves.toBeUndefined()
