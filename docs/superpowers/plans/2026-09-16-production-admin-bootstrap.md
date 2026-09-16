@@ -599,6 +599,15 @@ export async function createFirstAdmin(db: Db, config: BootstrapConfig): Promise
   await seedPresetsForCompany(db, company.id)
   const roleId = await resolvePresetRoleId(db, company.id, ADMINISTRATOR)
 
+  // Read before the upsert, so the audit trail can tell a creation from a resume.
+  // Without it every restart of a container that still carries the bootstrap
+  // variables appends another user.create for a user it did not create, to the
+  // one record whose entire purpose is to be true.
+  const existing = await db.user.findUnique({
+    where: { email: config.email },
+    select: { id: true },
+  })
+
   const user = await db.user.upsert({
     where: { email: config.email },
     update: {},
@@ -622,15 +631,9 @@ export async function createFirstAdmin(db: Db, config: BootstrapConfig): Promise
     ttlHours: BOOTSTRAP_INVITATION_TTL_HOURS,
   })
 
-  for (const action of [AUDIT_ACTIONS.USER_CREATE, AUDIT_ACTIONS.USER_INVITE]) {
-    await writeAudit(db, {
-      companyId: company.id,
-      actorUserId: null,
-      action,
-      targetType: "user",
-      targetId: user.id,
-    })
-  }
+  const entry = { companyId: company.id, actorUserId: null, targetType: "user", targetId: user.id }
+  if (!existing) await writeAudit(db, { ...entry, action: AUDIT_ACTIONS.USER_CREATE })
+  await writeAudit(db, { ...entry, action: AUDIT_ACTIONS.USER_INVITE })
 }
 ```
 
@@ -814,6 +817,16 @@ export async function bootstrapFirstAdmin(
     )
     console.info(`[bootstrap] Open ${appBaseUrl()}/invite with the token you supplied.`)
   } catch (error) {
+    // A second replica booting at the same moment loses the race on one of the
+    // unique constraints. That is the design holding, not a failure, so it reads
+    // as one sentence rather than a constraint violation an operator would have
+    // to decode on their first deploy.
+    const raced =
+      typeof error === "object" && error !== null && "code" in error && error.code === "P2002"
+    if (raced) {
+      console.info("[bootstrap] Another replica bootstrapped first, nothing to do.")
+      return
+    }
     const detail = error instanceof Error ? error.message : String(error)
     console.warn(`[bootstrap] Refused: ${detail}.`)
   }
