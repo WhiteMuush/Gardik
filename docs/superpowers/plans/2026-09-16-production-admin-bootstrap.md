@@ -556,7 +556,7 @@ Append to `src/lib/auth/bootstrap.ts`, and add the imports at the top of the fil
 
 ```ts
 import type { Prisma, PrismaClient } from "@prisma/client"
-import { issueInvitation } from "@/lib/auth/invitation"
+import { issueInvitation, hashToken } from "@/lib/auth/invitation"
 import { seedPresetsForCompany, resolvePresetRoleId } from "@/lib/rbac/seed-roles"
 import { ADMINISTRATOR } from "@/lib/rbac/presets"
 import { writeAudit, AUDIT_ACTIONS } from "@/lib/rbac/audit"
@@ -603,6 +603,16 @@ export async function createFirstAdmin(db: Db, config: BootstrapConfig): Promise
     where: { email: config.email },
     update: {},
     create: { email: config.email, companyId: company.id, roleId },
+  })
+
+  // UserInvitation.tokenHash is unique, and issueInvitation marks outstanding
+  // invitations consumed rather than deleting them. The bootstrap token is fixed
+  // by the operator, so every restart of a container that still carries the
+  // variables would re-create the same hash and violate that constraint. Clearing
+  // the unredeemed row first removes nothing of value, keeps issueInvitation as
+  // the single writer of invitations, and refreshes the window on every restart.
+  await db.userInvitation.deleteMany({
+    where: { tokenHash: hashToken(config.token), consumedAt: null },
   })
 
   await issueInvitation(db, {
@@ -705,14 +715,14 @@ describe("bootstrapFirstAdmin", () => {
     // Captured rather than asserted in place: bootstrapFirstAdmin swallows every
     // exception by contract, so an assertion thrown inside the callback would be
     // caught and logged, and the test would pass while proving nothing.
-    let createdInside: boolean | null = null
+    let stateInside: BootstrapState | null = null
 
     const observed = {
-      $transaction: async (fn: (tx: Prisma.TransactionClient) => Promise<boolean>) => {
+      $transaction: async (fn: (tx: Prisma.TransactionClient) => Promise<BootstrapState>) => {
         transactions += 1
         return prisma.$transaction(async (tx) => {
           await tx.company.deleteMany({})
-          createdInside = await fn(tx)
+          stateInside = await fn(tx)
           // Roll the whole thing back, including the company, the role presets,
           // the user, the invitation and both audit rows.
           throw ROLLBACK
@@ -724,7 +734,7 @@ describe("bootstrapFirstAdmin", () => {
     await expect(bootstrapFirstAdmin(observed, env)).resolves.toBeUndefined()
 
     expect(transactions).toBe(1)
-    expect(createdInside).toBe(true)
+    expect(stateInside).toBe("fresh")
     expect(await prisma.company.findUnique({ where: { domain: config.domain } })).toBeNull()
     expect(await prisma.user.findUnique({ where: { email: config.email } })).toBeNull()
   })
@@ -735,6 +745,7 @@ Extend the import at the top of the file to include the new symbol and the type:
 
 ```ts
 import type { Prisma, PrismaClient } from "@prisma/client"
+import type { BootstrapState } from "./bootstrap"
 import {
   bootstrapState,
   createFirstAdmin,
@@ -782,18 +793,25 @@ export async function bootstrapFirstAdmin(
   const { email, domain } = resolved.config
 
   try {
-    const created = await client.$transaction(async (tx) => {
-      if ((await bootstrapState(tx, email)) === "closed") return false
-      await createFirstAdmin(tx, resolved.config)
-      return true
+    const state = await client.$transaction(async (tx) => {
+      const current = await bootstrapState(tx, email)
+      if (current !== "closed") await createFirstAdmin(tx, resolved.config)
+      return current
     })
 
-    if (!created) return
+    if (state === "closed") return
 
     // The token is never printed. It came from the operator's own configuration,
     // so they already hold it, and a log line carrying it would outlive the link
     // in whatever aggregator collects it.
-    console.info(`[bootstrap] Created company ${domain} and administrator ${email}.`)
+    // Said differently on a resume, because a container that keeps the variables
+    // runs this on every restart and "Created" would be a lie from the second one
+    // onwards. The link is reissued either way, so the second line always holds.
+    console.info(
+      state === "fresh"
+        ? `[bootstrap] Created company ${domain} and administrator ${email}.`
+        : `[bootstrap] Reissued the invitation for ${email} at company ${domain}.`
+    )
     console.info(`[bootstrap] Open ${appBaseUrl()}/invite with the token you supplied.`)
   } catch (error) {
     const detail = error instanceof Error ? error.message : String(error)
