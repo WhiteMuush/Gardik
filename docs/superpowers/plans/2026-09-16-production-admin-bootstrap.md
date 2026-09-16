@@ -55,7 +55,8 @@ The pure half of the module: it reads the environment, refuses anything malforme
   - `MIN_BOOTSTRAP_TOKEN_LENGTH: number` (value `32`)
   - `type BootstrapConfig = { email: string; token: string; domain: string }`
   - `type ResolveResult = { ok: true; config: BootstrapConfig } | { ok: false; silent: boolean; reason: string }`
-  - `resolveBootstrapConfig(env: NodeJS.ProcessEnv): ResolveResult`
+  - `type BootstrapEnv = { BOOTSTRAP_ADMIN_EMAIL?: string; BOOTSTRAP_INVITE_TOKEN?: string }`
+  - `resolveBootstrapConfig(env: BootstrapEnv): ResolveResult`
 
 `silent: true` means "not configured, say nothing"; `silent: false` means "configured wrongly, say why".
 
@@ -181,7 +182,15 @@ export type ResolveResult =
   | { ok: true; config: BootstrapConfig }
   | { ok: false; silent: boolean; reason: string }
 
-export function resolveBootstrapConfig(env: NodeJS.ProcessEnv): ResolveResult {
+// Only the two keys this actually reads. Next augments NodeJS.ProcessEnv with a
+// required NODE_ENV, so a test passing an object literal against that type would
+// not compile; process.env stays assignable to this one.
+export type BootstrapEnv = {
+  BOOTSTRAP_ADMIN_EMAIL?: string
+  BOOTSTRAP_INVITE_TOKEN?: string
+}
+
+export function resolveBootstrapConfig(env: BootstrapEnv): ResolveResult {
   const email = (env.BOOTSTRAP_ADMIN_EMAIL ?? "").trim().toLowerCase()
   const token = (env.BOOTSTRAP_INVITE_TOKEN ?? "").trim()
 
@@ -218,11 +227,13 @@ Run: `npx vitest run src/lib/auth/bootstrap.test.ts`
 
 Expected: PASS, 9 tests.
 
-- [ ] **Step 5: Run the linter**
+- [ ] **Step 5: Type-check and lint**
 
-Run: `npm run lint`
+Run: `npx tsc --noEmit && npm run lint`
 
-Expected: no output, exit 0.
+Expected: no output, exit 0. The type check is not optional here: Vitest strips
+types rather than checking them, so a test file can pass every assertion while
+failing to compile.
 
 - [ ] **Step 6: Commit**
 
@@ -645,7 +656,7 @@ The glue. Everything it does is already tested; what this task adds is the guara
 
 **Interfaces:**
 - Consumes: `resolveBootstrapConfig`, `bootstrapState`, `createFirstAdmin` from Tasks 1 and 3.
-- Produces: `bootstrapFirstAdmin(client: PrismaClient, env?: NodeJS.ProcessEnv): Promise<void>` and `register(): Promise<void>`.
+- Produces: `bootstrapFirstAdmin(client: PrismaClient, env?: BootstrapEnv): Promise<void>` and `register(): Promise<void>`.
 
 - [ ] **Step 1: Write the failing tests**
 
@@ -760,7 +771,7 @@ client in instead.
  */
 export async function bootstrapFirstAdmin(
   client: PrismaClient,
-  env: NodeJS.ProcessEnv = process.env
+  env: BootstrapEnv = process.env
 ): Promise<void> {
   const resolved = resolveBootstrapConfig(env)
   if (!resolved.ok) {
