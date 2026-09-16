@@ -708,6 +708,28 @@ describe("bootstrapFirstAdmin", () => {
     await expect(bootstrapFirstAdmin(broken, env)).resolves.toBeUndefined()
   })
 
+  it("treats a lost race between replicas as a no-op, not a failure", async () => {
+    const raced: BootstrapClient = {
+      $transaction: async () => {
+        // The shape Prisma raises when a second replica loses on a unique
+        // constraint. Asserting on the log is the only way to tell this branch
+        // from the generic one: both end in the same silent resolve.
+        throw Object.assign(new Error("Unique constraint failed"), { code: "P2002" })
+      },
+    }
+
+    const info = vi.spyOn(console, "info").mockImplementation(() => {})
+    const warn = vi.spyOn(console, "warn").mockImplementation(() => {})
+    try {
+      await expect(bootstrapFirstAdmin(raced, env)).resolves.toBeUndefined()
+      expect(info).toHaveBeenCalledWith(expect.stringContaining("Another replica"))
+      expect(warn).not.toHaveBeenCalled()
+    } finally {
+      info.mockRestore()
+      warn.mockRestore()
+    }
+  })
+
   it("never throws on a malformed address", async () => {
     await expect(
       bootstrapFirstAdmin(prisma, { ...env, BOOTSTRAP_ADMIN_EMAIL: "not-an-address" })
@@ -774,6 +796,14 @@ database-free unit tests from Task 1 fail at import time. The caller passes the
 client in instead.
 
 ```ts
+// Only the transaction entry point, not the whole client. It states the single
+// method this depends on, and it lets a test hand in a stub as a plain typed
+// object: casting a fake PrismaClient would need a double cast, which this
+// repository forbids for good reason.
+export type BootstrapClient = {
+  $transaction: (fn: (tx: Prisma.TransactionClient) => Promise<BootstrapState>) => Promise<BootstrapState>
+}
+
 /**
  * Called once per server process at start-up. Refuses far more often than it
  * acts, and says so at most once, because the overwhelmingly common case is an
@@ -784,14 +814,6 @@ client in instead.
  * a log line. A failed bootstrap must not turn a running instance into a dead
  * one.
  */
-// Only the transaction entry point, not the whole client. It states the single
-// method this depends on, and it lets a test hand in a stub as a plain typed
-// object: casting a fake PrismaClient would need a double cast, which this
-// repository forbids for good reason.
-export type BootstrapClient = {
-  $transaction: (fn: (tx: Prisma.TransactionClient) => Promise<BootstrapState>) => Promise<BootstrapState>
-}
-
 export async function bootstrapFirstAdmin(
   client: BootstrapClient,
   env: BootstrapEnv = process.env
@@ -846,7 +868,7 @@ export async function bootstrapFirstAdmin(
 
 Run: `npx dotenv -e .env.local -- npx vitest run --config vitest.integration.config.ts src/lib/auth/bootstrap.itest.ts`
 
-Expected: PASS, 15 tests (the 10 from Task 3 plus the 5 here).
+Expected: PASS, 16 tests (the 10 from Task 3 plus the 6 here).
 
 - [ ] **Step 5: Create the start-up hook**
 
@@ -864,11 +886,20 @@ Create `src/instrumentation.ts`:
 export async function register() {
   if (process.env.NEXT_RUNTIME !== "nodejs") return
 
-  const [{ bootstrapFirstAdmin }, { prisma }] = await Promise.all([
-    import("@/lib/auth/bootstrap"),
-    import("@/lib/prisma"),
-  ])
-  await bootstrapFirstAdmin(prisma)
+  try {
+    const [{ bootstrapFirstAdmin }, { prisma }] = await Promise.all([
+      import("@/lib/auth/bootstrap"),
+      import("@/lib/prisma"),
+    ])
+    await bootstrapFirstAdmin(prisma)
+  } catch (error) {
+    // bootstrapFirstAdmin swallows its own failures, but it cannot swallow the
+    // ones that happen before it is reachable: loading @/lib/prisma constructs a
+    // client from DATABASE_URL and throws on a missing or malformed one, which is
+    // precisely the misconfigured deploy this hook exists to survive.
+    const detail = error instanceof Error ? error.message : String(error)
+    console.warn(`[bootstrap] Skipped: ${detail}.`)
+  }
 }
 ```
 
