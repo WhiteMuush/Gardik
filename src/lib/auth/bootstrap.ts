@@ -83,8 +83,9 @@ export async function bootstrapState(db: Db, email: string): Promise<BootstrapSt
 
 /**
  * Idempotent on purpose: the fresh and resumable states run the same path, and a
- * second run before the link is used leaves the existing invitation alone
- * instead of failing on it (see the tokenHash check below).
+ * second run reissues the invitation rather than failing on it. The operator's
+ * bootstrap variables normally stay in their compose file, so this runs on every
+ * container restart, and each run hands back a link with a fresh window.
  *
  * No credential account is created. The password is set by the operator through
  * the invitation, under the application's own rules, so nothing here has to
@@ -99,6 +100,15 @@ export async function createFirstAdmin(db: Db, config: BootstrapConfig): Promise
 
   await seedPresetsForCompany(db, company.id)
   const roleId = await resolvePresetRoleId(db, company.id, ADMINISTRATOR)
+
+  // Read before the upsert, so the audit trail can tell a creation from a resume.
+  // Without it every restart of a container that still carries the bootstrap
+  // variables appends another user.create for a user it did not create, to the
+  // one record whose entire purpose is to be true.
+  const existing = await db.user.findUnique({
+    where: { email: config.email },
+    select: { id: true },
+  })
 
   const user = await db.user.upsert({
     where: { email: config.email },
@@ -123,13 +133,7 @@ export async function createFirstAdmin(db: Db, config: BootstrapConfig): Promise
     ttlHours: BOOTSTRAP_INVITATION_TTL_HOURS,
   })
 
-  for (const action of [AUDIT_ACTIONS.USER_CREATE, AUDIT_ACTIONS.USER_INVITE]) {
-    await writeAudit(db, {
-      companyId: company.id,
-      actorUserId: null,
-      action,
-      targetType: "user",
-      targetId: user.id,
-    })
-  }
+  const entry = { companyId: company.id, actorUserId: null, targetType: "user", targetId: user.id }
+  if (!existing) await writeAudit(db, { ...entry, action: AUDIT_ACTIONS.USER_CREATE })
+  await writeAudit(db, { ...entry, action: AUDIT_ACTIONS.USER_INVITE })
 }

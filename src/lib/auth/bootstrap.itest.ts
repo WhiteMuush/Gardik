@@ -159,4 +159,16 @@ describe("createFirstAdmin", () => {
     expect(entries.map((e) => e.action)).toEqual(["user.create", "user.invite"])
     expect(entries.every((e) => e.actorUserId === null)).toBe(true)
   })
+
+  it("audits a second run as an invitation only, never as another creation", async () => {
+    const actions = await onEmptyDb(async (tx) => {
+      await createFirstAdmin(tx, config)
+      await createFirstAdmin(tx, config)
+      const rows = await tx.auditLog.findMany({ orderBy: { createdAt: "asc" } })
+      return rows.map((row) => row.action)
+    })
+
+    expect(actions.filter((a) => a === "user.create")).toHaveLength(1)
+    expect(actions.filter((a) => a === "user.invite")).toHaveLength(2)
+  })
 })
