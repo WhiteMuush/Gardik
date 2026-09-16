@@ -106,21 +106,22 @@ export async function createFirstAdmin(db: Db, config: BootstrapConfig): Promise
     create: { email: config.email, companyId: company.id, roleId },
   })
 
-  // The operator supplies a fixed token rather than a generated one, so a second
-  // run (a restart before the link is used) hashes to the exact same row
-  // issueInvitation already created. Its unconditional create() would collide
-  // on the tokenHash unique constraint, so a live invitation with this hash is
-  // left untouched instead of being reissued: it is already the same link.
-  const tokenHash = hashToken(config.token)
-  const live = await db.userInvitation.findUnique({ where: { tokenHash } })
-  if (!live || live.consumedAt) {
-    await issueInvitation(db, {
-      userId: user.id,
-      createdByUserId: null,
-      token: config.token,
-      ttlHours: BOOTSTRAP_INVITATION_TTL_HOURS,
-    })
-  }
+  // UserInvitation.tokenHash is unique, and issueInvitation marks outstanding
+  // invitations consumed rather than deleting them. The bootstrap token is fixed
+  // by the operator, so every restart of a container that still carries the
+  // variables would re-create the same hash and violate that constraint. Clearing
+  // the unredeemed row first removes nothing of value, keeps issueInvitation as
+  // the single writer of invitations, and refreshes the window on every restart.
+  await db.userInvitation.deleteMany({
+    where: { tokenHash: hashToken(config.token), consumedAt: null },
+  })
+
+  await issueInvitation(db, {
+    userId: user.id,
+    createdByUserId: null,
+    token: config.token,
+    ttlHours: BOOTSTRAP_INVITATION_TTL_HOURS,
+  })
 
   for (const action of [AUDIT_ACTIONS.USER_CREATE, AUDIT_ACTIONS.USER_INVITE]) {
     await writeAudit(db, {

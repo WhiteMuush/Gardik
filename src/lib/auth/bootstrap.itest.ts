@@ -129,6 +129,27 @@ describe("createFirstAdmin", () => {
     expect(counts.live).toBe(1)
   })
 
+  it("refreshes an expired invitation when the same token is reused", async () => {
+    const rows = await onEmptyDb(async (tx) => {
+      await createFirstAdmin(tx, config)
+      const user = await tx.user.findUnique({ where: { email: config.email } })
+
+      // Backdate it past its window: the state a restart finds after a day of
+      // nobody opening the link.
+      await tx.userInvitation.updateMany({
+        where: { userId: user!.id },
+        data: { expiresAt: new Date(Date.now() - 1000) },
+      })
+
+      await createFirstAdmin(tx, config)
+      return tx.userInvitation.findMany({ where: { userId: user!.id } })
+    })
+
+    expect(rows).toHaveLength(1)
+    expect(rows[0].consumedAt).toBeNull()
+    expect(rows[0].expiresAt.getTime()).toBeGreaterThan(Date.now())
+  })
+
   it("writes the creation and the invitation to the audit trail, with no actor", async () => {
     const entries = await onEmptyDb(async (tx) => {
       await createFirstAdmin(tx, config)
