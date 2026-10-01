@@ -3,7 +3,6 @@ import bcrypt from "bcryptjs"
 import { convertSetCookieToCookie } from "better-auth/test"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth/server"
-import { CREDENTIAL_ISSUER } from "@/lib/auth/account"
 
 // Covers two settings whose absence leaves no trace in this codebase, because
 // the wrong behaviour is the library's default rather than anything written
@@ -37,7 +36,6 @@ beforeAll(async () => {
     data: {
       accountId: user.id,
       providerId: "credential",
-      issuer: CREDENTIAL_ISSUER,
       userId: user.id,
       password: await bcrypt.hash(password, 12),
     },

@@ -1,7 +1,6 @@
 import { createHash, randomBytes } from "node:crypto"
 import bcrypt from "bcryptjs"
 import type { Prisma, PrismaClient } from "@prisma/client"
-import { CREDENTIAL_ISSUER } from "@/lib/auth/account"
 
 type Db = PrismaClient | Prisma.TransactionClient
 
@@ -147,7 +146,6 @@ export async function consumeInvitation(
         data: {
           accountId: invitation.userId,
           providerId: "credential",
-          issuer: CREDENTIAL_ISSUER,
           userId: invitation.userId,
           password: hashedPassword,
         },

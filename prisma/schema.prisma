@@ -289,11 +289,11 @@ model Account {
   id                    String    @id @default(cuid())
   accountId             String
   providerId            String
-  // Better Auth 1.7 keys account lookups on (issuer, accountId) rather than on
-  // providerId, so a provider that changes its name keeps its identities. Local
-  // methods get a synthetic value, `local:credential` for password accounts;
-  // an OIDC provider stores the issuer it advertises.
-  issuer                String
+  // Better Auth 1.7.0 to 1.7.2 keyed account lookups on (issuer, accountId).
+  // 1.7.5 reverted that and resolves accounts by (providerId, accountId) again,
+  // so nothing writes this column any more. It stays, nullable, so an image
+  // rolled back to 1.7.2 still finds the rows it backfilled.
+  issuer                String?
   userId                String
   user                  User      @relation(fields: [userId], references: [id], onDelete: Cascade)
   accessToken           String?
@@ -306,7 +306,7 @@ model Account {
   createdAt             DateTime  @default(now())
   updatedAt             DateTime  @updatedAt
 
-  @@index([issuer, accountId])
+  @@index([providerId, accountId])
 }
 
 model Verification {
