@@ -30,19 +30,20 @@ hashing algorithm.
 
 ## Account identity
 
-Better Auth 1.7 looks up an account by `(issuer, accountId)` rather than by
-`(providerId, accountId)`, so an identity survives a provider being renamed.
-Every `Account` row therefore carries an `issuer`:
+Better Auth resolves an account by `(providerId, accountId)`. Versions 1.7.0 to
+1.7.2 keyed it on `(issuer, accountId)` instead, and 1.7.5 reverted that
+because it broke databases created under 1.6.
 
-- password accounts store the synthetic `local:credential`, exported as
-  `CREDENTIAL_ISSUER` from `src/lib/auth/account.ts`,
-- SSO accounts store the issuer the identity provider advertises, the same
-  value held on the matching `SsoProvider` row.
+The `issuer` column added by `20260902072500_add_account_issuer` is still on
+`Account`, but nothing writes it any more:
+`20261001090000_drop_account_issuer_requirement` made it nullable (a NOT NULL
+column would make every sign-up fail) and moved the lookup index to
+`(providerId, accountId)`. The backfilled values are kept on purpose, so an
+image rolled back to Better Auth 1.7.2 still signs existing users in.
 
-Any code that writes an account row by hand (accepting an invitation, the seed
-scripts) has to set it, because a row without the right issuer authenticates
-against nothing. The `20260902072500_add_account_issuer` migration backfills
-existing rows from what they already say about themselves.
+Code that writes an account row by hand (accepting an invitation, the seed
+scripts) only needs `providerId`, `accountId` and `userId`, plus `password`
+for a credential account.
 
 ## Two-factor authentication
 

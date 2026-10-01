@@ -9,7 +9,7 @@ Generated from `package-lock.json`; do not edit by hand. Regenerate with
 `npm run licenses:write`. Build-time-only dependencies are excluded: they
 are not part of anything that ships.
 
-Runtime packages: 480.
+Runtime packages: 532.
 
 ## Obligations worth knowing
 
@@ -23,53 +23,82 @@ Runtime packages: 480.
 
 ## Packages by license
 
-### MIT (343)
+### MIT (384)
 
 - @authenio/xml-encryption@2.0.2
 - @babel/runtime@7.29.7
-- @base-ui/react@1.7.0
-- @base-ui/utils@0.3.2
-- @better-auth/core@1.7.2
-- @better-auth/drizzle-adapter@1.7.2
-- @better-auth/kysely-adapter@1.7.2
-- @better-auth/memory-adapter@1.7.2
-- @better-auth/mongo-adapter@1.7.2
-- @better-auth/passkey@1.7.2
-- @better-auth/prisma-adapter@1.7.2
-- @better-auth/sso@1.7.2
-- @better-auth/telemetry@1.7.2
+- @base-ui/react@1.8.0
+- @base-ui/utils@0.4.0
+- @better-auth/core@1.7.5
+- @better-auth/core@1.7.7
+- @better-auth/drizzle-adapter@1.7.5
+- @better-auth/kysely-adapter@1.7.5
+- @better-auth/memory-adapter@1.7.5
+- @better-auth/mongo-adapter@1.7.5
+- @better-auth/passkey@1.7.5
+- @better-auth/prisma-adapter@1.7.5
+- @better-auth/sso@1.7.5
+- @better-auth/telemetry@1.7.5
 - @better-auth/utils@0.4.2
 - @better-auth/utils@0.5.0
-- @better-fetch/fetch@1.3.1
+- @better-fetch/fetch@1.3.2
 - @dnd-kit/accessibility@3.1.1
 - @dnd-kit/core@6.3.1
 - @dnd-kit/sortable@10.0.0
 - @dnd-kit/utilities@3.2.2
 - @emnapi/runtime@1.11.3
+- @esbuild/aix-ppc64@0.28.1
+- @esbuild/android-arm64@0.28.1
+- @esbuild/android-arm@0.28.1
+- @esbuild/android-x64@0.28.1
+- @esbuild/darwin-arm64@0.28.1
+- @esbuild/darwin-x64@0.28.1
+- @esbuild/freebsd-arm64@0.28.1
+- @esbuild/freebsd-x64@0.28.1
+- @esbuild/linux-arm64@0.28.1
+- @esbuild/linux-arm@0.28.1
+- @esbuild/linux-ia32@0.28.1
+- @esbuild/linux-loong64@0.28.1
+- @esbuild/linux-mips64el@0.28.1
+- @esbuild/linux-ppc64@0.28.1
+- @esbuild/linux-riscv64@0.28.1
+- @esbuild/linux-s390x@0.28.1
+- @esbuild/linux-x64@0.28.1
+- @esbuild/netbsd-arm64@0.28.1
+- @esbuild/netbsd-x64@0.28.1
+- @esbuild/openbsd-arm64@0.28.1
+- @esbuild/openbsd-x64@0.28.1
+- @esbuild/openharmony-arm64@0.28.1
+- @esbuild/sunos-x64@0.28.1
+- @esbuild/win32-arm64@0.28.1
+- @esbuild/win32-ia32@0.28.1
+- @esbuild/win32-x64@0.28.1
 - @floating-ui/core@1.8.0
 - @floating-ui/dom@1.8.0
 - @floating-ui/react-dom@2.1.9
 - @floating-ui/utils@0.2.12
 - @hexagon/base64@1.1.28
 - @img/colour@1.1.0
-- @jridgewell/sourcemap-codec@1.5.5
+- @jridgewell/resolve-uri@3.1.2
+- @jridgewell/sourcemap-codec@1.6.0
+- @jridgewell/trace-mapping@0.3.31
 - @levischuck/tiny-cbor@0.2.11
-- @next/env@16.3.4
-- @next/swc-darwin-arm64@16.3.4
-- @next/swc-darwin-x64@16.3.4
-- @next/swc-linux-arm64-gnu@16.3.4
-- @next/swc-linux-arm64-musl@16.3.4
-- @next/swc-linux-x64-gnu@16.3.4
-- @next/swc-linux-x64-musl@16.3.4
-- @next/swc-win32-arm64-msvc@16.3.4
-- @next/swc-win32-x64-msvc@16.3.4
+- @next/env@16.3.6
+- @next/swc-darwin-arm64@16.3.6
+- @next/swc-darwin-x64@16.3.6
+- @next/swc-linux-arm64-gnu@16.3.6
+- @next/swc-linux-arm64-musl@16.3.6
+- @next/swc-linux-x64-gnu@16.3.6
+- @next/swc-linux-x64-musl@16.3.6
+- @next/swc-win32-arm64-msvc@16.3.6
+- @next/swc-win32-x64-msvc@16.3.6
 - @noble/ciphers@1.3.0
 - @noble/ciphers@2.2.0
 - @noble/hashes@1.8.0
 - @noble/hashes@2.2.0
 - @noble/hashes@2.3.0
 - @nodable/entities@3.0.0
-- @oxc-project/types@0.147.0
+- @oxc-project/types@0.151.0
 - @peculiar/asn1-android@2.8.0
 - @peculiar/asn1-cms@2.8.0
 - @peculiar/asn1-csr@2.8.0
@@ -106,6 +135,21 @@ Runtime packages: 480.
 - @react-pdf/textkit@7.0.1
 - @react-pdf/types@2.14.0
 - @reduxjs/toolkit@2.12.0
+- @rolldown/binding-android-arm-eabi@1.2.10
+- @rolldown/binding-android-arm64@1.2.10
+- @rolldown/binding-darwin-arm64@1.2.10
+- @rolldown/binding-darwin-x64@1.2.10
+- @rolldown/binding-freebsd-x64@1.2.10
+- @rolldown/binding-linux-arm-gnueabihf@1.2.10
+- @rolldown/binding-linux-arm64-gnu@1.2.10
+- @rolldown/binding-linux-arm64-musl@1.2.10
+- @rolldown/binding-linux-ppc64-gnu@1.2.10
+- @rolldown/binding-linux-s390x-gnu@1.2.10
+- @rolldown/binding-linux-x64-gnu@1.2.10
+- @rolldown/binding-linux-x64-musl@1.2.10
+- @rolldown/binding-openharmony-arm64@1.2.10
+- @rolldown/binding-win32-arm64-msvc@1.2.10
+- @rolldown/binding-win32-x64-msvc@1.2.10
 - @rolldown/pluginutils@1.0.1
 - @simplewebauthn/browser@13.3.0
 - @simplewebauthn/server@13.3.2
@@ -139,10 +183,10 @@ Runtime packages: 480.
 - @types/estree@1.0.9
 - @types/geojson@7946.0.16
 - @types/lodash@4.17.25
-- @types/node@26.4.1
+- @types/node@26.6.2
 - @types/pg@8.23.1
-- @types/react-dom@19.2.5
-- @types/react@19.2.18
+- @types/react-dom@19.3.0
+- @types/react@19.3.0
 - @types/use-sync-external-store@0.0.6
 - @visx/curve@4.0.1-alpha.0
 - @visx/event@4.0.1-alpha.0
@@ -152,13 +196,8 @@ Runtime packages: 480.
 - @visx/responsive@4.0.1-alpha.0
 - @visx/scale@4.0.1-alpha.0
 - @visx/shape@4.0.1-alpha.0
-- @vitest/expect@4.1.11
-- @vitest/mocker@4.1.11
-- @vitest/pretty-format@4.1.11
-- @vitest/runner@4.1.11
-- @vitest/snapshot@4.1.11
-- @vitest/spy@4.1.11
-- @vitest/utils@4.1.11
+- @vitest/mocker@5.0.1
+- @vitest/spy@5.0.1
 - @xmldom/is-dom-node@1.0.1
 - @xmldom/xmldom@0.8.15
 - @xmldom/xmldom@0.9.12
@@ -172,7 +211,7 @@ Runtime packages: 480.
 - aws-ssl-profiles@1.1.2
 - base64-js@0.0.8
 - base64-js@1.5.1
-- better-auth@1.7.2
+- better-auth@1.7.5
 - better-call@1.4.0
 - better-result@2.10.0
 - bidi-js@1.0.3
@@ -191,7 +230,6 @@ Runtime packages: 480.
 - color-name@2.1.1
 - color-string@2.1.4
 - confbox@0.2.4
-- convert-source-map@2.0.0
 - cross-spawn@7.0.6
 - csstype@3.2.3
 - decamelize@1.2.0
@@ -205,8 +243,9 @@ Runtime packages: 480.
 - emoji-regex@8.0.0
 - empathic@2.0.0
 - env-paths@3.0.0
-- es-module-lexer@2.1.0
+- es-module-lexer@2.3.2
 - es-toolkit@1.47.0
+- esbuild@0.28.1
 - escape-html@1.0.3
 - estree-walker@3.0.3
 - eventemitter3@5.0.4
@@ -224,6 +263,7 @@ Runtime packages: 480.
 - find-my-way@9.9.0
 - find-up@4.1.0
 - fontkit@2.0.4
+- fsevents@2.3.3
 - generate-function@2.3.1
 - get-port-please@3.2.0
 - giget@3.3.1
@@ -237,28 +277,29 @@ Runtime packages: 480.
 - is-unsafe@2.0.0
 - is-url@1.2.4
 - jay-peg@1.1.1
+- jiti@1.21.7
 - jiti@2.7.0
 - jose@6.2.4
 - js-tokens@4.0.0
 - json-schema-traverse@1.0.0
 - kysely@0.29.5
-- ldapts@9.0.0
+- ldapts@9.2.0
 - linebreak@1.1.0
 - locate-path@5.0.0
 - lodash@4.18.1
 - loose-envify@1.4.0
 - lru.min@1.1.5
-- magic-string@0.30.21
+- magic-string@1.4.2
 - media-engine@2.0.0
 - mysql2@3.24.3
 - named-placeholders@1.1.6
 - nanoid@3.3.18
 - nanostores@1.4.2
-- next@16.3.4
+- next@16.3.6
 - node-rsa@1.1.1
 - normalize-svg-path@1.1.0
 - object-assign@4.1.1
-- obug@2.1.3
+- obug@2.2.1
 - ohash@2.0.12
 - p-limit@2.3.0
 - p-locate@4.1.0
@@ -298,14 +339,14 @@ Runtime packages: 480.
 - qrcode@1.5.4
 - queue@6.0.2
 - rc9@3.0.1
-- react-dom@19.2.8
+- react-dom@19.3.0
 - react-draggable@4.6.0
 - react-grid-layout@2.2.4
 - react-is@16.13.1
 - react-is@19.2.6
 - react-redux@9.3.0
 - react-resizable@3.2.0
-- react@19.2.8
+- react@19.3.0
 - readdirp@5.1.1
 - recharts@3.10.1
 - redux-thunk@3.1.0
@@ -318,42 +359,42 @@ Runtime packages: 480.
 - restructure@3.0.2
 - ret@0.5.0
 - retry@0.12.0
-- rolldown@1.2.6
+- rolldown@1.2.10
 - rou3@0.9.2
 - safe-regex2@5.1.1
 - safer-buffer@2.1.2
 - samlify@2.13.1
 - scheduler@0.25.0-rc-603e6108-20241029
-- scheduler@0.27.0
+- scheduler@0.28.0
 - set-cookie-parser@3.1.2
 - shebang-command@2.0.0
 - shebang-regex@3.0.0
 - sql-escaper@1.5.1
 - stackback@0.0.2
 - std-env@3.10.0
-- std-env@4.1.0
+- std-env@4.2.0
 - string-width@4.2.3
 - strip-ansi@6.0.1
 - strnum@2.4.2
 - styled-jsx@5.1.6
-- tailwind-merge@3.6.0
+- tailwind-merge@3.7.0
 - tiny-inflate@1.0.3
 - tiny-invariant@1.3.3
-- tinybench@2.9.0
-- tinyexec@1.2.4
+- tinybench@6.1.4
+- tinyexec@1.3.0
 - tinyglobby@0.2.17
-- tinyrainbow@3.1.1
 - tldts-core@7.4.11
 - tldts@7.4.11
+- tsx@4.23.15
 - tsyringe@4.10.0
 - tw-animate-css@1.4.0
-- undici-types@8.3.0
+- undici-types@8.9.0
 - unicode-properties@1.4.1
 - unicode-trie@2.0.0
 - use-sync-external-store@1.6.0
 - valibot@1.4.2
-- vite@8.2.2
-- vitest@4.1.11
+- vite@8.3.0
+- vitest@5.0.1
 - why-is-node-running@2.3.0
 - wrap-ansi@6.2.0
 - xml-crypto@6.1.2
@@ -367,25 +408,25 @@ Runtime packages: 480.
 - yargs@15.4.1
 - yoga-layout@3.2.1
 - zeptomatch@2.1.0
-- zod@4.4.3
+- zod@4.6.5
 
 ### Apache-2.0 (66)
 
-- @aws-sdk/client-identitystore@3.1124.0
-- @aws-sdk/core@3.977.9
-- @aws-sdk/credential-provider-env@3.972.70
-- @aws-sdk/credential-provider-http@3.972.72
-- @aws-sdk/credential-provider-ini@3.973.15
-- @aws-sdk/credential-provider-login@3.972.77
-- @aws-sdk/credential-provider-node@3.972.82
-- @aws-sdk/credential-provider-process@3.972.70
-- @aws-sdk/credential-provider-sso@3.973.14
-- @aws-sdk/credential-provider-web-identity@3.972.76
-- @aws-sdk/nested-clients@3.997.44
-- @aws-sdk/signature-v4-multi-region@3.996.46
-- @aws-sdk/token-providers@3.1116.0
-- @aws-sdk/types@3.974.5
-- @aws-sdk/xml-builder@3.972.40
+- @aws-sdk/client-identitystore@3.1139.0
+- @aws-sdk/core@3.978.1
+- @aws-sdk/credential-provider-env@3.972.72
+- @aws-sdk/credential-provider-http@3.972.74
+- @aws-sdk/credential-provider-ini@3.973.17
+- @aws-sdk/credential-provider-login@3.972.79
+- @aws-sdk/credential-provider-node@3.972.84
+- @aws-sdk/credential-provider-process@3.972.72
+- @aws-sdk/credential-provider-sso@3.973.16
+- @aws-sdk/credential-provider-web-identity@3.972.78
+- @aws-sdk/nested-clients@3.997.46
+- @aws-sdk/signature-v4-multi-region@3.996.47
+- @aws-sdk/token-providers@3.1138.0
+- @aws-sdk/types@3.974.6
+- @aws-sdk/xml-builder@3.972.41
 - @aws/lambda-invoke-store@0.3.0
 - @electric-sql/pglite-socket@0.1.3
 - @electric-sql/pglite-tools@0.3.3
@@ -403,7 +444,7 @@ Runtime packages: 480.
 - @img/sharp-linuxmusl-x64@0.35.4
 - @img/sharp-webcontainers-wasm32@0.35.4
 - @opentelemetry/semantic-conventions@1.43.0
-- @playwright/test@1.62.1
+- @playwright/test@1.63.0
 - @prisma/adapter-pg@7.10.0
 - @prisma/client-runtime-utils@7.10.0
 - @prisma/client@7.10.0
@@ -419,20 +460,20 @@ Runtime packages: 480.
 - @prisma/query-plan-executor@7.2.0
 - @prisma/streams-local@0.1.11
 - @prisma/studio-core@0.33.0
-- @smithy/core@3.33.3
+- @smithy/core@3.35.0
 - @smithy/credential-provider-imds@4.5.2
-- @smithy/fetch-http-handler@5.7.2
-- @smithy/node-http-handler@4.12.0
+- @smithy/fetch-http-handler@5.8.0
+- @smithy/node-http-handler@4.12.1
 - @smithy/signature-v4@5.7.3
-- @smithy/types@4.17.2
+- @smithy/types@4.19.0
 - @swc/helpers@0.5.23
 - baseline-browser-mapping@2.11.20
 - class-variance-authority@0.7.1
 - detect-libc@2.1.2
-- expect-type@1.3.0
+- expect-type@1.4.0
 - long@5.3.2
-- playwright-core@1.62.1
-- playwright@1.62.1
+- playwright-core@1.63.0
+- playwright@1.63.0
 - prisma@7.10.0
 - reflect-metadata@0.2.2
 - sharp@0.35.4
@@ -465,7 +506,7 @@ Runtime packages: 480.
 - inherits@2.0.4
 - internmap@2.0.3
 - isexe@2.0.0
-- lucide-react@1.39.0
+- lucide-react@1.47.0
 - pg-int8@1.0.1
 - picocolors@1.1.1
 - require-main-filename@2.0.0
@@ -481,6 +522,21 @@ Runtime packages: 480.
 - which@2.0.2
 - y18n@4.0.3
 - yargs-parser@18.1.3
+
+### MPL-2.0 (12)
+
+- lightningcss-android-arm64@1.33.0
+- lightningcss-darwin-arm64@1.33.0
+- lightningcss-darwin-x64@1.33.0
+- lightningcss-freebsd-x64@1.33.0
+- lightningcss-linux-arm-gnueabihf@1.33.0
+- lightningcss-linux-arm64-gnu@1.33.0
+- lightningcss-linux-arm64-musl@1.33.0
+- lightningcss-linux-x64-gnu@1.33.0
+- lightningcss-linux-x64-musl@1.33.0
+- lightningcss-win32-arm64-msvc@1.33.0
+- lightningcss-win32-x64-msvc@1.33.0
+- lightningcss@1.33.0
 
 ### LGPL-3.0-or-later (10)
 
@@ -501,7 +557,7 @@ Runtime packages: 480.
 - bcryptjs@3.0.3
 - d3-ease@3.0.1
 - deepmerge-ts@8.0.2
-- fast-uri@3.1.6
+- fast-uri@3.1.8
 - source-map-js@1.2.1
 
 ### Apache-2.0 AND LGPL-3.0-or-later (3)
@@ -540,7 +596,3 @@ Runtime packages: 480.
 ### EPL-2.0 (1)
 
 - elkjs@0.11.1
-
-### MPL-2.0 (1)
-
-- lightningcss@1.33.0

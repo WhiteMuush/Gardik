@@ -2,7 +2,6 @@ import { describe, it, expect, vi } from "vitest"
 import type { Prisma } from "@prisma/client"
 import bcrypt from "bcryptjs"
 import { prisma } from "@/lib/prisma"
-import { CREDENTIAL_ISSUER } from "@/lib/auth/account"
 import { hashToken } from "./invitation"
 import type { BootstrapState, BootstrapClient } from "./bootstrap"
 import {
@@ -65,7 +64,6 @@ describe("bootstrapState", () => {
         data: {
           accountId: user.id,
           providerId: "credential",
-          issuer: CREDENTIAL_ISSUER,
           userId: user.id,
           password: await bcrypt.hash("a-password-that-works", 12),
         },
