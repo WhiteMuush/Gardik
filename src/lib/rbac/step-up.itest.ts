@@ -3,7 +3,6 @@ import bcrypt from "bcryptjs"
 import { prisma } from "@/lib/prisma"
 import { verifyPassword, grantStepUp, hasValidStepUp } from "./step-up"
 import { MIN_VERIFY_MS } from "@/lib/auth/password-timing"
-import { CREDENTIAL_ISSUER } from "@/lib/auth/account"
 
 let userId: string
 let companyId: string
@@ -21,7 +20,6 @@ beforeAll(async () => {
     data: {
       accountId: user.id,
       providerId: "credential",
-      issuer: CREDENTIAL_ISSUER,
       userId: user.id,
       password: await bcrypt.hash("CorrectHorse1!", 10),
     },
