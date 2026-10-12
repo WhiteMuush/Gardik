@@ -12,6 +12,7 @@ const SELECT = {
   label: true,
   status: true,
   keyHint: true,
+  rateLimitPerMinute: true,
   lastUsedAt: true,
   createdAt: true,
 } as const

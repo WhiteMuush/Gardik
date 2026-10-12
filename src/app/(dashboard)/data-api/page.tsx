@@ -4,6 +4,7 @@ import { prisma } from "@/lib/prisma"
 import { ApiCredentials } from "@/components/credentials/ApiCredentials"
 import { authorize } from "@/lib/rbac/authorize"
 import { permissionsForRole } from "@/lib/rbac/session-permissions"
+import { PROVIDERS } from "@/lib/scan/registry"
 
 export default async function DataApiPage() {
   const denied = await guardPage("api_credentials:read")
@@ -16,13 +17,14 @@ export default async function DataApiPage() {
   const credentials = await prisma.apiCredential.findMany({
     where: { companyId: session!.user.companyId },
     orderBy: { provider: "asc" },
-    select: { id: true, provider: true, keyHint: true, lastUsedAt: true },
+    select: { id: true, provider: true, keyHint: true, rateLimitPerMinute: true, lastUsedAt: true },
   })
 
   const serialized = credentials.map((c) => ({
     ...c,
     lastUsedAt: c.lastUsedAt?.toISOString() ?? null,
   }))
+  const defaultRates = Object.fromEntries(PROVIDERS.map((p) => [p.id, p.defaultRatePerMinute]))
 
   return (
     <div className="h-full overflow-y-auto p-6">
@@ -34,7 +36,7 @@ export default async function DataApiPage() {
       </div>
 
       <div className="mx-auto max-w-3xl space-y-6">
-        <ApiCredentials initial={serialized} isAdmin={isAdmin} />
+        <ApiCredentials initial={serialized} isAdmin={isAdmin} defaultRates={defaultRates} />
       </div>
     </div>
   )

@@ -15,5 +15,8 @@ export interface Finding {
 export interface BreachProvider {
   id: ApiProvider
   source: BreachSource
+  // Requests per minute allowed by the lowest paid plan that grants API
+  // access; the customer can raise it per credential to match their plan.
+  defaultRatePerMinute: number
   lookup(email: string, apiKey: string): Promise<Finding[]>
 }
