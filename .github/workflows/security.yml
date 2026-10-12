@@ -27,8 +27,15 @@ jobs:
 
       # Fails the build on high or critical advisories only; moderate and below
       # are reported by Dependabot to avoid blocking on unfixable transitives.
-      - name: npm audit
+      # Only the production tree can block: a dev-only advisory with no upstream
+      # fix (braces, 2026-09) otherwise turns every pull request red with
+      # nothing to act on. The full tree is still audited and printed below.
+      - name: npm audit (production, blocking)
+        run: npm audit --audit-level=high --omit=dev
+
+      - name: npm audit (full tree, report only)
         run: npm audit --audit-level=high
+        continue-on-error: true
 
   licenses:
     name: License gate

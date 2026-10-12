@@ -382,18 +382,18 @@ Runtime packages: 472.
 - @electric-sql/pglite-socket@0.1.3
 - @electric-sql/pglite-tools@0.3.3
 - @electric-sql/pglite@0.4.3
-- @img/sharp-darwin-arm64@0.35.4
-- @img/sharp-darwin-x64@0.35.4
-- @img/sharp-freebsd-wasm32@0.35.4
-- @img/sharp-linux-arm64@0.35.4
-- @img/sharp-linux-arm@0.35.4
-- @img/sharp-linux-ppc64@0.35.4
-- @img/sharp-linux-riscv64@0.35.4
-- @img/sharp-linux-s390x@0.35.4
-- @img/sharp-linux-x64@0.35.4
-- @img/sharp-linuxmusl-arm64@0.35.4
-- @img/sharp-linuxmusl-x64@0.35.4
-- @img/sharp-webcontainers-wasm32@0.35.4
+- @img/sharp-darwin-arm64@0.35.5
+- @img/sharp-darwin-x64@0.35.5
+- @img/sharp-freebsd-wasm32@0.35.5
+- @img/sharp-linux-arm64@0.35.5
+- @img/sharp-linux-arm@0.35.5
+- @img/sharp-linux-ppc64@0.35.5
+- @img/sharp-linux-riscv64@0.35.5
+- @img/sharp-linux-s390x@0.35.5
+- @img/sharp-linux-x64@0.35.5
+- @img/sharp-linuxmusl-arm64@0.35.5
+- @img/sharp-linuxmusl-x64@0.35.5
+- @img/sharp-webcontainers-wasm32@0.35.5
 - @opentelemetry/semantic-conventions@1.43.0
 - @playwright/test@1.63.0
 - @prisma/adapter-pg@7.10.0
@@ -427,7 +427,7 @@ Runtime packages: 472.
 - playwright@1.63.0
 - prisma@7.10.0
 - reflect-metadata@0.2.2
-- sharp@0.35.4
+- sharp@0.35.5
 - typescript@5.9.3
 
 ### ISC (41)
@@ -476,16 +476,16 @@ Runtime packages: 472.
 
 ### LGPL-3.0-or-later (10)
 
-- @img/sharp-libvips-darwin-arm64@1.3.3
-- @img/sharp-libvips-darwin-x64@1.3.3
-- @img/sharp-libvips-linux-arm64@1.3.3
-- @img/sharp-libvips-linux-arm@1.3.3
-- @img/sharp-libvips-linux-ppc64@1.3.3
-- @img/sharp-libvips-linux-riscv64@1.3.3
-- @img/sharp-libvips-linux-s390x@1.3.3
-- @img/sharp-libvips-linux-x64@1.3.3
-- @img/sharp-libvips-linuxmusl-arm64@1.3.3
-- @img/sharp-libvips-linuxmusl-x64@1.3.3
+- @img/sharp-libvips-darwin-arm64@1.3.4
+- @img/sharp-libvips-darwin-x64@1.3.4
+- @img/sharp-libvips-linux-arm64@1.3.4
+- @img/sharp-libvips-linux-arm@1.3.4
+- @img/sharp-libvips-linux-ppc64@1.3.4
+- @img/sharp-libvips-linux-riscv64@1.3.4
+- @img/sharp-libvips-linux-s390x@1.3.4
+- @img/sharp-libvips-linux-x64@1.3.4
+- @img/sharp-libvips-linuxmusl-arm64@1.3.4
+- @img/sharp-libvips-linuxmusl-x64@1.3.4
 
 ### BSD-3-Clause (6)
 
@@ -494,13 +494,13 @@ Runtime packages: 472.
 - d3-ease@3.0.1
 - deepmerge-ts@8.0.2
 - fast-uri@3.1.8
-- source-map-js@1.2.1
+- source-map-js@1.2.2
 
 ### Apache-2.0 AND LGPL-3.0-or-later (3)
 
-- @img/sharp-win32-arm64@0.35.4
-- @img/sharp-win32-ia32@0.35.4
-- @img/sharp-win32-x64@0.35.4
+- @img/sharp-win32-arm64@0.35.5
+- @img/sharp-win32-ia32@0.35.5
+- @img/sharp-win32-x64@0.35.5
 
 ### MIT AND ISC (2)
 
@@ -519,7 +519,7 @@ Runtime packages: 472.
 
 ### Apache-2.0 AND LGPL-3.0-or-later AND MIT (1)
 
-- @img/sharp-wasm32@0.35.4
+- @img/sharp-wasm32@0.35.5
 
 ### CC-BY-4.0 (1)
 
