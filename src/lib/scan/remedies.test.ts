@@ -39,4 +39,10 @@ describe("remedyFor", () => {
     const r = remedyFor("HIBP", "API key rejected")
     expect(r.steps.some((s) => s.href === "https://haveibeenpwned.com/API/Key")).toBe(true)
   })
+
+  it("points to the settings below when read inside the source panel", () => {
+    const r = remedyFor("HIBP", "API key rejected", "source")
+    expect(r.steps.some((s) => s.href === "/data-api")).toBe(false)
+    expect(r.steps.map((s) => s.text)).toContain("Paste it in Configuration below and click Replace.")
+  })
 })

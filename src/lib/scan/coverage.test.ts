@@ -14,7 +14,7 @@ describe("summarizeCoverage", () => {
         { provider: "HIBP", status: "FAILED", count: 2 },
         { provider: "LEAKCHECK", status: "CHECKED", count: 10 },
       ],
-      { HIBP: "Rate limited by the source" }
+      { HIBP: { reason: "Rate limited by the source", at: new Date("2026-10-12T10:00:00Z") } }
     )
     expect(res).toEqual([
       {
@@ -24,6 +24,7 @@ describe("summarizeCoverage", () => {
         failed: 2,
         neverChecked: 1,
         lastFailureReason: "Rate limited by the source",
+        lastFailureAt: new Date("2026-10-12T10:00:00Z"),
       },
       {
         provider: "LEAKCHECK",
@@ -32,6 +33,7 @@ describe("summarizeCoverage", () => {
         failed: 0,
         neverChecked: 0,
         lastFailureReason: null,
+        lastFailureAt: null,
       },
     ])
   })

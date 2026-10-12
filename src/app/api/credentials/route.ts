@@ -15,6 +15,7 @@ const SELECT = {
   rateLimitPerMinute: true,
   lastUsedAt: true,
   createdAt: true,
+  updatedAt: true,
 } as const
 
 export async function GET() {
