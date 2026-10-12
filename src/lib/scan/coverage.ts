@@ -9,7 +9,10 @@ export type SourceCoverage = {
   failed: number
   neverChecked: number
   lastFailureReason: string | null
+  lastFailureAt: Date | null
 }
+
+type LastFailure = { reason: string; at: Date }
 
 type StatusCount = { provider: ApiProvider; status: ScanCheckStatus; count: number }
 
@@ -19,7 +22,7 @@ export function summarizeCoverage(
   totalEmployees: number,
   activeProviders: ApiProvider[],
   counts: StatusCount[],
-  lastFailureReasons: Partial<Record<ApiProvider, string>>
+  lastFailures: Partial<Record<ApiProvider, LastFailure>>
 ): SourceCoverage[] {
   return activeProviders.map((provider) => {
     const count = (status: ScanCheckStatus) =>
@@ -32,7 +35,8 @@ export function summarizeCoverage(
       checked,
       failed,
       neverChecked: Math.max(0, totalEmployees - checked - failed),
-      lastFailureReason: lastFailureReasons[provider] ?? null,
+      lastFailureReason: lastFailures[provider]?.reason ?? null,
+      lastFailureAt: lastFailures[provider]?.at ?? null,
     }
   })
 }
@@ -52,17 +56,19 @@ export async function getScanCoverage(companyId: string): Promise<SourceCoverage
       where: { ...where, status: "FAILED" },
       distinct: ["provider"],
       orderBy: { lastAttemptAt: "desc" },
-      select: { provider: true, failureReason: true },
+      select: { provider: true, failureReason: true, lastAttemptAt: true },
     }),
   ])
-  const reasons: Partial<Record<ApiProvider, string>> = {}
-  for (const f of failures) if (f.failureReason) reasons[f.provider] = f.failureReason
+  const lastFailures: Partial<Record<ApiProvider, LastFailure>> = {}
+  for (const f of failures) {
+    if (f.failureReason) lastFailures[f.provider] = { reason: f.failureReason, at: f.lastAttemptAt }
+  }
 
   return summarizeCoverage(
     totalEmployees,
     providers,
     grouped.map((g) => ({ provider: g.provider, status: g.status, count: g._count._all })),
-    reasons
+    lastFailures
   )
 }
 

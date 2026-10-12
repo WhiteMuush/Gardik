@@ -5,10 +5,15 @@ export type RemedyStep = { text: string; href?: string; linkLabel?: string }
 export type Remedy = { title: string; explanation: string; steps: RemedyStep[] }
 
 const RETRY: RemedyStep = { text: "Click Scan unchecked to check only the employees that were missed." }
-const DATA_API: Pick<RemedyStep, "href" | "linkLabel"> = { href: "/data-api", linkLabel: "Open Data API" }
+
+// "elsewhere": read from a page that links to Data API (the scan banner).
+// "source": read inside the source's own panel, where the settings sit below.
+export type RemedyPlace = "elsewhere" | "source"
 
 // Matches the reasons written by failureReason() in ./errors.
-export function remedyFor(provider: ApiProvider, reason: string | null): Remedy {
+export function remedyFor(provider: ApiProvider, reason: string | null, place: RemedyPlace = "elsewhere"): Remedy {
+  const settings = (elsewhere: string, here: string): RemedyStep =>
+    place === "source" ? { text: here } : { text: elsewhere, href: "/data-api", linkLabel: "Open Data API" }
   const meta = providerMeta(provider)
   const name = meta?.label ?? provider
   const account = { href: meta?.docsUrl, linkLabel: `Open ${name}` }
@@ -27,7 +32,7 @@ export function remedyFor(provider: ApiProvider, reason: string | null): Remedy 
       steps: [
         { text: `Check on your ${name} account that the subscription is active and includes this feed.`, ...account },
         { text: "Copy the key again in full: a missing character or a trailing space is enough to break it." },
-        { text: "Paste it on the Data API page and click Save.", ...DATA_API },
+        settings("Paste it on the Data API page and click Replace.", "Paste it in Configuration below and click Replace."),
         RETRY,
       ],
     }
@@ -38,7 +43,10 @@ export function remedyFor(provider: ApiProvider, reason: string | null): Remedy 
       explanation: `Gardik sent more requests than your ${name} plan allows, or the plan's daily quota is used up. Gardik retried, then stopped calling it for the rest of the scan.`,
       steps: [
         { text: `Check the request limit of your plan on your ${name} account.`, ...account },
-        { text: "On the Data API page, set the rate to that limit, never above it.", ...DATA_API },
+        settings(
+          "On the Data API page, set the rate to that limit, never above it.",
+          "In Configuration below, set the rate to that limit, never above it."
+        ),
         { text: "If the daily quota is spent, wait until it resets." },
         RETRY,
       ],

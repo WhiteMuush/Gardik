@@ -24,6 +24,8 @@ export interface ProviderPricing {
 export interface ProviderMeta {
   id: ApiProvider
   label: string
+  initials: string
+  logo: string | null // the provider's own icon in public/sources, shown to identify it
   description: string
   docsUrl: string
   wired: boolean
@@ -36,6 +38,8 @@ const CHECKED_ON = "October 2026"
 export const API_PROVIDERS: ProviderMeta[] = [
   {
     id: "HIBP",
+    initials: "HB",
+    logo: "/sources/hibp.png",
     label: "Have I Been Pwned",
     description: "Curated breach dumps, verified before they are published. Rare false positives.",
     docsUrl: "https://haveibeenpwned.com/API/Key",
@@ -51,6 +55,8 @@ export const API_PROVIDERS: ProviderMeta[] = [
   },
   {
     id: "HIBP_STEALER",
+    initials: "SL",
+    logo: "/sources/hibp.png",
     label: "Have I Been Pwned (Stealer Logs)",
     description:
       "Credentials captured by malware on an infected machine: the earliest warning, often before the data is sold.",
@@ -67,6 +73,8 @@ export const API_PROVIDERS: ProviderMeta[] = [
   },
   {
     id: "DEHASHED",
+    initials: "DH",
+    logo: "/sources/dehashed.png",
     label: "DeHashed",
     description: "Large search engine over leaked databases, including passwords and hashes.",
     docsUrl: "https://www.dehashed.com/",
@@ -82,6 +90,8 @@ export const API_PROVIDERS: ProviderMeta[] = [
   },
   {
     id: "LEAKCHECK",
+    initials: "LC",
+    logo: "/sources/leakcheck.png",
     label: "LeakCheck",
     description: "Wide breach coverage at a low price, with the leaked data types for each hit.",
     docsUrl: "https://leakcheck.io/",
@@ -97,6 +107,8 @@ export const API_PROVIDERS: ProviderMeta[] = [
   },
   {
     id: "INTELX",
+    initials: "IX",
+    logo: "/sources/intelx.png",
     label: "Intelligence X",
     description: "Broad OSINT and dark web search. Many results, often without detail, so more noise.",
     docsUrl: "https://intelx.io/",
@@ -112,6 +124,8 @@ export const API_PROVIDERS: ProviderMeta[] = [
   },
   {
     id: "SNUSBASE",
+    initials: "SB",
+    logo: "/sources/snusbase.png",
     label: "Snusbase",
     description: "Indexed breach database with plaintext results for members.",
     docsUrl: "https://snusbase.com/",
