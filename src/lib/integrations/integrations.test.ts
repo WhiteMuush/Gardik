@@ -50,3 +50,18 @@ describe("formatAlerts", () => {
     expect(parsed[0]).toMatchObject({ id: "al_1", confidence: "LOW", employee: "jane@acme.com", breach: "Acme" })
   })
 })
+
+// A breach name from an external source must not be able to forge a log line.
+describe("line breaks from breach sources", () => {
+  const forged = "Acme\r\nCEF:0|Gardik|Gardik|1.0|breach-exposure|forged|10|"
+
+  it("keeps a CEF event on one line", () => {
+    const line = toCef({ ...alert, message: `Jane found in ${forged} breach`, breachName: forged })
+    expect(line.split(/\r?\n|\r/)).toHaveLength(1)
+  })
+
+  it("keeps a syslog event on one line", () => {
+    const line = toSyslog({ ...alert, message: `Jane found in ${forged} breach`, breachName: forged })
+    expect(line.split(/\r?\n|\r/)).toHaveLength(1)
+  })
+})

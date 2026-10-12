@@ -9,8 +9,13 @@ const SYSLOG_SEVERITY: Record<Severity, number> = { CRITICAL: 2, HIGH: 3, MEDIUM
 const FACILITY = 10
 const APP_NAME = "gardik"
 
+// One event per line: a line break from a breach source would forge a new one.
+function oneLine(value: string): string {
+  return value.replace(/\r\n|\r|\n/g, " ")
+}
+
 function sdValue(value: string): string {
-  return value.replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/]/g, "\\]")
+  return oneLine(value).replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/]/g, "\\]")
 }
 
 // Render one alert as an RFC 5424 syslog line.
@@ -23,5 +28,5 @@ export function toSyslog(alert: SiemAlert, hostname = "gardik"): string {
     ` severity="${alert.severity}" confidence="${alert.confidence}" status="${alert.status}"` +
     ` employee="${sdValue(alert.employeeEmail ?? "")}"` +
     ` breach="${sdValue(alert.breachName ?? "")}"]`
-  return `<${pri}>1 ${timestamp} ${hostname} ${APP_NAME} - breach-exposure ${sd} ${alert.message}`
+  return `<${pri}>1 ${timestamp} ${hostname} ${APP_NAME} - breach-exposure ${sd} ${oneLine(alert.message)}`
 }
