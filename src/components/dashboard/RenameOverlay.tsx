@@ -9,11 +9,13 @@ export function RenameOverlay({ title, onChange }: { title: string; onChange: (t
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    if (renaming) {
-      setDraft(title)
-      setTimeout(() => { inputRef.current?.focus(); inputRef.current?.select() }, 10)
-    }
-  }, [renaming, title])
+    if (renaming) setTimeout(() => { inputRef.current?.focus(); inputRef.current?.select() }, 10)
+  }, [renaming])
+
+  const startRename = () => {
+    setDraft(title)
+    setRenaming(true)
+  }
 
   const commit = () => {
     const trimmed = draft.trim()
@@ -41,7 +43,7 @@ export function RenameOverlay({ title, onChange }: { title: string; onChange: (t
         />
       ) : (
         <button
-          onClick={() => setRenaming(true)}
+          onClick={startRename}
           className="flex items-center gap-1 rounded bg-background/80 px-1.5 py-0.5 text-xs text-muted-foreground shadow-sm backdrop-blur-sm transition-colors hover:text-foreground"
         >
           <Pencil className="size-3" />

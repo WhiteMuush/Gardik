@@ -9,6 +9,14 @@ type UserRow = { id: string; email: string; name: string; roleId: string | null;
 // so the dropdown never offers a role the assignment call would refuse.
 type RoleRow = { id: string; name: string; isAssignable: boolean; grantable: boolean }
 
+async function fetchDirectory(): Promise<{ users: UserRow[] | null; roles: RoleRow[] | null }> {
+  const [u, r] = await Promise.all([fetch("/api/users"), fetch("/api/roles")])
+  return {
+    users: u.ok ? (await u.json()).users : null,
+    roles: r.ok ? (await r.json()).roles : null,
+  }
+}
+
 export function UserRoleAssignment() {
   const [users, setUsers] = useState<UserRow[]>([])
   const [roles, setRoles] = useState<RoleRow[]>([])
@@ -17,13 +25,15 @@ export function UserRoleAssignment() {
   const [notice, setNotice] = useState<string | null>(null)
   const [stepUpRetry, setStepUpRetry] = useState<null | (() => void)>(null)
 
+  const apply = (next: Awaited<ReturnType<typeof fetchDirectory>>) => {
+    if (next.users) setUsers(next.users)
+    if (next.roles) setRoles(next.roles)
+  }
   async function load() {
-    const [u, r] = await Promise.all([fetch("/api/users"), fetch("/api/roles")])
-    if (u.ok) setUsers((await u.json()).users)
-    if (r.ok) setRoles((await r.json()).roles)
+    apply(await fetchDirectory())
   }
   useEffect(() => {
-    void load()
+    void fetchDirectory().then(apply)
   }, [])
 
   const filtered = useMemo(

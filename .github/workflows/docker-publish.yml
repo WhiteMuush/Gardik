@@ -58,6 +58,11 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+          # A cached runner layer would replay an old `apk upgrade` and ship
+          # whatever base packages were current on that day. The heavy stages
+          # (npm ci, next build) stay cached. The push step below has no such
+          # filter on purpose, so it reuses the exact layers scanned here.
+          no-cache-filters: runner
 
       # Scanning before the push is the whole point: a scan that runs after it
       # only tells us a vulnerable image is already public. `ignore-unfixed`

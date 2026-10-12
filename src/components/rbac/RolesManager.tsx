@@ -16,6 +16,11 @@ type Role = {
 
 const PAGE_SIZE = 8
 
+async function fetchRoles(): Promise<Role[] | null> {
+  const res = await fetch("/api/roles")
+  return res.ok ? (await res.json()).roles : null
+}
+
 export function RolesManager() {
   const [roles, setRoles] = useState<Role[]>([])
   const [query, setQuery] = useState("")
@@ -30,11 +35,13 @@ export function RolesManager() {
   const [stepUpRetry, setStepUpRetry] = useState<null | (() => void)>(null)
 
   async function load() {
-    const res = await fetch("/api/roles")
-    if (res.ok) setRoles((await res.json()).roles)
+    const next = await fetchRoles()
+    if (next) setRoles(next)
   }
   useEffect(() => {
-    void load()
+    void fetchRoles().then((next) => {
+      if (next) setRoles(next)
+    })
   }, [])
 
   const filtered = useMemo(

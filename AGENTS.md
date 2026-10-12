@@ -36,7 +36,7 @@ Follow [Conventional Commits](https://www.conventionalcommits.org/), same rules 
 ## Dependencies
 
 - Do not add a dependency without a clear need; prefer existing ones.
-- New dependencies must not introduce high or critical advisories (`npm audit --audit-level=high` blocks CI).
+- New dependencies must not introduce high or critical advisories. `npm audit --audit-level=high --omit=dev` blocks CI, and the full-tree audit is reported without blocking.
 
 ## Before proposing changes
 

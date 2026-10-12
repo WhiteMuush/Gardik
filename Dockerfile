@@ -6,7 +6,9 @@
 # The development image (bind-mounted source, `next dev`) is Dockerfile.dev,
 # which is what compose.yml builds.
 
-ARG NODE_VERSION=26-bookworm-slim
+# Alpine over Debian slim: the Debian base alone carried 4 critical and 50+ high
+# advisories (perl, util-linux, pam...) that nothing in this app uses.
+ARG NODE_VERSION=26-alpine
 
 FROM node:${NODE_VERSION} AS deps
 WORKDIR /app
@@ -37,6 +39,16 @@ RUN PRISMA_VERSION=$(node -p "require('./package-lock.json').packages['node_modu
   # engine binary in its postinstall, and migrate deploy needs it at runtime.
   && npm install --no-audit --no-fund "prisma@${PRISMA_VERSION}"
 COPY docker/prisma.config.ts ./prisma.config.ts
+# The runner only ever calls `migrate deploy`. A file-access trace of it (fresh
+# database, up-to-date database, unreachable host) never opened the Studio web
+# UI nor the embedded Postgres behind `prisma dev`, which are about 90 MB of
+# this tree. `--version` boots the CLI and its eager imports, so a Prisma
+# release that starts needing one of these fails the build, not the container.
+RUN cd node_modules \
+  && rm -rf @electric-sql @prisma/studio-core/dist/ui @prisma/studio-core/dist/metafile-*.json \
+    react react-dom @radix-ui @visx d3-* elkjs lodash csstype @types \
+  && cd .. \
+  && node node_modules/prisma/build/index.js --version > /dev/null
 
 FROM node:${NODE_VERSION} AS builder
 WORKDIR /app
@@ -60,15 +72,12 @@ WORKDIR /app
 # `node server.js`, and the healthcheck is `node -e`. Dropping it removes the
 # CVEs carried by its own bundled dependency tree, which no override in this
 # repository can reach.
-# The upgrade closes base-image CVEs that Debian has already patched but the
-# upstream node image has not rebuilt against yet. Without it the runner ships
-# whatever the base was frozen with, however old the advisory: libpcre2 stayed
-# on the vulnerable 10.42-1 through a rebuild because the fix only exists in
-# the archive, not in the published base layer.
-RUN apt-get update \
-  && apt-get upgrade -y \
-  && apt-get install -y --no-install-recommends openssl \
-  && rm -rf /var/lib/apt/lists/* \
+# The upgrade closes base-image CVEs that Alpine has already patched but the
+# upstream node image has not rebuilt against yet. It only does so if the layer
+# is rebuilt, which is why the publish workflow excludes this stage from the
+# build cache.
+RUN apk upgrade --no-cache \
+  && apk add --no-cache openssl \
   && rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
 
 ENV NODE_ENV=production \
@@ -77,24 +86,26 @@ ENV NODE_ENV=production \
     HOSTNAME=0.0.0.0
 
 # Next.js standalone output: server.js plus the traced runtime dependencies.
-COPY --from=builder /app/.next/standalone ./
-COPY --from=builder /app/.next/static ./.next/static
+# The server writes its incremental cache under .next, and the Prisma CLI
+# refuses to start unless its engines directory is writable, so those two trees
+# are handed to the unprivileged user while the rest stays root-owned.
+# Ownership is set by COPY --chown: a later `chown -R` would rewrite every file
+# into a new layer and ship the whole tree twice (about 290 MB).
+COPY --from=builder /app/.next/standalone/server.js /app/.next/standalone/package.json ./
+COPY --from=builder /app/.next/standalone/node_modules ./node_modules
+COPY --from=builder --chown=node:node /app/.next/standalone/.next ./.next
+COPY --from=builder --chown=node:node /app/.next/static ./.next/static
 COPY --from=builder /app/public ./public
 
 # Migrations run at container start, so the runner needs the schema and the
 # migration history alongside the isolated CLI tree.
 COPY --from=builder /app/prisma ./prisma
-COPY --from=migrator /opt/prisma /opt/prisma
-COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
-
-# The server writes its incremental cache under .next/cache, and the Prisma CLI
-# refuses to start unless its engines directory is writable, so both paths are
-# handed to the unprivileged user the container runs as.
-RUN chmod +x /usr/local/bin/entrypoint.sh \
-  && mkdir -p .next/cache \
-  && chown -R node:node /app/.next /opt/prisma
+COPY --from=migrator --chown=node:node /opt/prisma /opt/prisma
+COPY --chmod=755 docker/entrypoint.sh /usr/local/bin/entrypoint.sh
 
 USER node
+RUN mkdir -p .next/cache
+
 EXPOSE 3000
 
 HEALTHCHECK --interval=30s --timeout=5s --start-period=25s --retries=3 \

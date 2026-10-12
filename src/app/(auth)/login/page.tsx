@@ -1,7 +1,7 @@
 "use client"
 
 import { PasswordInput } from "@/components/ui/password-input"
-import { useEffect, useRef, useState } from "react"
+import { use, useEffect, useRef, useState } from "react"
 import { useRouter } from "next/navigation"
 import { Loader2, ShieldCheck } from "lucide-react"
 import { signIn, twoFactor } from "@/lib/auth/client"
@@ -42,8 +42,19 @@ function EnteringWorkspace() {
   )
 }
 
-export default function LoginPage() {
-  const [error, setError] = useState<string | null>(null)
+export default function LoginPage({
+  searchParams,
+}: {
+  searchParams: Promise<{ error?: string | string[] }>
+}) {
+  // The sso plugin sends failures back as /login?error=<code> after a round
+  // trip to the IdP, so they show up here rather than from a fetch response.
+  const { error: ssoCode } = use(searchParams)
+  const [error, setError] = useState<string | null>(
+    typeof ssoCode === "string"
+      ? (SSO_ERRORS[ssoCode] ?? "Single sign-on failed. Try again or contact an administrator.")
+      : null
+  )
   // Which action is in flight, not merely whether one is: the spinner belongs on
   // the button that was actually clicked, and the passkey button must keep its
   // own label so its accessible name never collides with "Sign in".
@@ -64,13 +75,6 @@ export default function LoginPage() {
   // making the input controlled.
   const emailInputRef = useRef<HTMLInputElement>(null)
   const router = useRouter()
-
-  // The sso plugin sends failures back as /login?error=<code> after a round
-  // trip to the IdP, so they show up here rather than from a fetch response.
-  useEffect(() => {
-    const code = new URLSearchParams(window.location.search).get("error")
-    if (code) setError(SSO_ERRORS[code] ?? "Single sign-on failed. Try again or contact an administrator.")
-  }, [])
 
   // Anti-lockout bfcache trap. signIn.sso navigates by assigning
   // window.location.href (a same-tab top-level navigation), so this page is
