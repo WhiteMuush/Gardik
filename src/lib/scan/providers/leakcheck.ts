@@ -1,6 +1,6 @@
 import type { BreachProvider } from "../types"
 import { normalizeType, parseBreachDate } from "../normalize"
-import { errorFromResponse } from "../errors"
+import { ProviderError, errorFromResponse } from "../errors"
 
 const API = "https://leakcheck.io/api/v2/query"
 
@@ -21,6 +21,11 @@ export const leakcheck: BreachProvider = {
       headers: { "X-API-Key": apiKey, Accept: "application/json" },
     })
     if (res.status === 404) return []
+    // A malformed key (truncated on paste) comes back as 400, not 401.
+    if (res.status === 400) {
+      const body = (await res.json().catch(() => ({}))) as { error?: string }
+      if (/api-key/i.test(body.error ?? "")) throw new ProviderError("LeakCheck error 400", 401)
+    }
     if (!res.ok) throw errorFromResponse("LeakCheck", res)
 
     const data = (await res.json()) as LeakCheckResponse

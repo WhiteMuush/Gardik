@@ -8,6 +8,7 @@ vi.mock("../normalize", async (importOriginal) => ({
 import { PROVIDERS } from "../registry"
 import { ProviderError } from "../errors"
 import { intelx } from "./intelx"
+import { leakcheck } from "./leakcheck"
 
 function json(body: unknown, status = 200) {
   return new Response(JSON.stringify(body), { status, headers: { "content-type": "application/json" } })
@@ -76,5 +77,20 @@ describe("intelx", () => {
     )
     const findings = await intelx.lookup("a@x.com", "k")
     expect(findings.map((f) => f.name)).toEqual(["leaks.public"])
+  })
+})
+
+describe("leakcheck", () => {
+  it("reports a malformed key as a rejected key, not a bad request", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(json({ success: false, error: "Invalid X-API-Key" }, 400)))
+    const err = await leakcheck.lookup("a@x.com", "k").catch((e: unknown) => e)
+    expect(err).toBeInstanceOf(ProviderError)
+    expect((err as ProviderError).status).toBe(401)
+  })
+
+  it("keeps any other bad request as it is", async () => {
+    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(json({ success: false, error: "Invalid query" }, 400)))
+    const err = await leakcheck.lookup("a@x.com", "k").catch((e: unknown) => e)
+    expect((err as ProviderError).status).toBe(400)
   })
 })
