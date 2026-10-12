@@ -20,6 +20,13 @@ const nextConfig: NextConfig = {
   // Docker image can ship without node_modules. See Dockerfile.
   output: "standalone",
   serverExternalPackages: ["pg", "@prisma/adapter-pg"],
+  // The app never renders next/image, so the optimizer and the sharp/libvips
+  // binaries it would pull into the standalone bundle are dead weight and
+  // dead CVE surface in the image.
+  images: { unoptimized: true },
+  outputFileTracingExcludes: {
+    "*": ["node_modules/sharp/**", "node_modules/@img/**"],
+  },
   // Next 16.3 makes `next dev` append its own block to AGENTS.md on every run.
   // The block ships a non-ASCII character, which the pre-push ASCII gate
   // rejects, so the tree would go dirty on each dev start. We own that file.

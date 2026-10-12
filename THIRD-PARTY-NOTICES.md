@@ -9,7 +9,7 @@ Generated from `package-lock.json`; do not edit by hand. Regenerate with
 `npm run licenses:write`. Build-time-only dependencies are excluded: they
 are not part of anything that ships.
 
-Runtime packages: 532.
+Runtime packages: 472.
 
 ## Obligations worth knowing
 
@@ -23,7 +23,7 @@ Runtime packages: 532.
 
 ## Packages by license
 
-### MIT (384)
+### MIT (335)
 
 - @authenio/xml-encryption@2.0.2
 - @babel/runtime@7.29.7
@@ -42,37 +42,7 @@ Runtime packages: 532.
 - @better-auth/utils@0.4.2
 - @better-auth/utils@0.5.0
 - @better-fetch/fetch@1.3.2
-- @dnd-kit/accessibility@3.1.1
-- @dnd-kit/core@6.3.1
-- @dnd-kit/sortable@10.0.0
-- @dnd-kit/utilities@3.2.2
 - @emnapi/runtime@1.11.3
-- @esbuild/aix-ppc64@0.28.1
-- @esbuild/android-arm64@0.28.1
-- @esbuild/android-arm@0.28.1
-- @esbuild/android-x64@0.28.1
-- @esbuild/darwin-arm64@0.28.1
-- @esbuild/darwin-x64@0.28.1
-- @esbuild/freebsd-arm64@0.28.1
-- @esbuild/freebsd-x64@0.28.1
-- @esbuild/linux-arm64@0.28.1
-- @esbuild/linux-arm@0.28.1
-- @esbuild/linux-ia32@0.28.1
-- @esbuild/linux-loong64@0.28.1
-- @esbuild/linux-mips64el@0.28.1
-- @esbuild/linux-ppc64@0.28.1
-- @esbuild/linux-riscv64@0.28.1
-- @esbuild/linux-s390x@0.28.1
-- @esbuild/linux-x64@0.28.1
-- @esbuild/netbsd-arm64@0.28.1
-- @esbuild/netbsd-x64@0.28.1
-- @esbuild/openbsd-arm64@0.28.1
-- @esbuild/openbsd-x64@0.28.1
-- @esbuild/openharmony-arm64@0.28.1
-- @esbuild/sunos-x64@0.28.1
-- @esbuild/win32-arm64@0.28.1
-- @esbuild/win32-ia32@0.28.1
-- @esbuild/win32-x64@0.28.1
 - @floating-ui/core@1.8.0
 - @floating-ui/dom@1.8.0
 - @floating-ui/react-dom@2.1.9
@@ -83,15 +53,15 @@ Runtime packages: 532.
 - @jridgewell/sourcemap-codec@1.6.0
 - @jridgewell/trace-mapping@0.3.31
 - @levischuck/tiny-cbor@0.2.11
-- @next/env@16.3.6
-- @next/swc-darwin-arm64@16.3.6
-- @next/swc-darwin-x64@16.3.6
-- @next/swc-linux-arm64-gnu@16.3.6
-- @next/swc-linux-arm64-musl@16.3.6
-- @next/swc-linux-x64-gnu@16.3.6
-- @next/swc-linux-x64-musl@16.3.6
-- @next/swc-win32-arm64-msvc@16.3.6
-- @next/swc-win32-x64-msvc@16.3.6
+- @next/env@16.3.8
+- @next/swc-darwin-arm64@16.3.8
+- @next/swc-darwin-x64@16.3.8
+- @next/swc-linux-arm64-gnu@16.3.8
+- @next/swc-linux-arm64-musl@16.3.8
+- @next/swc-linux-x64-gnu@16.3.8
+- @next/swc-linux-x64-musl@16.3.8
+- @next/swc-win32-arm64-msvc@16.3.8
+- @next/swc-win32-x64-msvc@16.3.8
 - @noble/ciphers@1.3.0
 - @noble/ciphers@2.2.0
 - @noble/hashes@1.8.0
@@ -135,21 +105,6 @@ Runtime packages: 532.
 - @react-pdf/textkit@7.0.1
 - @react-pdf/types@2.14.0
 - @reduxjs/toolkit@2.12.0
-- @rolldown/binding-android-arm-eabi@1.2.10
-- @rolldown/binding-android-arm64@1.2.10
-- @rolldown/binding-darwin-arm64@1.2.10
-- @rolldown/binding-darwin-x64@1.2.10
-- @rolldown/binding-freebsd-x64@1.2.10
-- @rolldown/binding-linux-arm-gnueabihf@1.2.10
-- @rolldown/binding-linux-arm64-gnu@1.2.10
-- @rolldown/binding-linux-arm64-musl@1.2.10
-- @rolldown/binding-linux-ppc64-gnu@1.2.10
-- @rolldown/binding-linux-s390x-gnu@1.2.10
-- @rolldown/binding-linux-x64-gnu@1.2.10
-- @rolldown/binding-linux-x64-musl@1.2.10
-- @rolldown/binding-openharmony-arm64@1.2.10
-- @rolldown/binding-win32-arm64-msvc@1.2.10
-- @rolldown/binding-win32-x64-msvc@1.2.10
 - @rolldown/pluginutils@1.0.1
 - @simplewebauthn/browser@13.3.0
 - @simplewebauthn/server@13.3.2
@@ -245,7 +200,6 @@ Runtime packages: 532.
 - env-paths@3.0.0
 - es-module-lexer@2.3.2
 - es-toolkit@1.47.0
-- esbuild@0.28.1
 - escape-html@1.0.3
 - estree-walker@3.0.3
 - eventemitter3@5.0.4
@@ -263,7 +217,6 @@ Runtime packages: 532.
 - find-my-way@9.9.0
 - find-up@4.1.0
 - fontkit@2.0.4
-- fsevents@2.3.3
 - generate-function@2.3.1
 - get-port-please@3.2.0
 - giget@3.3.1
@@ -277,7 +230,6 @@ Runtime packages: 532.
 - is-unsafe@2.0.0
 - is-url@1.2.4
 - jay-peg@1.1.1
-- jiti@1.21.7
 - jiti@2.7.0
 - jose@6.2.4
 - js-tokens@4.0.0
@@ -295,7 +247,7 @@ Runtime packages: 532.
 - named-placeholders@1.1.6
 - nanoid@3.3.18
 - nanostores@1.4.2
-- next@16.3.6
+- next@16.3.8
 - node-rsa@1.1.1
 - normalize-svg-path@1.1.0
 - object-assign@4.1.1
@@ -385,7 +337,6 @@ Runtime packages: 532.
 - tinyglobby@0.2.17
 - tldts-core@7.4.11
 - tldts@7.4.11
-- tsx@4.23.15
 - tsyringe@4.10.0
 - tw-animate-css@1.4.0
 - undici-types@8.9.0
@@ -431,18 +382,18 @@ Runtime packages: 532.
 - @electric-sql/pglite-socket@0.1.3
 - @electric-sql/pglite-tools@0.3.3
 - @electric-sql/pglite@0.4.3
-- @img/sharp-darwin-arm64@0.35.4
-- @img/sharp-darwin-x64@0.35.4
-- @img/sharp-freebsd-wasm32@0.35.4
-- @img/sharp-linux-arm64@0.35.4
-- @img/sharp-linux-arm@0.35.4
-- @img/sharp-linux-ppc64@0.35.4
-- @img/sharp-linux-riscv64@0.35.4
-- @img/sharp-linux-s390x@0.35.4
-- @img/sharp-linux-x64@0.35.4
-- @img/sharp-linuxmusl-arm64@0.35.4
-- @img/sharp-linuxmusl-x64@0.35.4
-- @img/sharp-webcontainers-wasm32@0.35.4
+- @img/sharp-darwin-arm64@0.35.5
+- @img/sharp-darwin-x64@0.35.5
+- @img/sharp-freebsd-wasm32@0.35.5
+- @img/sharp-linux-arm64@0.35.5
+- @img/sharp-linux-arm@0.35.5
+- @img/sharp-linux-ppc64@0.35.5
+- @img/sharp-linux-riscv64@0.35.5
+- @img/sharp-linux-s390x@0.35.5
+- @img/sharp-linux-x64@0.35.5
+- @img/sharp-linuxmusl-arm64@0.35.5
+- @img/sharp-linuxmusl-x64@0.35.5
+- @img/sharp-webcontainers-wasm32@0.35.5
 - @opentelemetry/semantic-conventions@1.43.0
 - @playwright/test@1.63.0
 - @prisma/adapter-pg@7.10.0
@@ -476,7 +427,7 @@ Runtime packages: 532.
 - playwright@1.63.0
 - prisma@7.10.0
 - reflect-metadata@0.2.2
-- sharp@0.35.4
+- sharp@0.35.5
 - typescript@5.9.3
 
 ### ISC (41)
@@ -523,33 +474,18 @@ Runtime packages: 532.
 - y18n@4.0.3
 - yargs-parser@18.1.3
 
-### MPL-2.0 (12)
-
-- lightningcss-android-arm64@1.33.0
-- lightningcss-darwin-arm64@1.33.0
-- lightningcss-darwin-x64@1.33.0
-- lightningcss-freebsd-x64@1.33.0
-- lightningcss-linux-arm-gnueabihf@1.33.0
-- lightningcss-linux-arm64-gnu@1.33.0
-- lightningcss-linux-arm64-musl@1.33.0
-- lightningcss-linux-x64-gnu@1.33.0
-- lightningcss-linux-x64-musl@1.33.0
-- lightningcss-win32-arm64-msvc@1.33.0
-- lightningcss-win32-x64-msvc@1.33.0
-- lightningcss@1.33.0
-
 ### LGPL-3.0-or-later (10)
 
-- @img/sharp-libvips-darwin-arm64@1.3.3
-- @img/sharp-libvips-darwin-x64@1.3.3
-- @img/sharp-libvips-linux-arm64@1.3.3
-- @img/sharp-libvips-linux-arm@1.3.3
-- @img/sharp-libvips-linux-ppc64@1.3.3
-- @img/sharp-libvips-linux-riscv64@1.3.3
-- @img/sharp-libvips-linux-s390x@1.3.3
-- @img/sharp-libvips-linux-x64@1.3.3
-- @img/sharp-libvips-linuxmusl-arm64@1.3.3
-- @img/sharp-libvips-linuxmusl-x64@1.3.3
+- @img/sharp-libvips-darwin-arm64@1.3.4
+- @img/sharp-libvips-darwin-x64@1.3.4
+- @img/sharp-libvips-linux-arm64@1.3.4
+- @img/sharp-libvips-linux-arm@1.3.4
+- @img/sharp-libvips-linux-ppc64@1.3.4
+- @img/sharp-libvips-linux-riscv64@1.3.4
+- @img/sharp-libvips-linux-s390x@1.3.4
+- @img/sharp-libvips-linux-x64@1.3.4
+- @img/sharp-libvips-linuxmusl-arm64@1.3.4
+- @img/sharp-libvips-linuxmusl-x64@1.3.4
 
 ### BSD-3-Clause (6)
 
@@ -558,13 +494,13 @@ Runtime packages: 532.
 - d3-ease@3.0.1
 - deepmerge-ts@8.0.2
 - fast-uri@3.1.8
-- source-map-js@1.2.1
+- source-map-js@1.2.2
 
 ### Apache-2.0 AND LGPL-3.0-or-later (3)
 
-- @img/sharp-win32-arm64@0.35.4
-- @img/sharp-win32-ia32@0.35.4
-- @img/sharp-win32-x64@0.35.4
+- @img/sharp-win32-arm64@0.35.5
+- @img/sharp-win32-ia32@0.35.5
+- @img/sharp-win32-x64@0.35.5
 
 ### MIT AND ISC (2)
 
@@ -583,7 +519,7 @@ Runtime packages: 532.
 
 ### Apache-2.0 AND LGPL-3.0-or-later AND MIT (1)
 
-- @img/sharp-wasm32@0.35.4
+- @img/sharp-wasm32@0.35.5
 
 ### CC-BY-4.0 (1)
 
@@ -596,3 +532,7 @@ Runtime packages: 532.
 ### EPL-2.0 (1)
 
 - elkjs@0.11.1
+
+### MPL-2.0 (1)
+
+- lightningcss@1.33.0
