@@ -5,7 +5,13 @@ import { useState } from "react"
 import { KeyRound, Trash2, Loader2, ExternalLink, Check } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { API_PROVIDERS } from "@/lib/credentials/providers"
+import { priceLabel, providersByLevel, type RecommendationLevel } from "@/lib/credentials/providers"
+
+const LEVEL_HINTS: Record<RecommendationLevel, string> = {
+  Recommended: "Reliable, few false positives. Start here.",
+  Additional: "Wider coverage, with more noise.",
+  "Free or limited": "Free or limited access to start, less precise.",
+}
 
 type ApiProvider = "HIBP" | "HIBP_STEALER" | "DEHASHED" | "LEAKCHECK" | "INTELX" | "SNUSBASE"
 
@@ -98,142 +104,170 @@ export function ApiCredentials({ initial, isAdmin, defaultRates }: Props) {
         <p className="text-xs text-muted-foreground">
           Stored encrypted (AES-256-GCM). Keys are never displayed again after saving.
         </p>
+        <p className="mt-1 text-xs text-muted-foreground">
+          Levels are advice only: enable any source, in any combination.
+        </p>
       </div>
 
-      <div className="space-y-3">
-        {API_PROVIDERS.map((meta) => {
-          const cred = creds[meta.id]
-          const isBusy = busy === meta.id
+      <div className="space-y-6">
+        {providersByLevel().map(({ level, providers }) => (
+          <div key={level}>
+            <div className="mb-2">
+              <h4 className="text-xs font-medium uppercase tracking-wider text-foreground">{level}</h4>
+              <p className="text-xs text-muted-foreground">{LEVEL_HINTS[level]}</p>
+            </div>
+            <div className="space-y-3">
+              {providers.map((meta) => {
+                const cred = creds[meta.id]
+                const isBusy = busy === meta.id
 
-          return (
-            <div
-              key={meta.id}
-              className="flex items-start gap-4 rounded-xl border border-border/60 bg-card px-4 py-4"
-            >
-              <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
-                <KeyRound className="size-4" />
-              </span>
+                return (
+                  <div
+                    key={meta.id}
+                    className="flex items-start gap-4 rounded-xl border border-border/60 bg-card px-4 py-4"
+                  >
+                    <span className="flex size-9 shrink-0 items-center justify-center rounded-lg bg-muted text-muted-foreground">
+                      <KeyRound className="size-4" />
+                    </span>
 
-              <div className="flex-1 min-w-0">
-                <div className="flex items-center gap-2">
-                  <p className="text-sm font-medium text-foreground">{meta.label}</p>
-                  {cred ? (
-                    <span className="inline-flex items-center gap-1 rounded-full bg-green-500/10 px-2 py-0.5 text-xs font-medium text-green-600 dark:text-green-400">
-                      <Check className="size-3" /> {cred.keyHint}
-                    </span>
-                  ) : (
-                    <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
-                      Not configured
-                    </span>
-                  )}
-                  {!meta.wired && (
-                    <span className="rounded-full bg-yellow-500/10 px-2 py-0.5 text-xs text-yellow-600 dark:text-yellow-400">
-                      Coming soon
-                    </span>
-                  )}
-                </div>
-                <p className="mt-1 text-xs text-muted-foreground">{meta.description}</p>
-                <a
-                  href={meta.docsUrl}
-                  target="_blank"
-                  rel="noopener noreferrer"
-                  className="mt-1 inline-flex items-center gap-1 text-xs text-primary hover:underline"
-                >
-                  Get an API key <ExternalLink className="size-3" />
-                </a>
-
-                {cred && (
-                  <div className="mt-3">
-                    <p className="text-xs text-muted-foreground">
-                      Rate limit:{" "}
-                      <span className="font-medium text-foreground">
-                        {cred.rateLimitPerMinute ?? defaultRates[meta.id]} requests per minute
-                      </span>{" "}
-                      {cred.rateLimitPerMinute === null
-                        ? "(default, the lowest paid plan). Raise it to match your plan."
-                        : "(set for your plan)."}
-                    </p>
-                    {isAdmin && (
-                      <div className="mt-2 flex items-center gap-2">
-                        <input
-                          type="number"
-                          min={1}
-                          max={100000}
-                          step={1}
-                          placeholder={String(cred.rateLimitPerMinute ?? defaultRates[meta.id] ?? "")}
-                          aria-label={`${meta.label} requests per minute`}
-                          value={rateDrafts[meta.id] ?? ""}
-                          onChange={(e) =>
-                            setRateDrafts((prev) => ({ ...prev, [meta.id]: e.target.value }))
-                          }
-                          className={cn(
-                            "h-8 w-32 rounded-md border border-border bg-background px-2.5 text-xs",
-                            "text-foreground outline-none focus:ring-1 focus:ring-ring"
-                          )}
-                        />
-                        <Button
-                          size="sm"
-                          variant="outline"
-                          onClick={() => handleRate(meta.id, Number(rateDrafts[meta.id]))}
-                          disabled={isBusy || !rateDrafts[meta.id]?.trim()}
-                        >
-                          Set rate
-                        </Button>
-                        {cred.rateLimitPerMinute !== null && (
-                          <Button
-                            size="sm"
-                            variant="ghost"
-                            onClick={() => handleRate(meta.id, null)}
-                            disabled={isBusy}
-                          >
-                            Use default
-                          </Button>
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2">
+                        <p className="text-sm font-medium text-foreground">{meta.label}</p>
+                        {cred ? (
+                          <span className="inline-flex items-center gap-1 rounded-full bg-green-500/10 px-2 py-0.5 text-xs font-medium text-green-600 dark:text-green-400">
+                            <Check className="size-3" /> {cred.keyHint}
+                          </span>
+                        ) : (
+                          <span className="rounded-full bg-muted px-2 py-0.5 text-xs text-muted-foreground">
+                            Not configured
+                          </span>
+                        )}
+                        {!meta.wired && (
+                          <span className="rounded-full bg-yellow-500/10 px-2 py-0.5 text-xs text-yellow-600 dark:text-yellow-400">
+                            Coming soon
+                          </span>
                         )}
                       </div>
-                    )}
-                    {rateErrors[meta.id] && (
-                      <p className="mt-1 text-xs text-destructive">{rateErrors[meta.id]}</p>
-                    )}
-                  </div>
-                )}
-
-                {isAdmin && (
-                  <div className="mt-3 flex items-center gap-2">
-                    <PasswordInput
-                      autoComplete="off"
-                      placeholder={cred ? "Replace key..." : "Paste API key..."}
-                      value={drafts[meta.id] ?? ""}
-                      onChange={(e) =>
-                        setDrafts((prev) => ({ ...prev, [meta.id]: e.target.value }))
-                      }
-                      className={cn(
-                        "h-8 flex-1 rounded-md border border-border bg-background px-2.5 text-xs",
-                        "text-foreground outline-none focus:ring-1 focus:ring-ring"
+                      <p className="mt-1 text-xs text-muted-foreground">{meta.description}</p>
+                      <p className="mt-2 text-xs text-foreground">
+                        {priceLabel(meta)}
+                        <a
+                          href={meta.pricing.url}
+                          target="_blank"
+                          rel="noopener noreferrer"
+                          className="ml-2 inline-flex items-center gap-1 text-primary hover:underline"
+                        >
+                          See pricing <ExternalLink className="size-3" />
+                        </a>
+                      </p>
+                      {meta.pricing.freeTier && (
+                        <p className="text-xs text-muted-foreground">Free tier: {meta.pricing.freeTier}</p>
                       )}
-                    />
-                    <Button
-                      size="sm"
-                      onClick={() => handleSave(meta.id)}
-                      disabled={isBusy || !drafts[meta.id]?.trim()}
-                    >
-                      {isBusy ? <Loader2 className="size-3.5 animate-spin" /> : "Save"}
-                    </Button>
-                    {cred && (
-                      <Button
-                        variant="destructive"
-                        size="icon"
-                        onClick={() => handleDelete(meta.id)}
-                        disabled={isBusy}
+                      {meta.pricing.note && <p className="text-xs text-muted-foreground">{meta.pricing.note}</p>}
+                      <a
+                        href={meta.docsUrl}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="mt-1 inline-flex items-center gap-1 text-xs text-primary hover:underline"
                       >
-                        <Trash2 className="size-3.5" />
-                      </Button>
-                    )}
+                        Get an API key <ExternalLink className="size-3" />
+                      </a>
+
+                      {cred && (
+                        <div className="mt-3">
+                          <p className="text-xs text-muted-foreground">
+                            Rate limit:{" "}
+                            <span className="font-medium text-foreground">
+                              {cred.rateLimitPerMinute ?? defaultRates[meta.id]} requests per minute
+                            </span>{" "}
+                            {cred.rateLimitPerMinute === null
+                              ? "(default, the lowest paid plan). Raise it to match your plan."
+                              : "(set for your plan)."}
+                          </p>
+                          {isAdmin && (
+                            <div className="mt-2 flex items-center gap-2">
+                              <input
+                                type="number"
+                                min={1}
+                                max={100000}
+                                step={1}
+                                placeholder={String(cred.rateLimitPerMinute ?? defaultRates[meta.id] ?? "")}
+                                aria-label={`${meta.label} requests per minute`}
+                                value={rateDrafts[meta.id] ?? ""}
+                                onChange={(e) =>
+                                  setRateDrafts((prev) => ({ ...prev, [meta.id]: e.target.value }))
+                                }
+                                className={cn(
+                                  "h-8 w-32 rounded-md border border-border bg-background px-2.5 text-xs",
+                                  "text-foreground outline-none focus:ring-1 focus:ring-ring"
+                                )}
+                              />
+                              <Button
+                                size="sm"
+                                variant="outline"
+                                onClick={() => handleRate(meta.id, Number(rateDrafts[meta.id]))}
+                                disabled={isBusy || !rateDrafts[meta.id]?.trim()}
+                              >
+                                Set rate
+                              </Button>
+                              {cred.rateLimitPerMinute !== null && (
+                                <Button
+                                  size="sm"
+                                  variant="ghost"
+                                  onClick={() => handleRate(meta.id, null)}
+                                  disabled={isBusy}
+                                >
+                                  Use default
+                                </Button>
+                              )}
+                            </div>
+                          )}
+                          {rateErrors[meta.id] && (
+                            <p className="mt-1 text-xs text-destructive">{rateErrors[meta.id]}</p>
+                          )}
+                        </div>
+                      )}
+
+                      {isAdmin && (
+                        <div className="mt-3 flex items-center gap-2">
+                          <PasswordInput
+                            autoComplete="off"
+                            placeholder={cred ? "Replace key..." : "Paste API key..."}
+                            value={drafts[meta.id] ?? ""}
+                            onChange={(e) =>
+                              setDrafts((prev) => ({ ...prev, [meta.id]: e.target.value }))
+                            }
+                            className={cn(
+                              "h-8 flex-1 rounded-md border border-border bg-background px-2.5 text-xs",
+                              "text-foreground outline-none focus:ring-1 focus:ring-ring"
+                            )}
+                          />
+                          <Button
+                            size="sm"
+                            onClick={() => handleSave(meta.id)}
+                            disabled={isBusy || !drafts[meta.id]?.trim()}
+                          >
+                            {isBusy ? <Loader2 className="size-3.5 animate-spin" /> : "Save"}
+                          </Button>
+                          {cred && (
+                            <Button
+                              variant="destructive"
+                              size="icon"
+                              onClick={() => handleDelete(meta.id)}
+                              disabled={isBusy}
+                            >
+                              <Trash2 className="size-3.5" />
+                            </Button>
+                          )}
+                        </div>
+                      )}
+                    </div>
                   </div>
-                )}
-              </div>
+                )
+              })}
             </div>
-          )
-        })}
+          </div>
+        ))}
       </div>
     </section>
   )
