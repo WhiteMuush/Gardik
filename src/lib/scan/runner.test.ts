@@ -11,6 +11,7 @@ const emailEnabled = vi.fn()
 const sendBreachAlert = vi.fn()
 const loadActiveWebhooks = vi.fn()
 const dispatchWebhooks = vi.fn()
+const scanCheckUpsert = vi.fn()
 
 vi.mock("@/lib/prisma", () => ({
   prisma: {
@@ -22,6 +23,7 @@ vi.mock("@/lib/prisma", () => ({
       update: (a: unknown) => breachRecordUpdate(a),
     },
     alert: { create: (a: unknown) => alertCreate(a), update: (a: unknown) => alertUpdate(a) },
+    scanCheck: { upsert: (a: unknown) => scanCheckUpsert(a) },
   },
 }))
 vi.mock("@/lib/directory/crypto", () => ({ decryptConfig: vi.fn() }))
@@ -40,6 +42,7 @@ vi.mock("./normalize", async (importOriginal) => ({
 }))
 
 import { runScan, severityFor } from "./runner"
+import { ProviderError } from "./errors"
 
 describe("severityFor", () => {
   it("is CRITICAL with two or more critical data types", () => {
@@ -85,11 +88,21 @@ function provider(
   id = "HIBP",
   source = "HIBP"
 ) {
-  return { provider: { lookup, source, id }, key: "k" } as never
+  return { provider: { lookup, source, id }, key: "k", ratePerMinute: 60 } as never
 }
 
-function emptyEmployee() {
-  return { id: "e1", email: "e1@x.com", firstName: "E", lastName: "One", breachRecords: [], alerts: [] }
+function emptyEmployee(id = "e1", scanChecks: { provider: string; status: string }[] = []) {
+  return { id, email: `${id}@x.com`, firstName: "E", lastName: "One", breachRecords: [], alerts: [], scanChecks }
+}
+
+function checkWrites() {
+  return scanCheckUpsert.mock.calls.map(([a]) => ({
+    employeeId: a.where.employeeId_provider.employeeId,
+    provider: a.where.employeeId_provider.provider,
+    status: a.create.status,
+    failureReason: a.create.failureReason,
+    checked: a.create.lastCheckedAt instanceof Date,
+  }))
 }
 
 describe("runScan", () => {
@@ -101,6 +114,7 @@ describe("runScan", () => {
     breachRecordUpdate.mockResolvedValue({})
     alertCreate.mockResolvedValue({ id: "a1" })
     alertUpdate.mockResolvedValue({})
+    scanCheckUpsert.mockResolvedValue({})
   })
 
   it("persists a new finding and counts it", async () => {
@@ -112,7 +126,7 @@ describe("runScan", () => {
 
     const res = await runScan("co1", [provider(lookup)])
 
-    expect(res).toEqual({ scanned: 1, newRecords: 1, newAlerts: 1 })
+    expect(res).toEqual({ scanned: 1, newRecords: 1, newAlerts: 1, failedChecks: 0 })
     expect(breachRecordCreate).toHaveBeenCalledTimes(1)
     expect(alertCreate).toHaveBeenCalledTimes(1)
   })
@@ -134,7 +148,7 @@ describe("runScan", () => {
     ])
 
     // One record/alert created, the second hit merged onto it.
-    expect(res).toEqual({ scanned: 1, newRecords: 1, newAlerts: 1 })
+    expect(res).toEqual({ scanned: 1, newRecords: 1, newAlerts: 1, failedChecks: 0 })
     expect(breachRecordCreate).toHaveBeenCalledTimes(1)
     expect(alertCreate).toHaveBeenCalledTimes(1)
     expect(breachRecordUpdate).toHaveBeenCalledTimes(1)
@@ -183,6 +197,7 @@ describe("runScan", () => {
           },
         ],
         alerts: [{ id: "a1", breachId: "b1", severity: "MEDIUM", confidence: "HIGH" }],
+        scanChecks: [],
       },
     ])
     const dehashed = vi.fn().mockResolvedValue([
@@ -197,13 +212,113 @@ describe("runScan", () => {
     expect(alertUpdate).toHaveBeenCalledTimes(1)
   })
 
-  it("isolates a provider error and keeps scanning", async () => {
+  it("isolates a provider error and keeps scanning the other sources", async () => {
     employeeFindMany.mockResolvedValue([emptyEmployee()])
-    const lookup = vi.fn().mockRejectedValue(new Error("rate limited"))
+    const broken = vi.fn().mockRejectedValue(new Error("boom"))
+    const healthy = vi.fn().mockResolvedValue([])
+
+    const res = await runScan("co1", [provider(broken), provider(healthy, "DEHASHED", "DARK_WEB")])
+
+    expect(res).toEqual({ scanned: 1, newRecords: 0, newAlerts: 0, failedChecks: 1 })
+    expect(healthy).toHaveBeenCalledTimes(1)
+    expect(breachUpsert).not.toHaveBeenCalled()
+  })
+
+  it("records a successful lookup as checked", async () => {
+    employeeFindMany.mockResolvedValue([emptyEmployee()])
+
+    await runScan("co1", [provider(vi.fn().mockResolvedValue([]))])
+
+    expect(checkWrites()).toEqual([
+      { employeeId: "e1", provider: "HIBP", status: "CHECKED", failureReason: null, checked: true },
+    ])
+  })
+
+  it("records a failed lookup as failed, never as clean", async () => {
+    employeeFindMany.mockResolvedValue([emptyEmployee()])
+    const lookup = vi.fn().mockRejectedValue(new ProviderError("HIBP error 401", 401))
 
     const res = await runScan("co1", [provider(lookup)])
 
-    expect(res).toEqual({ scanned: 1, newRecords: 0, newAlerts: 0 })
-    expect(breachUpsert).not.toHaveBeenCalled()
+    expect(res.failedChecks).toBe(1)
+    expect(lookup).toHaveBeenCalledTimes(1)
+    expect(checkWrites()).toEqual([
+      { employeeId: "e1", provider: "HIBP", status: "FAILED", failureReason: "API key rejected", checked: false },
+    ])
+    expect(scanCheckUpsert.mock.calls[0][0].update).not.toHaveProperty("lastCheckedAt")
+  })
+
+  it("retries a rate-limited lookup, then records it as checked", async () => {
+    employeeFindMany.mockResolvedValue([emptyEmployee()])
+    const lookup = vi
+      .fn()
+      .mockRejectedValueOnce(new ProviderError("HIBP error 429", 429, 1000))
+      .mockResolvedValueOnce([])
+
+    const res = await runScan("co1", [provider(lookup)])
+
+    expect(lookup).toHaveBeenCalledTimes(2)
+    expect(res.failedChecks).toBe(0)
+    expect(checkWrites()[0].status).toBe("CHECKED")
+  })
+
+  it("gives up after the retry budget and says why", async () => {
+    employeeFindMany.mockResolvedValue([emptyEmployee()])
+    const lookup = vi.fn().mockRejectedValue(new ProviderError("HIBP error 429", 429, 1000))
+
+    const res = await runScan("co1", [provider(lookup)])
+
+    expect(lookup).toHaveBeenCalledTimes(4)
+    expect(res.failedChecks).toBe(1)
+    expect(checkWrites()[0]).toMatchObject({ status: "FAILED", failureReason: "Rate limited by the source" })
+  })
+
+  it("stops calling a source whose key is rejected, and marks the rest as failed", async () => {
+    employeeFindMany.mockResolvedValue([emptyEmployee("e1"), emptyEmployee("e2")])
+    const lookup = vi.fn().mockRejectedValue(new ProviderError("HIBP error 401", 401))
+
+    const res = await runScan("co1", [provider(lookup)])
+
+    expect(lookup).toHaveBeenCalledTimes(1)
+    expect(res.failedChecks).toBe(2)
+    expect(checkWrites().map((c) => [c.employeeId, c.status, c.failureReason])).toEqual([
+      ["e1", "FAILED", "API key rejected"],
+      ["e2", "FAILED", "API key rejected"],
+    ])
+  })
+
+  it("fails at once when the source asks to wait longer than a scan can", async () => {
+    employeeFindMany.mockResolvedValue([emptyEmployee("e1"), emptyEmployee("e2")])
+    const lookup = vi.fn().mockRejectedValue(new ProviderError("LeakCheck error 429", 429, 3_600_000))
+
+    const res = await runScan("co1", [provider(lookup, "LEAKCHECK", "DARK_WEB")])
+
+    expect(lookup).toHaveBeenCalledTimes(1)
+    expect(res.failedChecks).toBe(2)
+    expect(checkWrites()[1]).toMatchObject({ provider: "LEAKCHECK", status: "FAILED" })
+  })
+
+  it("only rescans failed or never checked pairs when asked", async () => {
+    employeeFindMany.mockResolvedValue([
+      emptyEmployee("e1", [
+        { provider: "HIBP", status: "CHECKED" },
+        { provider: "DEHASHED", status: "FAILED" },
+      ]),
+      emptyEmployee("e2", [
+        { provider: "HIBP", status: "CHECKED" },
+        { provider: "DEHASHED", status: "CHECKED" },
+      ]),
+    ])
+    const hibp = vi.fn().mockResolvedValue([])
+    const dehashed = vi.fn().mockResolvedValue([])
+
+    const res = await runScan("co1", [provider(hibp), provider(dehashed, "DEHASHED", "DARK_WEB")], {
+      onlyIncomplete: true,
+    })
+
+    expect(hibp).not.toHaveBeenCalled()
+    expect(dehashed).toHaveBeenCalledTimes(1)
+    expect(dehashed).toHaveBeenCalledWith("e1@x.com", "k")
+    expect(res.scanned).toBe(1)
   })
 })

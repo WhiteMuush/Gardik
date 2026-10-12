@@ -1,4 +1,5 @@
 import type { BreachProvider, Finding } from "../types"
+import { errorFromResponse } from "../errors"
 
 const API = "https://api.snusbase.com/data/search"
 
@@ -11,13 +12,15 @@ type SnusbaseResponse = { results?: Record<string, Record<string, unknown>[]> }
 export const snusbase: BreachProvider = {
   id: "SNUSBASE",
   source: "DARK_WEB",
+  // /data/search allows 2,048 requests per 12 hours.
+  defaultRatePerMinute: 2,
   async lookup(email, apiKey) {
     const res = await fetch(API, {
       method: "POST",
       headers: { "Content-Type": "application/json", Auth: apiKey },
       body: JSON.stringify({ terms: [email], types: ["email"] }),
     })
-    if (!res.ok) throw new Error(`Snusbase error ${res.status}`)
+    if (!res.ok) throw errorFromResponse("Snusbase", res)
 
     const data = (await res.json()) as SnusbaseResponse
     return Object.entries(data.results ?? {}).map(

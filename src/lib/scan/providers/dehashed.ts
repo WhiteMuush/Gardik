@@ -1,4 +1,5 @@
 import type { BreachProvider, Finding } from "../types"
+import { errorFromResponse } from "../errors"
 
 const API = "https://api.dehashed.com/v2/search"
 
@@ -23,13 +24,15 @@ type DeHashedResponse = { entries?: DeHashedEntry[] | null }
 export const dehashed: BreachProvider = {
   id: "DEHASHED",
   source: "DARK_WEB",
+  // No published limit: one request per second.
+  defaultRatePerMinute: 60,
   async lookup(email, apiKey) {
     const res = await fetch(API, {
       method: "POST",
       headers: { "Content-Type": "application/json", "DeHashed-Api-Key": apiKey },
       body: JSON.stringify({ query: `email:"${email}"`, page: 1, size: 100 }),
     })
-    if (!res.ok) throw new Error(`DeHashed error ${res.status}`)
+    if (!res.ok) throw errorFromResponse("DeHashed", res)
 
     const data = (await res.json()) as DeHashedResponse
     const bySource = new Map<string, Set<string>>()
