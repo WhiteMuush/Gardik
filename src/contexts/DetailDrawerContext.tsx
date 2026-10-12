@@ -1,6 +1,6 @@
 "use client"
 
-import { createContext, useCallback, useContext, useEffect, useState, type ReactNode } from "react"
+import { createContext, useCallback, useContext, useEffect, useState, useSyncExternalStore, type ReactNode } from "react"
 import { createPortal } from "react-dom"
 import { X, Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -53,12 +53,14 @@ const dotColor: Record<DetailVariant, string> = {
   default: "bg-muted-foreground",
 }
 
+const subscribeNever = () => () => {}
+
 export function DetailDrawerProvider({ children }: { children: ReactNode }) {
   const [payload, setPayload] = useState<DetailPayload | null>(null)
   const [loading, setLoading] = useState(false)
-  const [mounted, setMounted] = useState(false)
-
-  useEffect(() => setMounted(true), [])
+  // false on the server and during hydration, true once on the client: the
+  // portal target (document.body) only exists there.
+  const mounted = useSyncExternalStore(subscribeNever, () => true, () => false)
 
   const open = useCallback((p: DetailPayload) => {
     setLoading(false)

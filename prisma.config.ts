@@ -1,7 +1,7 @@
-import { config } from "dotenv"
+import { existsSync } from "node:fs"
 import { defineConfig } from "prisma/config"
 
-config({ path: ".env.local" })
+if (existsSync(".env.local")) process.loadEnvFile(".env.local")
 
 export default defineConfig({
   datasource: {

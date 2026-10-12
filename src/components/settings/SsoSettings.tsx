@@ -37,6 +37,13 @@ const EMPTY_FORM: FormState = {
 
 type Action = "save" | "record" | "verify" | "remove" | null
 
+async function fetchProvider(): Promise<SsoProvider | null> {
+  const res = await fetch("/api/sso/provider")
+  const data = (await res.json()) as { provider?: SsoProvider | null; error?: string }
+  if (!res.ok) throw new Error(data.error ?? "Could not load the SSO configuration")
+  return data.provider ?? null
+}
+
 type Props = {
   // sso:read is checked server-side before this component is mounted. This flag
   // reflects sso:config so a read-only admin sees the configuration without
@@ -54,24 +61,26 @@ export function SsoSettings({ canConfigure }: Props) {
   const [status, setStatus] = useState<StatusMessage>(null)
   const [action, setAction] = useState<Action>(null)
 
-  const load = useCallback(async () => {
+  const settle = useCallback(
+    (pending: Promise<SsoProvider | null>) =>
+      pending
+        .then(setProvider, (err) =>
+          setLoadError(err instanceof Error ? err.message : "Could not load the SSO configuration")
+        )
+        .finally(() => setLoading(false)),
+    []
+  )
+
+  const load = useCallback(() => {
     setLoading(true)
     setLoadError(null)
-    try {
-      const res = await fetch("/api/sso/provider")
-      const data = (await res.json()) as { provider?: SsoProvider | null; error?: string }
-      if (!res.ok) throw new Error(data.error ?? "Could not load the SSO configuration")
-      setProvider(data.provider ?? null)
-    } catch (err) {
-      setLoadError(err instanceof Error ? err.message : "Could not load the SSO configuration")
-    } finally {
-      setLoading(false)
-    }
-  }, [])
+    return settle(fetchProvider())
+  }, [settle])
 
+  // loading starts true and loadError null, so the first fetch needs no reset.
   useEffect(() => {
-    load()
-  }, [load])
+    void settle(fetchProvider())
+  }, [settle])
 
   function startEdit() {
     if (!provider) return

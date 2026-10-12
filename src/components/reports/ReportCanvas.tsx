@@ -68,11 +68,38 @@ function buildDefaultLayout(
   return out
 }
 
+// Runs during the first render, on the server too. That cannot cause a
+// hydration mismatch because layout and hidden only reach the DOM through the
+// grid, which waits for the client-measured containerW, and through the
+// sections menu, which opens on click.
+function readSaved(sections: ReportSectionEntry[]): Saved {
+  const fallback = { layout: buildDefaultLayout(sections), hidden: [] }
+  if (typeof window === "undefined") return fallback
+  try {
+    const raw = localStorage.getItem(STORAGE_KEY)
+    if (!raw) return fallback
+    const saved: Saved = JSON.parse(raw)
+    const ids = new Set(sections.map((s) => s.id))
+    let layout = fallback.layout
+    if (saved.layout?.length) {
+      const known = saved.layout.filter((l) => ids.has(l.i))
+      const missing = sections
+        .filter((s) => !known.some((l) => l.i === s.id))
+        .map((s) => ({ i: s.id, x: 0, y: Infinity, w: s.defaultSpan ?? 12, h: DEFAULT_H, minW: MIN_W, minH: MIN_H }))
+      layout = [...known, ...missing]
+    }
+    return { layout, hidden: (saved.hidden ?? []).filter((id) => ids.has(id)) }
+  } catch {
+    return fallback
+  }
+}
+
 export function ReportCanvas({ sections }: { sections: ReportSectionEntry[] }) {
   const [editing, setEditing] = useState(false)
   const [containerW, setContainerW] = useState(0)
-  const [layout, setLayout] = useState<RglItem[]>(() => buildDefaultLayout(sections))
-  const [hidden, setHidden] = useState<string[]>([])
+  const [saved] = useState(() => readSaved(sections))
+  const [layout, setLayout] = useState<RglItem[]>(saved.layout)
+  const [hidden, setHidden] = useState<string[]>(saved.hidden)
   const [sectionsMenuOpen, setSectionsMenuOpen] = useState(false)
   const [minHeights, setMinHeights] = useState<Record<string, number>>({})
   // Bumped to force a re-measure even when widths are unchanged (e.g. Reset).
@@ -80,27 +107,6 @@ export function ReportCanvas({ sections }: { sections: ReportSectionEntry[] }) {
   const containerRef = useRef<HTMLDivElement>(null)
   const menuRef = useRef<HTMLDivElement>(null)
   const contentEls = useRef(new Map<string, HTMLDivElement>())
-
-  // Hydrate from localStorage after mount (avoids SSR mismatch).
-  useEffect(() => {
-    try {
-      const raw = localStorage.getItem(STORAGE_KEY)
-      if (!raw) return
-      const saved: Saved = JSON.parse(raw)
-      const ids = new Set(sections.map((s) => s.id))
-      if (saved.layout?.length) {
-        const known = saved.layout.filter((l) => ids.has(l.i))
-        const missing = sections
-          .filter((s) => !known.some((l) => l.i === s.id))
-          .map((s) => ({ i: s.id, x: 0, y: Infinity, w: s.defaultSpan ?? 12, h: DEFAULT_H, minW: MIN_W, minH: MIN_H }))
-        setLayout([...known, ...missing])
-      }
-      setHidden((saved.hidden ?? []).filter((id) => ids.has(id)))
-    } catch {
-      /* ignore corrupt storage */
-    }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [])
 
   useEffect(() => {
     const el = containerRef.current
@@ -167,10 +173,13 @@ export function ReportCanvas({ sections }: { sections: ReportSectionEntry[] }) {
   // ResizeObserver: height is intentionally NOT a dependency, so fitHeights
   // setting h cannot retrigger this effect. That makes the auto-fit
   // loop-free by construction (previous versions oscillated forever).
+  // The measurement runs in the next animation frame rather than in the effect
+  // body, so its state updates land as one batch before that frame paints.
   const widthSig = layout.map((l) => `${l.i}:${l.w}`).join("|")
   const hiddenSig = hidden.join(",")
   useEffect(() => {
-    fitHeights()
+    const frame = requestAnimationFrame(fitHeights)
+    return () => cancelAnimationFrame(frame)
   }, [fitHeights, widthSig, containerW, hiddenSig, sections.length, measureNonce])
 
   useEffect(() => {
