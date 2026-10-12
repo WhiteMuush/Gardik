@@ -10,7 +10,7 @@ function isPublicPage(path: string): boolean {
   return ["/login", "/invite"].some((p) => path === p || path.startsWith(`${p}/`))
 }
 
-export default function middleware(req: NextRequest) {
+export default function proxy(req: NextRequest) {
   const path = req.nextUrl.pathname
   const hasSession = getSessionCookie(req) !== null
 
