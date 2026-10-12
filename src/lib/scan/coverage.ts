@@ -84,3 +84,12 @@ export function checkLabel(check: CheckView | null): string {
   const last = check.lastCheckedAt ? `Last checked on ${day(check.lastCheckedAt)}` : "Never checked"
   return `Failed on ${day(check.lastAttemptAt)}: ${check.failureReason ?? "Unknown error"}. ${last}`
 }
+
+// Identifies the current scan status, so a dismissed banner comes back as soon
+// as a scan changes what is missing or why.
+export function coverageSignature(coverage: SourceCoverage[]): string {
+  return coverage
+    .filter((c) => c.failed > 0 || c.neverChecked > 0)
+    .map((c) => `${c.provider}:${c.failed}:${c.neverChecked}:${c.lastFailureReason ?? ""}`)
+    .join("|")
+}
