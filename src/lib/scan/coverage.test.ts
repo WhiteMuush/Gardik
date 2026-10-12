@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from "vitest"
 
 vi.mock("@/lib/prisma", () => ({ prisma: {} }))
 
-import { summarizeCoverage, checkLabel } from "./coverage"
+import { summarizeCoverage, checkLabel, coverageSignature } from "./coverage"
 
 describe("summarizeCoverage", () => {
   it("counts checked, failed and never checked employees per active source", () => {
@@ -65,5 +65,22 @@ describe("checkLabel", () => {
   })
   it("says never checked when there is no check yet", () => {
     expect(checkLabel(null)).toBe("Never checked")
+  })
+})
+
+describe("coverageSignature", () => {
+  const base = summarizeCoverage(5, ["HIBP"], [{ provider: "HIBP", status: "FAILED", count: 5 }], {
+    HIBP: { reason: "API key rejected", at: new Date("2026-10-12T10:00:00Z") },
+  })
+
+  it("is stable while the scan status does not change", () => {
+    expect(coverageSignature(base)).toBe(coverageSignature(structuredClone(base)))
+  })
+
+  it("changes when the counts or the last error change", () => {
+    const fewer = [{ ...base[0], failed: 3, checked: 2 }]
+    const other = [{ ...base[0], lastFailureReason: "Rate limited by the source" }]
+    expect(coverageSignature(fewer)).not.toBe(coverageSignature(base))
+    expect(coverageSignature(other)).not.toBe(coverageSignature(base))
   })
 })
