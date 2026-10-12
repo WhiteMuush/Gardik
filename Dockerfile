@@ -39,6 +39,16 @@ RUN PRISMA_VERSION=$(node -p "require('./package-lock.json').packages['node_modu
   # engine binary in its postinstall, and migrate deploy needs it at runtime.
   && npm install --no-audit --no-fund "prisma@${PRISMA_VERSION}"
 COPY docker/prisma.config.ts ./prisma.config.ts
+# The runner only ever calls `migrate deploy`. A file-access trace of it (fresh
+# database, up-to-date database, unreachable host) never opened the Studio web
+# UI nor the embedded Postgres behind `prisma dev`, which are about 90 MB of
+# this tree. `--version` boots the CLI and its eager imports, so a Prisma
+# release that starts needing one of these fails the build, not the container.
+RUN cd node_modules \
+  && rm -rf @electric-sql @prisma/studio-core/dist/ui @prisma/studio-core/dist/metafile-*.json \
+    react react-dom @radix-ui @visx d3-* elkjs lodash csstype @types \
+  && cd .. \
+  && node node_modules/prisma/build/index.js --version > /dev/null
 
 FROM node:${NODE_VERSION} AS builder
 WORKDIR /app
