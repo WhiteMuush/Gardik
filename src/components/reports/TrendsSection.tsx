@@ -1,8 +1,6 @@
 "use client"
 
-import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer,
-} from "recharts"
+import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from "recharts"
 import { ReportSection } from "./ReportSection"
 import type { Trends } from "@/lib/reports/types"
 
@@ -12,10 +10,7 @@ export function TrendsSection({ data }: { data: Trends }) {
   const isEmpty = data.monthly.every((m) => m.breaches === 0 && m.alerts === 0)
 
   return (
-    <ReportSection
-      title="Trends"
-      description="New breach detections and alerts over the last 12 months"
-    >
+    <ReportSection title="Trends" description="New breach detections and alerts over the last 12 months">
       {isEmpty ? (
         <p className="text-sm text-muted-foreground">No activity recorded.</p>
       ) : (
@@ -36,8 +31,22 @@ export function TrendsSection({ data }: { data: Trends }) {
                 cursor={{ stroke: "oklch(var(--border))" }}
               />
               <Legend wrapperStyle={{ fontSize: "12px" }} />
-              <Line type="monotone" dataKey="breaches" name="Breaches" stroke="oklch(var(--primary))" strokeWidth={2} dot={false} />
-              <Line type="monotone" dataKey="alerts" name="Alerts" stroke="oklch(var(--severity-high))" strokeWidth={2} dot={false} />
+              <Line
+                type="monotone"
+                dataKey="breaches"
+                name="Breaches"
+                stroke="oklch(var(--primary))"
+                strokeWidth={2}
+                dot={false}
+              />
+              <Line
+                type="monotone"
+                dataKey="alerts"
+                name="Alerts"
+                stroke="oklch(var(--severity-high))"
+                strokeWidth={2}
+                dot={false}
+              />
             </LineChart>
           </ResponsiveContainer>
         </div>

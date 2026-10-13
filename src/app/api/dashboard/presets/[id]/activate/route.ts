@@ -10,7 +10,8 @@ export async function PATCH(_req: Request, { params }: { params: Promise<{ id: s
 
   const preset = await prisma.dashboardPreset.findUnique({ where: { id } })
   if (!preset) return NextResponse.json({ error: "Not found" }, { status: 404 })
-  if (preset.companyId !== session.user.companyId) return NextResponse.json({ error: "Forbidden" }, { status: 403 })
+  if (preset.companyId !== session.user.companyId)
+    return NextResponse.json({ error: "Forbidden" }, { status: 403 })
 
   await prisma.user.update({
     where: { id: session.user.id },

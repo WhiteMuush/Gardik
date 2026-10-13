@@ -47,19 +47,52 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
   ])
 
   const departments = [
-    ...deptGroups.map((d) => d.department).filter((d): d is string => d !== null).sort(),
+    ...deptGroups
+      .map((d) => d.department)
+      .filter((d): d is string => d !== null)
+      .sort(),
     ...(deptGroups.some((d) => d.department === null) ? ["Unknown"] : []),
   ]
   const companyName = session!.user.name ?? ""
 
   const sections: ReportSectionEntry[] = [
-    { id: "findings", title: "Key Findings", defaultSpan: 12, content: <KeyFindingsSection findings={data.findings} /> },
-    { id: "exposure", title: "Exposure", defaultSpan: 12, content: <ExposureSection data={data.exposure} deltas={data.deltas} /> },
-    { id: "datatypes", title: "Data Types", defaultSpan: 6, content: <DataTypeSection rows={data.dataTypes} /> },
-    { id: "departments", title: "Departments", defaultSpan: 6, content: <DepartmentSection rows={data.departments} /> },
+    {
+      id: "findings",
+      title: "Key Findings",
+      defaultSpan: 12,
+      content: <KeyFindingsSection findings={data.findings} />,
+    },
+    {
+      id: "exposure",
+      title: "Exposure",
+      defaultSpan: 12,
+      content: <ExposureSection data={data.exposure} deltas={data.deltas} />,
+    },
+    {
+      id: "datatypes",
+      title: "Data Types",
+      defaultSpan: 6,
+      content: <DataTypeSection rows={data.dataTypes} />,
+    },
+    {
+      id: "departments",
+      title: "Departments",
+      defaultSpan: 6,
+      content: <DepartmentSection rows={data.departments} />,
+    },
     { id: "trends", title: "Trends", defaultSpan: 12, content: <TrendsSection data={data.trends} /> },
-    { id: "employees", title: "Employees", defaultSpan: 12, content: <EmployeeSection rows={data.employees} /> },
-    { id: "compliance", title: "Compliance", defaultSpan: 12, content: <ComplianceSection data={data.compliance} deltas={data.deltas} /> },
+    {
+      id: "employees",
+      title: "Employees",
+      defaultSpan: 12,
+      content: <EmployeeSection rows={data.employees} />,
+    },
+    {
+      id: "compliance",
+      title: "Compliance",
+      defaultSpan: 12,
+      content: <ComplianceSection data={data.compliance} deltas={data.deltas} />,
+    },
   ]
 
   return (
@@ -80,7 +113,11 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
       </div>
 
       <div className="no-print mb-4">
-        <ReportFilterBar filters={filters} departments={departments} dataTypes={PRESET_DATA_TYPES.map((t) => ({ key: t.key, label: t.label }))} />
+        <ReportFilterBar
+          filters={filters}
+          departments={departments}
+          dataTypes={PRESET_DATA_TYPES.map((t) => ({ key: t.key, label: t.label }))}
+        />
       </div>
 
       {/* Interactive grid (screen) */}

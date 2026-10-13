@@ -60,7 +60,10 @@ export function AlertStatusBreakdown({ data }: { data: StatusCounts }) {
                     <span className="ml-1 text-[11px] text-muted-foreground">{pct}%</span>
                   </div>
                 </div>
-                <div className="relative h-2 w-full overflow-hidden rounded-full" style={{ background: s.track }}>
+                <div
+                  className="relative h-2 w-full overflow-hidden rounded-full"
+                  style={{ background: s.track }}
+                >
                   <div
                     className="h-full rounded-full transition-all duration-500"
                     style={{ width: `${pct}%`, background: s.color }}

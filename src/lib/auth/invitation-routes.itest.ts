@@ -25,9 +25,7 @@ vi.mock("@/lib/email", () => ({
 }))
 
 const { POST: invite } = await import("@/app/api/users/[id]/invite/route")
-const { POST: requireRotation } = await import(
-  "@/app/api/users/[id]/require-password-change/route"
-)
+const { POST: requireRotation } = await import("@/app/api/users/[id]/require-password-change/route")
 const { POST: accept } = await import("@/app/api/invitations/accept/route")
 const { POST: changePassword } = await import("@/app/api/account/password/route")
 
@@ -383,8 +381,7 @@ describe("POST /api/account/password", () => {
     await actAs(target.id, `s2-${target.id}`)
 
     expect(
-      (await changePassword(post({ currentPassword: "the-real-password-1", newPassword: "short" })))
-        .status
+      (await changePassword(post({ currentPassword: "the-real-password-1", newPassword: "short" }))).status
     ).toBe(400)
   })
 

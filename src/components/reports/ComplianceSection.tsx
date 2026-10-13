@@ -5,10 +5,7 @@ import type { ComplianceSummary, ReportDeltas } from "@/lib/reports/types"
 
 export function ComplianceSection({ data, deltas }: { data: ComplianceSummary; deltas: ReportDeltas }) {
   return (
-    <ReportSection
-      title="Compliance and audit"
-      description="Monitoring coverage and alert handling status"
-    >
+    <ReportSection title="Compliance and audit" description="Monitoring coverage and alert handling status">
       <div className="grid grid-cols-1 gap-4 @lg:grid-cols-2 @4xl:grid-cols-4">
         <StatCard
           label="Monitored"
@@ -34,9 +31,7 @@ export function ComplianceSection({ data, deltas }: { data: ComplianceSummary; d
           label="Critical open"
           value={data.criticalOpen}
           description={
-            data.staleCriticalOpen > 0
-              ? `${data.staleCriticalOpen} older than 30 days`
-              : undefined
+            data.staleCriticalOpen > 0 ? `${data.staleCriticalOpen} older than 30 days` : undefined
           }
           icon={AlertTriangle}
           variant={data.criticalOpen > 0 ? "critical" : "ok"}

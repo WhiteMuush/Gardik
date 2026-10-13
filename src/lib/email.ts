@@ -59,11 +59,7 @@ export async function sendBreachAlert(recipients: string[], alert: BreachAlert):
 // temporary password, no account details worth harvesting if the mailbox is
 // later compromised, and an explicit expiry so a stale link found months later
 // is obviously stale.
-export async function sendInvitation(
-  recipient: string,
-  link: string,
-  expiresAt: Date
-): Promise<boolean> {
+export async function sendInvitation(recipient: string, link: string, expiresAt: Date): Promise<boolean> {
   const html = [
     `<div style="font-family:system-ui,sans-serif;font-size:14px;color:#111;line-height:1.5">`,
     `<p>You have been given access to Gardik.</p>`,

@@ -15,7 +15,11 @@ test("the anti-lockout escape hatch skips the SSO lookup entirely", async ({ pag
   let resolveCalled = false
   await page.route("**/api/sso/resolve", async (route) => {
     resolveCalled = true
-    await route.fulfill({ status: 200, contentType: "application/json", body: JSON.stringify({ sso: false }) })
+    await route.fulfill({
+      status: 200,
+      contentType: "application/json",
+      body: JSON.stringify({ sso: false }),
+    })
   })
 
   await page.goto("/login")

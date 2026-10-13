@@ -54,7 +54,11 @@ export type EmployeeRow = {
 export async function getEmployees(companyId: string, opts?: GetEmployeesOpts): Promise<EmployeeRow[]> {
   const [company, credentials, employees] = await Promise.all([
     prisma.company.findUnique({ where: { id: companyId }, select: { domain: true, riskWeights: true } }),
-    prisma.apiCredential.findMany({ where: { companyId }, select: { provider: true }, orderBy: { provider: "asc" } }),
+    prisma.apiCredential.findMany({
+      where: { companyId },
+      select: { provider: true },
+      orderBy: { provider: "asc" },
+    }),
     prisma.employee.findMany({
       where: { companyId, ...opts?.where },
       include: {

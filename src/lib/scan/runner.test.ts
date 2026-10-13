@@ -83,16 +83,20 @@ describe("severityFor", () => {
   })
 })
 
-function provider(
-  lookup: ReturnType<typeof vi.fn>,
-  id = "HIBP",
-  source = "HIBP"
-) {
+function provider(lookup: ReturnType<typeof vi.fn>, id = "HIBP", source = "HIBP") {
   return { provider: { lookup, source, id }, key: "k", ratePerMinute: 60 } as never
 }
 
 function emptyEmployee(id = "e1", scanChecks: { provider: string; status: string }[] = []) {
-  return { id, email: `${id}@x.com`, firstName: "E", lastName: "One", breachRecords: [], alerts: [], scanChecks }
+  return {
+    id,
+    email: `${id}@x.com`,
+    firstName: "E",
+    lastName: "One",
+    breachRecords: [],
+    alerts: [],
+    scanChecks,
+  }
 }
 
 function checkWrites() {
@@ -120,9 +124,9 @@ describe("runScan", () => {
   it("persists a new finding and counts it", async () => {
     employeeFindMany.mockResolvedValue([emptyEmployee()])
     breachUpsert.mockResolvedValue({ id: "b1" })
-    const lookup = vi.fn().mockResolvedValue([
-      { name: "Acme", breachDate: new Date(0), dataTypes: ["password"] },
-    ])
+    const lookup = vi
+      .fn()
+      .mockResolvedValue([{ name: "Acme", breachDate: new Date(0), dataTypes: ["password"] }])
 
     const res = await runScan("co1", [provider(lookup)])
 
@@ -134,13 +138,13 @@ describe("runScan", () => {
   it("corroborates instead of duplicating when a second tool reports the same breach", async () => {
     employeeFindMany.mockResolvedValue([emptyEmployee()])
     breachUpsert.mockResolvedValue({ id: "b1" })
-    const hibp = vi.fn().mockResolvedValue([
-      { name: "LinkedIn", breachDate: new Date(0), dataTypes: ["email"] },
-    ])
+    const hibp = vi
+      .fn()
+      .mockResolvedValue([{ name: "LinkedIn", breachDate: new Date(0), dataTypes: ["email"] }])
     // Same breach, different label and a richer data type, from another tool.
-    const dehashed = vi.fn().mockResolvedValue([
-      { name: "LinkedIn.com", breachDate: new Date(0), dataTypes: ["password"] },
-    ])
+    const dehashed = vi
+      .fn()
+      .mockResolvedValue([{ name: "LinkedIn.com", breachDate: new Date(0), dataTypes: ["password"] }])
 
     const res = await runScan("co1", [
       provider(hibp, "HIBP", "HIBP"),
@@ -200,9 +204,9 @@ describe("runScan", () => {
         scanChecks: [],
       },
     ])
-    const dehashed = vi.fn().mockResolvedValue([
-      { name: "linkedin", breachDate: new Date(0), dataTypes: ["password"] },
-    ])
+    const dehashed = vi
+      .fn()
+      .mockResolvedValue([{ name: "linkedin", breachDate: new Date(0), dataTypes: ["password"] }])
 
     const res = await runScan("co1", [provider(dehashed, "DEHASHED", "DARK_WEB")])
 
@@ -243,7 +247,13 @@ describe("runScan", () => {
     expect(res.failedChecks).toBe(1)
     expect(lookup).toHaveBeenCalledTimes(1)
     expect(checkWrites()).toEqual([
-      { employeeId: "e1", provider: "HIBP", status: "FAILED", failureReason: "API key rejected", checked: false },
+      {
+        employeeId: "e1",
+        provider: "HIBP",
+        status: "FAILED",
+        failureReason: "API key rejected",
+        checked: false,
+      },
     ])
     expect(scanCheckUpsert.mock.calls[0][0].update).not.toHaveProperty("lastCheckedAt")
   })

@@ -2,14 +2,14 @@
 
 Tracks #59. Completed for v1.0.0; the README WIP banner is gone.
 
-| Item | Status | Notes |
-| --- | --- | --- |
-| Stable Prisma migrations | Done | Migrations under `prisma/migrations`; deploy with `prisma migrate deploy`. Squashed baseline deferred (optional, post-v1). |
-| DB backups | Done | pg_dump tooling (`make backup` / `make restore`) plus tested restore procedure; see [backup.md](backup.md). |
-| Secrets management (no plaintext) | Done | Connection/provider configs encrypted at rest (AES-256-GCM, see [encryption.md](encryption.md)). Env secrets via the environment, never committed; CI secret scan enforces this. |
-| Application healthcheck | Done | `GET /api/health` pings the DB; 200 `{status:"ok"}` / 503 on failure. |
-| Logging policy (zero PII / secrets) | Done (policy) | See below. |
-| Security headers review | Done | Baseline headers plus enforcing strict CSP with per-request nonces; see below. |
+| Item                                | Status        | Notes                                                                                                                                                                            |
+| ----------------------------------- | ------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| Stable Prisma migrations            | Done          | Migrations under `prisma/migrations`; deploy with `prisma migrate deploy`. Squashed baseline deferred (optional, post-v1).                                                       |
+| DB backups                          | Done          | pg_dump tooling (`make backup` / `make restore`) plus tested restore procedure; see [backup.md](backup.md).                                                                      |
+| Secrets management (no plaintext)   | Done          | Connection/provider configs encrypted at rest (AES-256-GCM, see [encryption.md](encryption.md)). Env secrets via the environment, never committed; CI secret scan enforces this. |
+| Application healthcheck             | Done          | `GET /api/health` pings the DB; 200 `{status:"ok"}` / 503 on failure.                                                                                                            |
+| Logging policy (zero PII / secrets) | Done (policy) | See below.                                                                                                                                                                       |
+| Security headers review             | Done          | Baseline headers plus enforcing strict CSP with per-request nonces; see below.                                                                                                   |
 
 ## Logging policy (zero PII / secrets)
 

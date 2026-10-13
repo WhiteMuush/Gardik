@@ -58,9 +58,13 @@ describe("intelx", () => {
   it("fails when the search never finishes", async () => {
     vi.stubGlobal(
       "fetch",
-      vi.fn().mockImplementation(async (url: string) =>
-        url.endsWith("/intelligent/search") ? json({ id: "s1", status: 0 }) : json({ records: [], status: 3 })
-      )
+      vi
+        .fn()
+        .mockImplementation(async (url: string) =>
+          url.endsWith("/intelligent/search")
+            ? json({ id: "s1", status: 0 })
+            : json({ records: [], status: 3 })
+        )
     )
     const err = await intelx.lookup("a@x.com", "k").catch((e: unknown) => e)
     expect(err).toBeInstanceOf(ProviderError)
@@ -82,7 +86,10 @@ describe("intelx", () => {
 
 describe("leakcheck", () => {
   it("reports a malformed key as a rejected key, not a bad request", async () => {
-    vi.stubGlobal("fetch", vi.fn().mockResolvedValue(json({ success: false, error: "Invalid X-API-Key" }, 400)))
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(json({ success: false, error: "Invalid X-API-Key" }, 400))
+    )
     const err = await leakcheck.lookup("a@x.com", "k").catch((e: unknown) => e)
     expect(err).toBeInstanceOf(ProviderError)
     expect((err as ProviderError).status).toBe(401)

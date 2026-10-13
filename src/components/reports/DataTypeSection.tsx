@@ -3,10 +3,7 @@ import type { DataTypeExposure } from "@/lib/reports/types"
 
 export function DataTypeSection({ rows }: { rows: DataTypeExposure[] }) {
   return (
-    <ReportSection
-      title="Exposed data types"
-      description="What kind of data appears in breach records"
-    >
+    <ReportSection title="Exposed data types" description="What kind of data appears in breach records">
       {rows.length === 0 ? (
         <p className="text-sm text-muted-foreground">No exposed data recorded.</p>
       ) : (
@@ -39,9 +36,7 @@ export function DataTypeSection({ rows }: { rows: DataTypeExposure[] }) {
                           style={{ width: `${t.percentage}%` }}
                         />
                       </div>
-                      <span className="text-xs tabular-nums text-muted-foreground">
-                        {t.percentage}%
-                      </span>
+                      <span className="text-xs tabular-nums text-muted-foreground">{t.percentage}%</span>
                     </div>
                   </td>
                 </tr>

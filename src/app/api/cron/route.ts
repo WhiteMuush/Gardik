@@ -17,8 +17,7 @@ function safeEqual(a: string, b: string): boolean {
 //   curl -X POST -H "authorization: Bearer $CRON_SECRET" https://host/api/cron
 export async function POST(req: Request) {
   const secret = process.env.CRON_SECRET
-  if (!secret)
-    return NextResponse.json({ error: "Scheduler not configured" }, { status: 503 })
+  if (!secret) return NextResponse.json({ error: "Scheduler not configured" }, { status: 503 })
 
   const provided = (req.headers.get("authorization") ?? "").match(/^Bearer\s+(\S.*)$/i)?.[1]
   if (!provided || !safeEqual(provided, secret))

@@ -10,12 +10,10 @@ export async function wouldOrphanAdmins(
   db: Db,
   companyId: string,
   userId: string,
-  newRoleId: string | null,
+  newRoleId: string | null
 ): Promise<boolean> {
   const roles = await db.role.findMany({ where: { companyId } })
-  const adminRoleIds = new Set(
-    roles.filter((r) => r.permissions.includes("roles:manage")).map((r) => r.id),
-  )
+  const adminRoleIds = new Set(roles.filter((r) => r.permissions.includes("roles:manage")).map((r) => r.id))
   const newRoleIsAdmin = newRoleId !== null && adminRoleIds.has(newRoleId)
   if (newRoleIsAdmin) return false // still an admin after the change
 

@@ -56,7 +56,9 @@ describe("untrusted values in Slack", () => {
 
   it("shows the breach name and data as inline code, never as formatted text", () => {
     const { text } = slackPayload(hostile)
-    expect(text).toContain("`&lt;!channel&gt; &lt;https://evil.example|Reset your password&gt; [Click](https://evil.example) 'x'`")
+    expect(text).toContain(
+      "`&lt;!channel&gt; &lt;https://evil.example|Reset your password&gt; [Click](https://evil.example) 'x'`"
+    )
     expect(text).toContain("Exposed data: `password, &lt;!here&gt;`")
   })
 })
@@ -66,7 +68,8 @@ describe("untrusted values in Teams", () => {
     const facts = teamsPayload(hostile).sections[0].facts
     expect(facts).toContainEqual({
       name: "Source",
-      value: "`&lt;!channel&gt; &lt;https://evil.example|Reset your password&gt; [Click](https://evil.example) 'x'`",
+      value:
+        "`&lt;!channel&gt; &lt;https://evil.example|Reset your password&gt; [Click](https://evil.example) 'x'`",
     })
     expect(facts).toContainEqual({ name: "Exposed data", value: "`password, &lt;!here&gt;`" })
   })

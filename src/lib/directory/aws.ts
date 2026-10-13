@@ -1,8 +1,4 @@
-import {
-  IdentitystoreClient,
-  ListUsersCommand,
-  DescribeUserCommand,
-} from "@aws-sdk/client-identitystore"
+import { IdentitystoreClient, ListUsersCommand, DescribeUserCommand } from "@aws-sdk/client-identitystore"
 import type { AWSDirectoryConfig, DirectoryUser, TestResult } from "./types"
 
 function getClient(config: AWSDirectoryConfig) {
@@ -30,10 +26,7 @@ export async function fetchAWSUsers(config: AWSDirectoryConfig): Promise<Directo
     )
 
     for (const u of res.Users ?? []) {
-      const email =
-        u.Emails?.find((e) => e.Primary)?.Value ??
-        u.Emails?.[0]?.Value ??
-        u.UserName
+      const email = u.Emails?.find((e) => e.Primary)?.Value ?? u.Emails?.[0]?.Value ?? u.UserName
       if (!email) continue
 
       users.push({

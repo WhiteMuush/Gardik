@@ -15,7 +15,9 @@ const alert: SiemAlert = {
 describe("toCef", () => {
   it("emits a CEF header with mapped severity and extension fields", () => {
     const line = toCef(alert)
-    expect(line.startsWith("CEF:0|Gardik|Gardik|1.0|breach-exposure|Jane Doe found in Acme breach|10|")).toBe(true)
+    expect(line.startsWith("CEF:0|Gardik|Gardik|1.0|breach-exposure|Jane Doe found in Acme breach|10|")).toBe(
+      true
+    )
     expect(line).toContain("suser=jane@acme.com")
     expect(line).toContain("cs1=Acme")
     expect(line).toContain("cs3=LOW")
@@ -47,7 +49,12 @@ describe("formatAlerts", () => {
 
   it("emits a json array for the json format", () => {
     const parsed = JSON.parse(formatAlerts([alert], "json"))
-    expect(parsed[0]).toMatchObject({ id: "al_1", confidence: "LOW", employee: "jane@acme.com", breach: "Acme" })
+    expect(parsed[0]).toMatchObject({
+      id: "al_1",
+      confidence: "LOW",
+      employee: "jane@acme.com",
+      breach: "Acme",
+    })
   })
 })
 

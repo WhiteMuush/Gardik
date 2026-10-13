@@ -8,7 +8,10 @@ const CEF_SEVERITY: Record<Severity, number> = { CRITICAL: 10, HIGH: 8, MEDIUM: 
 // cannot carry a line break, so one from a breach source becomes a space
 // rather than starting a forged event.
 function escapeHeader(value: string): string {
-  return value.replace(/\\/g, "\\\\").replace(/\|/g, "\\|").replace(/\r\n|\r|\n/g, " ")
+  return value
+    .replace(/\\/g, "\\\\")
+    .replace(/\|/g, "\\|")
+    .replace(/\r\n|\r|\n/g, " ")
 }
 
 // CEF extension values escape backslash, equals and line breaks.

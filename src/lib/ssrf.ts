@@ -24,7 +24,10 @@ function isPrivateV4(ip: string): boolean {
 }
 
 export function isPrivateAddress(ip: string): boolean {
-  const addr = ip.trim().toLowerCase().replace(/^\[|\]$/g, "")
+  const addr = ip
+    .trim()
+    .toLowerCase()
+    .replace(/^\[|\]$/g, "")
 
   // An IPv4-mapped v6 address reaches the same host as the v4 it wraps, so it
   // has to be unwrapped rather than treated as an opaque v6 string.

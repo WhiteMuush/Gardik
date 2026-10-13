@@ -283,7 +283,9 @@ export default async function DashboardPage() {
       defaultSize: { w: 3, h: 6 },
       minSize: { w: 2, h: 4 },
       defaultVisible: false,
-      content: <BreachSourceDonut data={buildBreachSources(gatedCatalog, sourceFor("breach-source-donut"))} />,
+      content: (
+        <BreachSourceDonut data={buildBreachSources(gatedCatalog, sourceFor("breach-source-donut"))} />
+      ),
     },
     {
       instanceId: "breach-timeline",

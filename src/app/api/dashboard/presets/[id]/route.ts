@@ -8,8 +8,10 @@ async function getPresetAndCheck(id: string, userId: string, canManageShared: bo
   const preset = await prisma.dashboardPreset.findUnique({ where: { id } })
   if (!preset) return { preset: null, error: "Not found", status: 404 }
   if (preset.companyId !== companyId) return { preset: null, error: "Forbidden", status: 403 }
-  if (preset.scope === "PERSONAL" && preset.userId !== userId) return { preset: null, error: "Forbidden", status: 403 }
-  if (preset.scope === "COMPANY" && !canManageShared) return { preset: null, error: "Only admins can modify company presets", status: 403 }
+  if (preset.scope === "PERSONAL" && preset.userId !== userId)
+    return { preset: null, error: "Forbidden", status: 403 }
+  if (preset.scope === "COMPANY" && !canManageShared)
+    return { preset: null, error: "Only admins can modify company presets", status: 403 }
   return { preset, error: null, status: 200 }
 }
 
@@ -20,10 +22,19 @@ export async function PUT(req: Request, { params }: { params: Promise<{ id: stri
   const { id } = await params
   const perms = await getUserPermissions(prisma, session.user.roleId ?? null)
   const canManageShared = authorize(perms, "dashboard:manage_shared")
-  const { preset, error, status } = await getPresetAndCheck(id, session.user.id, canManageShared, session.user.companyId)
+  const { preset, error, status } = await getPresetAndCheck(
+    id,
+    session.user.id,
+    canManageShared,
+    session.user.companyId
+  )
   if (error) return NextResponse.json({ error }, { status })
 
-  const body: { name?: string; layout?: SavedDashboardConfig["layout"]; widgets?: SavedDashboardConfig["widgets"] } = await req.json()
+  const body: {
+    name?: string
+    layout?: SavedDashboardConfig["layout"]
+    widgets?: SavedDashboardConfig["widgets"]
+  } = await req.json()
 
   const updated = await prisma.dashboardPreset.update({
     where: { id: preset!.id },
@@ -44,7 +55,12 @@ export async function DELETE(_req: Request, { params }: { params: Promise<{ id: 
   const { id } = await params
   const perms = await getUserPermissions(prisma, session.user.roleId ?? null)
   const canManageShared = authorize(perms, "dashboard:manage_shared")
-  const { preset, error, status } = await getPresetAndCheck(id, session.user.id, canManageShared, session.user.companyId)
+  const { preset, error, status } = await getPresetAndCheck(
+    id,
+    session.user.id,
+    canManageShared,
+    session.user.companyId
+  )
   if (error) return NextResponse.json({ error }, { status })
 
   await prisma.$transaction([

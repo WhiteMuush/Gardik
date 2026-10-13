@@ -5,12 +5,14 @@
 **Know what leaked. Without leaking more.**
 
 <!-- CI -->
+
 [![CI](https://github.com/WhiteMuush/Gardik/actions/workflows/ci.yml/badge.svg)](https://github.com/WhiteMuush/Gardik/actions/workflows/ci.yml)
 [![Security](https://github.com/WhiteMuush/Gardik/actions/workflows/security.yml/badge.svg)](https://github.com/WhiteMuush/Gardik/actions/workflows/security.yml)
 [![Compliance](https://github.com/WhiteMuush/Gardik/actions/workflows/compliance.yml/badge.svg)](https://github.com/WhiteMuush/Gardik/actions/workflows/compliance.yml)
 [![CodeQL](https://github.com/WhiteMuush/Gardik/actions/workflows/codeql.yml/badge.svg)](https://github.com/WhiteMuush/Gardik/actions/workflows/codeql.yml)
 
 <!-- Stack -->
+
 ![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js&logoColor=white)
 ![React](https://img.shields.io/badge/React-19-61dafb?logo=react&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript&logoColor=white)
@@ -32,7 +34,9 @@ exposed and how badly.
 
 ## Status
 
-v1.2.3. The production readiness checklist is tracked in
+The current version and its changes are on the
+[Releases page](https://github.com/WhiteMuush/Gardik/releases). The
+production readiness checklist is tracked in
 [docs/production-readiness.md](docs/production-readiness.md).
 
 This project was previously named DataShield. See
@@ -55,14 +59,14 @@ when you browse older commits.
 Your directory stays the source of truth, so you never retype your headcount.
 Six connectors, in [`src/lib/directory`](src/lib/directory):
 
-| Connector | Source |
-| --- | --- |
-| Microsoft Entra ID (Azure AD) | `azure.ts` |
-| Google Workspace | `google.ts` |
-| LDAP / Active Directory | `ldap.ts` |
-| Okta | `okta.ts` |
-| AWS IAM Identity Center | `aws.ts` |
-| Inbound SCIM 2.0 | `scim-auth.ts` |
+| Connector                     | Source         |
+| ----------------------------- | -------------- |
+| Microsoft Entra ID (Azure AD) | `azure.ts`     |
+| Google Workspace              | `google.ts`    |
+| LDAP / Active Directory       | `ldap.ts`      |
+| Okta                          | `okta.ts`      |
+| AWS IAM Identity Center       | `aws.ts`       |
+| Inbound SCIM 2.0              | `scim-auth.ts` |
 
 Connector credentials are encrypted at rest. See
 [docs/encryption.md](docs/encryption.md).
@@ -120,7 +124,7 @@ docker compose up   # app on http://localhost:3000, database seeded
 
 ### Running on the host
 
-Prerequisites: Node.js 22 (pinned via `.nvmrc` and `engines`) and Docker for the
+Prerequisites: Node.js 26 (pinned via `.nvmrc` and `engines`) and Docker for the
 local database, or your own PostgreSQL instance. The `make` targets select the
 pinned Node version automatically via nvm, so they work even when your shell's
 default Node differs.
@@ -131,7 +135,7 @@ make run     # start the dev server
 ```
 
 `make doctor` diagnoses the setup (toolchain, env, Docker, DB, Prisma) and can
-auto-fix common issues, including creating `.env.local` and switching to Node 22.
+auto-fix common issues, including creating `.env.local` and switching to Node 26.
 The underlying npm steps (`npm install`, `npm run db:init`, `npm run dev`) still
 work if you prefer them.
 
@@ -148,7 +152,7 @@ fresh machine is ready right after `git pull`.
 
 On the host, the Prisma client is regenerated automatically on `npm install`
 (`postinstall`). The database is **not** migrated automatically: `npm run dev`
-only *warns* if migrations are pending (it never applies them on boot). After
+only _warns_ if migrations are pending (it never applies them on boot). After
 pulling changes that add a migration, apply it explicitly before running the app:
 
 ```bash
@@ -246,6 +250,8 @@ reporting: [SECURITY.md](.github/SECURITY.md).
 Contributions are welcome.
 
 > **Contribution rules are enforced automatically by Git hooks (`.githooks/`) and CI (`.github/workflows/compliance.yml`). Non-compliant PR titles are rejected: invalid conventional commit format, AI attribution trailers, secrets, non-English text, frozen-dependency major bumps, and forbidden code patterns. The hooks activate on `npm install`.**
+
+Before every push, the hook runs `npm run check`: every quality gate (lint, format, types, unit tests with a coverage floor, dead code, licenses, audit), the same command CI runs. Run it yourself any time, or `make check` to add the production build.
 
 Please also read [CONTRIBUTING.md](.github/CONTRIBUTING.md) and [CODE_OF_CONDUCT.md](.github/CODE_OF_CONDUCT.md).
 

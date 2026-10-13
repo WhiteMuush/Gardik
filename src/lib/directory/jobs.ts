@@ -12,9 +12,7 @@ export function backoffMs(attempts: number): number {
 // Enqueue a sync for a connection, unless one is already pending or running.
 // The find-then-create has a small race window; a duplicate at worst causes a
 // redundant re-sync, which is harmless (upserts are idempotent).
-export async function enqueueSyncJob(
-  connectionId: string
-): Promise<{ id: string; status: SyncJobStatus }> {
+export async function enqueueSyncJob(connectionId: string): Promise<{ id: string; status: SyncJobStatus }> {
   const existing = await prisma.syncJob.findFirst({
     where: { connectionId, status: { in: ["PENDING", "RUNNING"] } },
     select: { id: true, status: true },

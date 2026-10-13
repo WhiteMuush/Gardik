@@ -80,8 +80,7 @@ export function Sidebar({ openAlerts, visible }: SidebarProps) {
 
       <nav className="flex-1 space-y-1 px-2 py-3">
         {items.map(({ href, label, icon: Icon }) => {
-          const active =
-            pathname === href || pathname.startsWith(href + "/")
+          const active = pathname === href || pathname.startsWith(href + "/")
           return (
             <Link key={href} href={href} className="group/item relative flex">
               <span
@@ -106,10 +105,7 @@ export function Sidebar({ openAlerts, visible }: SidebarProps) {
       </nav>
 
       <div className="relative space-y-1 px-2 py-3">
-        <div
-          aria-hidden
-          className="absolute inset-x-2 top-0 z-30 border-t border-sidebar-border"
-        />
+        <div aria-hidden className="absolute inset-x-2 top-0 z-30 border-t border-sidebar-border" />
         {/* The account, not a section of the product: the caller's own sign-in
             methods, and whatever else about them comes later. */}
         <Link href="/security" className="group/item relative flex">

@@ -1,6 +1,6 @@
 # Gardik developer tasks. Thin wrapper over the npm scripts and
 # scripts/db-init.sh so a fresh clone can be brought up with a single command.
-# Requires Node 22 and, for the local database, a container engine: Docker or
+# Requires Node 26 and, for the local database, a container engine: Docker or
 # Podman (auto-detected by scripts/container.sh, no config needed).
 
 .DEFAULT_GOAL := help
@@ -93,10 +93,8 @@ e2e: ## Run the Playwright smoke test (app must be reachable on :3000)
 	$(N) npm run test:e2e
 
 .PHONY: check
-check: ## Run the same gates CI enforces (lint, types, schema, build)
-	$(N) npm run lint -- --max-warnings 0
-	$(N) npx tsc --noEmit
-	$(N) npx prisma validate
+check: ## Run every quality gate (npm run check), then the production build
+	$(N) npm run check
 	$(N) npm run build
 
 .PHONY: doctor

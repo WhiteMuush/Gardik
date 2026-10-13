@@ -16,10 +16,7 @@ import type {
 
 const BATCH_SIZE = 25 // caps write concurrency so the connection pool is not exhausted
 
-async function getUsersForConnection(
-  type: string,
-  encryptedConfig: string
-): Promise<DirectoryUser[]> {
+async function getUsersForConnection(type: string, encryptedConfig: string): Promise<DirectoryUser[]> {
   switch (type) {
     case "AZURE_AD":
       return fetchAzureUsers(decryptConfig<AzureADConfig>(encryptedConfig))

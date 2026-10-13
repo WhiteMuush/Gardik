@@ -11,7 +11,11 @@ const RETRY: RemedyStep = { text: "Click Scan unchecked to check only the employ
 export type RemedyPlace = "elsewhere" | "source"
 
 // Matches the reasons written by failureReason() in ./errors.
-export function remedyFor(provider: ApiProvider, reason: string | null, place: RemedyPlace = "elsewhere"): Remedy {
+export function remedyFor(
+  provider: ApiProvider,
+  reason: string | null,
+  place: RemedyPlace = "elsewhere"
+): Remedy {
   const settings = (elsewhere: string, here: string): RemedyStep =>
     place === "source" ? { text: here } : { text: elsewhere, href: "/data-api", linkLabel: "Open Data API" }
   const meta = providerMeta(provider)
@@ -30,9 +34,17 @@ export function remedyFor(provider: ApiProvider, reason: string | null, place: R
       title: `${name} rejected the API key`,
       explanation: `${name} answered that the key is invalid, revoked, or not allowed to use this feed. Gardik stopped calling it for the rest of the scan.`,
       steps: [
-        { text: `Check on your ${name} account that the subscription is active and includes this feed.`, ...account },
-        { text: "Copy the key again in full: a missing character or a trailing space is enough to break it." },
-        settings("Paste it on the Data API page and click Replace.", "Paste it in Configuration below and click Replace."),
+        {
+          text: `Check on your ${name} account that the subscription is active and includes this feed.`,
+          ...account,
+        },
+        {
+          text: "Copy the key again in full: a missing character or a trailing space is enough to break it.",
+        },
+        settings(
+          "Paste it on the Data API page and click Replace.",
+          "Paste it in Configuration below and click Replace."
+        ),
         RETRY,
       ],
     }
@@ -82,7 +94,9 @@ export function remedyFor(provider: ApiProvider, reason: string | null, place: R
     explanation: `Gardik did not recognize the answer (${reason}).`,
     steps: [
       RETRY,
-      { text: "If it fails again, check the Gardik server logs and report the error with the message above." },
+      {
+        text: "If it fails again, check the Gardik server logs and report the error with the message above.",
+      },
     ],
   }
 }

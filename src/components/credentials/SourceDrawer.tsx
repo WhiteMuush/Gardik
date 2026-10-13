@@ -67,7 +67,13 @@ export function SourceDrawer({ source, isAdmin, canScan, onClose }: Props) {
         )}
       >
         {source && (
-          <SourceDetails key={source.meta.id} source={source} isAdmin={isAdmin} canScan={canScan} onClose={onClose} />
+          <SourceDetails
+            key={source.meta.id}
+            source={source}
+            isAdmin={isAdmin}
+            canScan={canScan}
+            onClose={onClose}
+          />
         )}
       </aside>
     </>
@@ -118,7 +124,11 @@ function SourceDetails({ source, isAdmin, canScan, onClose }: Props & { source: 
 
   async function removeKey() {
     if (!source.credential) return
-    const ok = await call(`/api/credentials/${source.credential.id}`, { method: "DELETE" }, "Could not remove the key")
+    const ok = await call(
+      `/api/credentials/${source.credential.id}`,
+      { method: "DELETE" },
+      "Could not remove the key"
+    )
     if (ok) setConfirmRemove(false)
   }
 
@@ -292,7 +302,12 @@ function SourceDetails({ source, isAdmin, canScan, onClose }: Props & { source: 
                   <Button size="sm" variant="destructive" onClick={removeKey} disabled={pending}>
                     Remove
                   </Button>
-                  <Button size="sm" variant="ghost" onClick={() => setConfirmRemove(false)} disabled={pending}>
+                  <Button
+                    size="sm"
+                    variant="ghost"
+                    onClick={() => setConfirmRemove(false)}
+                    disabled={pending}
+                  >
                     Cancel
                   </Button>
                 </div>

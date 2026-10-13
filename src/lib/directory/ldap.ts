@@ -8,9 +8,7 @@ async function getLdapts(): Promise<any> {
   try {
     return await import("ldapts")
   } catch {
-    throw new Error(
-      'LDAP connector requires the "ldapts" package. Run: npm install ldapts'
-    )
+    throw new Error('LDAP connector requires the "ldapts" package. Run: npm install ldapts')
   }
 }
 

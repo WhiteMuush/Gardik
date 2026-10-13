@@ -44,12 +44,10 @@ export const dehashed: BreachProvider = {
       bySource.set(name, fields)
     }
 
-    return [...bySource].map(
-      ([name, fields]): Finding => ({
-        name,
-        breachDate: new Date(0),
-        dataTypes: [...fields],
-      })
-    )
+    return [...bySource].map(([name, fields]): Finding => ({
+      name,
+      breachDate: new Date(0),
+      dataTypes: [...fields],
+    }))
   },
 }

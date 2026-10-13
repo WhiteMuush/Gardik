@@ -8,10 +8,7 @@ export function ExposureSection({ data, deltas }: { data: ExposureSummary; delta
   const riskVariant = getRiskLevel(data.riskScore).variant
 
   return (
-    <ReportSection
-      title="Company exposure"
-      description="Overall breach exposure across the workforce"
-    >
+    <ReportSection title="Company exposure" description="Overall breach exposure across the workforce">
       <div className="grid grid-cols-1 gap-4 @lg:grid-cols-2 @4xl:grid-cols-4">
         <StatCard label="Employees" value={data.totalEmployees} icon={Users} />
         <StatCard

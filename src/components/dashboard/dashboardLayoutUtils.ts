@@ -93,7 +93,12 @@ export function findSwapTarget<T extends SwapItem>(dragged: SwapItem, pool: T[])
 // at its new geometry); every other widget is rebuilt from `pre` (the pre-resize
 // snapshot) so the engine's own push never leaks in. The caller runs a vertical
 // compaction on the result to close any gaps the reflow leaves.
-export function squeezeResize<T extends SwapItem>(items: SwapItem[], id: string, cols: number, pre: T[]): T[] {
+export function squeezeResize<T extends SwapItem>(
+  items: SwapItem[],
+  id: string,
+  cols: number,
+  pre: T[]
+): T[] {
   const next = items.find((l) => l.i === id)
   const map = new Map(pre.map((l) => [l.i, { ...l }]))
   const resized = map.get(id)
@@ -140,10 +145,17 @@ export function squeezeResize<T extends SwapItem>(items: SwapItem[], id: string,
       if (onRight) {
         const x = pRight
         const w = Math.min(l.w, cols - x)
-        if (w >= minW) { l.x = x; l.w = w; continue }
+        if (w >= minW) {
+          l.x = x
+          l.w = w
+          continue
+        }
       } else {
         const w = p.x - l.x
-        if (w >= minW) { l.w = w; continue }
+        if (w >= minW) {
+          l.w = w
+          continue
+        }
       }
       l.y = pBottom
       queue.push({ id: l.i, top: l.y, bottom: l.y + l.h })

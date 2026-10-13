@@ -1,8 +1,6 @@
 "use client"
 
-import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-} from "recharts"
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
 import { useWidgetTitle } from "@/hooks/useWidgetTitle"
 
 type DeptData = {
@@ -16,9 +14,9 @@ type DeptData = {
 
 const SEV_COLORS = {
   critical: "oklch(var(--severity-critical))",
-  high:     "oklch(var(--severity-high))",
-  medium:   "oklch(var(--severity-medium))",
-  low:      "oklch(var(--severity-low))",
+  high: "oklch(var(--severity-high))",
+  medium: "oklch(var(--severity-medium))",
+  low: "oklch(var(--severity-low))",
 }
 
 export function AlertsByDepartment({ data }: { data: DeptData[] }) {
@@ -39,11 +37,7 @@ export function AlertsByDepartment({ data }: { data: DeptData[] }) {
       ) : (
         <div className="flex-1 min-h-0">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart
-              data={data}
-              layout="vertical"
-              margin={{ top: 0, right: 10, bottom: 0, left: 4 }}
-            >
+            <BarChart data={data} layout="vertical" margin={{ top: 0, right: 10, bottom: 0, left: 4 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="oklch(var(--border))" horizontal={false} />
               <XAxis
                 type="number"
@@ -70,9 +64,9 @@ export function AlertsByDepartment({ data }: { data: DeptData[] }) {
                 }}
               />
               <Bar dataKey="critical" name="Critical" stackId="a" fill={SEV_COLORS.critical} />
-              <Bar dataKey="high"     name="High"     stackId="a" fill={SEV_COLORS.high} />
-              <Bar dataKey="medium"   name="Medium"   stackId="a" fill={SEV_COLORS.medium} />
-              <Bar dataKey="low"      name="Low"      stackId="a" fill={SEV_COLORS.low} radius={[0, 4, 4, 0]} />
+              <Bar dataKey="high" name="High" stackId="a" fill={SEV_COLORS.high} />
+              <Bar dataKey="medium" name="Medium" stackId="a" fill={SEV_COLORS.medium} />
+              <Bar dataKey="low" name="Low" stackId="a" fill={SEV_COLORS.low} radius={[0, 4, 4, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>

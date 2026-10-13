@@ -14,7 +14,9 @@ describe("no-escalation subset rule", () => {
   })
 
   it("reports exactly which permissions exceed the actor", () => {
-    expect(excessPermissions(actor, ["alerts:read", "roles:manage", "users:manage"]))
-      .toEqual(["roles:manage", "users:manage"])
+    expect(excessPermissions(actor, ["alerts:read", "roles:manage", "users:manage"])).toEqual([
+      "roles:manage",
+      "users:manage",
+    ])
   })
 })

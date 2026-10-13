@@ -18,18 +18,18 @@ type Employee = {
 
 const VARIANT_STYLES: Record<string, string> = {
   critical: "text-severity-critical bg-severity-critical/10",
-  high:     "text-severity-high bg-severity-high/10",
-  medium:   "text-severity-medium bg-severity-medium/10",
-  ok:       "text-severity-ok bg-severity-ok/10",
-  default:  "text-muted-foreground bg-muted",
+  high: "text-severity-high bg-severity-high/10",
+  medium: "text-severity-medium bg-severity-medium/10",
+  ok: "text-severity-ok bg-severity-ok/10",
+  default: "text-muted-foreground bg-muted",
 }
 
 const SCORE_BAR: Record<string, string> = {
   critical: "bg-severity-critical",
-  high:     "bg-severity-high",
-  medium:   "bg-severity-medium",
-  ok:       "bg-severity-ok",
-  default:  "bg-muted-foreground",
+  high: "bg-severity-high",
+  medium: "bg-severity-medium",
+  ok: "bg-severity-ok",
+  default: "bg-muted-foreground",
 }
 
 export function TopRiskyEmployees({ data }: { data: Employee[] }) {
@@ -64,14 +64,20 @@ export function TopRiskyEmployees({ data }: { data: Employee[] }) {
                   variant: emp.riskVariant,
                 })
               }
-              className="flex w-full items-center gap-3 rounded-lg border border-border bg-background px-3 py-2.5 text-left transition-colors hover:border-primary/40 hover:bg-muted">
+              className="flex w-full items-center gap-3 rounded-lg border border-border bg-background px-3 py-2.5 text-left transition-colors hover:border-primary/40 hover:bg-muted"
+            >
               <span className="shrink-0 w-5 text-xs font-medium text-muted-foreground tabular-nums">
                 {i + 1}
               </span>
               <div className="flex-1 min-w-0">
                 <div className="flex items-center justify-between gap-2 mb-1">
                   <p className="text-sm font-medium text-foreground truncate">{emp.name}</p>
-                  <span className={cn("shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase", VARIANT_STYLES[emp.riskVariant])}>
+                  <span
+                    className={cn(
+                      "shrink-0 rounded-full px-2 py-0.5 text-[10px] font-bold uppercase",
+                      VARIANT_STYLES[emp.riskVariant]
+                    )}
+                  >
                     {emp.riskLevel}
                   </span>
                 </div>

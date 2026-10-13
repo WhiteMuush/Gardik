@@ -24,10 +24,7 @@ function parseUserNameFilter(filter: string | null): string | undefined {
   return filter?.match(/userName\s+eq\s+"([^"]+)"/i)?.[1]?.toLowerCase()
 }
 
-export async function POST(
-  req: Request,
-  { params }: { params: Promise<{ connectionId: string }> }
-) {
+export async function POST(req: Request, { params }: { params: Promise<{ connectionId: string }> }) {
   const { connectionId } = await params
   if (!(await checkScimRateLimit(connectionId)))
     return NextResponse.json({ status: 429, detail: "Too many requests" }, { status: 429 })
@@ -60,16 +57,10 @@ export async function POST(
     data: { status: "ACTIVE", lastSyncAt: new Date() },
   })
 
-  return NextResponse.json(
-    { schemas: [SCHEMA_USER], id: employee.id, userName: email },
-    { status: 201 }
-  )
+  return NextResponse.json({ schemas: [SCHEMA_USER], id: employee.id, userName: email }, { status: 201 })
 }
 
-export async function GET(
-  req: Request,
-  { params }: { params: Promise<{ connectionId: string }> }
-) {
+export async function GET(req: Request, { params }: { params: Promise<{ connectionId: string }> }) {
   const { connectionId } = await params
   if (!(await checkScimRateLimit(connectionId)))
     return NextResponse.json({ status: 429, detail: "Too many requests" }, { status: 429 })

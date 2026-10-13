@@ -82,8 +82,7 @@ const OBLIGATIONS = [
   ],
   [
     "CC-BY-4.0",
-    "Attribution required when the covered material is redistributed. This file " +
-      "is that attribution.",
+    "Attribution required when the covered material is redistributed. This file " + "is that attribution.",
   ],
 ]
 
@@ -158,9 +157,7 @@ function render(packages) {
 const packages = runtimePackages()
 
 const unknown = packages.filter((p) => !p.license)
-const forbidden = packages.filter(
-  (p) => p.license && !identifiers(p.license).every((id) => ALLOWED.has(id))
-)
+const forbidden = packages.filter((p) => p.license && !identifiers(p.license).every((id) => ALLOWED.has(id)))
 
 if (unknown.length > 0 || forbidden.length > 0) {
   for (const pkg of unknown) {

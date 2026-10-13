@@ -1,12 +1,7 @@
 import { describe, it, expect } from "vitest"
 import { readdirSync, readFileSync, statSync } from "node:fs"
 import { join } from "node:path"
-import {
-  PAGE_PERMISSIONS,
-  requiredPermissionForPage,
-  visiblePages,
-  landingPath,
-} from "./page-permissions"
+import { PAGE_PERMISSIONS, requiredPermissionForPage, visiblePages, landingPath } from "./page-permissions"
 import { isPermission, PERMISSIONS } from "./permissions"
 
 const DASHBOARD_DIR = join(process.cwd(), "src/app/(dashboard)")
@@ -30,10 +25,7 @@ function pageRoutes(dir: string, base = ""): string[] {
 describe("page->permission coverage", () => {
   it("every dashboard page declares the permission that opens it", () => {
     const missing = pageRoutes(DASHBOARD_DIR).filter((route) => !(route in PAGE_PERMISSIONS))
-    expect(
-      missing,
-      `Dashboard pages with no entry in PAGE_PERMISSIONS: ${missing.join(", ")}`
-    ).toEqual([])
+    expect(missing, `Dashboard pages with no entry in PAGE_PERMISSIONS: ${missing.join(", ")}`).toEqual([])
   })
 
   it("declares nothing for a page that no longer exists", () => {
@@ -88,9 +80,7 @@ describe("requiredPermissionForPage", () => {
 })
 
 describe("visiblePages", () => {
-  const AUTH_ONLY = Object.keys(PAGE_PERMISSIONS).filter(
-    (path) => PAGE_PERMISSIONS[path] === "AUTH_ONLY"
-  )
+  const AUTH_ONLY = Object.keys(PAGE_PERMISSIONS).filter((path) => PAGE_PERMISSIONS[path] === "AUTH_ONLY")
   // Compared sorted: the contract is which paths come back, not the order
   // PAGE_PERMISSIONS happens to declare them in.
   const sorted = (paths: string[]) => [...paths].sort()
@@ -100,9 +90,7 @@ describe("visiblePages", () => {
   })
 
   it("adds the page a held permission opens", () => {
-    expect(sorted(visiblePages(new Set(["employees:read"])))).toEqual(
-      sorted(["/employees", ...AUTH_ONLY])
-    )
+    expect(sorted(visiblePages(new Set(["employees:read"])))).toEqual(sorted(["/employees", ...AUTH_ONLY]))
   })
 
   it("ignores a permission that guards no page", () => {
@@ -110,9 +98,7 @@ describe("visiblePages", () => {
   })
 
   it("gives every declared page to a role holding every permission", () => {
-    expect(sorted(visiblePages(new Set(PERMISSIONS)))).toEqual(
-      sorted(Object.keys(PAGE_PERMISSIONS))
-    )
+    expect(sorted(visiblePages(new Set(PERMISSIONS)))).toEqual(sorted(Object.keys(PAGE_PERMISSIONS)))
   })
 })
 

@@ -16,10 +16,10 @@ const SETTINGS_EXTRA_ROWS = 2
 type CardKey = "employees" | "alerts" | "detections" | "risk"
 
 const CARDS: { key: CardKey; label: string }[] = [
-  { key: "employees",  label: "Employees at risk" },
-  { key: "alerts",     label: "Active alerts" },
+  { key: "employees", label: "Employees at risk" },
+  { key: "alerts", label: "Active alerts" },
   { key: "detections", label: "New detections" },
-  { key: "risk",       label: "Risk score" },
+  { key: "risk", label: "Risk score" },
 ]
 
 type WidgetConfig = { visibleCards: CardKey[] }
@@ -32,12 +32,7 @@ interface StatsRowProps {
   riskScore: number
 }
 
-export function StatsRow({
-  compromisedEmployees,
-  openAlerts,
-  recentBreaches,
-  riskScore,
-}: StatsRowProps) {
+export function StatsRow({ compromisedEmployees, openAlerts, recentBreaches, riskScore }: StatsRowProps) {
   const editing = useDashboardEditing()
   const [config, setConfig] = useWidgetConfig<WidgetConfig>("stats-row", {
     visibleCards: ["employees", "alerts", "detections", "risk"],
@@ -58,9 +53,7 @@ export function StatsRow({
     const visible = config.visibleCards.includes(key)
     if (visible && config.visibleCards.length === 1) return
     setConfig({
-      visibleCards: visible
-        ? config.visibleCards.filter((k) => k !== key)
-        : [...config.visibleCards, key],
+      visibleCards: visible ? config.visibleCards.filter((k) => k !== key) : [...config.visibleCards, key],
     })
   }
 
@@ -96,17 +89,21 @@ export function StatsRow({
 
   return (
     <div className="space-y-3">
-      {editing && <div className="flex justify-end">
-        <button
-          onClick={() => setShowSettings((s) => !s)}
-          className={cn(
-            "flex size-7 items-center justify-center rounded-md transition-colors",
-            showSettings ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted hover:text-foreground"
-          )}
-        >
-          {showSettings ? <Check className="size-4" /> : <Settings2 className="size-4" />}
-        </button>
-      </div>}
+      {editing && (
+        <div className="flex justify-end">
+          <button
+            onClick={() => setShowSettings((s) => !s)}
+            className={cn(
+              "flex size-7 items-center justify-center rounded-md transition-colors",
+              showSettings
+                ? "bg-primary/10 text-primary"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+            )}
+          >
+            {showSettings ? <Check className="size-4" /> : <Settings2 className="size-4" />}
+          </button>
+        </div>
+      )}
 
       {showSettings && (
         <div className="rounded-lg border border-border bg-card p-4">
@@ -135,10 +132,7 @@ export function StatsRow({
         </div>
       )}
 
-      <div
-        className="grid gap-4"
-        style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}
-      >
+      <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}>
         {visible.map(({ key, ...card }) => (
           <StatCard key={key} {...card} />
         ))}

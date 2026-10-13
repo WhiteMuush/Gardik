@@ -64,9 +64,7 @@ export function EmployeeDrawer({ employee, onClose }: EmployeeDrawerProps) {
               </div>
               <div className="bg-card p-4">
                 <p className="text-xs text-muted-foreground">Exposed types</p>
-                <p className="mt-1 text-2xl font-bold text-foreground">
-                  {employee.exposedDataTypes.length}
-                </p>
+                <p className="mt-1 text-2xl font-bold text-foreground">{employee.exposedDataTypes.length}</p>
               </div>
             </div>
 
@@ -141,14 +139,18 @@ export function EmployeeDrawer({ employee, onClose }: EmployeeDrawerProps) {
                           <Shield className="size-3" />
                           Breach date:{" "}
                           {new Date(record.breachDate).toLocaleDateString("en-US", {
-                            year: "numeric", month: "short", day: "numeric",
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
                           })}
                         </div>
                         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                           <Calendar className="size-3" />
                           Detected:{" "}
                           {new Date(record.detectedAt).toLocaleDateString("en-US", {
-                            year: "numeric", month: "short", day: "numeric",
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
                           })}
                         </div>
                       </div>

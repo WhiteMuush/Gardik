@@ -73,7 +73,11 @@ export async function getDashboardData(companyId: string) {
     prisma.breach.findMany({
       where: { records: { some: { employee: { companyId } } } },
       select: {
-        id: true, name: true, source: true, breachDate: true, dataTypes: true,
+        id: true,
+        name: true,
+        source: true,
+        breachDate: true,
+        dataTypes: true,
         records: { where: { employee: { companyId } }, select: { employeeId: true, sources: true } },
       },
       orderBy: { breachDate: "desc" },
@@ -87,7 +91,10 @@ export async function getDashboardData(companyId: string) {
       orderBy: { createdAt: "desc" },
       take: 30,
       select: {
-        id: true, severity: true, status: true, createdAt: true,
+        id: true,
+        severity: true,
+        status: true,
+        createdAt: true,
         employee: { select: { firstName: true, lastName: true, department: true } },
         breach: { select: { name: true } },
       },
@@ -95,7 +102,11 @@ export async function getDashboardData(companyId: string) {
     prisma.employee.findMany({
       where: { companyId, breachRecords: { some: {} } },
       select: {
-        id: true, firstName: true, lastName: true, department: true, email: true,
+        id: true,
+        firstName: true,
+        lastName: true,
+        department: true,
+        email: true,
         breachRecords: { select: { detectedAt: true, exposedData: true, artifacts: true } },
         alerts: { where: { status: "OPEN" }, select: { severity: true } },
       },
@@ -112,7 +123,9 @@ export async function getDashboardData(companyId: string) {
       orderBy: { createdAt: "desc" },
       take: 30,
       select: {
-        id: true, severity: true, createdAt: true,
+        id: true,
+        severity: true,
+        createdAt: true,
         employee: { select: { firstName: true, lastName: true, department: true } },
         breach: { select: { name: true } },
       },
@@ -320,7 +333,10 @@ export function buildDataTypes(records: BreachRecordRaw[], provider?: ApiProvide
 }
 
 function buildAlertsByMonth(alerts: { createdAt: Date; severity: string }[]) {
-  const months: Record<string, { month: string; critical: number; high: number; medium: number; low: number }> = {}
+  const months: Record<
+    string,
+    { month: string; critical: number; high: number; medium: number; low: number }
+  > = {}
 
   for (let i = 11; i >= 0; i--) {
     const d = new Date()
@@ -342,7 +358,10 @@ function buildAlertsByMonth(alerts: { createdAt: Date; severity: string }[]) {
 function buildAlertsByDepartment(
   alerts: { severity: string; employee: { department: string | null } | null }[]
 ) {
-  const depts: Record<string, { critical: number; high: number; medium: number; low: number; total: number }> = {}
+  const depts: Record<
+    string,
+    { critical: number; high: number; medium: number; low: number; total: number }
+  > = {}
 
   alerts.forEach(({ severity, employee }) => {
     const dept = employee?.department ?? "Unknown"

@@ -16,9 +16,7 @@ function deriveKey(raw: string): Buffer {
 function getKeys(): Buffer[] {
   const current = process.env.DIRECTORY_ENCRYPTION_KEY
   if (!current || current.length < 32) {
-    throw new Error(
-      "DIRECTORY_ENCRYPTION_KEY missing or too short (32 characters minimum)."
-    )
+    throw new Error("DIRECTORY_ENCRYPTION_KEY missing or too short (32 characters minimum).")
   }
   const keys = [deriveKey(current)]
   const previous = process.env.DIRECTORY_ENCRYPTION_KEY_PREVIOUS
@@ -29,10 +27,7 @@ function getKeys(): Buffer[] {
 export function encryptConfig(data: object): string {
   const iv = randomBytes(IV_LENGTH)
   const cipher = createCipheriv("aes-256-gcm", getKeys()[0], iv)
-  const encrypted = Buffer.concat([
-    cipher.update(JSON.stringify(data), "utf8"),
-    cipher.final(),
-  ])
+  const encrypted = Buffer.concat([cipher.update(JSON.stringify(data), "utf8"), cipher.final()])
   const tag = cipher.getAuthTag()
   return Buffer.concat([iv, tag, encrypted]).toString("base64")
 }
@@ -51,10 +46,7 @@ export function decryptConfig<T>(encoded: string): T {
     try {
       const decipher = createDecipheriv("aes-256-gcm", key, iv)
       decipher.setAuthTag(tag)
-      const decrypted = Buffer.concat([
-        decipher.update(encrypted),
-        decipher.final(),
-      ]).toString("utf8")
+      const decrypted = Buffer.concat([decipher.update(encrypted), decipher.final()]).toString("utf8")
       return JSON.parse(decrypted) as T
     } catch (e) {
       lastError = e

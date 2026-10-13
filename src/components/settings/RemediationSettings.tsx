@@ -28,7 +28,12 @@ export function RemediationSettings({ enabled: initialEnabled, isAdmin, recent }
 
   async function toggle() {
     const next = !enabled
-    if (next && !window.confirm("Enable live remediation? This lets admins force password resets and revoke sessions directly on your connected directory."))
+    if (
+      next &&
+      !window.confirm(
+        "Enable live remediation? This lets admins force password resets and revoke sessions directly on your connected directory."
+      )
+    )
       return
     setBusy(true)
     const res = await fetch("/api/company", {
@@ -47,9 +52,9 @@ export function RemediationSettings({ enabled: initialEnabled, isAdmin, recent }
         <h3 className="text-sm font-semibold text-foreground">Automated remediation</h3>
       </div>
       <p className="mb-4 text-xs text-muted-foreground">
-        When enabled, admins can revoke sessions and force password resets on exposed accounts
-        directly through the connected directory (Entra, Google, Okta). Actions are irreversible and
-        run against your live IdP.
+        When enabled, admins can revoke sessions and force password resets on exposed accounts directly
+        through the connected directory (Entra, Google, Okta). Actions are irreversible and run against your
+        live IdP.
       </p>
 
       <div className="flex items-center justify-between rounded-lg border border-border px-3 py-2">
@@ -72,7 +77,10 @@ export function RemediationSettings({ enabled: initialEnabled, isAdmin, recent }
           <p className="mb-2 text-xs font-medium text-muted-foreground">Recent actions</p>
           <div className="space-y-1">
             {recent.map((r, i) => (
-              <div key={i} className="flex items-center gap-2 rounded-md border border-border px-3 py-1.5 text-xs">
+              <div
+                key={i}
+                className="flex items-center gap-2 rounded-md border border-border px-3 py-1.5 text-xs"
+              >
                 <span className={r.status === "SUCCESS" ? "text-severity-ok" : "text-severity-critical"}>
                   {r.status === "SUCCESS" ? "OK" : "FAIL"}
                 </span>

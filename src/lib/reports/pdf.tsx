@@ -44,7 +44,12 @@ const were = (n: number) => (n === 1 ? "was" : "were")
 function longDate(iso: string): string {
   const d = new Date(iso)
   if (Number.isNaN(d.getTime())) return iso
-  return new Intl.DateTimeFormat("en-GB", { day: "numeric", month: "long", year: "numeric", timeZone: "UTC" }).format(d)
+  return new Intl.DateTimeFormat("en-GB", {
+    day: "numeric",
+    month: "long",
+    year: "numeric",
+    timeZone: "UTC",
+  }).format(d)
 }
 const stamp = (iso: string) => new Date(iso).toUTCString()
 
@@ -67,8 +72,25 @@ const s = StyleSheet.create({
   coverFootRule: { borderTopWidth: 2, borderTopColor: C.brand, width: 60, marginBottom: 10 },
 
   // Content pages
-  page: { paddingTop: 60, paddingBottom: 54, paddingHorizontal: 48, fontSize: 10, color: C.body, fontFamily: "Helvetica" },
-  runHead: { position: "absolute", top: 24, left: 48, right: 48, flexDirection: "row", justifyContent: "space-between", borderBottomWidth: 1, borderBottomColor: C.border, paddingBottom: 6 },
+  page: {
+    paddingTop: 60,
+    paddingBottom: 54,
+    paddingHorizontal: 48,
+    fontSize: 10,
+    color: C.body,
+    fontFamily: "Helvetica",
+  },
+  runHead: {
+    position: "absolute",
+    top: 24,
+    left: 48,
+    right: 48,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    borderBottomWidth: 1,
+    borderBottomColor: C.border,
+    paddingBottom: 6,
+  },
   runHeadOrg: { fontSize: 8.5, fontFamily: "Helvetica-Bold", color: C.brandDark },
   runHeadDoc: { fontSize: 8.5, color: C.muted },
 
@@ -85,19 +107,45 @@ const s = StyleSheet.create({
   // Findings
   finding: { flexDirection: "row", alignItems: "flex-start", marginBottom: 5 },
   findingText: { flex: 1, fontSize: 10, lineHeight: 1.4 },
-  badge: { fontSize: 6.5, fontFamily: "Helvetica-Bold", color: C.white, borderRadius: 2, paddingVertical: 1.5, paddingHorizontal: 5, marginRight: 8, marginTop: 1, textTransform: "uppercase" },
+  badge: {
+    fontSize: 6.5,
+    fontFamily: "Helvetica-Bold",
+    color: C.white,
+    borderRadius: 2,
+    paddingVertical: 1.5,
+    paddingHorizontal: 5,
+    marginRight: 8,
+    marginTop: 1,
+    textTransform: "uppercase",
+  },
 
   // Tables
   table: { borderWidth: 1, borderColor: C.border, borderRadius: 4 },
   headRow: { flexDirection: "row", backgroundColor: C.head },
   row: { flexDirection: "row", borderTopWidth: 1, borderTopColor: C.border },
   rowZebra: { backgroundColor: C.zebra },
-  headCell: { paddingVertical: 5, paddingHorizontal: 6, fontFamily: "Helvetica-Bold", fontSize: 8, color: C.brandDark },
+  headCell: {
+    paddingVertical: 5,
+    paddingHorizontal: 6,
+    fontFamily: "Helvetica-Bold",
+    fontSize: 8,
+    color: C.brandDark,
+  },
   cell: { paddingVertical: 5, paddingHorizontal: 6, fontSize: 8.5, color: C.body },
   empty: { fontSize: 9, color: C.faint },
 
   // Footer
-  footer: { position: "absolute", bottom: 26, left: 48, right: 48, flexDirection: "row", justifyContent: "space-between", borderTopWidth: 1, borderTopColor: C.border, paddingTop: 6 },
+  footer: {
+    position: "absolute",
+    bottom: 26,
+    left: 48,
+    right: 48,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    borderTopWidth: 1,
+    borderTopColor: C.border,
+    paddingTop: 6,
+  },
   footText: { fontSize: 7.5, color: C.faint },
 })
 
@@ -196,9 +244,13 @@ function ExecutiveOverview({ d }: { d: ReportData }) {
       <Text style={s.para}>
         <Text style={s.strong}>{`${num(e.exposedEmployees)} of ${num(e.totalEmployees)} `}</Text>
         {`monitored ${plural(e.totalEmployees, "employee", "employees")} (${e.exposureRate}%) ${were(e.exposedEmployees)} found in at least one known data breach. A total of `}
-        <Text style={s.strong}>{`${num(e.totalBreaches)} ${plural(e.totalBreaches, "breach", "breaches")} `}</Text>
+        <Text
+          style={s.strong}
+        >{`${num(e.totalBreaches)} ${plural(e.totalBreaches, "breach", "breaches")} `}</Text>
         {`${were(e.totalBreaches)} recorded against the organisation. The overall risk score stands at `}
-        <Text style={[s.strong, { color: riskColor(e.riskScore) }]}>{`${e.riskScore} out of 100 (${e.riskLabel})`}</Text>
+        <Text
+          style={[s.strong, { color: riskColor(e.riskScore) }]}
+        >{`${e.riskScore} out of 100 (${e.riskLabel})`}</Text>
         {"."}
       </Text>
       <Text style={s.para}>
@@ -218,7 +270,9 @@ function KeyFindings({ findings }: { findings: Finding[] }) {
       <SectionHead title="Key findings" lead="Automated assessment of the current exposure posture." />
       {findings.map((f, i) => (
         <View key={i} style={s.finding}>
-          <Text style={[s.badge, { backgroundColor: SEVERITY[f.severity] }]}>{f.severity === "ok" ? "OK" : f.severity}</Text>
+          <Text style={[s.badge, { backgroundColor: SEVERITY[f.severity] }]}>
+            {f.severity === "ok" ? "OK" : f.severity}
+          </Text>
           <Text style={s.findingText}>{f.message}</Text>
         </View>
       ))}
@@ -238,14 +292,23 @@ function PeriodActivity({ d }: { d: ReportData }) {
   const dl = d.deltas
   return (
     <View style={s.section} wrap={false}>
-      <SectionHead title="What changed this period" lead={`Activity across the ${dl.windowLabel} reporting window.`} />
+      <SectionHead
+        title="What changed this period"
+        lead={`Activity across the ${dl.windowLabel} reporting window.`}
+      />
       <Text style={s.para}>
         {`During this window, `}
-        <Text style={s.strong}>{`${num(dl.newlyExposed.current)} ${plural(dl.newlyExposed.current, "employee", "employees")}`}</Text>
+        <Text
+          style={s.strong}
+        >{`${num(dl.newlyExposed.current)} ${plural(dl.newlyExposed.current, "employee", "employees")}`}</Text>
         {` ${were(dl.newlyExposed.current)} newly exposed (${changePhrase(dl.newlyExposed.current, dl.newlyExposed.previous)}), `}
-        <Text style={s.strong}>{`${num(dl.newBreaches.current)} new ${plural(dl.newBreaches.current, "breach", "breaches")}`}</Text>
+        <Text
+          style={s.strong}
+        >{`${num(dl.newBreaches.current)} new ${plural(dl.newBreaches.current, "breach", "breaches")}`}</Text>
         {` ${were(dl.newBreaches.current)} detected (${changePhrase(dl.newBreaches.current, dl.newBreaches.previous)}), and `}
-        <Text style={s.strong}>{`${num(dl.newAlerts.current)} ${plural(dl.newAlerts.current, "alert", "alerts")}`}</Text>
+        <Text
+          style={s.strong}
+        >{`${num(dl.newAlerts.current)} ${plural(dl.newAlerts.current, "alert", "alerts")}`}</Text>
         {` ${were(dl.newAlerts.current)} raised (${changePhrase(dl.newAlerts.current, dl.newAlerts.previous)}).`}
       </Text>
       <Table
@@ -277,7 +340,9 @@ function NotableIncidents({ d }: { d: ReportData }) {
           { label: "Date", flex: 3 },
           { label: "Affected", flex: 2, align: "right" },
         ]}
-        rows={breaches.slice(0, 12).map((b) => [b.name, b.source, longDate(b.breachDate), num(b.affectedEmployees)])}
+        rows={breaches
+          .slice(0, 12)
+          .map((b) => [b.name, b.source, longDate(b.breachDate), num(b.affectedEmployees)])}
       />
     </View>
   )
@@ -316,7 +381,10 @@ function detailBlock(section: ReportSection, d: ReportData): Block | null {
     case "exposure":
       return {
         title: "Exposure detail",
-        cols: [{ label: "Metric", flex: 3 }, { label: "Value", flex: 2, align: "right" }],
+        cols: [
+          { label: "Metric", flex: 3 },
+          { label: "Value", flex: 2, align: "right" },
+        ],
         rows: [
           ["Total employees", num(d.exposure.totalEmployees)],
           ["Exposed employees", num(d.exposure.exposedEmployees)],
@@ -330,7 +398,10 @@ function detailBlock(section: ReportSection, d: ReportData): Block | null {
       const c = d.compliance
       return {
         title: "Compliance",
-        cols: [{ label: "Metric", flex: 3 }, { label: "Value", flex: 2, align: "right" }],
+        cols: [
+          { label: "Metric", flex: 3 },
+          { label: "Value", flex: 2, align: "right" },
+        ],
         rows: [
           ["Monitored employees", num(c.monitoredEmployees)],
           ["Open alerts", num(c.alertsOpen)],
@@ -346,18 +417,25 @@ function detailBlock(section: ReportSection, d: ReportData): Block | null {
       return {
         title: "Exposed data types",
         lead: "Categories of leaked records, most exposed first.",
-        cols: [{ label: "Data type", flex: 5 }, { label: "Records", flex: 2, align: "right" }, { label: "Share", flex: 2, align: "right" }],
-        rows: d.dataTypes.slice(0, 15).map((t) => [
-          t.critical ? `${t.label} (sensitive)` : t.label,
-          num(t.count),
-          `${t.percentage}%`,
-        ]),
+        cols: [
+          { label: "Data type", flex: 5 },
+          { label: "Records", flex: 2, align: "right" },
+          { label: "Share", flex: 2, align: "right" },
+        ],
+        rows: d.dataTypes
+          .slice(0, 15)
+          .map((t) => [t.critical ? `${t.label} (sensitive)` : t.label, num(t.count), `${t.percentage}%`]),
       }
     case "departments":
       return {
         title: "Departments",
         lead: "Exposure concentration across the organisation.",
-        cols: [{ label: "Department", flex: 5 }, { label: "Staff", flex: 2, align: "right" }, { label: "Exposed", flex: 2, align: "right" }, { label: "Rate", flex: 2, align: "right" }],
+        cols: [
+          { label: "Department", flex: 5 },
+          { label: "Staff", flex: 2, align: "right" },
+          { label: "Exposed", flex: 2, align: "right" },
+          { label: "Rate", flex: 2, align: "right" },
+        ],
         rows: d.departments.map((r) => [r.department, num(r.total), num(r.exposed), `${r.exposureRate}%`]),
       }
     case "employees":
@@ -385,7 +463,11 @@ function detailBlock(section: ReportSection, d: ReportData): Block | null {
     case "trends":
       return {
         title: "Monthly trends",
-        cols: [{ label: "Month", flex: 4 }, { label: "Breaches", flex: 3, align: "right" }, { label: "Alerts", flex: 3, align: "right" }],
+        cols: [
+          { label: "Month", flex: 4 },
+          { label: "Breaches", flex: 3, align: "right" },
+          { label: "Alerts", flex: 3, align: "right" },
+        ],
         rows: d.trends.monthly.map((m) => [m.month, num(m.breaches), num(m.alerts)]),
       }
     default:
@@ -407,7 +489,14 @@ function DetailSection({ section, d }: { section: ReportSection; d: ReportData }
 }
 
 // - Document -
-const SECTION_ORDER: ReportSection[] = ["exposure", "compliance", "datatypes", "departments", "employees", "trends"]
+const SECTION_ORDER: ReportSection[] = [
+  "exposure",
+  "compliance",
+  "datatypes",
+  "departments",
+  "employees",
+  "trends",
+]
 
 // Render a professional, multi-page PDF report: a dedicated cover page naming the
 // organisation, followed by information-led content (executive narrative, key
@@ -440,7 +529,10 @@ export function reportPdf(sections: ReportSection[], data: ReportData): Promise<
 
         <View style={s.footer} fixed>
           <Text style={s.footText}>{`${data.org.name} - confidential`}</Text>
-          <Text style={s.footText} render={({ pageNumber, totalPages }) => `Page ${pageNumber} of ${totalPages}`} />
+          <Text
+            style={s.footText}
+            render={({ pageNumber, totalPages }) => `Page ${pageNumber} of ${totalPages}`}
+          />
         </View>
       </Page>
     </Document>

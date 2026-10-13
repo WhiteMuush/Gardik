@@ -1,4 +1,4 @@
-import type { NextConfig } from "next";
+import type { NextConfig } from "next"
 
 // Baseline security headers applied to every response. A strict CSP needs
 // per-request nonces in the App Router and is tracked separately; these cover
@@ -13,7 +13,7 @@ const securityHeaders = [
     key: "Strict-Transport-Security",
     value: "max-age=63072000; includeSubDomains; preload",
   },
-];
+]
 
 const nextConfig: NextConfig = {
   // Emit a self-contained server bundle (.next/standalone) so the production
@@ -32,13 +32,11 @@ const nextConfig: NextConfig = {
   // rejects, so the tree would go dirty on each dev start. We own that file.
   agentRules: false,
   async headers() {
-    return [{ source: "/:path*", headers: securityHeaders }];
+    return [{ source: "/:path*", headers: securityHeaders }]
   },
   async redirects() {
-    return [
-      { source: "/settings", destination: "/data-sources", permanent: true },
-    ];
+    return [{ source: "/settings", destination: "/data-sources", permanent: true }]
   },
-};
+}
 
-export default nextConfig;
+export default nextConfig

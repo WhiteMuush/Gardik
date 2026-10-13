@@ -44,7 +44,11 @@ export function summarizeCoverage(
 export async function getScanCoverage(companyId: string): Promise<SourceCoverage[]> {
   const [totalEmployees, credentials] = await Promise.all([
     prisma.employee.count({ where: { companyId } }),
-    prisma.apiCredential.findMany({ where: { companyId }, select: { provider: true }, orderBy: { provider: "asc" } }),
+    prisma.apiCredential.findMany({
+      where: { companyId },
+      select: { provider: true },
+      orderBy: { provider: "asc" },
+    }),
   ])
   const providers = credentials.map((c) => c.provider)
   if (!providers.length) return []

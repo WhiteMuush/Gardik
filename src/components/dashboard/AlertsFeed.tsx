@@ -17,26 +17,28 @@ type Alert = {
 
 const SEVERITY_BORDER: Record<string, string> = {
   CRITICAL: "border-l-severity-critical",
-  HIGH:     "border-l-severity-high",
-  MEDIUM:   "border-l-severity-medium",
-  LOW:      "border-l-severity-low",
+  HIGH: "border-l-severity-high",
+  MEDIUM: "border-l-severity-medium",
+  LOW: "border-l-severity-low",
 }
 
 const SEVERITY_DOT: Record<string, string> = {
   CRITICAL: "bg-severity-critical",
-  HIGH:     "bg-severity-high",
-  MEDIUM:   "bg-severity-medium",
-  LOW:      "bg-severity-low",
+  HIGH: "bg-severity-high",
+  MEDIUM: "bg-severity-medium",
+  LOW: "bg-severity-low",
 }
 
 const STATUS_STYLES: Record<string, string> = {
-  OPEN:         "bg-severity-critical/10 text-severity-critical",
+  OPEN: "bg-severity-critical/10 text-severity-critical",
   ACKNOWLEDGED: "bg-severity-medium/10 text-severity-medium",
-  RESOLVED:     "bg-severity-ok/10 text-severity-ok",
+  RESOLVED: "bg-severity-ok/10 text-severity-ok",
 }
 
 const STATUS_LABELS: Record<string, string> = {
-  OPEN: "Open", ACKNOWLEDGED: "Ack.", RESOLVED: "Resolved",
+  OPEN: "Open",
+  ACKNOWLEDGED: "Ack.",
+  RESOLVED: "Resolved",
 }
 
 export function AlertsFeed({ data }: { data: Alert[] }) {
@@ -61,7 +63,9 @@ export function AlertsFeed({ data }: { data: Alert[] }) {
             onClick={() => setFilter(f)}
             className={cn(
               "rounded-md px-2.5 py-1 text-xs font-medium transition-colors",
-              filter === f ? "bg-primary text-primary-foreground" : "bg-muted text-muted-foreground hover:text-foreground"
+              filter === f
+                ? "bg-primary text-primary-foreground"
+                : "bg-muted text-muted-foreground hover:text-foreground"
             )}
           >
             {f === "ALL" ? "All" : f === "OPEN" ? "Open" : "Resolved"}
@@ -95,16 +99,21 @@ export function AlertsFeed({ data }: { data: Alert[] }) {
             >
               <div className={cn("size-1.5 shrink-0 rounded-full", SEVERITY_DOT[alert.severity])} />
               <div className="flex-1 min-w-0">
-                <p className="text-xs font-medium text-foreground truncate">
-                  {alert.employeeName ?? "-"}
-                </p>
+                <p className="text-xs font-medium text-foreground truncate">{alert.employeeName ?? "-"}</p>
                 <p className="text-[11px] text-muted-foreground truncate">
                   {alert.breachName ?? alert.severity}
-                  {alert.department && <span className="text-muted-foreground/60"> - {alert.department}</span>}
+                  {alert.department && (
+                    <span className="text-muted-foreground/60"> - {alert.department}</span>
+                  )}
                 </p>
               </div>
               <div className="shrink-0 flex flex-col items-end gap-1">
-                <span className={cn("rounded-full px-2 py-0.5 text-[10px] font-medium", STATUS_STYLES[alert.status])}>
+                <span
+                  className={cn(
+                    "rounded-full px-2 py-0.5 text-[10px] font-medium",
+                    STATUS_STYLES[alert.status]
+                  )}
+                >
                   {STATUS_LABELS[alert.status]}
                 </span>
                 <span className="text-[10px] text-muted-foreground tabular-nums">

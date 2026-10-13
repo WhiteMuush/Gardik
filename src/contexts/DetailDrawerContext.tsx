@@ -1,6 +1,14 @@
 "use client"
 
-import { createContext, useCallback, useContext, useEffect, useState, useSyncExternalStore, type ReactNode } from "react"
+import {
+  createContext,
+  useCallback,
+  useContext,
+  useEffect,
+  useState,
+  useSyncExternalStore,
+  type ReactNode,
+} from "react"
 import { createPortal } from "react-dom"
 import { X, Loader2 } from "lucide-react"
 import { cn } from "@/lib/utils"
@@ -60,7 +68,11 @@ export function DetailDrawerProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(false)
   // false on the server and during hydration, true once on the client: the
   // portal target (document.body) only exists there.
-  const mounted = useSyncExternalStore(subscribeNever, () => true, () => false)
+  const mounted = useSyncExternalStore(
+    subscribeNever,
+    () => true,
+    () => false
+  )
 
   const open = useCallback((p: DetailPayload) => {
     setLoading(false)
@@ -106,10 +118,7 @@ export function DetailDrawerProvider({ children }: { children: ReactNode }) {
         createPortal(
           <div
             aria-hidden={!payload}
-            className={cn(
-              "fixed inset-0 z-[60]",
-              payload ? "pointer-events-auto" : "pointer-events-none"
-            )}
+            className={cn("fixed inset-0 z-[60]", payload ? "pointer-events-auto" : "pointer-events-none")}
           >
             <div
               onClick={close}
@@ -135,10 +144,14 @@ export function DetailDrawerProvider({ children }: { children: ReactNode }) {
                           <span className={cn("size-2 shrink-0 rounded-full", dotColor[payload.variant])} />
                         )}
                         <h2 className="truncate text-sm font-semibold text-foreground">{payload.title}</h2>
-                        {loading && <Loader2 className="size-3.5 shrink-0 animate-spin text-muted-foreground" />}
+                        {loading && (
+                          <Loader2 className="size-3.5 shrink-0 animate-spin text-muted-foreground" />
+                        )}
                       </div>
                       {payload.subtitle && (
-                        <p className="mt-0.5 truncate text-[11px] text-muted-foreground">{payload.subtitle}</p>
+                        <p className="mt-0.5 truncate text-[11px] text-muted-foreground">
+                          {payload.subtitle}
+                        </p>
                       )}
                     </div>
                     <button

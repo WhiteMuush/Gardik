@@ -3,10 +3,7 @@ import { requirePermission } from "@/lib/apiAuth"
 import { prisma } from "@/lib/prisma"
 import { parseRateLimit } from "@/lib/credentials/service"
 
-export async function PATCH(
-  req: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { session, error } = await requirePermission("api_credentials:manage")
   if (error) return error
 
@@ -33,10 +30,7 @@ export async function PATCH(
   return NextResponse.json(updated)
 }
 
-export async function DELETE(
-  _req: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { session, error } = await requirePermission("api_credentials:manage")
   if (error) return error
 

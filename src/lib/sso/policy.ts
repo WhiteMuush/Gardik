@@ -17,9 +17,6 @@ export function requiredPermissionFor(path: string): Permission | null {
 // The exemption is the anti-lockout valve: an expired IdP certificate must not
 // lock a whole company out of its own security product. The full emergency
 // access design (time-boxed, ops-held secret, alerting) stays RBAC Plan 4.
-export function deniesLocalSignIn(
-  company: { ssoMandatory: boolean },
-  user: { ssoExempt: boolean }
-): boolean {
+export function deniesLocalSignIn(company: { ssoMandatory: boolean }, user: { ssoExempt: boolean }): boolean {
   return company.ssoMandatory && !user.ssoExempt
 }

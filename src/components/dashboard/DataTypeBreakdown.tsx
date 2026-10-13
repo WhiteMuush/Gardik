@@ -29,9 +29,7 @@ export function DataTypeBreakdown({ data }: DataTypeBreakdownProps) {
     const already = config.trackedTypes.includes(key)
     setConfig({
       ...config,
-      trackedTypes: already
-        ? config.trackedTypes.filter((t) => t !== key)
-        : [...config.trackedTypes, key],
+      trackedTypes: already ? config.trackedTypes.filter((t) => t !== key) : [...config.trackedTypes, key],
     })
   }
 
@@ -46,9 +44,7 @@ export function DataTypeBreakdown({ data }: DataTypeBreakdownProps) {
   const totalCount = data.reduce((sum, d) => sum + d.count, 0)
 
   const merged = [
-    ...config.trackedTypes.map((type) =>
-      breachMap.get(type) ?? { type, count: 0, percentage: 0 }
-    ),
+    ...config.trackedTypes.map((type) => breachMap.get(type) ?? { type, count: 0, percentage: 0 }),
     ...data.filter((d) => !config.trackedTypes.includes(d.type)),
   ].map((item) => ({
     ...item,
@@ -64,15 +60,19 @@ export function DataTypeBreakdown({ data }: DataTypeBreakdownProps) {
         <div>
           <h2 className="text-sm font-medium text-foreground">{title}</h2>
         </div>
-        {editing && <button
-          onClick={() => setShowSettings((s) => !s)}
-          className={cn(
-            "flex size-7 items-center justify-center rounded-md transition-colors",
-            showSettings ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted hover:text-foreground"
-          )}
-        >
-          {showSettings ? <Check className="size-4" /> : <Settings2 className="size-4" />}
-        </button>}
+        {editing && (
+          <button
+            onClick={() => setShowSettings((s) => !s)}
+            className={cn(
+              "flex size-7 items-center justify-center rounded-md transition-colors",
+              showSettings
+                ? "bg-primary/10 text-primary"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground"
+            )}
+          >
+            {showSettings ? <Check className="size-4" /> : <Settings2 className="size-4" />}
+          </button>
+        )}
       </div>
 
       {showSettings && (
@@ -109,9 +109,15 @@ export function DataTypeBreakdown({ data }: DataTypeBreakdownProps) {
             {customTypes.length > 0 && (
               <div className="mb-2 flex flex-wrap gap-1.5">
                 {customTypes.map((type) => (
-                  <span key={type} className="flex items-center gap-1 rounded-md bg-muted px-2 py-0.5 text-xs text-foreground">
+                  <span
+                    key={type}
+                    className="flex items-center gap-1 rounded-md bg-muted px-2 py-0.5 text-xs text-foreground"
+                  >
                     {type.replace(/_/g, " ")}
-                    <button onClick={() => toggle(type)} className="text-muted-foreground hover:text-foreground">
+                    <button
+                      onClick={() => toggle(type)}
+                      className="text-muted-foreground hover:text-foreground"
+                    >
                       <X className="size-3" />
                     </button>
                   </span>
@@ -161,7 +167,12 @@ export function DataTypeBreakdown({ data }: DataTypeBreakdownProps) {
               className="block w-full text-left"
             >
               <div className="mb-1.5 flex items-center justify-between">
-                <span className={cn("text-sm capitalize", count === 0 ? "text-muted-foreground" : "text-foreground")}>
+                <span
+                  className={cn(
+                    "text-sm capitalize",
+                    count === 0 ? "text-muted-foreground" : "text-foreground"
+                  )}
+                >
                   {type.replace(/_/g, " ")}
                 </span>
                 <span className="text-xs tabular-nums text-muted-foreground">
@@ -170,7 +181,10 @@ export function DataTypeBreakdown({ data }: DataTypeBreakdownProps) {
               </div>
               <div className="h-1.5 overflow-hidden rounded-full bg-muted">
                 <div
-                  className={cn("h-full rounded-full transition-all duration-500", count === 0 ? "bg-border" : "bg-primary")}
+                  className={cn(
+                    "h-full rounded-full transition-all duration-500",
+                    count === 0 ? "bg-border" : "bg-primary"
+                  )}
                   style={{ width: count === 0 ? "100%" : `${percentage}%` }}
                 />
               </div>

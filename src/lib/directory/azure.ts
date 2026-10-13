@@ -1,19 +1,16 @@
 import type { AzureADConfig, DirectoryUser, TestResult } from "./types"
 
 async function getToken(config: AzureADConfig): Promise<string> {
-  const res = await fetch(
-    `https://login.microsoftonline.com/${config.tenantId}/oauth2/v2.0/token`,
-    {
-      method: "POST",
-      headers: { "Content-Type": "application/x-www-form-urlencoded" },
-      body: new URLSearchParams({
-        grant_type: "client_credentials",
-        client_id: config.clientId,
-        client_secret: config.clientSecret,
-        scope: "https://graph.microsoft.com/.default",
-      }),
-    }
-  )
+  const res = await fetch(`https://login.microsoftonline.com/${config.tenantId}/oauth2/v2.0/token`, {
+    method: "POST",
+    headers: { "Content-Type": "application/x-www-form-urlencoded" },
+    body: new URLSearchParams({
+      grant_type: "client_credentials",
+      client_id: config.clientId,
+      client_secret: config.clientSecret,
+      scope: "https://graph.microsoft.com/.default",
+    }),
+  })
   if (!res.ok) {
     const err = await res.json().catch(() => ({}))
     throw new Error(err.error_description ?? `Azure auth failed (${res.status})`)

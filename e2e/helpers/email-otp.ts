@@ -31,7 +31,7 @@ export async function latestEmailOtp(): Promise<string> {
 export async function trySendEmailOtp(
   request: APIRequestContext,
   email: string,
-  password: string,
+  password: string
 ): Promise<number> {
   const headers = { origin: ORIGIN }
 

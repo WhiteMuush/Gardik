@@ -3,10 +3,7 @@ import { requirePermission } from "@/lib/apiAuth"
 import { prisma } from "@/lib/prisma"
 import { AlertStatus } from "@prisma/client"
 
-export async function PATCH(
-  req: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { session, error } = await requirePermission("alerts:status")
   if (error) return error
 

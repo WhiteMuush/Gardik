@@ -42,7 +42,7 @@ type Saved = { layout: RglItem[]; hidden: string[] }
 // avoiding a collapse-to-default then regrow flicker.
 function buildDefaultLayout(
   sections: ReportSectionEntry[],
-  heightFor?: (id: string) => number | undefined,
+  heightFor?: (id: string) => number | undefined
 ): RglItem[] {
   let x = 0
   let y = 0
@@ -85,7 +85,15 @@ function readSaved(sections: ReportSectionEntry[]): Saved {
       const known = saved.layout.filter((l) => ids.has(l.i))
       const missing = sections
         .filter((s) => !known.some((l) => l.i === s.id))
-        .map((s) => ({ i: s.id, x: 0, y: Infinity, w: s.defaultSpan ?? 12, h: DEFAULT_H, minW: MIN_W, minH: MIN_H }))
+        .map((s) => ({
+          i: s.id,
+          x: 0,
+          y: Infinity,
+          w: s.defaultSpan ?? 12,
+          h: DEFAULT_H,
+          minW: MIN_W,
+          minH: MIN_H,
+        }))
       layout = [...known, ...missing]
     }
     return { layout, hidden: (saved.hidden ?? []).filter((id) => ids.has(id)) }
@@ -204,16 +212,15 @@ export function ReportCanvas({ sections }: { sections: ReportSectionEntry[] }) {
   // Controlled layout for the grid; only visible sections are rendered, so a
   // section with no saved position flows into free space (y: Infinity).
   const rglLayout = visibleSections.map((s) => {
-    const base =
-      layout.find((l) => l.i === s.id) ?? {
-        i: s.id,
-        x: 0,
-        y: Infinity,
-        w: s.defaultSpan ?? 12,
-        h: DEFAULT_H,
-        minW: MIN_W,
-        minH: MIN_H,
-      }
+    const base = layout.find((l) => l.i === s.id) ?? {
+      i: s.id,
+      x: 0,
+      y: Infinity,
+      w: s.defaultSpan ?? 12,
+      h: DEFAULT_H,
+      minW: MIN_W,
+      minH: MIN_H,
+    }
     // Content-fit height floor blocks shrinking below what the content needs,
     // while still allowing manual grow. Width has no reliable intrinsic min
     // (content reflows), so it stays freely resizable down to MIN_W.
@@ -293,7 +300,11 @@ export function ReportCanvas({ sections }: { sections: ReportSectionEntry[] }) {
                         onClick={() => toggleHidden(s.id)}
                         className="flex w-full items-center gap-2 rounded-sm px-2.5 py-1.5 text-xs hover:bg-muted"
                       >
-                        {isHidden ? <EyeOff className="size-3.5 text-muted-foreground" /> : <Eye className="size-3.5 text-primary" />}
+                        {isHidden ? (
+                          <EyeOff className="size-3.5 text-muted-foreground" />
+                        ) : (
+                          <Eye className="size-3.5 text-primary" />
+                        )}
                         <span className={cn(isHidden && "text-muted-foreground")}>{s.title}</span>
                       </button>
                     )
@@ -326,7 +337,10 @@ export function ReportCanvas({ sections }: { sections: ReportSectionEntry[] }) {
       {/* Grid. react-grid-layout (same engine as the dashboard): drag is bounded
           to the container, vertical compaction backfills holes, and tiles keep
           their real size. Drag is limited to the explicit handle. */}
-      <div ref={containerRef} className={cn("no-print", editing && "select-none [&_.react-resizable-handle]:block")}>
+      <div
+        ref={containerRef}
+        className={cn("no-print", editing && "select-none [&_.react-resizable-handle]:block")}
+      >
         {containerW > 0 && (
           <ResponsiveGridLayout
             className="layout"
@@ -345,7 +359,10 @@ export function ReportCanvas({ sections }: { sections: ReportSectionEntry[] }) {
             {visibleSections.map((s) => (
               <div
                 key={s.id}
-                className={cn("relative h-full overflow-hidden", editing && "rounded-xl outline outline-2 outline-primary/30")}
+                className={cn(
+                  "relative h-full overflow-hidden",
+                  editing && "rounded-xl outline outline-2 outline-primary/30"
+                )}
               >
                 {editing && (
                   <button

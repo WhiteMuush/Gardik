@@ -23,12 +23,10 @@ export const snusbase: BreachProvider = {
     if (!res.ok) throw errorFromResponse("Snusbase", res)
 
     const data = (await res.json()) as SnusbaseResponse
-    return Object.entries(data.results ?? {}).map(
-      ([name, rows]): Finding => ({
-        name,
-        breachDate: new Date(0),
-        dataTypes: EXPOSABLE.filter((f) => rows.some((row) => row[f])),
-      })
-    )
+    return Object.entries(data.results ?? {}).map(([name, rows]): Finding => ({
+      name,
+      breachDate: new Date(0),
+      dataTypes: EXPOSABLE.filter((f) => rows.some((row) => row[f])),
+    }))
   },
 }

@@ -131,9 +131,7 @@ describe("link -> permission coverage", () => {
 
   it("every declared API link names the permission its route actually enforces", () => {
     for (const [file, permission] of Object.entries(API_LINK_PERMISSIONS)) {
-      const enforced = apiLinks(readFileSync(join(SRC, file), "utf8")).map((path) =>
-        GATED_API.get(path)
-      )
+      const enforced = apiLinks(readFileSync(join(SRC, file), "utf8")).map((path) => GATED_API.get(path))
       expect(enforced, file).toContain(permission)
     }
   })

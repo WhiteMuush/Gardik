@@ -338,9 +338,7 @@ export async function runScan(
   let failedChecks = 0
   let scanned = 0
   for (const employee of employees) {
-    const checked = new Set(
-      employee.scanChecks.filter((c) => c.status === "CHECKED").map((c) => c.provider)
-    )
+    const checked = new Set(employee.scanChecks.filter((c) => c.status === "CHECKED").map((c) => c.provider))
     const due = options.onlyIncomplete ? paced.filter((p) => !checked.has(p.provider.id)) : paced
     if (!due.length) continue
     scanned++
@@ -382,7 +380,9 @@ export async function runScan(
         continue
       }
       for (const finding of outcome.findings) {
-        if (await handleFinding(companyId, employee, finding, provider.source, provider.id, byCanonical, notify)) {
+        if (
+          await handleFinding(companyId, employee, finding, provider.source, provider.id, byCanonical, notify)
+        ) {
           newRecords++
         }
       }

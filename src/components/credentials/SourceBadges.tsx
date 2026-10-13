@@ -16,9 +16,19 @@ export function SourceAvatar({
   const box = size === "md" ? "size-10" : "size-12"
   if (logo) {
     return (
-      <span aria-hidden className={cn("shrink-0 overflow-hidden rounded-lg border border-border/60 bg-white", box)}>
+      <span
+        aria-hidden
+        className={cn("shrink-0 overflow-hidden rounded-lg border border-border/60 bg-white", box)}
+      >
         {/* unoptimized: the image ships without sharp, and these are small static icons */}
-        <Image src={logo} alt="" width={48} height={48} unoptimized className="size-full object-contain p-1" />
+        <Image
+          src={logo}
+          alt=""
+          width={48}
+          height={48}
+          unoptimized
+          className="size-full object-contain p-1"
+        />
       </span>
     )
   }

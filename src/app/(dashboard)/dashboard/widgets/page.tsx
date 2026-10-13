@@ -57,8 +57,7 @@ export default async function WidgetsPage() {
   // page and does not imply dashboard:read.
   if (presets.length === 0) redirect("/")
 
-  const activePreset =
-    presets.find((p) => p.id === user?.activePresetId) ?? presets[0]
+  const activePreset = presets.find((p) => p.id === user?.activePresetId) ?? presets[0]
 
   const perms = await permissionsForRole(session!.user.roleId ?? null)
   const visible = visiblePages(perms)
@@ -76,35 +75,32 @@ export default async function WidgetsPage() {
   }
 
   const widgetPreviews: Record<string, ReactNode> = {
-    "stats-row":             <StatsRow {...data} />,
-    "trend-chart":           <TrendChart data={data.trendData} />,
-    "data-type-breakdown":   <DataTypeBreakdown data={data.dataTypes} />,
-    "breach-sources":        <BreachSourcesList data={data.breachSources} />,
-    "top-risky-employees":   <TopRiskyEmployees data={data.topRiskyEmployees} />,
-    "department-risk":       <DepartmentRisk data={data.departmentRisk} />,
-    "alerts-feed":           <AlertsFeed data={data.recentAlerts} />,
-    "severity-donut":        <SeverityDonut data={data.alertSeverity} />,
-    "risk-gauge":            <RiskGauge riskScore={data.riskScore} />,
-    "alert-status-breakdown":<AlertStatusBreakdown data={data.alertStatusCounts} />,
-    "employee-exposure":     <EmployeeExposure data={data.employeeExposureLevels} totalEmployees={data.totalEmployees} />,
-    "alerts-by-month":       <AlertsByMonth data={data.alertsByMonth} />,
-    "alert-velocity":        <AlertVelocity data={data.alertVelocityData} />,
-    "critical-alerts":       <CriticalAlertsList data={data.urgentAlerts} />,
-    "alerts-by-department":  <AlertsByDepartment data={data.alertsByDepartment} />,
-    "breach-source-donut":   <BreachSourceDonut data={data.breachSources} />,
-    "breach-timeline":       <BreachTimeline data={data.breachSources} />,
-    "top-breaches":          <TopBreaches data={data.breachSources} />,
-    "data-type-radar":       <DataTypeRadar data={data.dataTypes} />,
+    "stats-row": <StatsRow {...data} />,
+    "trend-chart": <TrendChart data={data.trendData} />,
+    "data-type-breakdown": <DataTypeBreakdown data={data.dataTypes} />,
+    "breach-sources": <BreachSourcesList data={data.breachSources} />,
+    "top-risky-employees": <TopRiskyEmployees data={data.topRiskyEmployees} />,
+    "department-risk": <DepartmentRisk data={data.departmentRisk} />,
+    "alerts-feed": <AlertsFeed data={data.recentAlerts} />,
+    "severity-donut": <SeverityDonut data={data.alertSeverity} />,
+    "risk-gauge": <RiskGauge riskScore={data.riskScore} />,
+    "alert-status-breakdown": <AlertStatusBreakdown data={data.alertStatusCounts} />,
+    "employee-exposure": (
+      <EmployeeExposure data={data.employeeExposureLevels} totalEmployees={data.totalEmployees} />
+    ),
+    "alerts-by-month": <AlertsByMonth data={data.alertsByMonth} />,
+    "alert-velocity": <AlertVelocity data={data.alertVelocityData} />,
+    "critical-alerts": <CriticalAlertsList data={data.urgentAlerts} />,
+    "alerts-by-department": <AlertsByDepartment data={data.alertsByDepartment} />,
+    "breach-source-donut": <BreachSourceDonut data={data.breachSources} />,
+    "breach-timeline": <BreachTimeline data={data.breachSources} />,
+    "top-breaches": <TopBreaches data={data.breachSources} />,
+    "data-type-radar": <DataTypeRadar data={data.dataTypes} />,
   }
 
   return (
     <DetailDrawerProvider>
-      <WidgetLibrary
-        preset={preset}
-        allWidgets={WIDGETS}
-        widgetPreviews={widgetPreviews}
-        visible={visible}
-      />
+      <WidgetLibrary preset={preset} allWidgets={WIDGETS} widgetPreviews={widgetPreviews} visible={visible} />
     </DetailDrawerProvider>
   )
 }

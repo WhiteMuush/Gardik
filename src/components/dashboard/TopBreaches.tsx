@@ -1,19 +1,21 @@
 "use client"
 
-import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell,
-} from "recharts"
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from "recharts"
 import { useWidgetTitle } from "@/hooks/useWidgetTitle"
 import { useDetailDrawer } from "@/contexts/DetailDrawerContext"
 
 type BreachSource = {
-  id: string; name: string; source: string
-  breachDate: string; dataTypes: string[]; affectedEmployees: number
+  id: string
+  name: string
+  source: string
+  breachDate: string
+  dataTypes: string[]
+  affectedEmployees: number
 }
 
 const SOURCE_COLOR: Record<string, string> = {
-  HIBP:     "oklch(var(--primary))",
-  MANUAL:   "hsl(270 50% 60%)",
+  HIBP: "oklch(var(--primary))",
+  MANUAL: "hsl(270 50% 60%)",
   DARK_WEB: "oklch(var(--severity-critical))",
 }
 
@@ -41,11 +43,7 @@ export function TopBreaches({ data }: { data: BreachSource[] }) {
       ) : (
         <div className="flex-1 min-h-0">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart
-              data={sorted}
-              layout="vertical"
-              margin={{ top: 0, right: 16, bottom: 0, left: 4 }}
-            >
+            <BarChart data={sorted} layout="vertical" margin={{ top: 0, right: 16, bottom: 0, left: 4 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="oklch(var(--border))" horizontal={false} />
               <XAxis
                 type="number"

@@ -40,15 +40,15 @@ Follow [Conventional Commits](https://www.conventionalcommits.org/), same rules 
 
 ## Before proposing changes
 
-Run the same gates CI enforces, in this order:
+Run the same gates CI enforces:
 
-- Lint with zero warnings: `npm run lint -- --max-warnings 0`.
-- Type check: `npx tsc --noEmit`.
-- Validate the Prisma schema when `prisma/` changes: `npx prisma validate`.
+- `npm run check`: lint, format, types, Prisma schema, unit tests with the coverage floor, knip, version consistency, licenses, production audit, ASCII. The pre-push hook runs it too.
 - Confirm the build passes without real secrets: `npm run build`.
 
 Also:
 
-- Respect the existing Prettier config, do not reformat unrelated lines.
+- Format with Prettier (`npm run format`), the check rejects unformatted files.
+- Keep source files under 500 lines; the ESLint exception list only shrinks.
+- Report problems noticed outside the task in the final message, without fixing them.
 - Do not push to remote unless explicitly asked.
 - Do not open, close, or comment on issues or pull requests unless explicitly asked.

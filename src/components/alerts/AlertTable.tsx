@@ -143,7 +143,11 @@ export function AlertTable({
           className="rounded-lg border border-input bg-card px-3 py-2 text-sm text-foreground focus:border-ring focus:outline-none"
         >
           <option value="">All severities</option>
-          {SEVERITIES.map((s) => <option key={s} value={s}>{s}</option>)}
+          {SEVERITIES.map((s) => (
+            <option key={s} value={s}>
+              {s}
+            </option>
+          ))}
         </select>
         <select
           value={status}
@@ -151,7 +155,11 @@ export function AlertTable({
           className="rounded-lg border border-input bg-card px-3 py-2 text-sm text-foreground focus:border-ring focus:outline-none"
         >
           <option value="">All statuses</option>
-          {STATUSES.map((s) => <option key={s} value={s}>{statusLabel[s]}</option>)}
+          {STATUSES.map((s) => (
+            <option key={s} value={s}>
+              {statusLabel[s]}
+            </option>
+          ))}
         </select>
         <select
           value={confidence}
@@ -159,7 +167,11 @@ export function AlertTable({
           className="rounded-lg border border-input bg-card px-3 py-2 text-sm text-foreground focus:border-ring focus:outline-none"
         >
           <option value="">All confidence</option>
-          {CONFIDENCES.map((c) => <option key={c} value={c}>{confidenceLabel[c]}</option>)}
+          {CONFIDENCES.map((c) => (
+            <option key={c} value={c}>
+              {confidenceLabel[c]}
+            </option>
+          ))}
         </select>
         <button
           onClick={exportCsv}
@@ -232,7 +244,11 @@ export function AlertTable({
                     title="Acknowledge"
                     className="flex size-7 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:bg-muted disabled:opacity-30"
                   >
-                    {pending === a.id ? <Loader2 className="size-3.5 animate-spin" /> : <Check className="size-3.5" />}
+                    {pending === a.id ? (
+                      <Loader2 className="size-3.5 animate-spin" />
+                    ) : (
+                      <Check className="size-3.5" />
+                    )}
                   </button>
                 )}
                 {a.status !== "RESOLVED" && (

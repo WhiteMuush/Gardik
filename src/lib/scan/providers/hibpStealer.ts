@@ -20,13 +20,11 @@ export const hibpStealer: BreachProvider = {
     if (!res.ok) throw errorFromResponse("HIBP stealer logs", res)
 
     const domains = (await res.json()) as string[]
-    return domains.map(
-      (domain): Finding => ({
-        name: `Stealer log: ${domain}`,
-        breachDate: new Date(0),
-        dataTypes: ["password"],
-        artifacts: ["PASSWORD"],
-      })
-    )
+    return domains.map((domain): Finding => ({
+      name: `Stealer log: ${domain}`,
+      breachDate: new Date(0),
+      dataTypes: ["password"],
+      artifacts: ["PASSWORD"],
+    }))
   },
 }

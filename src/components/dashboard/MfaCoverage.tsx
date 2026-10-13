@@ -42,7 +42,8 @@ export function MfaCoverage({ data }: { data: MfaCoverageData }) {
         <div className="mt-auto flex items-center gap-2 rounded-lg border border-severity-critical/30 bg-severity-critical/10 px-3 py-2">
           <AlertTriangle className="size-4 shrink-0 text-severity-critical" />
           <p className="text-xs text-foreground">
-            {data.exposedWithoutMfa} exposed {data.exposedWithoutMfa === 1 ? "account lacks" : "accounts lack"} MFA
+            {data.exposedWithoutMfa} exposed{" "}
+            {data.exposedWithoutMfa === 1 ? "account lacks" : "accounts lack"} MFA
           </p>
         </div>
       )}

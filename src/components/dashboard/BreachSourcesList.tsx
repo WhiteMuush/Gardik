@@ -67,11 +67,17 @@ export function BreachSourcesList({ data }: { data: BreachSource[] }) {
                 <div className="min-w-0">
                   <p className="text-sm font-medium text-foreground truncate">{breach.name}</p>
                   <p className="text-xs text-muted-foreground">
-                    {new Date(breach.breachDate).toLocaleDateString("en-US", { month: "short", year: "numeric" })}
+                    {new Date(breach.breachDate).toLocaleDateString("en-US", {
+                      month: "short",
+                      year: "numeric",
+                    })}
                   </p>
                   <div className="mt-1.5 flex flex-wrap gap-1">
                     {breach.dataTypes.slice(0, 4).map((t) => (
-                      <span key={t} className="rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground capitalize">
+                      <span
+                        key={t}
+                        className="rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground capitalize"
+                      >
                         {t.replace(/_/g, " ")}
                       </span>
                     ))}
@@ -84,7 +90,12 @@ export function BreachSourcesList({ data }: { data: BreachSource[] }) {
                 </div>
               </div>
               <div className="shrink-0 text-right space-y-1.5">
-                <span className={cn("inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium", SOURCE_COLORS[breach.source] ?? "text-muted-foreground bg-muted")}>
+                <span
+                  className={cn(
+                    "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-[10px] font-medium",
+                    SOURCE_COLORS[breach.source] ?? "text-muted-foreground bg-muted"
+                  )}
+                >
                   {SOURCE_LABELS[breach.source] ?? breach.source}
                 </span>
                 <div className="flex items-center justify-end gap-1 text-xs text-severity-critical">

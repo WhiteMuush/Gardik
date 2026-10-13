@@ -1,0 +1,6 @@
+{
+  "$schema": "https://unpkg.com/knip@6/schema.json",
+  "entry": [".githooks/lib/*.mjs", "scripts/*.mjs", "docker/prisma.config.ts"],
+  "ignore": ["prisma/schema.prisma"],
+  "ignoreExportsUsedInFile": true
+}

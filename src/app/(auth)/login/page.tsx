@@ -17,9 +17,11 @@ const RESOLVE_TIMEOUT_MS = 5000
 // The plugin redirects back with ?error=<code>. Only the codes a real user can
 // reach are translated; the rest fall back, and the raw code stays server-side.
 const SSO_ERRORS: Record<string, string> = {
-  "account not linked": "This company's domain is not verified yet. Ask an administrator to finish the SSO setup.",
+  "account not linked":
+    "This company's domain is not verified yet. Ask an administrator to finish the SSO setup.",
   signup_disabled: "No Gardik account exists for this address. Ask an administrator to create it.",
-  invalid_provider: "The identity provider rejected the sign-in. Ask an administrator to check the SSO configuration.",
+  invalid_provider:
+    "The identity provider rejected the sign-in. Ask an administrator to check the SSO configuration.",
 }
 
 // Covers the gap between "credentials accepted" and "dashboard painted". That
@@ -326,9 +328,7 @@ export default function LoginPage({
       <div className="w-full max-w-sm space-y-8 px-4">
         <div className="flex flex-col items-center gap-3">
           <div className="text-center">
-            <h1 className="text-2xl font-semibold tracking-tight text-foreground">
-              Gardik
-            </h1>
+            <h1 className="text-2xl font-semibold tracking-tight text-foreground">Gardik</h1>
             <p className="mt-1 text-sm text-muted-foreground">
               {!needsTotp
                 ? "Sign in to your workspace"
@@ -347,10 +347,7 @@ export default function LoginPage({
           // browser history, and request logs.
           <form onSubmit={handleEmailVerify} method="post" className="space-y-4">
             <div className="space-y-1.5">
-              <label
-                htmlFor="code"
-                className="block text-sm font-medium text-foreground"
-              >
+              <label htmlFor="code" className="block text-sm font-medium text-foreground">
                 Email code
               </label>
               <input
@@ -358,16 +355,14 @@ export default function LoginPage({
                 name="code"
                 type="text"
                 inputMode="numeric"
-        required
+                required
                 autoComplete="one-time-code"
                 placeholder="123456"
                 className="w-full rounded-lg border border-input bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors"
               />
             </div>
 
-            {error && (
-              <p className="text-sm text-destructive">{error}</p>
-            )}
+            {error && <p className="text-sm text-destructive">{error}</p>}
 
             <Button type="submit" disabled={loading} className="w-full" size="lg">
               {loading ? "Verifying..." : "Verify"}
@@ -387,17 +382,9 @@ export default function LoginPage({
               We&apos;ll email a one-time code to the address on your account.
             </p>
 
-            {error && (
-              <p className="text-sm text-destructive">{error}</p>
-            )}
+            {error && <p className="text-sm text-destructive">{error}</p>}
 
-            <Button
-              type="button"
-              onClick={handleSendOtp}
-              disabled={loading}
-              className="w-full"
-              size="lg"
-            >
+            <Button type="button" onClick={handleSendOtp} disabled={loading} className="w-full" size="lg">
               {loading ? "Sending..." : "Email me a code"}
             </Button>
 
@@ -413,10 +400,7 @@ export default function LoginPage({
           // method="post": same fallback risk as above, again for a one-time code.
           <form onSubmit={handleTotp} method="post" className="space-y-4">
             <div className="space-y-1.5">
-              <label
-                htmlFor="code"
-                className="block text-sm font-medium text-foreground"
-              >
+              <label htmlFor="code" className="block text-sm font-medium text-foreground">
                 Authentication code
               </label>
               <input
@@ -424,23 +408,16 @@ export default function LoginPage({
                 name="code"
                 type="text"
                 inputMode="numeric"
-        required
+                required
                 autoComplete="one-time-code"
                 placeholder="123456"
                 className="w-full rounded-lg border border-input bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-primary focus:outline-none focus:ring-2 focus:ring-primary/20 transition-colors"
               />
             </div>
 
-            {error && (
-              <p className="text-sm text-destructive">{error}</p>
-            )}
+            {error && <p className="text-sm text-destructive">{error}</p>}
 
-            <Button
-              type="submit"
-              disabled={loading}
-              className="w-full"
-              size="lg"
-            >
+            <Button type="submit" disabled={loading} className="w-full" size="lg">
               {loading ? "Verifying..." : "Verify"}
             </Button>
 
@@ -459,17 +436,14 @@ export default function LoginPage({
           // request logs.
           <form onSubmit={handleContinue} method="post" className="space-y-4">
             <div className="space-y-1.5">
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-foreground"
-              >
+              <label htmlFor="email" className="block text-sm font-medium text-foreground">
                 Email
               </label>
               <input
                 id="email"
                 name="email"
                 type="email"
-        required
+                required
                 autoComplete="email"
                 autoFocus
                 placeholder="you@company.com"
@@ -478,9 +452,7 @@ export default function LoginPage({
               />
             </div>
 
-            {error && (
-              <p className="text-sm text-destructive">{error}</p>
-            )}
+            {error && <p className="text-sm text-destructive">{error}</p>}
 
             <Button type="submit" disabled={loading} className="w-full" size="lg">
               {pending === "password" ? "Checking..." : "Continue"}
@@ -517,17 +489,14 @@ export default function LoginPage({
           // now for a password rather than just an email.
           <form onSubmit={handlePassword} method="post" className="space-y-4">
             <div className="space-y-1.5">
-              <label
-                htmlFor="email"
-                className="block text-sm font-medium text-foreground"
-              >
+              <label htmlFor="email" className="block text-sm font-medium text-foreground">
                 Email
               </label>
               <input
                 id="email"
                 name="email"
                 type="email"
-        required
+                required
                 autoComplete="email"
                 readOnly
                 defaultValue={email}
@@ -536,16 +505,13 @@ export default function LoginPage({
             </div>
 
             <div className="space-y-1.5">
-              <label
-                htmlFor="password"
-                className="block text-sm font-medium text-foreground"
-              >
+              <label htmlFor="password" className="block text-sm font-medium text-foreground">
                 Password
               </label>
               <PasswordInput
                 id="password"
                 name="password"
-        required
+                required
                 autoComplete="current-password"
                 autoFocus
                 placeholder="********"
@@ -553,16 +519,9 @@ export default function LoginPage({
               />
             </div>
 
-            {error && (
-              <p className="text-sm text-destructive">{error}</p>
-            )}
+            {error && <p className="text-sm text-destructive">{error}</p>}
 
-            <Button
-              type="submit"
-              disabled={loading}
-              className="w-full"
-              size="lg"
-            >
+            <Button type="submit" disabled={loading} className="w-full" size="lg">
               {pending === "password" ? "Signing in..." : "Sign in"}
             </Button>
 

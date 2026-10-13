@@ -46,11 +46,7 @@ function newAlerts(companyId: string, f: ReportFilters, start: Date, end: Date):
 export async function getDeltas(companyId: string, f: ReportFilters): Promise<ReportDeltas> {
   const w = windows(f)
 
-  const [
-    exposedCur, exposedPrev,
-    breachesCur, breachesPrev,
-    alertsCur, alertsPrev,
-  ] = await Promise.all([
+  const [exposedCur, exposedPrev, breachesCur, breachesPrev, alertsCur, alertsPrev] = await Promise.all([
     newlyExposed(companyId, f, w.curStart, w.curEnd),
     newlyExposed(companyId, f, w.prevStart, w.prevEnd),
     newBreaches(companyId, f, w.curStart, w.curEnd),

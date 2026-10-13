@@ -42,12 +42,12 @@ have_nvm=0
 [ -s "$HOME/.nvm/nvm.sh" ] && have_nvm=1
 nv="$(node -v 2>/dev/null || true)"
 if [ -z "$nv" ]; then
-  if [ "$have_nvm" = "1" ]; then err "node: not found (need Node 22, nvm can install it)"; fx_node=1
-  else err "node: not found (need Node 22)"; fi
-elif [ "${nv#v22.}" != "$nv" ]; then pass "node $nv"
+  if [ "$have_nvm" = "1" ]; then err "node: not found (need Node 26, nvm can install it)"; fx_node=1
+  else err "node: not found (need Node 26)"; fi
+elif [ "${nv#v26.}" != "$nv" ]; then pass "node $nv"
 else
-  if [ "$have_nvm" = "1" ]; then err "node $nv (project targets Node 22, nvm can switch)"; fx_node=1
-  else wrn "node $nv (project targets Node 22)"; fi
+  if [ "$have_nvm" = "1" ]; then err "node $nv (project targets Node 26, nvm can switch)"; fx_node=1
+  else wrn "node $nv (project targets Node 26)"; fi
 fi
 if command -v npm >/dev/null 2>&1; then pass "npm $(npm -v)"; else err "npm: not found"; fi
 if command -v openssl >/dev/null 2>&1; then pass "openssl present (used by 'make env')"

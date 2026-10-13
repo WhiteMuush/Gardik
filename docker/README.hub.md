@@ -12,11 +12,11 @@ connecting a directory, troubleshooting, is in the wiki.
 
 ## Tags
 
-| Tag | Content |
-| --- | --- |
-| `latest` | The most recent release. |
-| `1.2.3`, `1.2` | A specific release, and the moving minor line. |
-| `edge` | Built manually from a branch. Not a release, do not run it in production. |
+| Tag            | Content                                                                   |
+| -------------- | ------------------------------------------------------------------------- |
+| `latest`       | The most recent release.                                                  |
+| `1.2.3`, `1.2` | A specific release, and the moving minor line.                            |
+| `edge`         | Built manually from a branch. Not a release, do not run it in production. |
 
 Images are `linux/amd64`. Each one carries the Next.js standalone server and
 runs as an unprivileged user.
@@ -121,24 +121,24 @@ nothing was created that time.
 Required. The container refuses to start without a database URL, and the app
 refuses to handle directory credentials without an encryption key.
 
-| Variable | Purpose |
-| --- | --- |
-| `DATABASE_URL` | PostgreSQL connection string. |
-| `BETTER_AUTH_SECRET` | Signs sessions. 32 random bytes. |
-| `BETTER_AUTH_URL` | Public base URL of the deployment, used for auth callbacks. |
+| Variable                   | Purpose                                                               |
+| -------------------------- | --------------------------------------------------------------------- |
+| `DATABASE_URL`             | PostgreSQL connection string.                                         |
+| `BETTER_AUTH_SECRET`       | Signs sessions. 32 random bytes.                                      |
+| `BETTER_AUTH_URL`          | Public base URL of the deployment, used for auth callbacks.           |
 | `DIRECTORY_ENCRYPTION_KEY` | Encrypts directory connection secrets at rest. 32 characters minimum. |
 
 Optional.
 
-| Variable | Purpose |
-| --- | --- |
-| `HIBP_API_KEY` | Enables Have I Been Pwned breach lookups. Without it, no external lookup runs. |
-| `CRON_SECRET` | Secures `POST /api/cron`. Without it the endpoint returns 503 and no scan is scheduled. |
-| `RESEND_API_KEY`, `EMAIL_FROM` | Email alerts to company admins. Both are needed, otherwise alerts are skipped. |
-| `DIRECTORY_ENCRYPTION_KEY_PREVIOUS` | Former encryption key, read during a key rotation. |
-| `RUN_MIGRATIONS` | Set to `false` to skip `prisma migrate deploy` on start, when a separate job owns the schema. |
-| `BOOTSTRAP_ADMIN_EMAIL` | Creates the first administrator on start. See First administrator. |
-| `BOOTSTRAP_INVITE_TOKEN` | Invitation token for that administrator. 32 characters minimum, URL-safe, from `openssl rand -hex 32`. Required alongside the address. |
+| Variable                            | Purpose                                                                                                                                |
+| ----------------------------------- | -------------------------------------------------------------------------------------------------------------------------------------- |
+| `HIBP_API_KEY`                      | Enables Have I Been Pwned breach lookups. Without it, no external lookup runs.                                                         |
+| `CRON_SECRET`                       | Secures `POST /api/cron`. Without it the endpoint returns 503 and no scan is scheduled.                                                |
+| `RESEND_API_KEY`, `EMAIL_FROM`      | Email alerts to company admins. Both are needed, otherwise alerts are skipped.                                                         |
+| `DIRECTORY_ENCRYPTION_KEY_PREVIOUS` | Former encryption key, read during a key rotation.                                                                                     |
+| `RUN_MIGRATIONS`                    | Set to `false` to skip `prisma migrate deploy` on start, when a separate job owns the schema.                                          |
+| `BOOTSTRAP_ADMIN_EMAIL`             | Creates the first administrator on start. See First administrator.                                                                     |
+| `BOOTSTRAP_INVITE_TOKEN`            | Invitation token for that administrator. 32 characters minimum, URL-safe, from `openssl rand -hex 32`. Required alongside the address. |
 
 ## Operating notes
 
