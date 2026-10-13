@@ -13,7 +13,6 @@ const OVER_LIMIT = {
   "src/app/(dashboard)/dashboard/page.tsx": 345,
   "src/lib/scan/runner.test.ts": 334,
   "src/lib/auth/server.ts": 313,
-  "src/lib/sso/user-create.itest.ts": 311,
   "src/components/settings/DirectoryConnections.tsx": 275,
   "src/components/alerts/AlertTable.tsx": 271,
   "src/components/rbac/RolesManager.tsx": 269,
