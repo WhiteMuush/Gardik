@@ -17,7 +17,7 @@ export default defineConfig({
       exclude: ["src/lib/**/*.test.ts", "src/lib/**/*.itest.ts"],
       reporter: ["text-summary"],
       // Floor at today's unit coverage, raise it as tests are added.
-      thresholds: { statements: 56, branches: 50, functions: 49, lines: 57 },
+      thresholds: { statements: 56, branches: 51, functions: 50, lines: 57 },
     },
   },
 })
