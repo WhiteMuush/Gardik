@@ -4,12 +4,7 @@ import nextTs from "eslint-config-next/typescript"
 
 // Files over 200 lines, capped at their current size until #30 splits them.
 const OVER_LIMIT = {
-  "src/components/dashboard/DashboardCanvas.tsx": 734,
   "src/lib/sso/sso.itest.ts": 708,
-  "src/components/settings/ConnectWizard.tsx": 586,
-  "src/components/settings/SsoSettings.tsx": 566,
-  "src/lib/reports/pdf.tsx": 542,
-  "src/app/(auth)/login/page.tsx": 540,
   "src/components/settings/SetupGuides.tsx": 487,
   "src/lib/dashboard.ts": 408,
   "src/lib/auth/invitation-routes.itest.ts": 400,
