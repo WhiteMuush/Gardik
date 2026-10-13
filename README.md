@@ -251,6 +251,8 @@ Contributions are welcome.
 
 > **Contribution rules are enforced automatically by Git hooks (`.githooks/`) and CI (`.github/workflows/compliance.yml`). Non-compliant PR titles are rejected: invalid conventional commit format, AI attribution trailers, secrets, non-English text, frozen-dependency major bumps, and forbidden code patterns. The hooks activate on `npm install`.**
 
+Before every push, the hook runs `npm run check`: every quality gate (lint, format, types, unit tests with a coverage floor, dead code, licenses, audit), the same command CI runs. Run it yourself any time, or `make check` to add the production build.
+
 Please also read [CONTRIBUTING.md](.github/CONTRIBUTING.md) and [CODE_OF_CONDUCT.md](.github/CODE_OF_CONDUCT.md).
 
 ## License

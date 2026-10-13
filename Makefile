@@ -93,10 +93,8 @@ e2e: ## Run the Playwright smoke test (app must be reachable on :3000)
 	$(N) npm run test:e2e
 
 .PHONY: check
-check: ## Run the same gates CI enforces (lint, types, schema, build)
-	$(N) npm run lint -- --max-warnings 0
-	$(N) npx tsc --noEmit
-	$(N) npx prisma validate
+check: ## Run every quality gate (npm run check), then the production build
+	$(N) npm run check
 	$(N) npm run build
 
 .PHONY: doctor

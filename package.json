@@ -25,6 +25,7 @@
     "lint:fix": "eslint . --fix",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
+    "check": "sh scripts/check.sh",
     "licenses": "node scripts/check-licenses.mjs",
     "licenses:write": "node scripts/check-licenses.mjs --write",
     "test": "vitest run",
