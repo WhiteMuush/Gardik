@@ -28,7 +28,6 @@ const OVER_LIMIT = {
   "src/components/credentials/SourceCatalog.tsx": 215,
   "src/lib/auth/bootstrap.ts": 211,
   "src/app/api/dashboard/detail/[kind]/[id]/route.ts": 209,
-  "scripts/check-licenses.mjs": 201,
 }
 
 export default defineConfig([
