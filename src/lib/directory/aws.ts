@@ -1,4 +1,4 @@
-import { IdentitystoreClient, ListUsersCommand, DescribeUserCommand } from "@aws-sdk/client-identitystore"
+import { IdentitystoreClient, ListUsersCommand } from "@aws-sdk/client-identitystore"
 import type { AWSDirectoryConfig, DirectoryUser, TestResult } from "./types"
 import { isEmail } from "../validators"
 
@@ -54,7 +54,6 @@ export async function testAWSConnection(config: AWSDirectoryConfig): Promise<Tes
       })
     )
     // ListUsers doesn't return a total count, so fetch one page to verify access
-    void DescribeUserCommand
     return { ok: true, userCount: res.Users?.length ?? 0 }
   } catch (e) {
     return { ok: false, error: (e as Error).message }
