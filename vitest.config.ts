@@ -14,10 +14,10 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       include: ["src/lib/**"],
-      exclude: ["src/lib/**/*.test.ts", "src/lib/**/*.itest.ts"],
+      exclude: ["src/lib/**/*.test.ts", "src/lib/**/*.itest.ts", "src/lib/**/*.fixtures.ts"],
       reporter: ["text-summary"],
       // Floor at today's unit coverage, raise it as tests are added.
-      thresholds: { statements: 56, branches: 51, functions: 50, lines: 57 },
+      thresholds: { statements: 57, branches: 52, functions: 51, lines: 58 },
     },
   },
 })
