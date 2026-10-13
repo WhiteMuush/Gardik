@@ -1,7 +1,7 @@
 import { PrismaClient, type AlertStatus } from "@prisma/client"
 import { PrismaPg } from "@prisma/adapter-pg"
 import { normalizeType } from "@/lib/scan/normalize"
-import { severityFor } from "@/lib/scan/runner"
+import { severityFor } from "@/lib/scan/severity"
 import { DEMO_BREACHES } from "./demo/breaches"
 import { DEMO_DOMAIN, DEMO_PEOPLE } from "./demo/people"
 
