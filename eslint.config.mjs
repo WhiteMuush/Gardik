@@ -7,7 +7,6 @@ const OVER_LIMIT = {
   "src/lib/sso/sso.itest.ts": 708,
   "src/components/settings/SetupGuides.tsx": 487,
   "src/lib/dashboard.ts": 408,
-  "src/lib/auth/invitation-routes.itest.ts": 400,
   "src/lib/scan/runner.ts": 394,
   "src/components/reports/ReportCanvas.tsx": 393,
   "src/components/credentials/SourceDrawer.tsx": 349,
