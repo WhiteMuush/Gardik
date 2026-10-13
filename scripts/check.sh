@@ -1,8 +1,5 @@
 #!/usr/bin/env sh
-# Every quality gate in one command, shared by the pre-push hook and CI.
-# Runs all gates even when one fails, so a single run lists every problem.
-# Secrets are scanned on added lines by pre-commit and on the history by
-# gitleaks in CI; a whole-tree shell scan here takes minutes.
+# Runs every quality gate and lists all failures in one pass.
 set -u
 
 # prisma.config.ts refuses to load without a URL; validate never connects.

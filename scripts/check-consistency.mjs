@@ -1,6 +1,4 @@
-// Fails when facts that live in several files drift apart: the Node major
-// (.nvmrc is the source of truth) and a hardcoded release number in the README,
-// which goes stale on the next release.
+// Fails when the Node major differs from .nvmrc or the README hardcodes a release.
 import { readFileSync, readdirSync } from "node:fs"
 
 const read = (path) => readFileSync(path, "utf8")

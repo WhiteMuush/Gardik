@@ -35,9 +35,7 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      # The same command as the pre-push hook, so local and CI cannot drift:
-      # lint, format, types, schema, unit tests with coverage floor, knip,
-      # version consistency, licenses, production audit, ASCII.
+      # Same command as the pre-push hook, so local and CI cannot drift.
       - name: Every quality gate
         run: npm run check
 
