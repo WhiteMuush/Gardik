@@ -31,6 +31,8 @@ prisma/seed.dev.ts
 
 # local AI tooling config (never expose instructions or permissions)
 .claude/
+.superpowers/
+docs/superpowers/
 
 # TypeScript incremental build info
 tsconfig.tsbuildinfo
