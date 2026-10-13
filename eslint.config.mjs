@@ -18,7 +18,6 @@ const OVER_LIMIT = {
   "src/components/settings/DirectoryConnections.tsx": 275,
   "src/components/alerts/AlertTable.tsx": 271,
   "src/components/rbac/RolesManager.tsx": 269,
-  "src/lib/auth/bootstrap.itest.ts": 263,
   "src/components/employees/EmployeeTable.tsx": 263,
   "src/lib/auth/invitation.itest.ts": 242,
   "src/components/dashboard/WidgetLibrary.tsx": 226,
