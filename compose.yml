@@ -5,6 +5,8 @@ services:
       context: .
       dockerfile: Dockerfile.dev
     container_name: gardik-app
+    # Must own the bind-mounted source; set APP_UID/APP_GID if your user is not 1000.
+    user: "${APP_UID:-1000}:${APP_GID:-1000}"
     depends_on:
       db:
         condition: service_healthy
