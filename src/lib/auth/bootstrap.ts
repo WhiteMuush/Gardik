@@ -5,36 +5,23 @@ import { ADMINISTRATOR } from "@/lib/rbac/presets"
 import { writeAudit, AUDIT_ACTIONS } from "@/lib/rbac/audit"
 import { appBaseUrl } from "@/lib/appUrl"
 
-// 24 hours rather than the 72 that INVITATION_TTL_HOURS gives a colleague being
-// invited: a deployment is finished in one sitting or the next morning, and an
-// expired bootstrap link is reissued by restarting the container, so the shorter
-// window costs the operator nothing.
+// A deployment finishes in one sitting and a restart reissues the link, so 24 hours is enough.
 export const BOOTSTRAP_INVITATION_TTL_HOURS = 24
 
-// The token is supplied by the operator rather than generated, so the container
-// never has a secret to print. This floor is what stops a caller handing in
-// something guessable; `openssl rand -base64 32` clears it comfortably.
+// The operator supplies the token, so this floor is what refuses a guessable one.
 export const MIN_BOOTSTRAP_TOKEN_LENGTH = 32
 
 export type BootstrapConfig = { email: string; token: string; domain: string }
 
-// silent distinguishes "nobody asked for a bootstrap", the normal state of every
-// running instance and every development machine, from "somebody asked and got
-// it wrong", which has to be said out loud.
+// silent: no bootstrap was asked for (the normal state), as opposed to one asked for wrongly.
 export type ResolveResult =
   { ok: true; config: BootstrapConfig } | { ok: false; silent: boolean; reason: string }
 
-// Only the two keys this actually reads. Next.js augments NodeJS.ProcessEnv with a
-// required NODE_ENV, so a test passing an object literal against that type would
-// not compile; process.env stays assignable to this one.
+// Only the two keys read here, so a test can pass a plain object where ProcessEnv would demand NODE_ENV.
 export type BootstrapEnv = {
   BOOTSTRAP_ADMIN_EMAIL?: string
   BOOTSTRAP_INVITE_TOKEN?: string
-  // Without this index signature, TS treats BootstrapEnv as a "weak type" (every
-  // property optional) and refuses to assign process.env to it: ProcessEnv is
-  // itself an index signature with no named property in common. This restates
-  // that shape rather than widening it: every value here is already a string or
-  // undefined.
+  // Lets process.env, itself an index signature, be assigned to this otherwise weak type.
   [key: string]: string | undefined
 }
 
@@ -72,13 +59,7 @@ type Db = PrismaClient | Prisma.TransactionClient
 
 export type BootstrapState = "fresh" | "resumable" | "closed"
 
-/**
- * The gate does not ask whether a user exists, it asks whether anyone can already
- * sign in. Under a plain "a user exists" rule a link lost or expired before use
- * would lock the operator out with no recovery short of dropping the database.
- * Resuming is safe because the door closes the moment an account carries a
- * password, which is the only thing that actually grants access.
- */
+// The door closes once any account has a password, so a lost link never locks the operator out.
 export async function bootstrapState(db: Db, email: string): Promise<BootstrapState> {
   const withPassword = await db.account.count({ where: { password: { not: null } } })
   if (withPassword > 0) return "closed"
@@ -87,16 +68,7 @@ export async function bootstrapState(db: Db, email: string): Promise<BootstrapSt
   return existing ? "resumable" : "fresh"
 }
 
-/**
- * Idempotent on purpose: the fresh and resumable states run the same path, and a
- * second run reissues the invitation rather than failing on it. The operator's
- * bootstrap variables normally stay in their compose file, so this runs on every
- * container restart, and each run hands back a link with a fresh window.
- *
- * No credential account is created. The password is set by the operator through
- * the invitation, under the application's own rules, so nothing here has to
- * restate them.
- */
+// Idempotent: every restart reissues the invitation, and the password is set through it, never here.
 export async function createFirstAdmin(db: Db, config: BootstrapConfig): Promise<void> {
   const company = await db.company.upsert({
     where: { domain: config.domain },
@@ -107,10 +79,7 @@ export async function createFirstAdmin(db: Db, config: BootstrapConfig): Promise
   await seedPresetsForCompany(db, company.id)
   const roleId = await resolvePresetRoleId(db, company.id, ADMINISTRATOR)
 
-  // Read before the upsert, so the audit trail can tell a creation from a resume.
-  // Without it every restart of a container that still carries the bootstrap
-  // variables appends another user.create for a user it did not create, to the
-  // one record whose entire purpose is to be true.
+  // Read before the upsert, so a restart is audited as an invitation and never as a new user.
   const existing = await db.user.findUnique({
     where: { email: config.email },
     select: { id: true },
@@ -122,12 +91,7 @@ export async function createFirstAdmin(db: Db, config: BootstrapConfig): Promise
     create: { email: config.email, companyId: company.id, roleId },
   })
 
-  // UserInvitation.tokenHash is unique, and issueInvitation marks outstanding
-  // invitations consumed rather than deleting them. The bootstrap token is fixed
-  // by the operator, so every restart of a container that still carries the
-  // variables would re-create the same hash and violate that constraint. Clearing
-  // the unredeemed row first removes nothing of value, keeps issueInvitation as
-  // the single writer of invitations, and refreshes the window on every restart.
+  // The operator token never changes and tokenHash is unique, so the unredeemed row goes first.
   await db.userInvitation.deleteMany({
     where: { tokenHash: hashToken(config.token), consumedAt: null },
   })
@@ -144,24 +108,12 @@ export async function createFirstAdmin(db: Db, config: BootstrapConfig): Promise
   await writeAudit(db, { ...entry, action: AUDIT_ACTIONS.USER_INVITE })
 }
 
-// Only the transaction entry point, not the whole client. It states the single
-// method this depends on, and it lets a test hand in a stub as a plain typed
-// object: casting a fake PrismaClient would need a double cast, which this
-// repository forbids for good reason.
+// Only the transaction entry point, so a test can pass a typed stub instead of a cast client.
 export type BootstrapClient = {
   $transaction: (fn: (tx: Prisma.TransactionClient) => Promise<BootstrapState>) => Promise<BootstrapState>
 }
 
-/**
- * Called once per server process at start-up. Refuses far more often than it
- * acts, and says so at most once, because the overwhelmingly common case is an
- * instance that was bootstrapped months ago.
- *
- * Nothing here throws. A replica that starts before the schema is ready, an
- * unreachable database, a half-supplied pair of variables: every one of them is
- * a log line. A failed bootstrap must not turn a running instance into a dead
- * one.
- */
+// Runs at each server start and never throws: a failed bootstrap must not take down a running instance.
 export async function bootstrapFirstAdmin(
   client: BootstrapClient,
   env: BootstrapEnv = process.env
@@ -183,12 +135,7 @@ export async function bootstrapFirstAdmin(
 
     if (state === "closed") return
 
-    // The token is never printed. It came from the operator's own configuration,
-    // so they already hold it, and a log line carrying it would outlive the link
-    // in whatever aggregator collects it.
-    // Said differently on a resume, because a container that keeps the variables
-    // runs this on every restart and "Created" would be a lie from the second one
-    // onwards. The link is reissued either way, so the second line always holds.
+    // The token is never logged, and a resume is worded as a reissue rather than a creation.
     console.info(
       state === "fresh"
         ? `[bootstrap] Created company ${domain} and administrator ${email}.`
@@ -196,10 +143,7 @@ export async function bootstrapFirstAdmin(
     )
     console.info(`[bootstrap] Open ${appBaseUrl()}/invite with the token you supplied.`)
   } catch (error) {
-    // A second replica booting at the same moment loses the race on one of the
-    // unique constraints. That is the design holding, not a failure, so it reads
-    // as one sentence rather than a constraint violation an operator would have
-    // to decode on their first deploy.
+    // A replica booting at the same moment loses on a unique constraint, which is the design holding.
     const raced = typeof error === "object" && error !== null && "code" in error && error.code === "P2002"
     if (raced) {
       console.info("[bootstrap] Another replica bootstrapped first, nothing to do.")

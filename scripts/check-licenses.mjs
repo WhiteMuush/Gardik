@@ -1,24 +1,4 @@
-/**
- * License gate and third-party notice generator.
- *
- * Reads package-lock.json (not node_modules): the lockfile carries a `license`
- * field on every entry, so the check is deterministic, needs no install, and
- * yields the same answer on every platform. Walking node_modules instead would
- * report a different set of packages on Linux than on macOS, because optional
- * platform-specific binaries (sharp's libvips builds) only install on the host
- * they target.
- *
- * Scope is the runtime tree: entries the lockfile marks `dev: true` are skipped
- * because they never reach a deployed artifact. A copyleft build tool is not a
- * distribution problem; a copyleft runtime dependency is.
- *
- * The gate is an allowlist, not a denylist. A license nobody has reviewed yet
- * fails the build and has to be added here on purpose, which is the whole point:
- * a new AGPL transitive should stop a merge rather than land unnoticed.
- *
- *   node scripts/check-licenses.mjs          # verify (CI)
- *   node scripts/check-licenses.mjs --write  # regenerate the notices file
- */
+// License gate and notice generator, reading the lockfile runtime tree against an allowlist (see the wiki, Development).
 import { readFileSync, writeFileSync } from "node:fs"
 import { fileURLToPath } from "node:url"
 import { dirname, join } from "node:path"
@@ -27,8 +7,7 @@ const root = join(dirname(fileURLToPath(import.meta.url)), "..")
 const LOCKFILE = join(root, "package-lock.json")
 const NOTICES = join(root, "THIRD-PARTY-NOTICES.md")
 
-// Reviewed and accepted. Permissive unless noted; the copyleft entries are
-// weak (file-level or library-level) and are documented in OBLIGATIONS below.
+// Reviewed licenses; the few weak-copyleft ones are documented in OBLIGATIONS below.
 const ALLOWED = new Set([
   "0BSD",
   "Apache-2.0",
@@ -53,8 +32,7 @@ const SPELLING = new Map([
   ["MIT and ISC", "MIT AND ISC"],
 ])
 
-// Packages that ship a LICENSE file but no `license` field for the lockfile to
-// record. Each was read by hand; do not add an entry without doing the same.
+// Packages whose license was read by hand from their LICENSE file, since the lockfile has no field for them.
 const MISSING_FIELD = new Map([
   ["png-js", "MIT"], // LICENSE: "MIT License, Copyright (c) 2017 Devon Govett"
   ["seq-queue", "MIT"], // LICENSE: "(The MIT License), Copyright (c) 2012 Netease, Inc."
