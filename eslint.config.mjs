@@ -45,7 +45,7 @@ export default defineConfig([
     rules: { "max-lines": ["error", { max: 200 }] },
   },
   ...Object.entries(OVER_LIMIT).map(([file, max]) => ({
-    files: [file.replace(/[[\]()]/g, "\\$&")],
+    files: [file.replace(/[\\[\]()]/g, "\\$&")],
     rules: { "max-lines": ["error", { max }] },
   })),
 ])
