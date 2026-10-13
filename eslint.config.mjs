@@ -6,7 +6,6 @@ import nextTs from "eslint-config-next/typescript"
 const OVER_LIMIT = {
   "src/components/dashboard/DashboardCanvas.tsx": 734,
   "src/lib/sso/sso.itest.ts": 708,
-  "src/app/(auth)/login/page.tsx": 540,
   "src/components/settings/SetupGuides.tsx": 487,
   "src/lib/dashboard.ts": 408,
   "src/lib/auth/invitation-routes.itest.ts": 400,
