@@ -32,7 +32,9 @@ exposed and how badly.
 
 ## Status
 
-v1.2.3. The production readiness checklist is tracked in
+The current version and its changes are on the
+[Releases page](https://github.com/WhiteMuush/Gardik/releases). The
+production readiness checklist is tracked in
 [docs/production-readiness.md](docs/production-readiness.md).
 
 This project was previously named DataShield. See
@@ -120,7 +122,7 @@ docker compose up   # app on http://localhost:3000, database seeded
 
 ### Running on the host
 
-Prerequisites: Node.js 22 (pinned via `.nvmrc` and `engines`) and Docker for the
+Prerequisites: Node.js 26 (pinned via `.nvmrc` and `engines`) and Docker for the
 local database, or your own PostgreSQL instance. The `make` targets select the
 pinned Node version automatically via nvm, so they work even when your shell's
 default Node differs.
@@ -131,7 +133,7 @@ make run     # start the dev server
 ```
 
 `make doctor` diagnoses the setup (toolchain, env, Docker, DB, Prisma) and can
-auto-fix common issues, including creating `.env.local` and switching to Node 22.
+auto-fix common issues, including creating `.env.local` and switching to Node 26.
 The underlying npm steps (`npm install`, `npm run db:init`, `npm run dev`) still
 work if you prefer them.
 
