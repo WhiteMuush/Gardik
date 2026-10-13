@@ -5,7 +5,7 @@ import {
   buildTrendData,
   type BreachCatalogEntry,
   type BreachRecordRaw,
-} from "./dashboard"
+} from "./dashboard-series"
 
 const records: BreachRecordRaw[] = [
   { detectedAt: new Date(), exposedData: ["email", "password"], sources: ["HIBP"] },
