@@ -11,74 +11,13 @@ import {
   getSortedRowModel,
   getFilteredRowModel,
   getPaginationRowModel,
-  legacyCreateColumnHelper,
-  type LegacyColumnDef,
 } from "@tanstack/react-table/legacy"
-import {
-  ChevronUp,
-  ChevronDown,
-  ChevronsUpDown,
-  ChevronLeft,
-  ChevronRight,
-  Search,
-  Download,
-} from "lucide-react"
-import { RiskBadge } from "@/components/ui/RiskBadge"
+import { ChevronUp, ChevronDown, ChevronsUpDown, ChevronLeft, ChevronRight } from "lucide-react"
 import { EmployeeDrawer } from "@/components/employees/EmployeeDrawer"
-import type { EmployeeRow, RiskLevel } from "@/lib/employees"
+import type { EmployeeRow } from "@/lib/employees"
 import { downloadCsv } from "@/lib/csv"
-import { cn } from "@/lib/utils"
-
-const col = legacyCreateColumnHelper<EmployeeRow>()
-
-// v9 made ColumnDef invariant in TValue through the footer template, so a
-// mixed-value array no longer widens to the unknown-valued element type.
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-const columns: LegacyColumnDef<EmployeeRow, any>[] = [
-  col.accessor((r) => `${r.firstName} ${r.lastName}`, {
-    id: "name",
-    header: "Name",
-    cell: (info) => <span className="font-medium text-foreground">{info.getValue()}</span>,
-  }),
-  col.accessor("email", {
-    header: "Email",
-    cell: (info) => <span className="text-muted-foreground">{info.getValue()}</span>,
-  }),
-  col.accessor("department", {
-    header: "Department",
-    cell: (info) => info.getValue() ?? <span className="text-muted-foreground">-</span>,
-  }),
-  col.accessor("riskLevel", {
-    header: "Risk",
-    cell: (info) => <RiskBadge level={info.getValue() as RiskLevel} />,
-  }),
-  col.accessor("breachCount", {
-    header: "Breaches",
-    cell: (info) => (
-      <span
-        className={cn(
-          "font-medium tabular-nums",
-          info.getValue() > 0 ? "text-severity-high" : "text-muted-foreground"
-        )}
-      >
-        {info.getValue()}
-      </span>
-    ),
-  }),
-  col.accessor("lastDetectedAt", {
-    header: "Last detected",
-    cell: (info) => {
-      const val = info.getValue()
-      return val ? (
-        new Date(val).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })
-      ) : (
-        <span className="text-muted-foreground">-</span>
-      )
-    },
-  }),
-]
-
-const RISK_LEVELS: RiskLevel[] = ["CRITICAL", "HIGH", "MEDIUM", "LOW", "OK"]
+import { columns } from "./employee-columns"
+import { EmployeeFilters } from "./EmployeeFilters"
 
 export function EmployeeTable({ data }: { data: EmployeeRow[] }) {
   const [sorting, setSorting] = useState<SortingState>([])
@@ -133,50 +72,17 @@ export function EmployeeTable({ data }: { data: EmployeeRow[] }) {
 
   return (
     <>
-      {/* Filters */}
-      <div className="mb-4 flex items-center gap-3">
-        <div className="relative flex-1 max-w-sm">
-          <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-          <input
-            placeholder="Search name or email..."
-            value={search}
-            onChange={(e) => setSearch(e.target.value)}
-            className="w-full rounded-lg border border-input bg-card py-2 pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
-          />
-        </div>
-        <select
-          value={department}
-          onChange={(e) => setDepartment(e.target.value)}
-          className="rounded-lg border border-input bg-card px-3 py-2 text-sm text-foreground focus:border-ring focus:outline-none"
-        >
-          <option value="">All departments</option>
-          {departments.map((d) => (
-            <option key={d} value={d}>
-              {d}
-            </option>
-          ))}
-        </select>
-        <select
-          value={riskFilter}
-          onChange={(e) => setRiskFilter(e.target.value)}
-          className="rounded-lg border border-input bg-card px-3 py-2 text-sm text-foreground focus:border-ring focus:outline-none"
-        >
-          <option value="">All risk levels</option>
-          {RISK_LEVELS.map((r) => (
-            <option key={r} value={r}>
-              {r}
-            </option>
-          ))}
-        </select>
-        <button
-          onClick={exportCsv}
-          disabled={filtered.length === 0}
-          className="ml-auto flex items-center gap-1.5 rounded-lg border border-input bg-card px-3 py-2 text-sm text-foreground transition-colors hover:bg-muted disabled:opacity-40"
-        >
-          <Download className="size-4" />
-          Export CSV
-        </button>
-      </div>
+      <EmployeeFilters
+        search={search}
+        setSearch={setSearch}
+        department={department}
+        setDepartment={setDepartment}
+        riskFilter={riskFilter}
+        setRiskFilter={setRiskFilter}
+        departments={departments}
+        canExport={filtered.length > 0}
+        onExport={exportCsv}
+      />
 
       {/* Table */}
       <div className="rounded-xl border border-border/60 bg-card overflow-hidden">
