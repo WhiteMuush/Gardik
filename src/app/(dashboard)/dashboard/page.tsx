@@ -28,6 +28,8 @@ import { TopBreaches } from "@/components/dashboard/TopBreaches"
 import { DataTypeRadar } from "@/components/dashboard/DataTypeRadar"
 import { AlertVelocity } from "@/components/dashboard/AlertVelocity"
 import { MfaCoverage } from "@/components/dashboard/MfaCoverage"
+import { ScanCoverageBanner } from "@/components/employees/ScanCoverageBanner"
+import { getScanCoverage } from "@/lib/scan/coverage"
 import { redirect } from "next/navigation"
 import type { DashboardPreset } from "@/types/dashboard"
 
@@ -44,7 +46,7 @@ export default async function DashboardPage() {
 
   if (employeeCount === 0 && apiKeyCount === 0) redirect("/setup")
 
-  const [data, presets, user] = await Promise.all([
+  const [data, presets, user, coverage] = await Promise.all([
     getDashboardData(session!.user.companyId),
     prisma.dashboardPreset.findMany({
       where: {
@@ -59,6 +61,7 @@ export default async function DashboardPage() {
       where: { id: session!.user.id },
       select: { activePresetId: true },
     }),
+    getScanCoverage(session!.user.companyId),
   ])
 
   let activePresetId = user?.activePresetId ?? null
@@ -280,7 +283,9 @@ export default async function DashboardPage() {
       defaultSize: { w: 3, h: 6 },
       minSize: { w: 2, h: 4 },
       defaultVisible: false,
-      content: <BreachSourceDonut data={buildBreachSources(gatedCatalog, sourceFor("breach-source-donut"))} />,
+      content: (
+        <BreachSourceDonut data={buildBreachSources(gatedCatalog, sourceFor("breach-source-donut"))} />
+      ),
     },
     {
       instanceId: "breach-timeline",
@@ -321,13 +326,20 @@ export default async function DashboardPage() {
   ]
 
   return (
-    <DashboardCanvas
-      widgets={widgets}
-      presets={typedPresets}
-      activePresetId={activePresetId}
-      canManageShared={canManageShared}
-      visible={visible}
-      sourceOptions={sourceOptions}
-    />
+    <div className="flex flex-1 flex-col min-h-0">
+      <ScanCoverageBanner
+        coverage={coverage}
+        canScan={authorize(perms, "employees:scan")}
+        className="mx-4 mt-4 shrink-0"
+      />
+      <DashboardCanvas
+        widgets={widgets}
+        presets={typedPresets}
+        activePresetId={activePresetId}
+        canManageShared={canManageShared}
+        visible={visible}
+        sourceOptions={sourceOptions}
+      />
+    </div>
   )
 }

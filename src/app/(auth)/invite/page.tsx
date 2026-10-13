@@ -50,8 +50,8 @@ function InviteForm() {
       </div>
       <h1 className="text-lg font-semibold text-foreground">Choose your password</h1>
       <p className="text-sm text-muted-foreground">
-        This link works once. Your password is never seen by anyone else, including
-        the administrator who invited you.
+        This link works once. Your password is never seen by anyone else, including the administrator who
+        invited you.
       </p>
       <PasswordInput
         autoComplete="new-password"

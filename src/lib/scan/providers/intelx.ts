@@ -1,5 +1,6 @@
 import type { BreachProvider, Finding } from "../types"
 import { parseBreachDate, sleep } from "../normalize"
+import { ProviderError, errorFromResponse } from "../errors"
 
 const ROOT = "https://2.intelx.io"
 const MAX_POLLS = 6
@@ -24,24 +25,25 @@ async function startSearch(email: string, apiKey: string): Promise<string | null
       buckets: [],
     }),
   })
-  if (!res.ok) throw new Error(`IntelX error ${res.status}`)
+  if (!res.ok) throw errorFromResponse("IntelX", res)
   const data = (await res.json()) as SearchInit
   return data.status === 2 || !data.id ? null : data.id
 }
 
 // Poll results. status: 0 = results available, 1 = done, 2 = not found, 3 = keep trying.
+// A failed or unfinished poll throws: partial results must not pass for a full answer.
 async function collectResults(id: string, apiKey: string): Promise<IntelxRecord[]> {
   const url = `${ROOT}/intelligent/search/result?id=${encodeURIComponent(id)}&limit=100`
   const records: IntelxRecord[] = []
   for (let i = 0; i < MAX_POLLS; i++) {
     const res = await fetch(url, { headers: { "X-Key": apiKey } })
-    if (!res.ok) break
+    if (!res.ok) throw errorFromResponse("IntelX", res)
     const page = (await res.json()) as ResultPage
     if (page.records?.length) records.push(...page.records)
-    if (page.status === 1 || page.status === 2) break
+    if (page.status === 1 || page.status === 2) return records
     if (page.status === 3) await sleep(1000)
   }
-  return records
+  throw new ProviderError("Search did not finish in time", null)
 }
 
 // Deduplicate records by bucket/name into one Finding per source.
@@ -60,6 +62,8 @@ function toFindings(records: IntelxRecord[]): Finding[] {
 export const intelx: BreachProvider = {
   id: "INTELX",
   source: "DARK_WEB",
+  // No published per-minute limit; paid plans allow 500 searches per day.
+  defaultRatePerMinute: 10,
   async lookup(email, apiKey) {
     const id = await startSearch(email, apiKey)
     if (!id) return []

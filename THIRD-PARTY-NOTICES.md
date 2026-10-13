@@ -9,7 +9,7 @@ Generated from `package-lock.json`; do not edit by hand. Regenerate with
 `npm run licenses:write`. Build-time-only dependencies are excluded: they
 are not part of anything that ships.
 
-Runtime packages: 472.
+Runtime packages: 477.
 
 ## Obligations worth knowing
 
@@ -23,10 +23,14 @@ Runtime packages: 472.
 
 ## Packages by license
 
-### MIT (335)
+### MIT (340)
 
 - @authenio/xml-encryption@2.0.2
+- @babel/helper-string-parser@7.29.7
+- @babel/helper-validator-identifier@7.29.7
+- @babel/parser@7.29.9
 - @babel/runtime@7.29.7
+- @babel/types@7.29.8
 - @base-ui/react@1.8.0
 - @base-ui/utils@0.4.0
 - @better-auth/core@1.7.5
@@ -242,6 +246,7 @@ Runtime packages: 472.
 - loose-envify@1.4.0
 - lru.min@1.1.5
 - magic-string@1.4.2
+- magicast@0.5.5
 - media-engine@2.0.0
 - mysql2@3.24.3
 - named-placeholders@1.1.6

@@ -25,7 +25,9 @@ export function DepartmentSection({ rows }: { rows: DepartmentRow[] }) {
               {rows.map((r) => (
                 <tr key={r.department} className="border-t border-border">
                   <td className="px-3 py-2 text-foreground">{r.department}</td>
-                  <td className="hidden px-3 py-2 text-right tabular-nums text-foreground @[520px]:table-cell">{r.total}</td>
+                  <td className="hidden px-3 py-2 text-right tabular-nums text-foreground @[520px]:table-cell">
+                    {r.total}
+                  </td>
                   <td className="px-3 py-2 text-right tabular-nums text-foreground">{r.exposed}</td>
                   <td className="px-3 py-2">
                     <div className="flex items-center gap-2">

@@ -2,7 +2,10 @@ import { getEmployees } from "@/lib/employees"
 import { breachRecordSome, employeeWhere, type ReportFilters } from "./filters"
 import type { EmployeeReportRow } from "./types"
 
-export async function getEmployeeBreakdown(companyId: string, f: ReportFilters): Promise<EmployeeReportRow[]> {
+export async function getEmployeeBreakdown(
+  companyId: string,
+  f: ReportFilters
+): Promise<EmployeeReportRow[]> {
   const employees = await getEmployees(companyId, {
     where: employeeWhere(companyId, f),
     recordWhere: breachRecordSome(f),

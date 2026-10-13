@@ -59,7 +59,9 @@ describe("buildEmployeeRiskInput", () => {
     const input = buildEmployeeRiskInput({
       email: "jane@acme.com",
       companyDomain: "acme.com",
-      records: [{ detectedAt: new Date("2026-06-20T00:00:00Z"), exposedData: ["email"], artifacts: ["COOKIE"] }],
+      records: [
+        { detectedAt: new Date("2026-06-20T00:00:00Z"), exposedData: ["email"], artifacts: ["COOKIE"] },
+      ],
       openAlerts: 1,
       now,
     })

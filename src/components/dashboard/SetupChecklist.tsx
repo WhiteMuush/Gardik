@@ -1,13 +1,5 @@
 import Link from "next/link"
-import {
-  CheckCircle2,
-  Circle,
-  Database,
-  KeyRound,
-  ScanSearch,
-  ArrowRight,
-  ExternalLink,
-} from "lucide-react"
+import { CheckCircle2, Circle, Database, KeyRound, ScanSearch, ArrowRight, ExternalLink } from "lucide-react"
 import { cn } from "@/lib/utils"
 
 type Step = {
@@ -41,7 +33,8 @@ export function SetupChecklist({
     {
       icon: Database,
       title: "Add employees to monitor",
-      description: "Connect a corporate directory (Azure AD, Google Workspace, LDAP...) to import the people you want to watch.",
+      description:
+        "Connect a corporate directory (Azure AD, Google Workspace, LDAP...) to import the people you want to watch.",
       href: "/data-sources",
       cta: "Connect a data source",
       done: hasEmployees,
@@ -49,7 +42,8 @@ export function SetupChecklist({
     {
       icon: KeyRound,
       title: "Add a breach intelligence key",
-      description: "A provider key (HIBP, Dehashed...) lets Gardik look your employees up against known breaches.",
+      description:
+        "A provider key (HIBP, Dehashed...) lets Gardik look your employees up against known breaches.",
       href: "/data-api",
       cta: "Add an API key",
       done: hasApiKey,
@@ -70,8 +64,8 @@ export function SetupChecklist({
         <div className="mb-8">
           <h2 className="text-xl font-semibold text-foreground">Welcome to Gardik</h2>
           <p className="mt-1 text-sm text-muted-foreground">
-            Self-hosted monitoring of your employees exposure in known data breaches. Complete
-            these steps to start monitoring.
+            Self-hosted monitoring of your employees exposure in known data breaches. Complete these steps to
+            start monitoring.
           </p>
         </div>
 
@@ -126,8 +120,8 @@ export function SetupChecklist({
         <div className="mt-8 rounded-xl border border-border/60 bg-muted/30 p-4">
           <p className="text-sm text-foreground">Thanks for trying Gardik.</p>
           <p className="mt-1 text-xs text-muted-foreground">
-            It is an open-source project built to make breach exposure visible and actionable.
-            Found a bug or have an idea? Your feedback genuinely helps it grow.
+            It is an open-source project built to make breach exposure visible and actionable. Found a bug or
+            have an idea? Your feedback genuinely helps it grow.
           </p>
           <a
             href="https://github.com/WhiteMuush/Gardik/issues"

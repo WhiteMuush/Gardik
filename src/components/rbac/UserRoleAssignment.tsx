@@ -38,7 +38,7 @@ export function UserRoleAssignment() {
 
   const filtered = useMemo(
     () => users.filter((u) => u.email.toLowerCase().includes(query.toLowerCase())),
-    [users, query],
+    [users, query]
   )
 
   // Both credential actions run behind step-up, same as assigning a

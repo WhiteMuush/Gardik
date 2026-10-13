@@ -12,10 +12,7 @@ const DOT: Record<FindingSeverity, string> = {
 
 export function KeyFindingsSection({ findings }: { findings: Finding[] }) {
   return (
-    <ReportSection
-      title="Key findings"
-      description="Automated assessment of the current security posture"
-    >
+    <ReportSection title="Key findings" description="Automated assessment of the current security posture">
       {findings.length === 0 ? (
         <p className="text-sm text-muted-foreground">Nothing notable to report.</p>
       ) : (

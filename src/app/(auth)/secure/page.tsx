@@ -60,9 +60,7 @@ export default async function SecurePage() {
         ) : (
           <>
             <div>
-              <h1 className="text-lg font-semibold text-foreground">
-                Set up two-factor authentication
-              </h1>
+              <h1 className="text-lg font-semibold text-foreground">Set up two-factor authentication</h1>
               <p className="text-sm text-muted-foreground">
                 This company requires a second factor before the dashboard opens.
               </p>

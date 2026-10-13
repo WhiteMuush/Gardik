@@ -11,7 +11,7 @@ Rules for AI assistants contributing to this project.
 
 ## Code style
 
-- No comments unless the WHY is non-obvious (hidden constraint, workaround for a specific bug, surprising invariant).
+- No comments unless the WHY is non-obvious (hidden constraint, workaround for a specific bug, surprising invariant), and then one sentence: direct, simple, precise.
 - No multi-line docstrings or comment blocks.
 - No error handling for impossible cases. Trust framework guarantees. Validate only at system boundaries (user input, external APIs).
 - No unused variables prefixed with `_` to silence linters, remove the variable.
@@ -40,15 +40,15 @@ Follow [Conventional Commits](https://www.conventionalcommits.org/), same rules 
 
 ## Before proposing changes
 
-Run the same gates CI enforces, in this order:
+Run `make check` before every push, and push only when it passes:
 
-- Lint with zero warnings: `npm run lint -- --max-warnings 0`.
-- Type check: `npx tsc --noEmit`.
-- Validate the Prisma schema when `prisma/` changes: `npx prisma validate`.
-- Confirm the build passes without real secrets: `npm run build`.
+- it runs `npm run check` (lint, format, types, Prisma schema, unit tests with the coverage floor, knip, version consistency, licenses, production audit, ASCII), then the production build without real secrets;
+- the pre-push hook only runs `npm run check`, so it does not replace `make check`.
 
 Also:
 
-- Respect the existing Prettier config, do not reformat unrelated lines.
+- Format with Prettier (`npm run format`), the check rejects unformatted files.
+- Keep every code file, tests included, at 200 lines or fewer; capped files may only shrink.
+- Report problems noticed outside the task in the final message, without fixing them.
 - Do not push to remote unless explicitly asked.
 - Do not open, close, or comment on issues or pull requests unless explicitly asked.

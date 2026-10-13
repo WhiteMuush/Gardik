@@ -31,8 +31,11 @@ function useNames() {
         fetch("/api/roles").catch(() => null),
         fetch("/api/users").catch(() => null),
       ])
-      if (r?.ok) for (const role of (await r.json()).roles as { id: string; name: string }[]) map[role.id] = role.name
-      if (u?.ok) for (const user of (await u.json()).users as { id: string; email: string }[]) map[user.id] = user.email
+      if (r?.ok)
+        for (const role of (await r.json()).roles as { id: string; name: string }[]) map[role.id] = role.name
+      if (u?.ok)
+        for (const user of (await u.json()).users as { id: string; email: string }[])
+          map[user.id] = user.email
       setNames(map)
     })()
   }, [])

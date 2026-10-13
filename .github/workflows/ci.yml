@@ -17,7 +17,7 @@ concurrency:
 
 jobs:
   quality:
-    name: Quality (lint, types, schema)
+    name: Quality (npm run check)
     runs-on: ubuntu-latest
     timeout-minutes: 10
     env:
@@ -35,36 +35,9 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
-      - name: Lint (zero warnings allowed)
-        run: npm run lint -- --max-warnings 0
-
-      - name: Type check
-        run: npx tsc --noEmit
-
-      - name: Validate Prisma schema
-        run: npx prisma validate
-
-  test:
-    name: Test
-    runs-on: ubuntu-latest
-    timeout-minutes: 10
-    env:
-      # Dummy value so loading prisma.config.ts never fails on a missing var.
-      DATABASE_URL: postgresql://ci:ci@localhost:5432/ci
-    steps:
-      - uses: actions/checkout@v7
-
-      - name: Setup Node.js
-        uses: actions/setup-node@v7
-        with:
-          node-version: 26
-          cache: npm
-
-      - name: Install dependencies
-        run: npm ci
-
-      - name: Unit tests
-        run: npm test
+      # Same command as the pre-push hook, so local and CI cannot drift.
+      - name: Every quality gate
+        run: npm run check
 
   build:
     name: Build
@@ -215,6 +188,6 @@ jobs:
   ci:
     name: ci
     runs-on: ubuntu-latest
-    needs: [quality, test, build, integration, e2e]
+    needs: [quality, build, integration, e2e]
     steps:
-      - run: echo "Quality, test, build, integration and e2e gates passed."
+      - run: echo "Quality, build, integration and e2e gates passed."

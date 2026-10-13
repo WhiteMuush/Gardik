@@ -95,10 +95,7 @@ export async function DELETE(_req: Request, { params }: Params) {
   }
   const assigned = await prisma.user.count({ where: { roleId: role.id } })
   if (assigned > 0) {
-    return NextResponse.json(
-      { error: "Reassign the users on this role before deleting it" },
-      { status: 409 },
-    )
+    return NextResponse.json({ error: "Reassign the users on this role before deleting it" }, { status: 409 })
   }
   await prisma.$transaction(async (tx) => {
     await tx.role.delete({ where: { id: role.id } })

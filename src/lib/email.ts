@@ -14,12 +14,23 @@ type BreachAlert = {
   severity: string
 }
 
-function render(a: BreachAlert): string {
-  const types = a.dataTypes.length ? a.dataTypes.join(", ") : "unknown data"
+function escapeHtml(value: string): string {
+  return value
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#39;")
+}
+
+// Breach names and data types come from external sources, so every value is
+// escaped before it reaches the HTML an administrator opens.
+export function breachAlertHtml(a: BreachAlert): string {
+  const types = a.dataTypes.length ? a.dataTypes.map(escapeHtml).join(", ") : "unknown data"
   return [
     `<div style="font-family:system-ui,sans-serif;font-size:14px;color:#111;line-height:1.5">`,
-    `<p><strong>${a.severity}</strong> exposure detected.</p>`,
-    `<p>${a.employeeName} was found in the <strong>${a.breachName}</strong> breach.</p>`,
+    `<p><strong>${escapeHtml(a.severity)}</strong> exposure detected.</p>`,
+    `<p>${escapeHtml(a.employeeName)} was found in the <strong>${escapeHtml(a.breachName)}</strong> breach.</p>`,
     `<p>Exposed data: ${types}.</p>`,
     `<p><a href="${appBaseUrl()}/alerts">View the alert in Gardik</a></p>`,
     `</div>`,
@@ -36,7 +47,7 @@ export async function sendBreachAlert(recipients: string[], alert: BreachAlert):
         from: FROM,
         to: recipients,
         subject: `New breach exposure: ${alert.employeeName}`,
-        html: render(alert),
+        html: breachAlertHtml(alert),
       }),
     })
   } catch {
@@ -48,11 +59,7 @@ export async function sendBreachAlert(recipients: string[], alert: BreachAlert):
 // temporary password, no account details worth harvesting if the mailbox is
 // later compromised, and an explicit expiry so a stale link found months later
 // is obviously stale.
-export async function sendInvitation(
-  recipient: string,
-  link: string,
-  expiresAt: Date
-): Promise<boolean> {
+export async function sendInvitation(recipient: string, link: string, expiresAt: Date): Promise<boolean> {
   const html = [
     `<div style="font-family:system-ui,sans-serif;font-size:14px;color:#111;line-height:1.5">`,
     `<p>You have been given access to Gardik.</p>`,

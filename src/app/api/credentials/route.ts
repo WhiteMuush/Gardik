@@ -12,8 +12,10 @@ const SELECT = {
   label: true,
   status: true,
   keyHint: true,
+  rateLimitPerMinute: true,
   lastUsedAt: true,
   createdAt: true,
+  updatedAt: true,
 } as const
 
 export async function GET() {

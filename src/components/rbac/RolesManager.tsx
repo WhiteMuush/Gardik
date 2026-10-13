@@ -46,7 +46,7 @@ export function RolesManager() {
 
   const filtered = useMemo(
     () => roles.filter((r) => r.name.toLowerCase().includes(query.toLowerCase())),
-    [roles, query],
+    [roles, query]
   )
   const pageRoles = filtered.slice(page * PAGE_SIZE, page * PAGE_SIZE + PAGE_SIZE)
   const pages = Math.max(1, Math.ceil(filtered.length / PAGE_SIZE))
@@ -97,7 +97,7 @@ export function RolesManager() {
           method: "PATCH",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
-        }),
+        })
       )
     } else {
       await mutate(() =>
@@ -105,7 +105,7 @@ export function RolesManager() {
           method: "POST",
           headers: { "Content-Type": "application/json" },
           body: JSON.stringify(payload),
-        }),
+        })
       )
     }
   }
@@ -165,13 +165,9 @@ export function RolesManager() {
                 <tr key={r.id} className="group transition-colors hover:bg-muted/40">
                   <td className="px-4 py-3">
                     <span className="font-medium text-foreground">{r.name}</span>
-                    {r.isSystem && (
-                      <span className="ml-2 text-xs text-muted-foreground">Built-in</span>
-                    )}
+                    {r.isSystem && <span className="ml-2 text-xs text-muted-foreground">Built-in</span>}
                   </td>
-                  <td className="px-4 py-3 tabular-nums text-muted-foreground">
-                    {r.permissions.length}
-                  </td>
+                  <td className="px-4 py-3 tabular-nums text-muted-foreground">{r.permissions.length}</td>
                   <td className="px-4 py-3 text-right">
                     {r.isSystem ? (
                       <span className="text-xs text-muted-foreground">&mdash;</span>
@@ -232,9 +228,7 @@ export function RolesManager() {
             <h3 className="text-sm font-medium text-foreground">
               {editing ? `Edit ${editing.name}` : "New role"}
             </h3>
-            <span className="text-xs tabular-nums text-muted-foreground">
-              {perms.size} selected
-            </span>
+            <span className="text-xs tabular-nums text-muted-foreground">{perms.size} selected</span>
           </div>
 
           <input

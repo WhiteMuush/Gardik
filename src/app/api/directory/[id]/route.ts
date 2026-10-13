@@ -7,17 +7,13 @@ const MIN_INTERVAL_MINUTES = 5
 // Validate an interval field: null disables, otherwise an integer >= the floor.
 function parseInterval(value: unknown): number | null | undefined {
   if (value === null) return null
-  if (typeof value === "number" && Number.isInteger(value) && value >= MIN_INTERVAL_MINUTES)
-    return value
+  if (typeof value === "number" && Number.isInteger(value) && value >= MIN_INTERVAL_MINUTES) return value
   return undefined // invalid
 }
 
 // Set the auto-sync cadence for a connection. SCIM is push-based, so it cannot
 // be put on a pull schedule.
-export async function PATCH(
-  req: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { session, error } = await requirePermission("connectors:manage")
   if (error) return error
 
@@ -48,10 +44,7 @@ export async function PATCH(
   return NextResponse.json({ id, autoSyncIntervalMinutes: interval })
 }
 
-export async function DELETE(
-  _req: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function DELETE(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { session, error } = await requirePermission("connectors:manage")
   if (error) return error
 

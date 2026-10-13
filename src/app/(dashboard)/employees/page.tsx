@@ -3,13 +3,22 @@ import { getSession } from "@/lib/auth/session"
 import { getEmployees } from "@/lib/employees"
 import { EmployeeTable } from "@/components/employees/EmployeeTable"
 import { ScanButton } from "@/components/employees/ScanButton"
+import { ScanCoverageBanner } from "@/components/employees/ScanCoverageBanner"
+import { getScanCoverage } from "@/lib/scan/coverage"
+import { authorize } from "@/lib/rbac/authorize"
+import { permissionsForRole } from "@/lib/rbac/session-permissions"
 
 export default async function EmployeesPage() {
   const denied = await guardPage("employees:read")
   if (denied) return denied
 
   const session = await getSession()
-  const employees = await getEmployees(session!.user.companyId)
+  const [employees, coverage, perms] = await Promise.all([
+    getEmployees(session!.user.companyId),
+    getScanCoverage(session!.user.companyId),
+    permissionsForRole(session!.user.roleId ?? null),
+  ])
+  const canScan = authorize(perms, "employees:scan")
 
   return (
     <div className="h-full overflow-y-auto p-6">
@@ -22,6 +31,7 @@ export default async function EmployeesPage() {
         </div>
         <ScanButton />
       </div>
+      <ScanCoverageBanner coverage={coverage} canScan={canScan} className="mb-6" />
       <EmployeeTable data={employees} />
     </div>
   )

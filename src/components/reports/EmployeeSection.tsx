@@ -59,16 +59,14 @@ export function EmployeeSection({ rows }: { rows: EmployeeReportRow[] }) {
                     <td className="hidden px-3 py-2 text-muted-foreground @[640px]:table-cell">
                       {e.department ?? "Unknown"}
                     </td>
-                    <td className="px-3 py-2 text-right tabular-nums text-foreground">
-                      {e.breachCount}
-                    </td>
+                    <td className="px-3 py-2 text-right tabular-nums text-foreground">{e.breachCount}</td>
                     <td className="hidden px-3 py-2 text-muted-foreground @[520px]:table-cell">
                       {formatDate(e.lastDetectedAt)}
                     </td>
-                    <td className="px-3 py-2 text-right tabular-nums text-foreground">
-                      {e.riskScore}
-                    </td>
-                    <td className={`hidden px-3 py-2 @[640px]:table-cell ${mfaLabel(e.mfaEnabled).className}`}>
+                    <td className="px-3 py-2 text-right tabular-nums text-foreground">{e.riskScore}</td>
+                    <td
+                      className={`hidden px-3 py-2 @[640px]:table-cell ${mfaLabel(e.mfaEnabled).className}`}
+                    >
                       {mfaLabel(e.mfaEnabled).text}
                     </td>
                     <td className="px-3 py-2">
@@ -81,8 +79,8 @@ export function EmployeeSection({ rows }: { rows: EmployeeReportRow[] }) {
           </div>
           {exposed.length > MAX_ROWS && (
             <p className="mt-2 text-xs text-muted-foreground">
-              Showing the top {MAX_ROWS} of {exposed.length} exposed employees. The CSV export
-              contains the full list, including non-exposed employees.
+              Showing the top {MAX_ROWS} of {exposed.length} exposed employees. The CSV export contains the
+              full list, including non-exposed employees.
             </p>
           )}
         </>

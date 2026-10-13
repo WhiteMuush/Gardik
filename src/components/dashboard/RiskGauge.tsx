@@ -7,11 +7,7 @@ function polarToCartesian(cx: number, cy: number, r: number, angleDeg: number) {
   return { x: cx + r * Math.cos(rad), y: cy + r * Math.sin(rad) }
 }
 
-function ringPath(
-  cx: number, cy: number,
-  ro: number, ri: number,
-  fromDeg: number, toDeg: number
-): string {
+function ringPath(cx: number, cy: number, ro: number, ri: number, fromDeg: number, toDeg: number): string {
   if (Math.abs(toDeg - fromDeg) < 0.01) return ""
   const clampedTo = Math.min(toDeg, fromDeg + 179.99)
   const large = toDeg - fromDeg >= 180 ? 1 : 0
@@ -39,8 +35,10 @@ function scoreLabel(score: number) {
 export function RiskGauge({ riskScore }: { riskScore: number }) {
   const { title } = useWidgetTitle("risk-gauge", "Risk Score")
 
-  const cx = 100, cy = 100
-  const ro = 78, ri = 56
+  const cx = 100,
+    cy = 100
+  const ro = 78,
+    ri = 56
   const scoreDeg = 180 + (Math.min(riskScore, 100) / 100) * 180
   const color = scoreColor(riskScore)
   const label = scoreLabel(riskScore)
@@ -68,22 +66,55 @@ export function RiskGauge({ riskScore }: { riskScore: number }) {
           {fgPath && <path d={fgPath} fill={color} />}
           {/* Tick marks */}
           {ticks.map((t, i) => (
-            <line key={i} x1={t.x1} y1={t.y1} x2={t.x2} y2={t.y2}
-              stroke="oklch(var(--border))" strokeWidth="1.5" strokeLinecap="round" />
+            <line
+              key={i}
+              x1={t.x1}
+              y1={t.y1}
+              x2={t.x2}
+              y2={t.y2}
+              stroke="oklch(var(--border))"
+              strokeWidth="1.5"
+              strokeLinecap="round"
+            />
           ))}
           {/* Score number */}
-          <text x={cx} y={cy - 6} textAnchor="middle" fontSize="30" fontWeight="700"
-            fill="oklch(var(--foreground))" fontFamily="inherit">
+          <text
+            x={cx}
+            y={cy - 6}
+            textAnchor="middle"
+            fontSize="30"
+            fontWeight="700"
+            fill="oklch(var(--foreground))"
+            fontFamily="inherit"
+          >
             {riskScore}
           </text>
           {/* Label */}
-          <text x={cx} y={cy + 12} textAnchor="middle" fontSize="11" fontWeight="600"
-            fill={color} fontFamily="inherit">
+          <text
+            x={cx}
+            y={cy + 12}
+            textAnchor="middle"
+            fontSize="11"
+            fontWeight="600"
+            fill={color}
+            fontFamily="inherit"
+          >
             {label}
           </text>
           {/* Scale labels */}
-          <text x="18" y="108" fontSize="9" fill="oklch(var(--muted-foreground))" fontFamily="inherit">0</text>
-          <text x="178" y="108" fontSize="9" fill="oklch(var(--muted-foreground))" fontFamily="inherit" textAnchor="end">100</text>
+          <text x="18" y="108" fontSize="9" fill="oklch(var(--muted-foreground))" fontFamily="inherit">
+            0
+          </text>
+          <text
+            x="178"
+            y="108"
+            fontSize="9"
+            fill="oklch(var(--muted-foreground))"
+            fontFamily="inherit"
+            textAnchor="end"
+          >
+            100
+          </text>
         </svg>
       </div>
     </div>

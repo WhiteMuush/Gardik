@@ -2,9 +2,7 @@
 
 import { useState } from "react"
 import { Settings2, Check } from "lucide-react"
-import {
-  AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-} from "recharts"
+import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
 import { useWidgetConfig } from "@/hooks/useWidgetConfig"
 import { useDashboardEditing } from "@/contexts/DashboardEditContext"
 import { useWidgetTitle } from "@/hooks/useWidgetTitle"
@@ -13,10 +11,10 @@ import { cn } from "@/lib/utils"
 type Period = "1m" | "3m" | "6m" | "1y"
 
 const PERIODS: { key: Period; label: string; months: number }[] = [
-  { key: "1m", label: "1 month",  months: 1 },
+  { key: "1m", label: "1 month", months: 1 },
   { key: "3m", label: "3 months", months: 3 },
   { key: "6m", label: "6 months", months: 6 },
-  { key: "1y", label: "1 year",   months: 12 },
+  { key: "1y", label: "1 year", months: 12 },
 ]
 
 interface TrendChartProps {
@@ -46,7 +44,9 @@ export function TrendChart({ data }: TrendChartProps) {
             onClick={() => setShowSettings((s) => !s)}
             className={cn(
               "flex size-7 items-center justify-center rounded-md transition-colors",
-              showSettings ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted hover:text-foreground"
+              showSettings
+                ? "bg-primary/10 text-primary"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground"
             )}
           >
             {showSettings ? <Check className="size-4" /> : <Settings2 className="size-4" />}
@@ -56,9 +56,7 @@ export function TrendChart({ data }: TrendChartProps) {
 
       {showSettings && (
         <div className="mb-4 shrink-0 rounded-lg border border-border bg-background p-4">
-          <p className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">
-            Period
-          </p>
+          <p className="mb-2 text-xs font-medium uppercase tracking-wider text-muted-foreground">Period</p>
           <div className="flex gap-2">
             {PERIODS.map((p) => (
               <button
@@ -93,8 +91,18 @@ export function TrendChart({ data }: TrendChartProps) {
                 </linearGradient>
               </defs>
               <CartesianGrid strokeDasharray="3 3" stroke="oklch(var(--border))" vertical={false} />
-              <XAxis dataKey="month" tick={{ fill: "oklch(var(--muted-foreground))", fontSize: 11 }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fill: "oklch(var(--muted-foreground))", fontSize: 11 }} axisLine={false} tickLine={false} allowDecimals={false} />
+              <XAxis
+                dataKey="month"
+                tick={{ fill: "oklch(var(--muted-foreground))", fontSize: 11 }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <YAxis
+                tick={{ fill: "oklch(var(--muted-foreground))", fontSize: 11 }}
+                axisLine={false}
+                tickLine={false}
+                allowDecimals={false}
+              />
               <Tooltip
                 contentStyle={{
                   background: "oklch(var(--card))",
@@ -106,7 +114,15 @@ export function TrendChart({ data }: TrendChartProps) {
                 cursor={{ stroke: "oklch(var(--border))" }}
                 formatter={(value) => [value, "Detections"]}
               />
-              <Area type="monotone" dataKey="count" stroke="oklch(var(--primary))" strokeWidth={2} fill="url(#areaGradient)" dot={false} activeDot={{ r: 4, fill: "oklch(var(--primary))" }} />
+              <Area
+                type="monotone"
+                dataKey="count"
+                stroke="oklch(var(--primary))"
+                strokeWidth={2}
+                fill="url(#areaGradient)"
+                dot={false}
+                activeDot={{ r: 4, fill: "oklch(var(--primary))" }}
+              />
             </AreaChart>
           </ResponsiveContainer>
         </div>

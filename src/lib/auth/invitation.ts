@@ -91,8 +91,7 @@ export async function issueInvitation(
 }
 
 export type ConsumeResult =
-  | { ok: true; userId: string }
-  | { ok: false; reason: "invalid" | "weak_password"; message: string }
+  { ok: true; userId: string } | { ok: false; reason: "invalid" | "weak_password"; message: string }
 
 /**
  * Redeems an invitation: sets the account password, marks the address as

@@ -187,8 +187,4 @@ const WIDGETS: WidgetDef[] = [
   },
 ]
 
-export function getWidgetDef(type: string): WidgetDef | undefined {
-  return WIDGETS.find((w) => w.type === type)
-}
-
 export { WIDGETS }

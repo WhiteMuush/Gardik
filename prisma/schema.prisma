@@ -194,16 +194,19 @@ enum ConnectStatus {
 }
 
 model ApiCredential {
-  id           String        @id @default(cuid())
-  companyId    String
-  provider     ApiProvider
-  label        String
-  encryptedKey String
-  keyHint      String
-  status       ConnectStatus @default(PENDING)
-  lastUsedAt   DateTime?
-  createdAt    DateTime      @default(now())
-  updatedAt    DateTime      @updatedAt
+  id                 String        @id @default(cuid())
+  companyId          String
+  provider           ApiProvider
+  label              String
+  encryptedKey       String
+  keyHint            String
+  status             ConnectStatus @default(PENDING)
+  // Requests per minute allowed by the customer's plan; null uses the
+  // provider's default (lowest paid plan that grants API access).
+  rateLimitPerMinute Int?
+  lastUsedAt         DateTime?
+  createdAt          DateTime      @default(now())
+  updatedAt          DateTime      @updatedAt
 
   company Company @relation(fields: [companyId], references: [id], onDelete: Cascade)
 
@@ -451,8 +454,31 @@ model Employee {
   company       Company        @relation(fields: [companyId], references: [id], onDelete: Cascade)
   breachRecords BreachRecord[]
   alerts        Alert[]
+  scanChecks    ScanCheck[]
 
   @@unique([email, companyId])
+}
+
+enum ScanCheckStatus {
+  CHECKED
+  FAILED
+}
+
+// Outcome of the latest lookup of one employee against one source. No row means
+// never checked, so a failed or skipped lookup is never mistaken for "no breach".
+model ScanCheck {
+  id            String          @id @default(cuid())
+  employeeId    String
+  provider      ApiProvider
+  status        ScanCheckStatus
+  failureReason String?
+  lastAttemptAt DateTime
+  lastCheckedAt DateTime?
+
+  employee Employee @relation(fields: [employeeId], references: [id], onDelete: Cascade)
+
+  @@unique([employeeId, provider])
+  @@index([provider, status])
 }
 
 model Breach {

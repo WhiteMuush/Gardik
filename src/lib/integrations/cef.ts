@@ -4,14 +4,19 @@ import type { SiemAlert } from "./types"
 // ArcSight CEF severity is 0-10. Map Gardik severities onto that scale.
 const CEF_SEVERITY: Record<Severity, number> = { CRITICAL: 10, HIGH: 8, MEDIUM: 5, LOW: 2 }
 
-// CEF prefix fields (before the extension) escape backslash and pipe.
+// CEF prefix fields (before the extension) escape backslash and pipe. They
+// cannot carry a line break, so one from a breach source becomes a space
+// rather than starting a forged event.
 function escapeHeader(value: string): string {
-  return value.replace(/\\/g, "\\\\").replace(/\|/g, "\\|")
+  return value
+    .replace(/\\/g, "\\\\")
+    .replace(/\|/g, "\\|")
+    .replace(/\r\n|\r|\n/g, " ")
 }
 
-// CEF extension values escape backslash, equals and newlines.
+// CEF extension values escape backslash, equals and line breaks.
 function escapeExt(value: string): string {
-  return value.replace(/\\/g, "\\\\").replace(/=/g, "\\=").replace(/\n/g, "\\n")
+  return value.replace(/\\/g, "\\\\").replace(/=/g, "\\=").replace(/\n/g, "\\n").replace(/\r/g, "\\r")
 }
 
 // Render one alert as a CEF line (Splunk / Microsoft Sentinel ingestible).

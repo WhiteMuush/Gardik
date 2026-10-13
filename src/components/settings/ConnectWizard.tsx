@@ -1,7 +1,21 @@
 "use client"
 
 import { useState } from "react"
-import { X, ChevronRight, CheckCircle, XCircle, Loader2, Building2, Globe, Network, Eye, EyeOff, Cloud, Shield, Link } from "lucide-react"
+import {
+  X,
+  ChevronRight,
+  CheckCircle,
+  XCircle,
+  Loader2,
+  Building2,
+  Globe,
+  Network,
+  Eye,
+  EyeOff,
+  Cloud,
+  Shield,
+  Link,
+} from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
 
@@ -320,9 +334,7 @@ export function ConnectWizard({ onClose, onCreated }: Props) {
         <div className="px-6 py-5">
           {step === "choose" && (
             <div className="space-y-2">
-              <p className="mb-4 text-sm text-muted-foreground">
-                Choose the type of directory to connect.
-              </p>
+              <p className="mb-4 text-sm text-muted-foreground">Choose the type of directory to connect.</p>
               {PROVIDERS.map((p) => (
                 <button
                   key={p.type}
@@ -350,13 +362,11 @@ export function ConnectWizard({ onClose, onCreated }: Props) {
           {step === "configure" && selectedType === "SCIM" && (
             <div className="space-y-4">
               <p className="text-sm text-muted-foreground">
-                Gardik will generate a unique endpoint URL and bearer token.
-                You will configure your identity provider with these values after saving.
+                Gardik will generate a unique endpoint URL and bearer token. You will configure your identity
+                provider with these values after saving.
               </p>
               <div>
-                <label className="mb-1 block text-xs font-medium text-foreground">
-                  Connection name
-                </label>
+                <label className="mb-1 block text-xs font-medium text-foreground">Connection name</label>
                 <input
                   value={name}
                   onChange={(e) => setName(e.target.value)}
@@ -384,9 +394,7 @@ export function ConnectWizard({ onClose, onCreated }: Props) {
               )}
 
               <div>
-                <label className="mb-1 block text-xs font-medium text-foreground">
-                  Connection name
-                </label>
+                <label className="mb-1 block text-xs font-medium text-foreground">Connection name</label>
                 <input
                   value={name}
                   onChange={(e) => setName(e.target.value)}
@@ -397,9 +405,7 @@ export function ConnectWizard({ onClose, onCreated }: Props) {
 
               {fieldDefs.map((def) => (
                 <div key={def.key}>
-                  <label className="mb-1 block text-xs font-medium text-foreground">
-                    {def.label}
-                  </label>
+                  <label className="mb-1 block text-xs font-medium text-foreground">{def.label}</label>
                   {def.type === "textarea" ? (
                     <div className="relative">
                       <textarea
@@ -407,7 +413,11 @@ export function ConnectWizard({ onClose, onCreated }: Props) {
                         onChange={(e) => handleFieldChange(def.key, e.target.value)}
                         placeholder={def.placeholder}
                         rows={4}
-                        style={def.secret && !revealedFields.has(def.key) ? { WebkitTextSecurity: "disc" } as React.CSSProperties : undefined}
+                        style={
+                          def.secret && !revealedFields.has(def.key)
+                            ? ({ WebkitTextSecurity: "disc" } as React.CSSProperties)
+                            : undefined
+                        }
                         className="w-full rounded-lg border border-border bg-background px-3 py-2 pr-9 font-mono text-xs text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                       />
                       {def.secret && (
@@ -416,7 +426,11 @@ export function ConnectWizard({ onClose, onCreated }: Props) {
                           onClick={() => toggleReveal(def.key)}
                           className="absolute right-2.5 top-2.5 text-muted-foreground hover:text-foreground"
                         >
-                          {revealedFields.has(def.key) ? <EyeOff className="size-3.5" /> : <Eye className="size-3.5" />}
+                          {revealedFields.has(def.key) ? (
+                            <EyeOff className="size-3.5" />
+                          ) : (
+                            <Eye className="size-3.5" />
+                          )}
                         </button>
                       )}
                     </div>
@@ -429,16 +443,12 @@ export function ConnectWizard({ onClose, onCreated }: Props) {
                       className="w-full rounded-lg border border-border bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:outline-none focus:ring-2 focus:ring-ring"
                     />
                   )}
-                  {def.hint && (
-                    <p className="mt-1 text-xs text-muted-foreground">{def.hint}</p>
-                  )}
+                  {def.hint && <p className="mt-1 text-xs text-muted-foreground">{def.hint}</p>}
                 </div>
               ))}
 
               {error && (
-                <p className="rounded-lg bg-destructive/10 px-3 py-2 text-xs text-destructive">
-                  {error}
-                </p>
+                <p className="rounded-lg bg-destructive/10 px-3 py-2 text-xs text-destructive">{error}</p>
               )}
             </div>
           )}
@@ -464,7 +474,12 @@ export function ConnectWizard({ onClose, onCreated }: Props) {
                     <XCircle className="mt-0.5 size-4 shrink-0 text-destructive" />
                   )}
                   <div>
-                    <p className={cn("text-sm font-medium", testResult.ok ? "text-green-600 dark:text-green-400" : "text-destructive")}>
+                    <p
+                      className={cn(
+                        "text-sm font-medium",
+                        testResult.ok ? "text-green-600 dark:text-green-400" : "text-destructive"
+                      )}
+                    >
                       {testResult.ok ? "Connection successful" : "Connection failed"}
                     </p>
                     {testResult.ok && testResult.userCount !== undefined && (
@@ -472,9 +487,7 @@ export function ConnectWizard({ onClose, onCreated }: Props) {
                         {testResult.userCount} user{testResult.userCount !== 1 ? "s" : ""} detected
                       </p>
                     )}
-                    {testResult.error && (
-                      <p className="text-xs text-muted-foreground">{testResult.error}</p>
-                    )}
+                    {testResult.error && <p className="text-xs text-muted-foreground">{testResult.error}</p>}
                   </div>
                 </div>
               )}
@@ -490,8 +503,7 @@ export function ConnectWizard({ onClose, onCreated }: Props) {
                     Directory connected successfully
                   </p>
                   <p className="text-xs text-muted-foreground">
-                    {testResult?.userCount !== undefined &&
-                      `${testResult.userCount} users ready to sync.`}
+                    {testResult?.userCount !== undefined && `${testResult.userCount} users ready to sync.`}
                   </p>
                 </div>
               </div>
@@ -505,9 +517,7 @@ export function ConnectWizard({ onClose, onCreated }: Props) {
             <div className="space-y-4">
               <div className="flex items-center gap-3 rounded-lg border border-green-500/30 bg-green-500/10 px-4 py-3">
                 <CheckCircle className="size-5 shrink-0 text-green-500" />
-                <p className="text-sm font-medium text-green-600 dark:text-green-400">
-                  SCIM endpoint ready
-                </p>
+                <p className="text-sm font-medium text-green-600 dark:text-green-400">SCIM endpoint ready</p>
               </div>
               <p className="text-sm text-muted-foreground">
                 Configure your identity provider with the values below. The bearer token is only shown once.
@@ -523,9 +533,7 @@ export function ConnectWizard({ onClose, onCreated }: Props) {
               <div>
                 <p className="mb-1 text-xs font-medium text-foreground">Bearer token</p>
                 <div className="flex items-center gap-2 rounded-lg border border-border bg-muted/50 px-3 py-2">
-                  <code className="flex-1 truncate font-mono text-xs text-foreground">
-                    {scimToken}
-                  </code>
+                  <code className="flex-1 truncate font-mono text-xs text-foreground">{scimToken}</code>
                 </div>
                 <p className="mt-1 text-xs text-muted-foreground">
                   Copy this token now, it will not be shown again.
@@ -539,7 +547,9 @@ export function ConnectWizard({ onClose, onCreated }: Props) {
           <Button
             variant="ghost"
             size="sm"
-            onClick={step === "choose" ? onClose : () => setStep(step === "configure" ? "choose" : "configure")}
+            onClick={
+              step === "choose" ? onClose : () => setStep(step === "configure" ? "choose" : "configure")
+            }
             disabled={step === "done"}
           >
             {step === "choose" ? "Cancel" : "Back"}

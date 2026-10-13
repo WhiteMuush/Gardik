@@ -18,7 +18,7 @@ type Filter = "ALL" | "CRITICAL" | "HIGH"
 
 const SEV_BADGE_CLASSES: Record<string, string> = {
   CRITICAL: "bg-red-500/10 text-red-400 border border-red-500/20",
-  HIGH:     "bg-orange-500/10 text-orange-400 border border-orange-500/20",
+  HIGH: "bg-orange-500/10 text-orange-400 border border-orange-500/20",
 }
 
 export function CriticalAlertsList({ data }: { data: UrgentAlert[] }) {
@@ -72,16 +72,19 @@ export function CriticalAlertsList({ data }: { data: UrgentAlert[] }) {
               }
               className="flex w-full items-start gap-2.5 rounded-lg border border-border bg-background px-3 py-2.5 text-left transition-colors hover:border-primary/40 hover:bg-muted"
             >
-              <span className={cn("mt-0.5 shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide", SEV_BADGE_CLASSES[alert.severity] ?? "bg-muted text-muted-foreground")}>
+              <span
+                className={cn(
+                  "mt-0.5 shrink-0 rounded px-1.5 py-0.5 text-[10px] font-semibold uppercase tracking-wide",
+                  SEV_BADGE_CLASSES[alert.severity] ?? "bg-muted text-muted-foreground"
+                )}
+              >
                 {alert.severity}
               </span>
               <div className="min-w-0 flex-1">
                 <p className="truncate text-xs font-medium text-foreground">
                   {alert.employeeName ?? "Unknown employee"}
                   {alert.department && (
-                    <span className="ml-1.5 font-normal text-muted-foreground">
-                      {alert.department}
-                    </span>
+                    <span className="ml-1.5 font-normal text-muted-foreground">{alert.department}</span>
                   )}
                 </p>
                 <p className="truncate text-[11px] text-muted-foreground">{alert.breachName ?? "-"}</p>

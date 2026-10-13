@@ -6,6 +6,8 @@ import {
   getRiskLevel,
   resolveRiskWeights,
 } from "@/lib/risk"
+import { checkLabel } from "@/lib/scan/coverage"
+import { providerMeta } from "@/lib/credentials/providers"
 import type { Prisma } from "@prisma/client"
 
 export { CRITICAL_DATA }
@@ -26,6 +28,13 @@ export type BreachRecordDetail = {
   detectedAt: Date
 }
 
+export type SourceCheck = {
+  provider: string
+  label: string
+  status: "CHECKED" | "FAILED" | "NEVER"
+  text: string
+}
+
 export type EmployeeRow = {
   id: string
   email: string
@@ -39,11 +48,17 @@ export type EmployeeRow = {
   riskLevel: RiskLevel
   mfaEnabled: boolean | null
   breachRecords: BreachRecordDetail[]
+  sourceChecks: SourceCheck[]
 }
 
 export async function getEmployees(companyId: string, opts?: GetEmployeesOpts): Promise<EmployeeRow[]> {
-  const [company, employees] = await Promise.all([
+  const [company, credentials, employees] = await Promise.all([
     prisma.company.findUnique({ where: { id: companyId }, select: { domain: true, riskWeights: true } }),
+    prisma.apiCredential.findMany({
+      where: { companyId },
+      select: { provider: true },
+      orderBy: { provider: "asc" },
+    }),
     prisma.employee.findMany({
       where: { companyId, ...opts?.where },
       include: {
@@ -53,6 +68,7 @@ export async function getEmployees(companyId: string, opts?: GetEmployeesOpts): 
           orderBy: { detectedAt: "desc" },
         },
         alerts: { where: { status: { not: "RESOLVED" } }, select: { id: true } },
+        scanChecks: true,
       },
       orderBy: { createdAt: "desc" },
     }),
@@ -92,6 +108,15 @@ export async function getEmployees(companyId: string, opts?: GetEmployeesOpts): 
         exposedData: r.exposedData,
         detectedAt: r.detectedAt,
       })),
+      sourceChecks: credentials.map(({ provider }) => {
+        const check = emp.scanChecks.find((c) => c.provider === provider) ?? null
+        return {
+          provider,
+          label: providerMeta(provider)?.label ?? provider,
+          status: check?.status ?? "NEVER",
+          text: checkLabel(check),
+        }
+      }),
     }
   })
 }

@@ -5,15 +5,22 @@ import { dispatchWebhooks, loadActiveWebhooks } from "@/lib/webhooks"
 import { confidenceForProvider } from "@/lib/credentials/providers"
 import { providerById } from "./registry"
 import { canonicalBreachKey, sleep } from "./normalize"
+import { createPacer, type Pace } from "./pacer"
+import { ProviderError, failureReason, isRetryable } from "./errors"
 import type { BreachProvider, Finding } from "./types"
 import type { AlertConfidence, ApiProvider, ArtifactKind, BreachSource, Severity } from "@prisma/client"
 import { ADMINISTRATOR } from "@/lib/rbac/presets"
 
-const RATE_LIMIT_MS = 1500
+const MAX_ATTEMPTS = 4
+const BACKOFF_MS = 2000
+// Longest wait a scan accepts before a retry; a source asking for more (a
+// daily quota) is blocked for the rest of the scan instead.
+const MAX_WAIT_MS = 60_000
 const CRITICAL_TYPES = ["password", "hashed_password", "credit_card", "ssn", "bank_account"]
 
-export type ActiveProvider = { provider: BreachProvider; key: string }
-export type ScanResult = { scanned: number; newRecords: number; newAlerts: number }
+export type ActiveProvider = { provider: BreachProvider; key: string; ratePerMinute: number }
+export type ScanResult = { scanned: number; newRecords: number; newAlerts: number; failedChecks: number }
+export type ScanOptions = { onlyIncomplete?: boolean }
 
 type EmployeeWithRecords = {
   id: string
@@ -31,7 +38,7 @@ export async function loadActiveProviders(companyId: string): Promise<ActiveProv
     const provider = providerById(cred.provider)
     if (!provider) continue
     const { key } = decryptConfig<{ key: string }>(cred.encryptedKey)
-    active.push({ provider, key })
+    active.push({ provider, key, ratePerMinute: cred.rateLimitPerMinute ?? provider.defaultRatePerMinute })
   }
   if (active.length) {
     await prisma.apiCredential.updateMany({
@@ -253,11 +260,55 @@ async function notifyRecipients(companyId: string): Promise<string[]> {
   return admins.map((a) => a.email)
 }
 
-// Scan every employee against every active provider. A provider error is isolated
-// (we move on to the next one) so it never aborts the whole scan.
+type PacedProvider = ActiveProvider & { pace: Pace }
+type LookupOutcome = { ok: true; findings: Finding[] } | { ok: false; reason: string; block: boolean }
+
+// Retries what waiting can fix (rate limit, outage, network). A rejected key, a
+// wait longer than MAX_WAIT_MS or an exhausted retry budget blocks the source
+// for the rest of the scan, so the remaining employees fail fast instead of
+// each burning the same retries.
+async function lookupWithRetry(active: PacedProvider, email: string): Promise<LookupOutcome> {
+  for (let attempt = 1; ; attempt++) {
+    await active.pace()
+    try {
+      return { ok: true, findings: await active.provider.lookup(email, active.key) }
+    } catch (err) {
+      const reason = failureReason(err)
+      if (!isRetryable(err)) {
+        const keyRejected = err instanceof ProviderError && (err.status === 401 || err.status === 403)
+        return { ok: false, reason, block: keyRejected }
+      }
+      const wait =
+        err instanceof ProviderError && err.retryAfterMs !== null
+          ? err.retryAfterMs
+          : BACKOFF_MS * 2 ** (attempt - 1)
+      if (attempt === MAX_ATTEMPTS || wait > MAX_WAIT_MS) return { ok: false, reason, block: true }
+      await sleep(wait)
+    }
+  }
+}
+
+async function recordCheck(employeeId: string, provider: ApiProvider, reason: string | null): Promise<void> {
+  const now = new Date()
+  const data =
+    reason === null
+      ? { status: "CHECKED" as const, failureReason: null, lastAttemptAt: now, lastCheckedAt: now }
+      : { status: "FAILED" as const, failureReason: reason, lastAttemptAt: now }
+  await prisma.scanCheck.upsert({
+    where: { employeeId_provider: { employeeId, provider } },
+    create: { employeeId, provider, ...data },
+    update: data,
+  })
+}
+
+// Scan employees against the active providers, each paced on its own rate.
+// Every employee/provider pair ends as a ScanCheck row, CHECKED or FAILED, so a
+// lookup that did not happen is never reported as "no breach". With
+// onlyIncomplete, pairs already CHECKED are skipped.
 export async function runScan(
   companyId: string,
-  providers: ActiveProvider[]
+  providers: ActiveProvider[],
+  options: ScanOptions = {}
 ): Promise<ScanResult> {
   const employees = await prisma.employee.findMany({
     where: { companyId },
@@ -273,6 +324,7 @@ export async function runScan(
         },
       },
       alerts: { select: { id: true, breachId: true, severity: true, confidence: true } },
+      scanChecks: { select: { provider: true, status: true } },
     },
   })
   const notify: Notify = {
@@ -280,8 +332,17 @@ export async function runScan(
     webhooks: await loadActiveWebhooks(companyId),
   }
 
+  const paced: PacedProvider[] = providers.map((p) => ({ ...p, pace: createPacer(p.ratePerMinute) }))
+  const blocked = new Map<ApiProvider, string>()
   let newRecords = 0
+  let failedChecks = 0
+  let scanned = 0
   for (const employee of employees) {
+    const checked = new Set(employee.scanChecks.filter((c) => c.status === "CHECKED").map((c) => c.provider))
+    const due = options.onlyIncomplete ? paced.filter((p) => !checked.has(p.provider.id)) : paced
+    if (!due.length) continue
+    scanned++
+
     // Seed the canonical map from what the employee already has, so a breach
     // first seen in an earlier scan still dedups against this run's findings.
     const alertByBreach = new Map(
@@ -305,21 +366,29 @@ export async function runScan(
       })
     }
 
-    for (const { provider, key } of providers) {
-      let findings: Finding[]
-      try {
-        findings = await provider.lookup(employee.email, key)
-      } catch {
+    for (const active of due) {
+      const { provider } = active
+      const blockedReason = blocked.get(provider.id)
+      const outcome: LookupOutcome =
+        blockedReason !== undefined
+          ? { ok: false, reason: blockedReason, block: false }
+          : await lookupWithRetry(active, employee.email)
+      if (!outcome.ok) {
+        if (outcome.block) blocked.set(provider.id, outcome.reason)
+        failedChecks++
+        await recordCheck(employee.id, provider.id, outcome.reason)
         continue
       }
-      for (const finding of findings) {
-        if (await handleFinding(companyId, employee, finding, provider.source, provider.id, byCanonical, notify)) {
+      for (const finding of outcome.findings) {
+        if (
+          await handleFinding(companyId, employee, finding, provider.source, provider.id, byCanonical, notify)
+        ) {
           newRecords++
         }
       }
+      await recordCheck(employee.id, provider.id, null)
     }
-    await sleep(RATE_LIMIT_MS)
   }
 
-  return { scanned: employees.length, newRecords, newAlerts: newRecords }
+  return { scanned, newRecords, newAlerts: newRecords, failedChecks }
 }

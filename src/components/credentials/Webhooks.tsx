@@ -144,7 +144,9 @@ export function Webhooks({ initial, isAdmin }: Props) {
             className="rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground focus:border-ring focus:outline-none"
           >
             {CHANNELS.map((c) => (
-              <option key={c.id} value={c.id}>{c.label}</option>
+              <option key={c.id} value={c.id}>
+                {c.label}
+              </option>
             ))}
           </select>
           <input
@@ -159,7 +161,9 @@ export function Webhooks({ initial, isAdmin }: Props) {
             className="rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground focus:border-ring focus:outline-none"
           >
             {SEVERITIES.map((s) => (
-              <option key={s} value={s}>{s}</option>
+              <option key={s} value={s}>
+                {s}
+              </option>
             ))}
           </select>
           <Button size="sm" onClick={add} disabled={busy === "add" || !label.trim() || !url.trim()}>

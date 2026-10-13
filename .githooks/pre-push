@@ -5,9 +5,6 @@ set -eu
 root="$(git rev-parse --show-toplevel)"
 lib="$root/.githooks/lib"
 
-echo "[pre-push] type-check"
-npx tsc --noEmit
-
 echo "[pre-push] ascii-only (added lines vs origin/main)"
 base="$(git merge-base origin/main HEAD 2>/dev/null || git rev-parse HEAD)"
 sh "$lib/added-lines.sh" range "$base" | sh "$lib/check-ascii.sh" || {
@@ -17,10 +14,10 @@ sh "$lib/added-lines.sh" range "$base" | sh "$lib/check-ascii.sh" || {
   exit 1
 }
 
-echo "[pre-push] ascii-only (whole tree)"
-sh "$lib/check-ascii-tree.sh" || {
+echo "[pre-push] every quality gate (npm run check)"
+npm run --silent check || {
   echo ""
-  echo "Push blocked: non-ASCII characters already in the tree."
-  echo "The added-lines check above cannot see them. Do not bypass with --no-verify."
+  echo "Push blocked: fix the failed gates listed above."
+  echo "CI runs the same command. Do not bypass with --no-verify."
   exit 1
 }

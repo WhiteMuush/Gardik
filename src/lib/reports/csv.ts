@@ -1,13 +1,7 @@
 import type { ReportData } from "./types"
 
 export type CsvSection =
-  | "all"
-  | "exposure"
-  | "datatypes"
-  | "departments"
-  | "employees"
-  | "trends"
-  | "compliance"
+  "all" | "exposure" | "datatypes" | "departments" | "employees" | "trends" | "compliance"
 
 type Cell = string | number
 

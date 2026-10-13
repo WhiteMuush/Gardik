@@ -4,10 +4,7 @@ import { rateLimit } from "@/lib/rateLimit"
 import { prisma } from "@/lib/prisma"
 import { enqueueSyncJob, processSyncJobs } from "@/lib/directory/jobs"
 
-export async function POST(
-  _req: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function POST(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { session, error } = await requirePermission("connectors:sync")
   if (error) return error
 
@@ -25,8 +22,7 @@ export async function POST(
     where: { id, companyId: session.user.companyId },
     select: { id: true },
   })
-  if (!connection)
-    return NextResponse.json({ error: "Connection not found" }, { status: 404 })
+  if (!connection) return NextResponse.json({ error: "Connection not found" }, { status: 404 })
 
   const job = await enqueueSyncJob(id)
 

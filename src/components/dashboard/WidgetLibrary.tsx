@@ -11,19 +11,21 @@ const PREVIEW_SCALE = 0.42
 const PREVIEW_H = 200
 
 const CATEGORIES: { key: WidgetCategory; label: string; icon: React.ElementType }[] = [
-  { key: "overview",  label: "Overview",  icon: LayoutGrid },
-  { key: "alerts",    label: "Alerts",    icon: Bell },
-  { key: "breaches",  label: "Breaches",  icon: ShieldAlert },
+  { key: "overview", label: "Overview", icon: LayoutGrid },
+  { key: "alerts", label: "Alerts", icon: Bell },
+  { key: "breaches", label: "Breaches", icon: ShieldAlert },
   { key: "employees", label: "Employees", icon: Users },
-  { key: "trends",    label: "Trends",    icon: TrendingUp },
+  { key: "trends", label: "Trends", icon: TrendingUp },
 ]
 
 function getMeta(metas: WidgetMeta[], instanceId: string, defaultVisible: boolean): WidgetMeta {
-  return metas.find((m) => m.instanceId === instanceId) ?? {
-    instanceId,
-    title: null,
-    visible: defaultVisible,
-  }
+  return (
+    metas.find((m) => m.instanceId === instanceId) ?? {
+      instanceId,
+      title: null,
+      visible: defaultVisible,
+    }
+  )
 }
 
 function WidgetPreview({ children, enabled }: { children: ReactNode; enabled: boolean }) {
@@ -75,7 +77,7 @@ export function WidgetLibrary({
   const toggleWidget = (type: string, defaultVisible: boolean) => {
     const current = getMeta(metas, type, defaultVisible)
     const next = metas.some((m) => m.instanceId === type)
-      ? metas.map((m) => m.instanceId === type ? { ...m, visible: !m.visible } : m)
+      ? metas.map((m) => (m.instanceId === type ? { ...m, visible: !m.visible } : m))
       : [...metas, { instanceId: type, title: null, visible: !current.visible }]
 
     setMetas(next)
@@ -166,9 +168,7 @@ export function WidgetLibrary({
                       )}
                     >
                       {/* Preview */}
-                      <WidgetPreview enabled={isEnabled}>
-                        {preview}
-                      </WidgetPreview>
+                      <WidgetPreview enabled={isEnabled}>{preview}</WidgetPreview>
 
                       {/* Footer */}
                       <div
@@ -178,10 +178,12 @@ export function WidgetLibrary({
                         )}
                       >
                         <div className="min-w-0">
-                          <p className={cn(
-                            "truncate text-xs font-semibold",
-                            isEnabled ? "text-foreground" : "text-muted-foreground"
-                          )}>
+                          <p
+                            className={cn(
+                              "truncate text-xs font-semibold",
+                              isEnabled ? "text-foreground" : "text-muted-foreground"
+                            )}
+                          >
                             {widget.defaultTitle}
                           </p>
                           <p className="text-[10px] text-muted-foreground">
@@ -195,9 +197,7 @@ export function WidgetLibrary({
                           disabled={isSaving}
                           className={cn(
                             "relative flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 transition-all duration-200",
-                            isEnabled
-                              ? "border-primary bg-primary"
-                              : "border-border bg-muted"
+                            isEnabled ? "border-primary bg-primary" : "border-border bg-muted"
                           )}
                           title={isEnabled ? "Remove from dashboard" : "Add to dashboard"}
                         >

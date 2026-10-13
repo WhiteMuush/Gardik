@@ -71,8 +71,8 @@ export function AuthPolicySettings({
         <h3 className="text-sm font-semibold text-foreground">Authentication policy</h3>
       </div>
       <p className="mb-4 text-xs text-muted-foreground">
-        Control whether members of this company must enroll in two-factor authentication, and
-        which methods are allowed.
+        Control whether members of this company must enroll in two-factor authentication, and which methods
+        are allowed.
       </p>
 
       <div className="flex items-center justify-between rounded-lg border border-border px-3 py-2">
@@ -94,8 +94,7 @@ export function AuthPolicySettings({
         <div>
           <p className="text-sm text-foreground">Require SSO</p>
           <p className="mt-0.5 text-xs text-muted-foreground">
-            Members sign in through the company identity provider. Exempt accounts keep password
-            access.
+            Members sign in through the company identity provider. Exempt accounts keep password access.
           </p>
         </div>
         {isAdmin && (
@@ -104,7 +103,13 @@ export function AuthPolicySettings({
             disabled={busy}
             className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground underline-offset-2 hover:underline disabled:opacity-40"
           >
-            {busy ? <Loader2 className="size-3.5 animate-spin" /> : ssoMandatory ? "Make optional" : "Require"}
+            {busy ? (
+              <Loader2 className="size-3.5 animate-spin" />
+            ) : ssoMandatory ? (
+              "Make optional"
+            ) : (
+              "Require"
+            )}
           </button>
         )}
       </div>

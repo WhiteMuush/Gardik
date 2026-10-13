@@ -241,8 +241,7 @@ export function SsoSettings({ canConfigure }: Props) {
         <h3 className="text-sm font-semibold text-foreground">Single sign-on (OIDC)</h3>
       </div>
       <p className="mb-4 text-xs text-muted-foreground">
-        Connect the company identity provider. Sign-in through it stays disabled until the domain
-        is verified.
+        Connect the company identity provider. Sign-in through it stays disabled until the domain is verified.
       </p>
 
       {loading && (
@@ -333,8 +332,8 @@ export function SsoSettings({ canConfigure }: Props) {
           {!provider.domainVerified && canConfigure && (
             <div className="rounded-lg border border-border px-3 py-3">
               <p className="mb-2 text-xs text-muted-foreground">
-                Publish a DNS TXT record proving ownership of {provider.domain}, then verify it.
-                DNS propagation can take up to an hour.
+                Publish a DNS TXT record proving ownership of {provider.domain}, then verify it. DNS
+                propagation can take up to an hour.
               </p>
               <div className="flex flex-wrap items-center gap-2">
                 <Button
@@ -365,8 +364,8 @@ export function SsoSettings({ canConfigure }: Props) {
 
           {!provider.domainVerified && !canConfigure && (
             <p className="text-xs text-muted-foreground">
-              Ask an administrator with SSO configuration access to publish the DNS record and
-              verify the domain.
+              Ask an administrator with SSO configuration access to publish the DNS record and verify the
+              domain.
             </p>
           )}
 
@@ -530,11 +529,7 @@ function EditForm({
 }: FormProps & { clientIdLastFour: string | null }) {
   return (
     <form onSubmit={onSubmit} className="grid gap-3 border-t border-border pt-3 sm:grid-cols-2">
-      <Field
-        label="Issuer URL"
-        value={form.issuer}
-        onChange={(v) => setForm((f) => ({ ...f, issuer: v }))}
-      />
+      <Field label="Issuer URL" value={form.issuer} onChange={(v) => setForm((f) => ({ ...f, issuer: v }))} />
       <Field
         label="Discovery endpoint"
         value={form.discoveryEndpoint}
@@ -549,7 +544,9 @@ function EditForm({
         label="Client ID"
         value={form.clientId}
         onChange={(v) => setForm((f) => ({ ...f, clientId: v }))}
-        placeholder={clientIdLastFour ? `Leave blank to keep ...${clientIdLastFour}` : "Leave blank to keep current"}
+        placeholder={
+          clientIdLastFour ? `Leave blank to keep ...${clientIdLastFour}` : "Leave blank to keep current"
+        }
       />
       <Field
         label="Client secret"

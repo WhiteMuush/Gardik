@@ -26,7 +26,7 @@ export async function rateLimit(
   key: string,
   limit: number,
   windowMs: number,
-  db: RateLimitClient = prisma,
+  db: RateLimitClient = prisma
 ): Promise<boolean> {
   const reset = new Date(Date.now() + windowMs)
 

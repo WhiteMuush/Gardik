@@ -1,7 +1,14 @@
 "use client"
 
 import {
-  LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, ReferenceLine,
+  LineChart,
+  Line,
+  XAxis,
+  YAxis,
+  CartesianGrid,
+  Tooltip,
+  ResponsiveContainer,
+  ReferenceLine,
 } from "recharts"
 import { TrendingUp, TrendingDown, Minus } from "lucide-react"
 import { useWidgetTitle } from "@/hooks/useWidgetTitle"
@@ -19,12 +26,14 @@ export function AlertVelocity({ data }: { data: VelocityData[] }) {
   const trend = secondHalf > firstHalf + 2 ? "up" : secondHalf < firstHalf - 2 ? "down" : "stable"
   const TrendIcon = trend === "up" ? TrendingUp : trend === "down" ? TrendingDown : Minus
   const trendColor =
-    trend === "up" ? "oklch(var(--severity-critical))" :
-    trend === "down" ? "oklch(var(--severity-low))" :
-    "oklch(var(--muted-foreground))"
+    trend === "up"
+      ? "oklch(var(--severity-critical))"
+      : trend === "down"
+        ? "oklch(var(--severity-low))"
+        : "oklch(var(--muted-foreground))"
 
   // Show only every 5th label to avoid crowding
-  const tickFormatter = (_: string, i: number) => (i % 5 === 0 ? data[i]?.day ?? "" : "")
+  const tickFormatter = (_: string, i: number) => (i % 5 === 0 ? (data[i]?.day ?? "") : "")
 
   const isEmpty = total === 0
 
@@ -34,7 +43,10 @@ export function AlertVelocity({ data }: { data: VelocityData[] }) {
         <div>
           <h2 className="text-sm font-medium text-foreground">{title}</h2>
         </div>
-        <div className="flex items-center gap-1 rounded-md px-2 py-1" style={{ background: `${trendColor}1a` }}>
+        <div
+          className="flex items-center gap-1 rounded-md px-2 py-1"
+          style={{ background: `${trendColor}1a` }}
+        >
           <TrendIcon className="size-3.5" style={{ color: trendColor }} />
           <span className="text-xs font-medium" style={{ color: trendColor }}>
             {trend === "up" ? "Rising" : trend === "down" ? "Falling" : "Stable"}

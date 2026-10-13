@@ -24,10 +24,7 @@ const twoFactorRequired = () =>
 // Distinct code so the client can route the user to the password form instead
 // of showing a dead end, the same way STEP_UP_REQUIRED works.
 const passwordChangeRequired = () =>
-  NextResponse.json(
-    { error: "Password change required", code: "PASSWORD_CHANGE_REQUIRED" },
-    { status: 403 }
-  )
+  NextResponse.json({ error: "Password change required", code: "PASSWORD_CHANGE_REQUIRED" }, { status: 403 })
 
 // A ceiling on how fast one account can call the API at all, applied in the
 // guard every authenticated route already goes through rather than route by
@@ -44,8 +41,7 @@ const passwordChangeRequired = () =>
 export const API_RATE_LIMIT = 120
 export const API_RATE_WINDOW_MS = 60_000
 
-const tooManyRequests = () =>
-  NextResponse.json({ error: "Too many requests" }, { status: 429 })
+const tooManyRequests = () => NextResponse.json({ error: "Too many requests" }, { status: 429 })
 
 function enforceApiRate(userId: string): Promise<NextResponse | null> {
   return rateLimit(`api:${userId}`, API_RATE_LIMIT, API_RATE_WINDOW_MS).then((ok) =>

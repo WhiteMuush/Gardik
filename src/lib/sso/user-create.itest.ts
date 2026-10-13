@@ -144,13 +144,15 @@ describe("POST /api/users", () => {
     const res = await createUser(
       new Request("http://localhost/api/users", {
         method: "POST",
-        body: JSON.stringify({ email: "itest-shell3@gardik.local", name: "Shell", roleId: otherViewerRoleId }),
+        body: JSON.stringify({
+          email: "itest-shell3@gardik.local",
+          name: "Shell",
+          roleId: otherViewerRoleId,
+        }),
       })
     )
     expect(res.status).toBe(400)
-    expect(
-      await prisma.user.findUnique({ where: { email: "itest-shell3@gardik.local" } })
-    ).toBeNull()
+    expect(await prisma.user.findUnique({ where: { email: "itest-shell3@gardik.local" } })).toBeNull()
 
     await prisma.company.delete({ where: { id: otherCompany.id } })
   })

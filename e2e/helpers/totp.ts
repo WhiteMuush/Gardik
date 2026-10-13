@@ -23,7 +23,7 @@ async function signIn(request: APIRequestContext, email: string, password: strin
 export async function setAllowedMethods(
   request: APIRequestContext,
   admin: { email: string; password: string },
-  methods: string[],
+  methods: string[]
 ): Promise<void> {
   await signIn(request, admin.email, admin.password)
   const res = await request.fetch(`${ORIGIN}/api/company/auth-policy`, {
@@ -39,7 +39,7 @@ export async function setAllowedMethods(
 export async function tryEnableTotp(
   request: APIRequestContext,
   email: string,
-  password: string,
+  password: string
 ): Promise<number> {
   await signIn(request, email, password)
   const res = await request.post(`${ORIGIN}/api/auth/two-factor/enable`, {
@@ -55,7 +55,7 @@ export async function tryEnableTotp(
 export async function enrollTwoFactor(
   request: APIRequestContext,
   email: string,
-  password: string,
+  password: string
 ): Promise<string> {
   const headers = { origin: ORIGIN }
 

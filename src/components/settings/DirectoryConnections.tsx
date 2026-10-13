@@ -121,9 +121,7 @@ export function DirectoryConnections({ initial, isAdmin }: Props) {
       )
     } catch (e: unknown) {
       setConnections((prev) =>
-        prev.map((c) =>
-          c.id === id ? { ...c, status: "ERROR", errorMessage: (e as Error).message } : c
-        )
+        prev.map((c) => (c.id === id ? { ...c, status: "ERROR", errorMessage: (e as Error).message } : c))
       )
     } finally {
       setSyncingId(null)
@@ -172,8 +170,7 @@ export function DirectoryConnections({ initial, isAdmin }: Props) {
             <Network className="mb-3 size-8 text-muted-foreground/40" />
             <p className="text-sm font-medium text-foreground">No directory connected</p>
             <p className="mt-1 text-xs text-muted-foreground">
-              Connect Azure AD, Google Workspace, or an LDAP server to import your employees
-              automatically.
+              Connect Azure AD, Google Workspace, or an LDAP server to import your employees automatically.
             </p>
             {isAdmin && (
               <Button size="sm" className="mt-4" onClick={() => setShowWizard(true)}>
@@ -195,10 +192,7 @@ export function DirectoryConnections({ initial, isAdmin }: Props) {
                   className="flex items-start gap-4 rounded-xl border border-border/60 bg-card px-4 py-4"
                 >
                   <span
-                    className={cn(
-                      "flex size-9 shrink-0 items-center justify-center rounded-lg",
-                      meta.color
-                    )}
+                    className={cn("flex size-9 shrink-0 items-center justify-center rounded-lg", meta.color)}
                   >
                     {meta.icon}
                   </span>
@@ -218,9 +212,7 @@ export function DirectoryConnections({ initial, isAdmin }: Props) {
 
                     <div className="mt-1 flex items-center gap-2">
                       <span className={cn("size-1.5 rounded-full", STATUS_DOT[conn.status])} />
-                      <span className="text-xs text-muted-foreground">
-                        {STATUS_LABEL[conn.status]}
-                      </span>
+                      <span className="text-xs text-muted-foreground">{STATUS_LABEL[conn.status]}</span>
                       <span className="text-xs text-muted-foreground">-</span>
                       <span className="text-xs text-muted-foreground">
                         Last sync: {formatDate(conn.lastSyncAt)}

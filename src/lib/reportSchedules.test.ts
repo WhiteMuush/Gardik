@@ -41,7 +41,13 @@ describe("isReportSection", () => {
 })
 
 describe("runDueReportSchedules", () => {
-  const base = { id: "s1", companyId: "co1", frequency: "WEEKLY" as const, recipients: ["a@x.com"], sections: ["exposure"] }
+  const base = {
+    id: "s1",
+    companyId: "co1",
+    frequency: "WEEKLY" as const,
+    recipients: ["a@x.com"],
+    sections: ["exposure"],
+  }
 
   it("sends a due schedule and stamps lastSentAt", async () => {
     findMany.mockResolvedValue([{ ...base, lastSentAt: longAgo }])

@@ -4,10 +4,18 @@ import { PERMISSIONS, PERMISSION_SET, isPermission } from "./permissions"
 describe("permission catalog", () => {
   it("contains the core SOC and admin permissions", () => {
     for (const p of [
-      "alerts:read", "alerts:assign", "alerts:status", "alerts:comment",
-      "alerts:close", "alerts:remediate",
-      "roles:manage", "users:manage", "sso:config", "sso:role_map",
-      "policy:manage", "audit:read",
+      "alerts:read",
+      "alerts:assign",
+      "alerts:status",
+      "alerts:comment",
+      "alerts:close",
+      "alerts:remediate",
+      "roles:manage",
+      "users:manage",
+      "sso:config",
+      "sso:role_map",
+      "policy:manage",
+      "audit:read",
     ]) {
       expect(PERMISSION_SET.has(p as never)).toBe(true)
     }

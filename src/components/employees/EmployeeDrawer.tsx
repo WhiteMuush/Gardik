@@ -64,9 +64,7 @@ export function EmployeeDrawer({ employee, onClose }: EmployeeDrawerProps) {
               </div>
               <div className="bg-card p-4">
                 <p className="text-xs text-muted-foreground">Exposed types</p>
-                <p className="mt-1 text-2xl font-bold text-foreground">
-                  {employee.exposedDataTypes.length}
-                </p>
+                <p className="mt-1 text-2xl font-bold text-foreground">{employee.exposedDataTypes.length}</p>
               </div>
             </div>
 
@@ -91,11 +89,41 @@ export function EmployeeDrawer({ employee, onClose }: EmployeeDrawerProps) {
 
             {/* Breach timeline */}
             <div className="flex-1 overflow-y-auto p-5">
+              {employee.sourceChecks.length > 0 && (
+                <div className="mb-6">
+                  <p className="mb-3 text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                    Sources
+                  </p>
+                  <div className="space-y-2">
+                    {employee.sourceChecks.map((check) => (
+                      <div key={check.provider} className="flex items-start gap-2 text-xs">
+                        <span
+                          className={cn(
+                            "mt-1 size-2 shrink-0 rounded-full",
+                            check.status === "CHECKED" && "bg-green-500",
+                            check.status === "FAILED" && "bg-destructive",
+                            check.status === "NEVER" && "bg-muted-foreground/40"
+                          )}
+                        />
+                        <div>
+                          <p className="font-medium text-foreground">{check.label}</p>
+                          <p className="text-muted-foreground">{check.text}</p>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <p className="mb-4 text-xs font-medium text-muted-foreground uppercase tracking-wider">
                 Breach history
               </p>
               {employee.breachRecords.length === 0 ? (
-                <p className="text-sm text-muted-foreground">No breaches recorded.</p>
+                <p className="text-sm text-muted-foreground">
+                  {employee.sourceChecks.every((c) => c.status === "CHECKED")
+                    ? "No breaches recorded."
+                    : "No breaches recorded, but not every source has checked this employee yet."}
+                </p>
               ) : (
                 <div className="space-y-4">
                   {employee.breachRecords.map((record) => (
@@ -111,14 +139,18 @@ export function EmployeeDrawer({ employee, onClose }: EmployeeDrawerProps) {
                           <Shield className="size-3" />
                           Breach date:{" "}
                           {new Date(record.breachDate).toLocaleDateString("en-US", {
-                            year: "numeric", month: "short", day: "numeric",
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
                           })}
                         </div>
                         <div className="flex items-center gap-1.5 text-xs text-muted-foreground">
                           <Calendar className="size-3" />
                           Detected:{" "}
                           {new Date(record.detectedAt).toLocaleDateString("en-US", {
-                            year: "numeric", month: "short", day: "numeric",
+                            year: "numeric",
+                            month: "short",
+                            day: "numeric",
                           })}
                         </div>
                       </div>

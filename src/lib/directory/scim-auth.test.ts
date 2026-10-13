@@ -55,8 +55,6 @@ describe("authenticateScim", () => {
   it("scopes the lookup to SCIM connections by id", async () => {
     findFirst.mockResolvedValue(null)
     await authenticateScim(reqWith("Bearer tok"), "c1")
-    expect(findFirst).toHaveBeenCalledWith(
-      expect.objectContaining({ where: { id: "c1", type: "SCIM" } })
-    )
+    expect(findFirst).toHaveBeenCalledWith(expect.objectContaining({ where: { id: "c1", type: "SCIM" } }))
   })
 })

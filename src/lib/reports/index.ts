@@ -15,19 +15,18 @@ export type { ReportFilters } from "./filters"
 
 export async function getReportData(
   companyId: string,
-  filters: ReportFilters = EMPTY_FILTERS,
+  filters: ReportFilters = EMPTY_FILTERS
 ): Promise<ReportData> {
-  const [org, exposure, dataTypes, departments, employees, trends, compliance, deltas] =
-    await Promise.all([
-      getOrgInfo(companyId),
-      getExposureSummary(companyId, filters),
-      getDataTypeExposure(companyId, filters),
-      getDepartmentBreakdown(companyId, filters),
-      getEmployeeBreakdown(companyId, filters),
-      getTrends(companyId, filters),
-      getCompliance(companyId, filters),
-      getDeltas(companyId, filters),
-    ])
+  const [org, exposure, dataTypes, departments, employees, trends, compliance, deltas] = await Promise.all([
+    getOrgInfo(companyId),
+    getExposureSummary(companyId, filters),
+    getDataTypeExposure(companyId, filters),
+    getDepartmentBreakdown(companyId, filters),
+    getEmployeeBreakdown(companyId, filters),
+    getTrends(companyId, filters),
+    getCompliance(companyId, filters),
+    getDeltas(companyId, filters),
+  ])
 
   return {
     generatedAt: new Date().toISOString(),

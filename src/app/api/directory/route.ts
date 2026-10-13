@@ -31,8 +31,7 @@ export async function POST(req: Request) {
 
   const body = await req.json()
   const result = buildDirectoryConnection(body)
-  if (!result.ok)
-    return NextResponse.json({ error: result.error }, { status: 400 })
+  if (!result.ok) return NextResponse.json({ error: result.error }, { status: 400 })
 
   const { data, bearerToken } = result.built
 
@@ -53,8 +52,5 @@ export async function POST(req: Request) {
     },
   })
 
-  return NextResponse.json(
-    { ...connection, ...(bearerToken ? { bearerToken } : {}) },
-    { status: 201 }
-  )
+  return NextResponse.json({ ...connection, ...(bearerToken ? { bearerToken } : {}) }, { status: 201 })
 }

@@ -1,5 +1,6 @@
 import type { BreachProvider } from "../types"
 import { normalizeType, parseBreachDate } from "../normalize"
+import { errorFromResponse } from "../errors"
 
 const API = "https://haveibeenpwned.com/api/v3/breachedaccount"
 
@@ -9,12 +10,14 @@ type HibpBreach = { Name: string; BreachDate: string; DataClasses: string[] }
 export const hibp: BreachProvider = {
   id: "HIBP",
   source: "HIBP",
+  // Core 1 plan: 10 requests per minute.
+  defaultRatePerMinute: 10,
   async lookup(email, apiKey) {
     const res = await fetch(`${API}/${encodeURIComponent(email)}?truncateResponse=false`, {
       headers: { "hibp-api-key": apiKey, "user-agent": "Gardik" },
     })
     if (res.status === 404) return []
-    if (!res.ok) throw new Error(`HIBP error ${res.status}`)
+    if (!res.ok) throw errorFromResponse("HIBP", res)
 
     const breaches = (await res.json()) as HibpBreach[]
     return breaches.map((b) => ({

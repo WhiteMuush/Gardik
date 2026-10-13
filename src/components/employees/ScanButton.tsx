@@ -9,9 +9,15 @@ type ScanResult = {
   scanned: number
   newRecords: number
   newAlerts: number
+  failedChecks: number
 }
 
-export function ScanButton() {
+type Props = {
+  onlyIncomplete?: boolean
+  label?: string
+}
+
+export function ScanButton({ onlyIncomplete = false, label = "Scan employees" }: Props) {
   const [loading, setLoading] = useState(false)
   const [result, setResult] = useState<ScanResult | null>(null)
   const [error, setError] = useState<string | null>(null)
@@ -22,7 +28,11 @@ export function ScanButton() {
     setResult(null)
     setError(null)
 
-    const res = await fetch("/api/employees/scan", { method: "POST" })
+    const res = await fetch("/api/employees/scan", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ onlyIncomplete }),
+    })
     const data = await res.json()
 
     if (!res.ok) {
@@ -39,13 +49,20 @@ export function ScanButton() {
     <div className="flex items-center gap-3">
       {result && (
         <p className="text-xs text-muted-foreground">
-          {result.scanned} scanned - {result.newRecords} new exposure{result.newRecords !== 1 ? "s" : ""} - {result.newAlerts} alert{result.newAlerts !== 1 ? "s" : ""} created
+          {result.scanned} scanned - {result.newRecords} new exposure{result.newRecords !== 1 ? "s" : ""} -{" "}
+          {result.newAlerts} alert{result.newAlerts !== 1 ? "s" : ""} created
+          {result.failedChecks > 0 && (
+            <span className="text-destructive">
+              {" "}
+              - {result.failedChecks} check{result.failedChecks !== 1 ? "s" : ""} failed
+            </span>
+          )}
         </p>
       )}
       {error && <p className="text-xs text-destructive">{error}</p>}
       <Button variant="outline" size="sm" onClick={scan} disabled={loading} className="gap-1.5">
         {loading ? <Loader2 className="size-3.5 animate-spin" /> : <ScanSearch className="size-3.5" />}
-        {loading ? "Scanning..." : "Scan employees"}
+        {loading ? "Scanning..." : label}
       </Button>
     </div>
   )

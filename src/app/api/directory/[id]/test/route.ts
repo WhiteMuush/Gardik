@@ -8,12 +8,15 @@ import { testGoogleConnection } from "@/lib/directory/google"
 import { testLDAPConnection } from "@/lib/directory/ldap"
 import { testAWSConnection } from "@/lib/directory/aws"
 import { testOktaConnection } from "@/lib/directory/okta"
-import type { AzureADConfig, GoogleWorkspaceConfig, LDAPConfig, AWSDirectoryConfig, OktaConfig } from "@/lib/directory/types"
+import type {
+  AzureADConfig,
+  GoogleWorkspaceConfig,
+  LDAPConfig,
+  AWSDirectoryConfig,
+  OktaConfig,
+} from "@/lib/directory/types"
 
-export async function POST(
-  _req: Request,
-  { params }: { params: Promise<{ id: string }> }
-) {
+export async function POST(_req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { session, error } = await requirePermission("connectors:sync")
   if (error) return error
 
@@ -37,9 +40,7 @@ export async function POST(
       result = await testAzureConnection(decryptConfig<AzureADConfig>(connection.encryptedConfig))
       break
     case "GOOGLE_WORKSPACE":
-      result = await testGoogleConnection(
-        decryptConfig<GoogleWorkspaceConfig>(connection.encryptedConfig)
-      )
+      result = await testGoogleConnection(decryptConfig<GoogleWorkspaceConfig>(connection.encryptedConfig))
       break
     case "LDAP":
       result = await testLDAPConnection(decryptConfig<LDAPConfig>(connection.encryptedConfig))

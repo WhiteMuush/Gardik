@@ -7,14 +7,7 @@ import { useRouter } from "next/navigation"
 // is instant. Kept in sync with the sidebar nav, and filtered by the same
 // server-resolved list the rail uses: warming a page that will answer
 // "not available to your role" spends a request to cache a refusal.
-const ROUTES = [
-  "/dashboard",
-  "/employees",
-  "/alerts",
-  "/reports",
-  "/data-sources",
-  "/data-api",
-]
+const ROUTES = ["/dashboard", "/employees", "/alerts", "/reports", "/data-sources", "/data-api"]
 
 export function RoutePrefetcher({ visible }: { visible: string[] }) {
   const router = useRouter()
@@ -25,9 +18,7 @@ export function RoutePrefetcher({ visible }: { visible: string[] }) {
 
   useEffect(() => {
     const run = () =>
-      ROUTES.filter((route) => key.split(",").includes(route)).forEach((route) =>
-        router.prefetch(route)
-      )
+      ROUTES.filter((route) => key.split(",").includes(route)).forEach((route) => router.prefetch(route))
     if ("requestIdleCallback" in window) {
       const id = requestIdleCallback(run)
       return () => cancelIdleCallback(id)
