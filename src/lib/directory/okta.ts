@@ -1,4 +1,5 @@
 import type { OktaConfig, DirectoryUser, TestResult } from "./types"
+import { isEmail } from "../validators"
 
 type OktaUser = {
   id: string
@@ -65,7 +66,7 @@ export async function fetchOktaUsers(config: OktaConfig): Promise<DirectoryUser[
     const data = (await oktaRes.json()) as OktaUser[]
     for (const u of data) {
       const email = u.profile.email || u.profile.login
-      if (!email) continue
+      if (!email || !isEmail(email)) continue
       raw.push({
         id: u.id,
         user: {

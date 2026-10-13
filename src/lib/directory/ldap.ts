@@ -1,16 +1,5 @@
+import { Client } from "ldapts"
 import type { LDAPConfig, DirectoryUser, TestResult } from "./types"
-
-// LDAP requires the `ldapts` package: npm install ldapts
-// Falls back to a clear runtime error if not installed.
-
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function getLdapts(): Promise<any> {
-  try {
-    return await import("ldapts")
-  } catch {
-    throw new Error('LDAP connector requires the "ldapts" package. Run: npm install ldapts')
-  }
-}
 
 // Multi-valued attributes (several mail values in OpenLDAP) come back as arrays.
 function first(value: unknown): string | undefined {
@@ -18,9 +7,7 @@ function first(value: unknown): string | undefined {
   return v == null ? undefined : String(v)
 }
 
-// eslint-disable-next-line @typescript-eslint/no-explicit-any
-async function connect(config: LDAPConfig, timeout: number): Promise<any> {
-  const { Client } = await getLdapts()
+async function connect(config: LDAPConfig, timeout: number): Promise<Client> {
   const client = new Client({
     url: `${config.ssl ? "ldaps" : "ldap"}://${config.host}:${config.port}`,
     timeout,
