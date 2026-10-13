@@ -1,8 +1,8 @@
 # Security Policy
 
-## Project status
+## Supported versions
 
-Gardik is under active development and has not reached a stable release. There are no versioned releases yet. Security reports are still welcome and will be addressed.
+Security fixes ship in the latest release only, listed on the [Releases page](https://github.com/WhiteMuush/Gardik/releases). Upgrade to it to receive them.
 
 ## Reporting a vulnerability
 

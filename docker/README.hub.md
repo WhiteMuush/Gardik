@@ -15,7 +15,7 @@ connecting a directory, troubleshooting, is in the wiki.
 | Tag            | Content                                                                   |
 | -------------- | ------------------------------------------------------------------------- |
 | `latest`       | The most recent release.                                                  |
-| `1.2.3`, `1.2` | A specific release, and the moving minor line.                            |
+| `X.Y.Z`, `X.Y` | A specific release, and the moving minor line.                            |
 | `edge`         | Built manually from a branch. Not a release, do not run it in production. |
 
 Images are `linux/amd64`. Each one carries the Next.js standalone server and
