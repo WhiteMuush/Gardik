@@ -4,7 +4,6 @@ import nextTs from "eslint-config-next/typescript"
 
 // Files over 200 lines, capped at their current size until #30 splits them.
 const OVER_LIMIT = {
-  "src/components/alerts/AlertTable.tsx": 271,
   "src/components/rbac/RolesManager.tsx": 269,
   "src/components/employees/EmployeeTable.tsx": 263,
   "src/components/dashboard/WidgetLibrary.tsx": 226,
