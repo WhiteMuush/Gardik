@@ -20,6 +20,9 @@ import Link from "next/link"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
+import { saveRequest } from "@/lib/save-request"
+import { SaveErrorBar, useSaveGuard } from "./SaveErrorBar"
+import { useCtrlWheelZoom } from "./useCtrlWheelZoom"
 import { DashboardEditContext } from "@/contexts/DashboardEditContext"
 import { DashboardConfigContext } from "@/contexts/DashboardConfigContext"
 import { DetailDrawerProvider } from "@/contexts/DetailDrawerContext"
@@ -44,16 +47,6 @@ import { PresetTab } from "./PresetTab"
 import { RenameOverlay } from "./RenameOverlay"
 
 const COLS = 12
-
-// View-only uniform zoom (CSS transform scale). The whole grid plus its widget
-// content scale together, so nothing clips. Forced to 1 while editing because a
-// CSS scale breaks react-grid-layout's pointer math during drag/resize. To keep
-// the grid filling the container at every level, RGL is laid out at width
-// containerW / zoom and then scaled back down/up by `zoom`. Zoom is continuous
-// (not stepped) for fine control; SENS tunes how fast the wheel/pinch changes it.
-const ZOOM_MIN = 0.5
-const ZOOM_MAX = 2
-const ZOOM_SENS = 0.0015
 
 export type WidgetEntry = {
   instanceId: string
@@ -182,58 +175,23 @@ export function DashboardCanvas({
     return () => ro.disconnect()
   }, [])
 
-  // A trackpad pinch synthesises wheel events with ctrlKey=true, so e.ctrlKey
-  // alone can't tell a real Ctrl press from a pinch. Track the physical key via
-  // keydown/keyup and gate zoom on that, so only Ctrl/Cmd + wheel zooms (pinch
-  // and plain scroll fall through to normal scrolling).
-  const ctrlHeld = useRef(false)
-  useEffect(() => {
-    const down = (e: KeyboardEvent) => {
-      if (e.key === "Control" || e.key === "Meta") ctrlHeld.current = true
-    }
-    const up = (e: KeyboardEvent) => {
-      if (e.key === "Control" || e.key === "Meta") ctrlHeld.current = false
-    }
-    const reset = () => {
-      ctrlHeld.current = false
-    }
-    window.addEventListener("keydown", down)
-    window.addEventListener("keyup", up)
-    window.addEventListener("blur", reset)
-    return () => {
-      window.removeEventListener("keydown", down)
-      window.removeEventListener("keyup", up)
-      window.removeEventListener("blur", reset)
-    }
-  }, [])
+  useCtrlWheelZoom(containerRef, editing, setZoomLevel)
 
-  // Ctrl/Cmd + wheel zooms the grid (view only). Native non-passive listener so
-  // we can preventDefault the browser's own page zoom.
-  useEffect(() => {
-    const el = containerRef.current
-    if (!el || editing) return
-    const handler = (e: WheelEvent) => {
-      if (!ctrlHeld.current) return
-      e.preventDefault()
-      // Continuous multiplicative zoom: each delta nudges the factor a little,
-      // so a small scroll = small change (fine control), big scroll = big change.
-      setZoomLevel((z) => Math.min(ZOOM_MAX, Math.max(ZOOM_MIN, z * Math.exp(-e.deltaY * ZOOM_SENS))))
-    }
-    el.addEventListener("wheel", handler, { passive: false })
-    return () => el.removeEventListener("wheel", handler)
-  }, [editing])
+  const { failure, guard, dismiss } = useSaveGuard()
 
-  const persistPreset = useCallback((id: string, nextLayout: GridItemLayout[], nextMeta: WidgetMeta[]) => {
-    setPresets((prev) => prev.map((p) => (p.id === id ? { ...p, layout: nextLayout, widgets: nextMeta } : p)))
-    if (saveTimeout.current) clearTimeout(saveTimeout.current)
-    saveTimeout.current = setTimeout(() => {
-      fetch(`/api/dashboard/presets/${id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ layout: nextLayout, widgets: nextMeta }),
-      })
-    }, 800)
-  }, [])
+  const persistPreset = useCallback(
+    (id: string, nextLayout: GridItemLayout[], nextMeta: WidgetMeta[]) => {
+      setPresets((prev) =>
+        prev.map((p) => (p.id === id ? { ...p, layout: nextLayout, widgets: nextMeta } : p))
+      )
+      if (saveTimeout.current) clearTimeout(saveTimeout.current)
+      const body = { layout: nextLayout, widgets: nextMeta }
+      saveTimeout.current = setTimeout(() => {
+        guard(async () => !!(await saveRequest(`/api/dashboard/presets/${id}`, "PUT", body)))
+      }, 800)
+    },
+    [guard]
+  )
 
   const requestRows = useCallback((instanceId: string, rows: number) => {
     setExtraRows((prev) => {
@@ -250,9 +208,9 @@ export function DashboardCanvas({
       setActivePresetId(preset.id)
       setLayout(initLayout(preset))
       setMeta(initMeta(preset))
-      fetch(`/api/dashboard/presets/${preset.id}/activate`, { method: "PATCH" })
+      guard(async () => !!(await saveRequest(`/api/dashboard/presets/${preset.id}/activate`, "PATCH")))
     },
-    [initLayout, initMeta]
+    [initLayout, initMeta, guard]
   )
 
   const createPreset = useCallback(
@@ -261,48 +219,46 @@ export function DashboardCanvas({
         scope === "COMPANY"
           ? "Company View"
           : `View ${presets.filter((p) => p.scope === "PERSONAL").length + 1}`
-      const res = await fetch("/api/dashboard/presets", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          name,
-          scope,
-          layout: buildDefaultLayout(widgets),
-          widgets: buildDefaultMeta(widgets),
-        }),
+      const body = { name, scope, layout: buildDefaultLayout(widgets), widgets: buildDefaultMeta(widgets) }
+      guard(async () => {
+        const res = await saveRequest("/api/dashboard/presets", "POST", body)
+        if (!res) return false
+        const created: DashboardPreset = await res.json()
+        setPresets((prev) => [...prev, created])
+        switchPreset(created)
+        return true
       })
-      if (!res.ok) return
-      const created: DashboardPreset = await res.json()
-      setPresets((prev) => [...prev, created])
-      switchPreset(created)
     },
-    [presets, widgets, switchPreset]
+    [presets, widgets, switchPreset, guard]
   )
 
-  const renamePreset = useCallback(async (id: string, name: string) => {
-    await fetch(`/api/dashboard/presets/${id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ name }),
-    })
-    setPresets((prev) => prev.map((p) => (p.id === id ? { ...p, name } : p)))
-  }, [])
+  const renamePreset = useCallback(
+    (id: string, name: string) =>
+      guard(async () => {
+        if (!(await saveRequest(`/api/dashboard/presets/${id}`, "PUT", { name }))) return false
+        setPresets((prev) => prev.map((p) => (p.id === id ? { ...p, name } : p)))
+        return true
+      }),
+    [guard]
+  )
 
   const deletePreset = useCallback(
-    async (id: string) => {
-      await fetch(`/api/dashboard/presets/${id}`, { method: "DELETE" })
-      setPresets((prev) => {
-        const next = prev.filter((p) => p.id !== id)
-        if (activePresetId === id) {
-          const fallback = next[0] ?? null
-          setActivePresetId(fallback?.id ?? null)
-          setLayout(initLayout(fallback))
-          setMeta(initMeta(fallback))
-        }
-        return next
-      })
-    },
-    [activePresetId, initLayout, initMeta]
+    (id: string) =>
+      guard(async () => {
+        if (!(await saveRequest(`/api/dashboard/presets/${id}`, "DELETE"))) return false
+        setPresets((prev) => {
+          const next = prev.filter((p) => p.id !== id)
+          if (activePresetId === id) {
+            const fallback = next[0] ?? null
+            setActivePresetId(fallback?.id ?? null)
+            setLayout(initLayout(fallback))
+            setMeta(initMeta(fallback))
+          }
+          return next
+        })
+        return true
+      }),
+    [activePresetId, initLayout, initMeta, guard]
   )
 
   // Adopt a layout as the new state and, in Customize mode, persist it. Hidden
@@ -418,41 +374,42 @@ export function DashboardCanvas({
     [meta]
   )
 
-  // Changing a widget's provider scope must re-run the server (the slice is
-  // computed there), so we save immediately and refresh rather than debounce.
+  // The server computes each source slice, so a source change saves and refreshes at once.
   const setSource = useCallback(
-    async (instanceId: string, source: string | null) => {
+    (instanceId: string, source: string | null) => {
       const next = meta.map((m) => (m.instanceId === instanceId ? { ...m, source } : m))
       setMeta(next)
       if (!activePreset) return
       setPresets((prev) => prev.map((p) => (p.id === activePreset.id ? { ...p, widgets: next } : p)))
-      await fetch(`/api/dashboard/presets/${activePreset.id}`, {
-        method: "PUT",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ layout, widgets: next }),
+      guard(async () => {
+        const saved = await saveRequest(`/api/dashboard/presets/${activePreset.id}`, "PUT", {
+          layout,
+          widgets: next,
+        })
+        if (saved) router.refresh()
+        return !!saved
       })
-      router.refresh()
     },
-    [meta, layout, activePreset, router]
+    [meta, layout, activePreset, router, guard]
   )
 
-  // Restore the active preset to the built-in default layout, visibility, titles
-  // and source scopes. Save immediately and refresh because clearing per-widget
-  // source filters changes the server-computed slices (same path as setSource).
-  const reset = useCallback(async () => {
+  // Restores the built-in default layout and refreshes, since clearing source filters changes server data.
+  const reset = useCallback(() => {
     if (!activePreset) return
     const l = buildDefaultLayout(widgets)
     const m = buildDefaultMeta(widgets)
     setLayout(l)
     setMeta(m)
     setPresets((prev) => prev.map((p) => (p.id === activePreset.id ? { ...p, layout: l, widgets: m } : p)))
-    await fetch(`/api/dashboard/presets/${activePreset.id}`, {
-      method: "PUT",
-      headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ layout: l, widgets: m }),
+    guard(async () => {
+      const saved = await saveRequest(`/api/dashboard/presets/${activePreset.id}`, "PUT", {
+        layout: l,
+        widgets: m,
+      })
+      if (saved) router.refresh()
+      return !!saved
     })
-    router.refresh()
-  }, [activePreset, widgets, router])
+  }, [activePreset, widgets, router, guard])
 
   const visibleWidgets = widgets.filter((w) => {
     const m = meta.find((m) => m.instanceId === w.instanceId)
@@ -526,6 +483,7 @@ export function DashboardCanvas({
       <DashboardEditContext.Provider value={editing}>
         <DashboardConfigContext.Provider value={{ getTitle, setTitle, editing, requestRows }}>
           <div className="flex flex-1 flex-col min-h-0">
+            <SaveErrorBar failure={failure} onDismiss={dismiss} />
             {/* --- Toolbar */}
             <div className="flex shrink-0 items-center gap-2 border-b border-border px-4 py-2">
               {/* Preset tabs */}
