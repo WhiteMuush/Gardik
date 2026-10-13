@@ -6,8 +6,6 @@ import { useSsoProvider } from "./sso/useSsoProvider"
 import { ConnectForm, EditForm } from "./sso/forms"
 import { ProviderDetails } from "./sso/ProviderDetails"
 
-export type { SsoProvider } from "./sso/types"
-
 type Props = {
   // sso:read is checked before mounting; this flag hides controls a read-only admin would be refused.
   canConfigure: boolean
