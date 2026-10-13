@@ -7,7 +7,6 @@ const OVER_LIMIT = {
   "src/components/settings/SetupGuides.tsx": 487,
   "src/components/reports/ReportCanvas.tsx": 393,
   "src/components/credentials/SourceDrawer.tsx": 349,
-  "src/lib/auth/server.ts": 313,
   "src/components/settings/DirectoryConnections.tsx": 275,
   "src/components/alerts/AlertTable.tsx": 271,
   "src/components/rbac/RolesManager.tsx": 269,
