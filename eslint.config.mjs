@@ -26,7 +26,6 @@ const OVER_LIMIT = {
   "src/contexts/DetailDrawerContext.tsx": 219,
   "src/components/rbac/UserRoleAssignment.tsx": 215,
   "src/components/credentials/SourceCatalog.tsx": 215,
-  "src/lib/auth/bootstrap.ts": 211,
   "src/app/api/dashboard/detail/[kind]/[id]/route.ts": 209,
 }
 
