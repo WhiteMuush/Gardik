@@ -6,7 +6,6 @@ import nextTs from "eslint-config-next/typescript"
 const OVER_LIMIT = {
   "src/components/settings/SetupGuides.tsx": 487,
   "src/components/reports/ReportCanvas.tsx": 393,
-  "src/components/credentials/SourceDrawer.tsx": 349,
   "src/components/settings/DirectoryConnections.tsx": 275,
   "src/components/alerts/AlertTable.tsx": 271,
   "src/components/rbac/RolesManager.tsx": 269,
@@ -14,7 +13,6 @@ const OVER_LIMIT = {
   "src/components/dashboard/WidgetLibrary.tsx": 226,
   "src/contexts/DetailDrawerContext.tsx": 219,
   "src/components/rbac/UserRoleAssignment.tsx": 215,
-  "src/components/credentials/SourceCatalog.tsx": 215,
 }
 
 export default defineConfig([
