@@ -48,7 +48,7 @@ Run `make check` before every push, and push only when it passes:
 Also:
 
 - Format with Prettier (`npm run format`), the check rejects unformatted files.
-- Keep every code file, tests included, at 200 lines or fewer; capped files may only shrink.
+- Keep every code file, tests included, at 200 lines or fewer.
 - Report problems noticed outside the task in the final message, without fixing them.
 - Do not push to remote unless explicitly asked.
 - Do not open, close, or comment on issues or pull requests unless explicitly asked.

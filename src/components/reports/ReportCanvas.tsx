@@ -1,106 +1,20 @@
 "use client"
 
-import { useState, useCallback, useEffect, useRef, type ReactNode } from "react"
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const { ResponsiveGridLayout, verticalCompactor } = require("react-grid-layout")
-import "react-grid-layout/css/styles.css"
-import "react-resizable/css/styles.css"
-import { Settings2, Check, GripHorizontal, Eye, EyeOff, RotateCcw } from "lucide-react"
-import { Button } from "@/components/ui/button"
+import { useState, useCallback, useEffect, useRef } from "react"
 import { cn } from "@/lib/utils"
-
-const STORAGE_KEY = "gardik:reports:layout:v5"
-const COLS = 12
-const ROW_H = 50
-const MARGIN_Y = 16
-const DEFAULT_H = 5
-const MIN_W = 3
-const MIN_H = 3
-
-// Rows needed to show `px` of content without clipping (RGL cells are fixed
-// height: row n spans n*ROW_H + (n-1)*MARGIN_Y).
-function rowsForPx(px: number): number {
-  return Math.max(MIN_H, Math.ceil((px + MARGIN_Y) / (ROW_H + MARGIN_Y)))
-}
-
-export type Span = 4 | 6 | 12
-
-export type ReportSectionEntry = {
-  id: string
-  title: string
-  content: ReactNode
-  defaultSpan?: Span
-}
-
-type RglItem = { i: string; x: number; y: number; w: number; h: number; minW?: number; minH?: number }
-type Saved = { layout: RglItem[]; hidden: string[] }
-
-// Pack sections into 12-col rows for the first-run / reset layout. Each row
-// advances by the tallest tile in that row (not a fixed DEFAULT_H), so tiles
-// whose content needs more than DEFAULT_H rows never overlap the next row.
-// `heightFor` lets the caller seed already-measured content heights (Reset),
-// avoiding a collapse-to-default then regrow flicker.
-function buildDefaultLayout(
-  sections: ReportSectionEntry[],
-  heightFor?: (id: string) => number | undefined
-): RglItem[] {
-  let x = 0
-  let y = 0
-  let rowH = 0
-  const out: RglItem[] = []
-  for (const s of sections) {
-    const w = s.defaultSpan ?? 12
-    const h = Math.max(MIN_H, heightFor?.(s.id) ?? DEFAULT_H)
-    if (x + w > COLS) {
-      x = 0
-      y += rowH
-      rowH = 0
-    }
-    out.push({ i: s.id, x, y, w, h, minW: MIN_W, minH: MIN_H })
-    x += w
-    rowH = Math.max(rowH, h)
-    if (x >= COLS) {
-      x = 0
-      y += rowH
-      rowH = 0
-    }
-  }
-  return out
-}
-
-// Runs during the first render, on the server too. That cannot cause a
-// hydration mismatch because layout and hidden only reach the DOM through the
-// grid, which waits for the client-measured containerW, and through the
-// sections menu, which opens on click.
-function readSaved(sections: ReportSectionEntry[]): Saved {
-  const fallback = { layout: buildDefaultLayout(sections), hidden: [] }
-  if (typeof window === "undefined") return fallback
-  try {
-    const raw = localStorage.getItem(STORAGE_KEY)
-    if (!raw) return fallback
-    const saved: Saved = JSON.parse(raw)
-    const ids = new Set(sections.map((s) => s.id))
-    let layout = fallback.layout
-    if (saved.layout?.length) {
-      const known = saved.layout.filter((l) => ids.has(l.i))
-      const missing = sections
-        .filter((s) => !known.some((l) => l.i === s.id))
-        .map((s) => ({
-          i: s.id,
-          x: 0,
-          y: Infinity,
-          w: s.defaultSpan ?? 12,
-          h: DEFAULT_H,
-          minW: MIN_W,
-          minH: MIN_H,
-        }))
-      layout = [...known, ...missing]
-    }
-    return { layout, hidden: (saved.hidden ?? []).filter((id) => ids.has(id)) }
-  } catch {
-    return fallback
-  }
-}
+import {
+  STORAGE_KEY,
+  buildDefaultLayout,
+  gridLayout,
+  readSaved,
+  rowsForPx,
+  sameLayout,
+  type ReportSectionEntry,
+  type RglItem,
+  type Saved,
+} from "./canvas-layout"
+import { CanvasGrid } from "./CanvasGrid"
+import { CanvasToolbar } from "./CanvasToolbar"
 
 export function ReportCanvas({ sections }: { sections: ReportSectionEntry[] }) {
   const [editing, setEditing] = useState(false)
@@ -108,12 +22,10 @@ export function ReportCanvas({ sections }: { sections: ReportSectionEntry[] }) {
   const [saved] = useState(() => readSaved(sections))
   const [layout, setLayout] = useState<RglItem[]>(saved.layout)
   const [hidden, setHidden] = useState<string[]>(saved.hidden)
-  const [sectionsMenuOpen, setSectionsMenuOpen] = useState(false)
   const [minHeights, setMinHeights] = useState<Record<string, number>>({})
   // Bumped to force a re-measure even when widths are unchanged (e.g. Reset).
   const [measureNonce, setMeasureNonce] = useState(0)
   const containerRef = useRef<HTMLDivElement>(null)
-  const menuRef = useRef<HTMLDivElement>(null)
   const contentEls = useRef(new Map<string, HTMLDivElement>())
 
   useEffect(() => {
@@ -190,15 +102,6 @@ export function ReportCanvas({ sections }: { sections: ReportSectionEntry[] }) {
     return () => cancelAnimationFrame(frame)
   }, [fitHeights, widthSig, containerW, hiddenSig, sections.length, measureNonce])
 
-  useEffect(() => {
-    if (!sectionsMenuOpen) return
-    const handler = (e: MouseEvent) => {
-      if (!menuRef.current?.contains(e.target as Node)) setSectionsMenuOpen(false)
-    }
-    document.addEventListener("mousedown", handler)
-    return () => document.removeEventListener("mousedown", handler)
-  }, [sectionsMenuOpen])
-
   const persist = useCallback((next: Saved) => {
     try {
       localStorage.setItem(STORAGE_KEY, JSON.stringify(next))
@@ -209,41 +112,10 @@ export function ReportCanvas({ sections }: { sections: ReportSectionEntry[] }) {
 
   const visibleSections = sections.filter((s) => !hidden.includes(s.id))
 
-  // Controlled layout for the grid; only visible sections are rendered, so a
-  // section with no saved position flows into free space (y: Infinity).
-  const rglLayout = visibleSections.map((s) => {
-    const base = layout.find((l) => l.i === s.id) ?? {
-      i: s.id,
-      x: 0,
-      y: Infinity,
-      w: s.defaultSpan ?? 12,
-      h: DEFAULT_H,
-      minW: MIN_W,
-      minH: MIN_H,
-    }
-    // Content-fit height floor blocks shrinking below what the content needs,
-    // while still allowing manual grow. Width has no reliable intrinsic min
-    // (content reflows), so it stays freely resizable down to MIN_W.
-    const floorH = Math.max(MIN_H, minHeights[s.id] ?? MIN_H)
-    // h comes straight from layout state (fitHeights keeps it at the content
-    // floor); do not override it here, or the rendered h differs from stored h
-    // and RGL keeps echoing the difference back through onLayoutChange.
-    return { ...base, minH: floorH, minW: MIN_W }
-  })
+  const rglLayout = gridLayout(visibleSections, layout, minHeights)
 
   const onLayoutChange = (current: RglItem[]) => {
-    // RGL fires this on every layout-prop change (which we recreate each
-    // render). Bail out when nothing actually moved/resized, otherwise the
-    // setLayout -> re-render -> new layout prop -> onLayoutChange cycle never
-    // settles (Maximum update depth exceeded).
-    const prevById = new Map(layout.map((l) => [l.i, l]))
-    const unchanged =
-      current.length > 0 &&
-      current.every((c) => {
-        const p = prevById.get(c.i)
-        return p && p.x === c.x && p.y === c.y && p.w === c.w && p.h === c.h
-      })
-    if (unchanged) return
+    if (sameLayout(current, layout)) return
 
     // Keep hidden sections' saved positions so toggling them back never loses placement.
     const visibleIds = new Set(current.map((l) => l.i))
@@ -277,62 +149,14 @@ export function ReportCanvas({ sections }: { sections: ReportSectionEntry[] }) {
 
   return (
     <div className="flex flex-1 flex-col">
-      {/* Toolbar */}
-      <div className="no-print mb-3 flex shrink-0 items-center justify-end gap-2">
-        {editing && (
-          <>
-            <p className="mr-auto text-xs text-muted-foreground">Drag to move, resize, toggle sections</p>
-            <div ref={menuRef} className="relative">
-              <button
-                onClick={() => setSectionsMenuOpen((o) => !o)}
-                className="flex h-8 items-center gap-1.5 rounded-md border border-border px-3 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-              >
-                <Eye className="size-3.5" />
-                Sections
-              </button>
-              {sectionsMenuOpen && (
-                <div className="absolute right-0 top-full z-50 mt-1 min-w-[200px] rounded-md border border-border bg-popover p-1 shadow-md">
-                  {sections.map((s) => {
-                    const isHidden = hidden.includes(s.id)
-                    return (
-                      <button
-                        key={s.id}
-                        onClick={() => toggleHidden(s.id)}
-                        className="flex w-full items-center gap-2 rounded-sm px-2.5 py-1.5 text-xs hover:bg-muted"
-                      >
-                        {isHidden ? (
-                          <EyeOff className="size-3.5 text-muted-foreground" />
-                        ) : (
-                          <Eye className="size-3.5 text-primary" />
-                        )}
-                        <span className={cn(isHidden && "text-muted-foreground")}>{s.title}</span>
-                      </button>
-                    )
-                  })}
-                </div>
-              )}
-            </div>
-            <button
-              onClick={reset}
-              className="flex h-8 items-center gap-1.5 rounded-md border border-border px-3 text-xs font-medium text-muted-foreground transition-colors hover:bg-muted hover:text-foreground"
-            >
-              <RotateCcw className="size-3.5" />
-              Reset
-            </button>
-          </>
-        )}
-        {editing ? (
-          <Button size="sm" onClick={() => setEditing(false)} className="gap-1.5">
-            <Check className="size-3.5" />
-            Done
-          </Button>
-        ) : (
-          <Button variant="outline" size="sm" onClick={() => setEditing(true)} className="gap-1.5">
-            <Settings2 className="size-3.5" />
-            Customize
-          </Button>
-        )}
-      </div>
+      <CanvasToolbar
+        sections={sections}
+        hidden={hidden}
+        editing={editing}
+        setEditing={setEditing}
+        toggleHidden={toggleHidden}
+        reset={reset}
+      />
 
       {/* Grid. react-grid-layout (same engine as the dashboard): drag is bounded
           to the container, vertical compaction backfills holes, and tiles keep
@@ -342,50 +166,14 @@ export function ReportCanvas({ sections }: { sections: ReportSectionEntry[] }) {
         className={cn("no-print", editing && "select-none [&_.react-resizable-handle]:block")}
       >
         {containerW > 0 && (
-          <ResponsiveGridLayout
-            className="layout"
+          <CanvasGrid
             width={containerW}
-            breakpoints={{ lg: 0 }}
-            cols={{ lg: COLS }}
-            layouts={{ lg: rglLayout }}
-            rowHeight={50}
-            compactor={verticalCompactor}
-            dragConfig={{ enabled: editing, handle: ".widget-drag-handle" }}
-            resizeConfig={{ enabled: editing }}
+            layout={rglLayout}
+            sections={visibleSections}
+            editing={editing}
             onLayoutChange={onLayoutChange}
-            margin={[16, 16]}
-            containerPadding={[0, 0]}
-          >
-            {visibleSections.map((s) => (
-              <div
-                key={s.id}
-                className={cn(
-                  "relative h-full overflow-hidden",
-                  editing && "rounded-xl outline outline-2 outline-primary/30"
-                )}
-              >
-                {editing && (
-                  <button
-                    type="button"
-                    className="widget-drag-handle absolute right-2 top-2 z-30 flex cursor-grab items-center gap-1 rounded-md border border-primary/40 bg-card/95 px-2 py-1 text-[10px] font-medium text-muted-foreground shadow-sm backdrop-blur-sm transition-colors hover:text-foreground active:cursor-grabbing"
-                    title="Drag to move"
-                  >
-                    <GripHorizontal className="size-3" />
-                    Move
-                  </button>
-                )}
-                <div
-                  ref={(node) => {
-                    if (node) contentEls.current.set(s.id, node)
-                    else contentEls.current.delete(s.id)
-                  }}
-                  className="h-full overflow-hidden"
-                >
-                  {s.content}
-                </div>
-              </div>
-            ))}
-          </ResponsiveGridLayout>
+            contentEls={contentEls}
+          />
         )}
       </div>
     </div>

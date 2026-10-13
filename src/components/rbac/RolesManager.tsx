@@ -1,20 +1,10 @@
 "use client"
 
 import { useEffect, useMemo, useState } from "react"
-import { Search, ChevronLeft, ChevronRight } from "lucide-react"
-import { PermissionEditor } from "./PermissionEditor"
+import { Search } from "lucide-react"
+import { RoleForm } from "./RoleForm"
+import { PAGE_SIZE, RolesTable, type Role } from "./RolesTable"
 import { StepUpDialog } from "./StepUpDialog"
-
-type Role = {
-  id: string
-  name: string
-  description: string
-  permissions: string[]
-  isSystem: boolean
-  isAssignable: boolean
-}
-
-const PAGE_SIZE = 8
 
 async function fetchRoles(): Promise<Role[] | null> {
   const res = await fetch("/api/roles")
@@ -138,125 +128,27 @@ export function RolesManager() {
         </button>
       </div>
 
-      <div className="overflow-hidden rounded-xl border border-border/60 bg-card">
-        <table className="w-full text-sm">
-          <thead className="border-b border-border bg-muted/30">
-            <tr>
-              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                Role
-              </th>
-              <th className="px-4 py-3 text-left text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                Permissions
-              </th>
-              <th className="px-4 py-3 text-right text-xs font-medium uppercase tracking-wider text-muted-foreground">
-                Actions
-              </th>
-            </tr>
-          </thead>
-          <tbody className="divide-y divide-border">
-            {pageRoles.length === 0 ? (
-              <tr>
-                <td colSpan={3} className="py-12 text-center text-sm text-muted-foreground">
-                  No roles match this search
-                </td>
-              </tr>
-            ) : (
-              pageRoles.map((r) => (
-                <tr key={r.id} className="group transition-colors hover:bg-muted/40">
-                  <td className="px-4 py-3">
-                    <span className="font-medium text-foreground">{r.name}</span>
-                    {r.isSystem && <span className="ml-2 text-xs text-muted-foreground">Built-in</span>}
-                  </td>
-                  <td className="px-4 py-3 tabular-nums text-muted-foreground">{r.permissions.length}</td>
-                  <td className="px-4 py-3 text-right">
-                    {r.isSystem ? (
-                      <span className="text-xs text-muted-foreground">&mdash;</span>
-                    ) : (
-                      <div className="flex justify-end gap-3 text-xs opacity-0 transition-opacity group-hover:opacity-100 focus-within:opacity-100">
-                        <button
-                          onClick={() => startEdit(r)}
-                          className="text-muted-foreground transition-colors hover:text-foreground"
-                        >
-                          Edit
-                        </button>
-                        <button
-                          onClick={() => remove(r)}
-                          className="text-muted-foreground transition-colors hover:text-destructive"
-                        >
-                          Delete
-                        </button>
-                      </div>
-                    )}
-                  </td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
-
-        <div className="flex items-center justify-between border-t border-border px-4 py-3">
-          <p className="text-xs text-muted-foreground">
-            {filtered.length} role{filtered.length === 1 ? "" : "s"}
-          </p>
-          <div className="flex items-center gap-2">
-            <button
-              disabled={page === 0}
-              onClick={() => setPage((p) => p - 1)}
-              aria-label="Previous page"
-              className="flex size-7 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:bg-muted disabled:opacity-30"
-            >
-              <ChevronLeft className="size-4" />
-            </button>
-            <span className="text-xs tabular-nums text-muted-foreground">
-              {page + 1} / {pages}
-            </span>
-            <button
-              disabled={(page + 1) * PAGE_SIZE >= filtered.length}
-              onClick={() => setPage((p) => p + 1)}
-              aria-label="Next page"
-              className="flex size-7 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:bg-muted disabled:opacity-30"
-            >
-              <ChevronRight className="size-4" />
-            </button>
-          </div>
-        </div>
-      </div>
+      <RolesTable
+        filtered={filtered}
+        pageRoles={pageRoles}
+        page={page}
+        pages={pages}
+        setPage={setPage}
+        onEdit={startEdit}
+        onDelete={remove}
+      />
 
       {formOpen && (
-        <div className="space-y-4 rounded-xl border border-border/60 bg-card p-5">
-          <div className="flex items-center justify-between">
-            <h3 className="text-sm font-medium text-foreground">
-              {editing ? `Edit ${editing.name}` : "New role"}
-            </h3>
-            <span className="text-xs tabular-nums text-muted-foreground">{perms.size} selected</span>
-          </div>
-
-          <input
-            placeholder="Role name"
-            value={name}
-            onChange={(e) => setName(e.target.value)}
-            className="w-full max-w-sm rounded-lg border border-input bg-card px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
-          />
-
-          <PermissionEditor selected={perms} onChange={setPerms} />
-
-          {error && <p className="text-xs text-destructive">{error}</p>}
-
-          <div className="flex justify-end gap-2 border-t border-border pt-4">
-            <button
-              onClick={closeForm}
-              className="rounded-lg px-3 py-1.5 text-sm text-muted-foreground transition-colors hover:text-foreground"
-            >
-              Cancel
-            </button>
-            <button
-              onClick={save}
-              className="rounded-lg bg-primary px-3 py-1.5 text-sm text-primary-foreground transition-opacity hover:opacity-90"
-            >
-              Save
-            </button>
-          </div>
-        </div>
+        <RoleForm
+          editingName={editing ? editing.name : null}
+          name={name}
+          setName={setName}
+          perms={perms}
+          setPerms={setPerms}
+          error={error}
+          onCancel={closeForm}
+          onSave={save}
+        />
       )}
 
       <StepUpDialog

@@ -3,12 +3,9 @@
 import { useState, useTransition, type ReactNode } from "react"
 import Link from "next/link"
 import { ArrowLeft, LayoutGrid, Bell, ShieldAlert, Users, TrendingUp } from "lucide-react"
-import { cn } from "@/lib/utils"
 import type { WidgetDef, WidgetCategory } from "@/lib/widgetRegistry"
 import type { DashboardPreset, WidgetMeta } from "@/types/dashboard"
-
-const PREVIEW_SCALE = 0.42
-const PREVIEW_H = 200
+import { WidgetCard } from "./WidgetCard"
 
 const CATEGORIES: { key: WidgetCategory; label: string; icon: React.ElementType }[] = [
   { key: "overview", label: "Overview", icon: LayoutGrid },
@@ -25,33 +22,6 @@ function getMeta(metas: WidgetMeta[], instanceId: string, defaultVisible: boolea
       title: null,
       visible: defaultVisible,
     }
-  )
-}
-
-function WidgetPreview({ children, enabled }: { children: ReactNode; enabled: boolean }) {
-  return (
-    <div
-      className="relative overflow-hidden rounded-t-xl border-b border-border transition-all duration-300"
-      style={{
-        height: `${PREVIEW_H}px`,
-        filter: enabled ? "none" : "grayscale(1) opacity(0.35)",
-      }}
-    >
-      <div
-        style={{
-          position: "absolute",
-          top: 0,
-          left: 0,
-          width: `${(1 / PREVIEW_SCALE) * 100}%`,
-          height: `${(1 / PREVIEW_SCALE) * 100}%`,
-          transform: `scale(${PREVIEW_SCALE})`,
-          transformOrigin: "top left",
-          pointerEvents: "none",
-        }}
-      >
-        {children}
-      </div>
-    </div>
   )
 }
 
@@ -151,71 +121,16 @@ export function WidgetLibrary({
               </div>
 
               <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
-                {catWidgets.map((widget) => {
-                  const meta = getMeta(metas, widget.type, widget.defaultVisible ?? true)
-                  const isEnabled = meta.visible
-                  const isSaving = savingId === widget.type && isPending
-                  const preview = widgetPreviews[widget.type]
-
-                  return (
-                    <div
-                      key={widget.type}
-                      className={cn(
-                        "group overflow-hidden rounded-xl border transition-all duration-200",
-                        isEnabled
-                          ? "border-primary/40 shadow-sm hover:border-primary/60"
-                          : "border-border/60 hover:border-muted-foreground/40"
-                      )}
-                    >
-                      {/* Preview */}
-                      <WidgetPreview enabled={isEnabled}>{preview}</WidgetPreview>
-
-                      {/* Footer */}
-                      <div
-                        className={cn(
-                          "flex items-center justify-between gap-3 p-3 transition-colors",
-                          isEnabled ? "bg-primary/5" : "bg-card"
-                        )}
-                      >
-                        <div className="min-w-0">
-                          <p
-                            className={cn(
-                              "truncate text-xs font-semibold",
-                              isEnabled ? "text-foreground" : "text-muted-foreground"
-                            )}
-                          >
-                            {widget.defaultTitle}
-                          </p>
-                          <p className="text-[10px] text-muted-foreground">
-                            {widget.defaultSize.w}x{widget.defaultSize.h} cells
-                          </p>
-                        </div>
-
-                        {/* Toggle */}
-                        <button
-                          onClick={() => toggleWidget(widget.type, widget.defaultVisible ?? true)}
-                          disabled={isSaving}
-                          className={cn(
-                            "relative flex h-6 w-11 shrink-0 cursor-pointer items-center rounded-full border-2 transition-all duration-200",
-                            isEnabled ? "border-primary bg-primary" : "border-border bg-muted"
-                          )}
-                          title={isEnabled ? "Remove from dashboard" : "Add to dashboard"}
-                        >
-                          <span
-                            className={cn(
-                              "absolute flex size-4 items-center justify-center rounded-full bg-white shadow transition-all duration-200",
-                              isEnabled ? "left-[18px]" : "left-[1px]"
-                            )}
-                          >
-                            {isSaving && (
-                              <span className="size-2.5 animate-spin rounded-full border border-primary border-t-transparent" />
-                            )}
-                          </span>
-                        </button>
-                      </div>
-                    </div>
-                  )
-                })}
+                {catWidgets.map((widget) => (
+                  <WidgetCard
+                    key={widget.type}
+                    widget={widget}
+                    enabled={getMeta(metas, widget.type, widget.defaultVisible ?? true).visible}
+                    saving={savingId === widget.type && isPending}
+                    preview={widgetPreviews[widget.type]}
+                    onToggle={() => toggleWidget(widget.type, widget.defaultVisible ?? true)}
+                  />
+                ))}
               </div>
             </section>
           )
