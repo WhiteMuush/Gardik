@@ -48,6 +48,18 @@ up: ## Run the full stack (app + db) in containers (needs a compose provider)
 down: ## Stop the full container stack
 	@sh scripts/compose.sh down
 
+.PHONY: image
+image: ## Build the production image and run it on http://localhost:3001 to test it
+	@sh scripts/image.sh up
+
+.PHONY: image-down
+image-down: ## Stop the local production image and wipe its database
+	@sh scripts/image.sh down
+
+.PHONY: image-scan
+image-scan: ## Scan the local production image with Trivy (HIGH and CRITICAL)
+	@sh scripts/image.sh scan
+
 .PHONY: backup
 backup: ## Dump the local database to backups/ (pg_dump)
 	$(N) npm run db:backup
