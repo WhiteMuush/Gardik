@@ -11,7 +11,7 @@ Rules for AI assistants contributing to this project.
 
 ## Code style
 
-- No comments unless the WHY is non-obvious (hidden constraint, workaround for a specific bug, surprising invariant).
+- No comments unless the WHY is non-obvious (hidden constraint, workaround for a specific bug, surprising invariant), and then one sentence: direct, simple, precise.
 - No multi-line docstrings or comment blocks.
 - No error handling for impossible cases. Trust framework guarantees. Validate only at system boundaries (user input, external APIs).
 - No unused variables prefixed with `_` to silence linters, remove the variable.
@@ -48,7 +48,7 @@ Run the same gates CI enforces:
 Also:
 
 - Format with Prettier (`npm run format`), the check rejects unformatted files.
-- Keep source files under 500 lines; the ESLint exception list only shrinks.
+- Keep every code file, tests included, at 200 lines or fewer; capped files may only shrink.
 - Report problems noticed outside the task in the final message, without fixing them.
 - Do not push to remote unless explicitly asked.
 - Do not open, close, or comment on issues or pull requests unless explicitly asked.

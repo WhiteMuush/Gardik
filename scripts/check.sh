@@ -14,7 +14,7 @@ gate() {
   "$@" || failed="$failed\n  - $name"
 }
 
-gate "lint (zero warnings, files under 500 lines)" npm run --silent lint -- --max-warnings 0
+gate "lint (zero warnings, files of 200 lines max)" npm run --silent lint -- --max-warnings 0
 gate "format (Prettier)" npx prettier --check --log-level warn .
 gate "types" npx tsc --noEmit
 gate "Prisma schema" npx prisma validate
