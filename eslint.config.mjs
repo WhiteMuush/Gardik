@@ -2,10 +2,6 @@ import { defineConfig, globalIgnores } from "eslint/config"
 import nextVitals from "eslint-config-next/core-web-vitals"
 import nextTs from "eslint-config-next/typescript"
 
-// Files over 200 lines, capped at their current size until #30 splits them.
-const OVER_LIMIT = {
-}
-
 export default defineConfig([
   ...nextVitals,
   ...nextTs,
@@ -14,8 +10,4 @@ export default defineConfig([
     files: ["**/*.{ts,tsx,mjs}"],
     rules: { "max-lines": ["error", { max: 200 }] },
   },
-  ...Object.entries(OVER_LIMIT).map(([file, max]) => ({
-    files: [file.replace(/[\\[\]()]/g, "\\$&")],
-    rules: { "max-lines": ["error", { max }] },
-  })),
 ])
