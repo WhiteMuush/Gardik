@@ -16,10 +16,6 @@ const CAPABILITIES: Record<DirectoryType, RemediationType[]> = {
   SCIM: [],
 }
 
-export function remediationCapabilities(type: DirectoryType): RemediationType[] {
-  return CAPABILITIES[type]
-}
-
 export function supportsRemediation(type: DirectoryType, action: RemediationType): boolean {
   return CAPABILITIES[type].includes(action)
 }

@@ -81,5 +81,3 @@ export const PRESETS = [
     isAssignable: true,
   },
 ] as const
-
-export type Preset = (typeof PRESETS)[number]

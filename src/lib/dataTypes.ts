@@ -18,5 +18,3 @@ export const PRESET_DATA_TYPES = [
   { key: "username", label: "Username" },
   { key: "address", label: "Address" },
 ] as const
-
-export type PresetDataType = (typeof PRESET_DATA_TYPES)[number]["key"]
