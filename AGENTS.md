@@ -40,10 +40,10 @@ Follow [Conventional Commits](https://www.conventionalcommits.org/), same rules 
 
 ## Before proposing changes
 
-Run the same gates CI enforces:
+Run `make check` before every push, and push only when it passes:
 
-- `npm run check`: lint, format, types, Prisma schema, unit tests with the coverage floor, knip, version consistency, licenses, production audit, ASCII. The pre-push hook runs it too.
-- Confirm the build passes without real secrets: `npm run build`.
+- it runs `npm run check` (lint, format, types, Prisma schema, unit tests with the coverage floor, knip, version consistency, licenses, production audit, ASCII), then the production build without real secrets;
+- the pre-push hook only runs `npm run check`, so it does not replace `make check`.
 
 Also:
 
