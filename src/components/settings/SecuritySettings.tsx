@@ -45,8 +45,7 @@ export async function SecuritySettings() {
         <div className="rounded-xl border border-border/60 bg-card p-4">
           <h3 className="text-sm font-medium text-foreground">Passkeys</h3>
           <p className="mt-1 text-xs text-muted-foreground">
-            Sign in with your device (Face ID, Windows Hello, or a security key)
-            instead of a password.
+            Sign in with your device (Face ID, Windows Hello, or a security key) instead of a password.
           </p>
           <div className="mt-3">
             <PasskeySetup />

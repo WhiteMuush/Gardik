@@ -49,10 +49,12 @@ export function ScanButton({ onlyIncomplete = false, label = "Scan employees" }:
     <div className="flex items-center gap-3">
       {result && (
         <p className="text-xs text-muted-foreground">
-          {result.scanned} scanned - {result.newRecords} new exposure{result.newRecords !== 1 ? "s" : ""} - {result.newAlerts} alert{result.newAlerts !== 1 ? "s" : ""} created
+          {result.scanned} scanned - {result.newRecords} new exposure{result.newRecords !== 1 ? "s" : ""} -{" "}
+          {result.newAlerts} alert{result.newAlerts !== 1 ? "s" : ""} created
           {result.failedChecks > 0 && (
             <span className="text-destructive">
-              {" "}- {result.failedChecks} check{result.failedChecks !== 1 ? "s" : ""} failed
+              {" "}
+              - {result.failedChecks} check{result.failedChecks !== 1 ? "s" : ""} failed
             </span>
           )}
         </p>

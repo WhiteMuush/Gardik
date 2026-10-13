@@ -45,9 +45,7 @@ export function EmployeeExposure({ data, totalEmployees }: { data: ExposureLevel
         <div className="grid w-full grid-cols-3 gap-3">
           {tiers.map((tier) => {
             const Icon = tier.icon
-            const pct = totalEmployees > 0
-              ? Math.round((tier.count / totalEmployees) * 100)
-              : 0
+            const pct = totalEmployees > 0 ? Math.round((tier.count / totalEmployees) * 100) : 0
             return (
               <div
                 key={tier.label}

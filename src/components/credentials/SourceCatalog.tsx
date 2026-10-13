@@ -119,7 +119,12 @@ export function SourceCatalog({ credentials, coverage, defaultRates, lastScanAt,
           )}
         >
           <p className="text-xs text-muted-foreground">Needs action</p>
-          <p className={cn("mt-1 text-xl font-semibold", needsAction > 0 ? "text-destructive" : "text-foreground")}>
+          <p
+            className={cn(
+              "mt-1 text-xl font-semibold",
+              needsAction > 0 ? "text-destructive" : "text-foreground"
+            )}
+          >
             {needsAction}
           </p>
         </button>
@@ -190,7 +195,9 @@ export function SourceCatalog({ credentials, coverage, defaultRates, lastScanAt,
                   <LevelBadge level={view.level} className="mt-1" />
                 </div>
               </div>
-              <p className="mt-3 line-clamp-2 flex-1 text-xs text-muted-foreground">{view.meta.description}</p>
+              <p className="mt-3 line-clamp-2 flex-1 text-xs text-muted-foreground">
+                {view.meta.description}
+              </p>
               <div className="mt-4 flex items-center justify-between gap-2 border-t border-border/60 pt-3">
                 <span className="text-xs text-foreground">
                   {view.meta.pricing.from ? `From ${view.meta.pricing.from}` : "Price not published"}

@@ -25,7 +25,7 @@ export function AccessTabs({ tabs }: { tabs: Tab[] }) {
               "-mb-px border-b-2 px-0.5 pb-2.5 text-sm transition-colors",
               t.id === current?.id
                 ? "border-foreground font-medium text-foreground"
-                : "border-transparent text-muted-foreground hover:text-foreground",
+                : "border-transparent text-muted-foreground hover:text-foreground"
             )}
           >
             {t.label}

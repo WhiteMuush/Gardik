@@ -5,16 +5,20 @@ import { useWidgetTitle } from "@/hooks/useWidgetTitle"
 import { cn } from "@/lib/utils"
 
 type BreachSource = {
-  id: string; name: string; source: string
-  breachDate: string; dataTypes: string[]; affectedEmployees: number
+  id: string
+  name: string
+  source: string
+  breachDate: string
+  dataTypes: string[]
+  affectedEmployees: number
 }
 
 type SourceFilter = "ALL" | "HIBP" | "MANUAL" | "DARK_WEB"
 
 const SOURCE_STYLE: Record<string, { label: string; color: string; dot: string }> = {
-  HIBP:     { label: "HIBP",     color: "text-primary",     dot: "bg-primary" },
-  MANUAL:   { label: "Manual",   color: "text-purple-400",  dot: "bg-purple-400" },
-  DARK_WEB: { label: "Dark Web", color: "text-red-400",     dot: "bg-red-400" },
+  HIBP: { label: "HIBP", color: "text-primary", dot: "bg-primary" },
+  MANUAL: { label: "Manual", color: "text-purple-400", dot: "bg-purple-400" },
+  DARK_WEB: { label: "Dark Web", color: "text-red-400", dot: "bg-red-400" },
 }
 
 export function BreachTimeline({ data }: { data: BreachSource[] }) {
@@ -59,11 +63,20 @@ export function BreachTimeline({ data }: { data: BreachSource[] }) {
             <div className="absolute left-[7px] top-0 bottom-0 w-px bg-border" />
 
             {filtered.map((breach, i) => {
-              const style = SOURCE_STYLE[breach.source] ?? { label: breach.source, color: "text-muted-foreground", dot: "bg-muted" }
+              const style = SOURCE_STYLE[breach.source] ?? {
+                label: breach.source,
+                color: "text-muted-foreground",
+                dot: "bg-muted",
+              }
               return (
                 <div key={breach.id} className={cn("relative pb-4", i === filtered.length - 1 && "pb-0")}>
                   {/* Dot */}
-                  <div className={cn("absolute -left-[18px] top-1 size-2.5 rounded-full ring-2 ring-card", style.dot)} />
+                  <div
+                    className={cn(
+                      "absolute -left-[18px] top-1 size-2.5 rounded-full ring-2 ring-card",
+                      style.dot
+                    )}
+                  />
 
                   <div className="rounded-lg border border-border bg-background p-3">
                     <div className="flex items-start justify-between gap-2">
@@ -73,13 +86,22 @@ export function BreachTimeline({ data }: { data: BreachSource[] }) {
                       </span>
                     </div>
                     <div className="mt-1.5 flex items-center gap-3 text-[11px] text-muted-foreground">
-                      <span>{new Date(breach.breachDate).toLocaleDateString("en-US", { month: "short", day: "numeric", year: "numeric" })}</span>
+                      <span>
+                        {new Date(breach.breachDate).toLocaleDateString("en-US", {
+                          month: "short",
+                          day: "numeric",
+                          year: "numeric",
+                        })}
+                      </span>
                       <span>{breach.affectedEmployees} affected</span>
                     </div>
                     {breach.dataTypes.length > 0 && (
                       <div className="mt-1.5 flex flex-wrap gap-1">
                         {breach.dataTypes.slice(0, 3).map((t) => (
-                          <span key={t} className="rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground">
+                          <span
+                            key={t}
+                            className="rounded bg-muted px-1.5 py-0.5 text-[10px] text-muted-foreground"
+                          >
                             {t.replace(/_/g, " ")}
                           </span>
                         ))}

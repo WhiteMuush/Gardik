@@ -57,10 +57,20 @@ describe("checkLabel", () => {
   it("says why the last check failed, and when it last succeeded", () => {
     const earlier = new Date("2026-10-01T10:00:00Z")
     expect(
-      checkLabel({ status: "FAILED", failureReason: "API key rejected", lastAttemptAt: at, lastCheckedAt: earlier })
+      checkLabel({
+        status: "FAILED",
+        failureReason: "API key rejected",
+        lastAttemptAt: at,
+        lastCheckedAt: earlier,
+      })
     ).toBe("Failed on Oct 12, 2026: API key rejected. Last checked on Oct 1, 2026")
     expect(
-      checkLabel({ status: "FAILED", failureReason: "API key rejected", lastAttemptAt: at, lastCheckedAt: null })
+      checkLabel({
+        status: "FAILED",
+        failureReason: "API key rejected",
+        lastAttemptAt: at,
+        lastCheckedAt: null,
+      })
     ).toBe("Failed on Oct 12, 2026: API key rejected. Never checked")
   })
   it("says never checked when there is no check yet", () => {

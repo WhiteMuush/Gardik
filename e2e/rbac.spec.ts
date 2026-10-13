@@ -161,9 +161,7 @@ test("a read-only role is offered no control it cannot use", async ({ page }) =>
   await expect(page.getByText("Company preset")).toHaveCount(0)
 })
 
-test("an admin is offered the same controls, so the selectors above mean something", async ({
-  page,
-}) => {
+test("an admin is offered the same controls, so the selectors above mean something", async ({ page }) => {
   await login(page, ADMIN)
 
   await page.goto("/reports")

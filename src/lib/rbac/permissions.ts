@@ -4,28 +4,50 @@
 // adding its permissions here.
 export const PERMISSIONS = Object.freeze([
   // Alerts (SOC core)
-  "alerts:read", "alerts:assign", "alerts:status", "alerts:comment",
-  "alerts:close", "alerts:remediate",
+  "alerts:read",
+  "alerts:assign",
+  "alerts:status",
+  "alerts:comment",
+  "alerts:close",
+  "alerts:remediate",
   // Employees (monitored subjects)
-  "employees:read", "employees:manage", "employees:scan",
+  "employees:read",
+  "employees:manage",
+  "employees:scan",
   // Exposure register
-  "register:read", "register:manage", "register:evidence",
+  "register:read",
+  "register:manage",
+  "register:evidence",
   // Dashboard
-  "dashboard:read", "dashboard:customize", "dashboard:manage_shared",
+  "dashboard:read",
+  "dashboard:customize",
+  "dashboard:manage_shared",
   // Reports
-  "reports:read", "reports:export", "reports:schedule",
+  "reports:read",
+  "reports:export",
+  "reports:schedule",
   // Directory connectors
-  "connectors:read", "connectors:manage", "connectors:sync",
+  "connectors:read",
+  "connectors:manage",
+  "connectors:sync",
   // Data API
-  "api_credentials:read", "api_credentials:manage",
+  "api_credentials:read",
+  "api_credentials:manage",
   // Notifications
-  "notifications:read", "notifications:manage",
+  "notifications:read",
+  "notifications:manage",
   // Security policy
-  "policy:read", "policy:manage",
+  "policy:read",
+  "policy:manage",
   // Identity / IdP
-  "sso:read", "sso:config", "sso:role_map",
+  "sso:read",
+  "sso:config",
+  "sso:role_map",
   // RBAC
-  "users:read", "users:manage", "roles:read", "roles:manage",
+  "users:read",
+  "users:manage",
+  "roles:read",
+  "roles:manage",
   // Audit
   "audit:read",
 ] as const)

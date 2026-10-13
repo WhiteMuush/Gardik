@@ -11,7 +11,7 @@ import { NotificationChannel, Severity } from "@prisma/client"
 // EMAIL targets a recipient address; every other channel targets an HTTPS URL.
 async function resolveTarget(
   channel: NotificationChannel,
-  raw: string,
+  raw: string
 ): Promise<{ target: string; hint: string } | { error: string }> {
   if (channel === "EMAIL") {
     const addr = raw.trim().toLowerCase()
@@ -48,15 +48,12 @@ export async function POST(req: Request) {
   if (!label?.trim()) return NextResponse.json({ error: "Missing label" }, { status: 400 })
 
   const chan =
-    channel && channel in NotificationChannel
-      ? (channel as NotificationChannel)
-      : NotificationChannel.WEBHOOK
+    channel && channel in NotificationChannel ? (channel as NotificationChannel) : NotificationChannel.WEBHOOK
 
   const resolved = await resolveTarget(chan, url ?? "")
   if ("error" in resolved) return NextResponse.json({ error: resolved.error }, { status: 400 })
 
-  const severity =
-    minSeverity && minSeverity in Severity ? (minSeverity as Severity) : Severity.MEDIUM
+  const severity = minSeverity && minSeverity in Severity ? (minSeverity as Severity) : Severity.MEDIUM
 
   const webhook = await prisma.webhook.create({
     data: {

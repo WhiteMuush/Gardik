@@ -13,25 +13,16 @@ export async function POST(req: Request) {
   const body = (await req.json().catch(() => ({}))) as { onlyIncomplete?: unknown }
 
   if (!(await rateLimit(`scan:${companyId}`, 5, 60_000))) {
-    return NextResponse.json(
-      { error: "Too many scans. Try again in a minute." },
-      { status: 429 }
-    )
+    return NextResponse.json({ error: "Too many scans. Try again in a minute." }, { status: 429 })
   }
 
   const providers = await loadActiveProviders(companyId)
   if (!providers.length) {
-    return NextResponse.json(
-      { error: "No breach API key configured. Add one in Data API." },
-      { status: 503 }
-    )
+    return NextResponse.json({ error: "No breach API key configured. Add one in Data API." }, { status: 503 })
   }
 
   if (runningScans.has(companyId)) {
-    return NextResponse.json(
-      { error: "A scan is already running for this company" },
-      { status: 409 }
-    )
+    return NextResponse.json({ error: "A scan is already running for this company" }, { status: 409 })
   }
 
   runningScans.add(companyId)

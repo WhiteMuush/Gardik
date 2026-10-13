@@ -41,7 +41,10 @@ export function ReportSchedules({ initial, isAdmin }: { initial: ScheduleRow[]; 
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({
         frequency,
-        recipients: recipients.split(",").map((r) => r.trim()).filter(Boolean),
+        recipients: recipients
+          .split(",")
+          .map((r) => r.trim())
+          .filter(Boolean),
         sections,
       }),
     })
@@ -73,8 +76,8 @@ export function ReportSchedules({ initial, isAdmin }: { initial: ScheduleRow[]; 
         <h3 className="text-sm font-semibold text-foreground">Scheduled report delivery</h3>
       </div>
       <p className="mb-4 text-xs text-muted-foreground">
-        Email a periodic report (PDF and CSV attachments) to stakeholders without anyone logging in.
-        Requires email to be configured.
+        Email a periodic report (PDF and CSV attachments) to stakeholders without anyone logging in. Requires
+        email to be configured.
       </p>
 
       <div className="space-y-2">
@@ -89,7 +92,9 @@ export function ReportSchedules({ initial, isAdmin }: { initial: ScheduleRow[]; 
               </p>
               <p className="truncate text-xs text-muted-foreground">
                 {s.sections.join(", ")}
-                {s.lastSentAt ? ` - last sent ${new Date(s.lastSentAt).toLocaleDateString()}` : " - never sent"}
+                {s.lastSentAt
+                  ? ` - last sent ${new Date(s.lastSentAt).toLocaleDateString()}`
+                  : " - never sent"}
               </p>
             </div>
             {isAdmin && (

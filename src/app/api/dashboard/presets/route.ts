@@ -31,7 +31,12 @@ export async function POST(req: Request) {
   const session = await getSession()
   if (!session?.user?.id) return NextResponse.json(null, { status: 401 })
 
-  const body: { name: string; scope?: "PERSONAL" | "COMPANY"; layout?: SavedDashboardConfig["layout"]; widgets?: SavedDashboardConfig["widgets"] } = await req.json()
+  const body: {
+    name: string
+    scope?: "PERSONAL" | "COMPANY"
+    layout?: SavedDashboardConfig["layout"]
+    widgets?: SavedDashboardConfig["widgets"]
+  } = await req.json()
 
   if (!body.name?.trim()) {
     return NextResponse.json({ error: "Name is required" }, { status: 400 })

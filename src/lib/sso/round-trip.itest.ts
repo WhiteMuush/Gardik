@@ -220,6 +220,8 @@ describe("OIDC round trip against a stub IdP", () => {
     expect(res.headers.get("set-cookie") ?? "").not.toContain("session_token")
 
     expect(await prisma.user.count({ where: { email: unknownEmail } })).toBe(0)
-    expect(await prisma.account.findFirst({ where: { providerId, accountId: `sub-${unknownEmail}` } })).toBeNull()
+    expect(
+      await prisma.account.findFirst({ where: { providerId, accountId: `sub-${unknownEmail}` } })
+    ).toBeNull()
   })
 })

@@ -2,9 +2,7 @@
 
 import { useState } from "react"
 import { Settings2, Check } from "lucide-react"
-import {
-  BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
-} from "recharts"
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
 import { useWidgetConfig } from "@/hooks/useWidgetConfig"
 import { useDashboardEditing } from "@/contexts/DashboardEditContext"
 import { useWidgetTitle } from "@/hooks/useWidgetTitle"
@@ -16,14 +14,14 @@ type MonthData = { month: string; critical: number; high: number; medium: number
 const PERIODS: { key: Period; label: string; months: number }[] = [
   { key: "3m", label: "3 months", months: 3 },
   { key: "6m", label: "6 months", months: 6 },
-  { key: "1y", label: "1 year",   months: 12 },
+  { key: "1y", label: "1 year", months: 12 },
 ]
 
 const SEV_COLORS = {
   critical: "oklch(var(--severity-critical))",
-  high:     "oklch(var(--severity-high))",
-  medium:   "oklch(var(--severity-medium))",
-  low:      "oklch(var(--severity-low))",
+  high: "oklch(var(--severity-high))",
+  medium: "oklch(var(--severity-medium))",
+  low: "oklch(var(--severity-low))",
 }
 
 export function AlertsByMonth({ data }: { data: MonthData[] }) {
@@ -47,7 +45,9 @@ export function AlertsByMonth({ data }: { data: MonthData[] }) {
             onClick={() => setShowSettings((s) => !s)}
             className={cn(
               "flex size-7 items-center justify-center rounded-md transition-colors",
-              showSettings ? "bg-primary/10 text-primary" : "text-muted-foreground hover:bg-muted hover:text-foreground"
+              showSettings
+                ? "bg-primary/10 text-primary"
+                : "text-muted-foreground hover:bg-muted hover:text-foreground"
             )}
           >
             {showSettings ? <Check className="size-4" /> : <Settings2 className="size-4" />}
@@ -86,8 +86,18 @@ export function AlertsByMonth({ data }: { data: MonthData[] }) {
           <ResponsiveContainer width="100%" height="100%">
             <BarChart data={sliced} margin={{ top: 5, right: 10, bottom: 0, left: -20 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="oklch(var(--border))" vertical={false} />
-              <XAxis dataKey="month" tick={{ fill: "oklch(var(--muted-foreground))", fontSize: 11 }} axisLine={false} tickLine={false} />
-              <YAxis tick={{ fill: "oklch(var(--muted-foreground))", fontSize: 11 }} axisLine={false} tickLine={false} allowDecimals={false} />
+              <XAxis
+                dataKey="month"
+                tick={{ fill: "oklch(var(--muted-foreground))", fontSize: 11 }}
+                axisLine={false}
+                tickLine={false}
+              />
+              <YAxis
+                tick={{ fill: "oklch(var(--muted-foreground))", fontSize: 11 }}
+                axisLine={false}
+                tickLine={false}
+                allowDecimals={false}
+              />
               <Tooltip
                 contentStyle={{
                   background: "oklch(var(--card))",
@@ -98,9 +108,9 @@ export function AlertsByMonth({ data }: { data: MonthData[] }) {
                 }}
               />
               <Bar dataKey="critical" name="Critical" stackId="a" fill={SEV_COLORS.critical} />
-              <Bar dataKey="high"     name="High"     stackId="a" fill={SEV_COLORS.high} />
-              <Bar dataKey="medium"   name="Medium"   stackId="a" fill={SEV_COLORS.medium} />
-              <Bar dataKey="low"      name="Low"      stackId="a" fill={SEV_COLORS.low} radius={[4, 4, 0, 0]} />
+              <Bar dataKey="high" name="High" stackId="a" fill={SEV_COLORS.high} />
+              <Bar dataKey="medium" name="Medium" stackId="a" fill={SEV_COLORS.medium} />
+              <Bar dataKey="low" name="Low" stackId="a" fill={SEV_COLORS.low} radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
         </div>

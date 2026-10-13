@@ -4,19 +4,23 @@ import { PieChart, Pie, Cell, Tooltip, ResponsiveContainer, Legend } from "recha
 import { useWidgetTitle } from "@/hooks/useWidgetTitle"
 
 type BreachSource = {
-  id: string; name: string; source: string
-  breachDate: string; dataTypes: string[]; affectedEmployees: number
+  id: string
+  name: string
+  source: string
+  breachDate: string
+  dataTypes: string[]
+  affectedEmployees: number
 }
 
 const SOURCE_COLORS: Record<string, string> = {
-  HIBP:     "oklch(var(--primary))",
-  MANUAL:   "hsl(270 50% 60%)",
+  HIBP: "oklch(var(--primary))",
+  MANUAL: "hsl(270 50% 60%)",
   DARK_WEB: "oklch(var(--severity-critical))",
 }
 
 const SOURCE_LABELS: Record<string, string> = {
-  HIBP:     "Have I Been Pwned",
-  MANUAL:   "Manual Entry",
+  HIBP: "Have I Been Pwned",
+  MANUAL: "Manual Entry",
   DARK_WEB: "Dark Web",
 }
 
@@ -24,7 +28,9 @@ export function BreachSourceDonut({ data }: { data: BreachSource[] }) {
   const { title } = useWidgetTitle("breach-source-donut", "Breach Origin")
 
   const grouped: Record<string, number> = {}
-  data.forEach((b) => { grouped[b.source] = (grouped[b.source] ?? 0) + 1 })
+  data.forEach((b) => {
+    grouped[b.source] = (grouped[b.source] ?? 0) + 1
+  })
 
   const chartData = Object.entries(grouped).map(([source, count]) => ({
     name: SOURCE_LABELS[source] ?? source,

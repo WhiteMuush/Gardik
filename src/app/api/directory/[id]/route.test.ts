@@ -64,8 +64,6 @@ describe("PATCH /api/directory/[id]", () => {
     findFirst.mockResolvedValue({ type: "SCIM" })
     const res = await PATCH(patch({ autoSyncIntervalMinutes: null }), { params })
     expect(res.status).toBe(200)
-    expect(update).toHaveBeenCalledWith(
-      expect.objectContaining({ data: { autoSyncIntervalMinutes: null } })
-    )
+    expect(update).toHaveBeenCalledWith(expect.objectContaining({ data: { autoSyncIntervalMinutes: null } }))
   })
 })

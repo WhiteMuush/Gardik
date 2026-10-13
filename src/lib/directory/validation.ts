@@ -28,9 +28,7 @@ export interface BuiltConnection {
   bearerToken?: string
 }
 
-export type ValidationResult =
-  | { ok: false; error: string }
-  | { ok: true; built: BuiltConnection }
+export type ValidationResult = { ok: false; error: string } | { ok: true; built: BuiltConnection }
 
 // Validates raw POST input and builds the persistable connection payload
 // (including config encryption), so the route handler stays thin and the
@@ -42,8 +40,7 @@ export function buildDirectoryConnection(input: DirectoryInput): ValidationResul
   if (!(type in REQUIRED_FIELDS)) return { ok: false, error: `Invalid type: ${type}` }
 
   const missing = REQUIRED_FIELDS[type].filter((k) => !config?.[k])
-  if (missing.length)
-    return { ok: false, error: `Missing config fields: ${missing.join(", ")}` }
+  if (missing.length) return { ok: false, error: `Missing config fields: ${missing.join(", ")}` }
 
   const isSCIM = type === "SCIM"
   const bearerToken = isSCIM ? randomUUID() : undefined

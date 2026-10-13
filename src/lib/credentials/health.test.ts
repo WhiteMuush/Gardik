@@ -19,7 +19,11 @@ function coverage(over: Partial<SourceCoverage> = {}): SourceCoverage {
 
 describe("sourceHealth", () => {
   it("is not connected without a key", () => {
-    expect(sourceHealth(null, null)).toEqual({ status: "NOT_CONNECTED", label: "Not connected", detail: null })
+    expect(sourceHealth(null, null)).toEqual({
+      status: "NOT_CONNECTED",
+      label: "Not connected",
+      detail: null,
+    })
   })
 
   it("is not scanned yet when a key exists but nothing was checked", () => {

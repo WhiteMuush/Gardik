@@ -5,12 +5,14 @@
 **Know what leaked. Without leaking more.**
 
 <!-- CI -->
+
 [![CI](https://github.com/WhiteMuush/Gardik/actions/workflows/ci.yml/badge.svg)](https://github.com/WhiteMuush/Gardik/actions/workflows/ci.yml)
 [![Security](https://github.com/WhiteMuush/Gardik/actions/workflows/security.yml/badge.svg)](https://github.com/WhiteMuush/Gardik/actions/workflows/security.yml)
 [![Compliance](https://github.com/WhiteMuush/Gardik/actions/workflows/compliance.yml/badge.svg)](https://github.com/WhiteMuush/Gardik/actions/workflows/compliance.yml)
 [![CodeQL](https://github.com/WhiteMuush/Gardik/actions/workflows/codeql.yml/badge.svg)](https://github.com/WhiteMuush/Gardik/actions/workflows/codeql.yml)
 
 <!-- Stack -->
+
 ![Next.js](https://img.shields.io/badge/Next.js-16-black?logo=next.js&logoColor=white)
 ![React](https://img.shields.io/badge/React-19-61dafb?logo=react&logoColor=white)
 ![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178c6?logo=typescript&logoColor=white)
@@ -57,14 +59,14 @@ when you browse older commits.
 Your directory stays the source of truth, so you never retype your headcount.
 Six connectors, in [`src/lib/directory`](src/lib/directory):
 
-| Connector | Source |
-| --- | --- |
-| Microsoft Entra ID (Azure AD) | `azure.ts` |
-| Google Workspace | `google.ts` |
-| LDAP / Active Directory | `ldap.ts` |
-| Okta | `okta.ts` |
-| AWS IAM Identity Center | `aws.ts` |
-| Inbound SCIM 2.0 | `scim-auth.ts` |
+| Connector                     | Source         |
+| ----------------------------- | -------------- |
+| Microsoft Entra ID (Azure AD) | `azure.ts`     |
+| Google Workspace              | `google.ts`    |
+| LDAP / Active Directory       | `ldap.ts`      |
+| Okta                          | `okta.ts`      |
+| AWS IAM Identity Center       | `aws.ts`       |
+| Inbound SCIM 2.0              | `scim-auth.ts` |
 
 Connector credentials are encrypted at rest. See
 [docs/encryption.md](docs/encryption.md).
@@ -150,7 +152,7 @@ fresh machine is ready right after `git pull`.
 
 On the host, the Prisma client is regenerated automatically on `npm install`
 (`postinstall`). The database is **not** migrated automatically: `npm run dev`
-only *warns* if migrations are pending (it never applies them on boot). After
+only _warns_ if migrations are pending (it never applies them on boot). After
 pulling changes that add a migration, apply it explicitly before running the app:
 
 ```bash

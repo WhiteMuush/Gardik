@@ -26,9 +26,7 @@ function Code({ children }: { children: string }) {
 
   return (
     <span className="group inline-flex items-center gap-1">
-      <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs text-foreground">
-        {children}
-      </code>
+      <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs text-foreground">{children}</code>
       <button
         onClick={copy}
         className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-foreground"
@@ -70,24 +68,24 @@ function AzureGuide() {
   return (
     <div className="space-y-4">
       <p className="text-xs text-muted-foreground">
-        Gardik uses client credentials flow (app-only). No user sign-in is required.
-        The app reads your directory with a service principal.
+        Gardik uses client credentials flow (app-only). No user sign-in is required. The app reads your
+        directory with a service principal.
       </p>
 
       <div className="space-y-4">
         <Step n={1} title="Create an App Registration">
           <Sub>
-            Go to <strong>portal.azure.com</strong> &gt; Microsoft Entra ID &gt; App registrations &gt; New registration.
+            Go to <strong>portal.azure.com</strong> &gt; Microsoft Entra ID &gt; App registrations &gt; New
+            registration.
           </Sub>
           <Sub>
-            Name: anything recognizable (e.g. Gardik). Supported account types: <em>Accounts in this organizational directory only</em>. No redirect URI needed.
+            Name: anything recognizable (e.g. Gardik). Supported account types:{" "}
+            <em>Accounts in this organizational directory only</em>. No redirect URI needed.
           </Sub>
         </Step>
 
         <Step n={2} title="Copy Tenant ID and Client ID">
-          <Sub>
-            On the app overview page, copy:
-          </Sub>
+          <Sub>On the app overview page, copy:</Sub>
           <Sub>
             <strong>Application (client) ID</strong> &rarr; Client ID field in Gardik.
           </Sub>
@@ -98,35 +96,38 @@ function AzureGuide() {
 
         <Step n={3} title="Create a Client Secret">
           <Sub>
-            Certificates &amp; secrets &gt; New client secret. Set an expiry. Copy the <strong>Value</strong> immediately, it is only shown once.
+            Certificates &amp; secrets &gt; New client secret. Set an expiry. Copy the <strong>Value</strong>{" "}
+            immediately, it is only shown once.
           </Sub>
           <Warning>
-            The secret value is not retrievable after you leave the page. If you lose it, you must create a new one and update Gardik.
+            The secret value is not retrievable after you leave the page. If you lose it, you must create a
+            new one and update Gardik.
           </Warning>
         </Step>
 
         <Step n={4} title="Add the User.Read.All permission">
           <Sub>
-            API permissions &gt; Add a permission &gt; Microsoft Graph &gt; Application permissions.
-            Search for <Code>User.Read.All</Code> and add it.
+            API permissions &gt; Add a permission &gt; Microsoft Graph &gt; Application permissions. Search
+            for <Code>User.Read.All</Code> and add it.
           </Sub>
           <Sub>
-            This is an <strong>Application</strong> permission (not Delegated). Gardik acts as the app, not as a user.
+            This is an <strong>Application</strong> permission (not Delegated). Gardik acts as the app, not as
+            a user.
           </Sub>
         </Step>
 
         <Step n={5} title="Grant admin consent">
           <Sub>
-            Still in API permissions, click <strong>Grant admin consent for [your org]</strong>. This requires a Global Administrator account.
+            Still in API permissions, click <strong>Grant admin consent for [your org]</strong>. This requires
+            a Global Administrator account.
           </Sub>
-          <Sub>
-            Without this step the sync will return a 403 even with the correct credentials.
-          </Sub>
+          <Sub>Without this step the sync will return a 403 even with the correct credentials.</Sub>
         </Step>
       </div>
 
       <Warning>
-        Client secrets expire. Set a reminder to rotate the secret before it expires, otherwise the sync will silently fail.
+        Client secrets expire. Set a reminder to rotate the secret before it expires, otherwise the sync will
+        silently fail.
       </Warning>
     </div>
   )
@@ -136,21 +137,22 @@ function GoogleGuide() {
   return (
     <div className="space-y-4">
       <p className="text-xs text-muted-foreground">
-        Gardik uses a service account with domain-wide delegation to read your directory.
-        This requires configuration in both Google Cloud Console and the Google Workspace Admin Console.
+        Gardik uses a service account with domain-wide delegation to read your directory. This requires
+        configuration in both Google Cloud Console and the Google Workspace Admin Console.
       </p>
 
       <div className="space-y-4">
         <Step n={1} title="Enable the Admin SDK API">
           <Sub>
-            Go to <strong>console.cloud.google.com</strong>. Select or create a project.
-            APIs &amp; Services &gt; Enable APIs &gt; search for <em>Admin SDK API</em> and enable it.
+            Go to <strong>console.cloud.google.com</strong>. Select or create a project. APIs &amp; Services
+            &gt; Enable APIs &gt; search for <em>Admin SDK API</em> and enable it.
           </Sub>
         </Step>
 
         <Step n={2} title="Create a service account">
           <Sub>
-            IAM &amp; Admin &gt; Service Accounts &gt; Create service account. Name it (e.g. gardik-sync). No role is needed at the project level.
+            IAM &amp; Admin &gt; Service Accounts &gt; Create service account. Name it (e.g. gardik-sync). No
+            role is needed at the project level.
           </Sub>
           <Sub>
             Click the service account &gt; Keys &gt; Add key &gt; Create new key &gt; <strong>JSON</strong>.
@@ -159,14 +161,13 @@ function GoogleGuide() {
         </Step>
 
         <Step n={3} title="Extract the credentials from the JSON file">
-          <Sub>
-            Open the downloaded JSON. Copy:
-          </Sub>
+          <Sub>Open the downloaded JSON. Copy:</Sub>
           <Sub>
             <Code>client_email</Code> &rarr; Service account email field in Gardik.
           </Sub>
           <Sub>
-            <Code>private_key</Code> &rarr; Private key field in Gardik. Paste the full PEM block including the <Code>-----BEGIN/END-----</Code> lines.
+            <Code>private_key</Code> &rarr; Private key field in Gardik. Paste the full PEM block including
+            the <Code>-----BEGIN/END-----</Code> lines.
           </Sub>
           <Sub>
             <Code>client_id</Code> (numeric) &rarr; you will need this in step 5.
@@ -175,16 +176,19 @@ function GoogleGuide() {
 
         <Step n={4} title="Set the delegated admin email">
           <Sub>
-            This must be the email of a Google Workspace account that has the <strong>User Management</strong> admin role (or Super Admin). Gardik impersonates this account to list users.
+            This must be the email of a Google Workspace account that has the <strong>User Management</strong>{" "}
+            admin role (or Super Admin). Gardik impersonates this account to list users.
           </Sub>
           <Warning>
-            The delegated admin account must be a human account with the admin role, not the service account itself. Using a Super Admin is simpler but a dedicated admin role account is safer.
+            The delegated admin account must be a human account with the admin role, not the service account
+            itself. Using a Super Admin is simpler but a dedicated admin role account is safer.
           </Warning>
         </Step>
 
         <Step n={5} title="Configure domain-wide delegation">
           <Sub>
-            Go to <strong>admin.google.com</strong> &gt; Security &gt; Access and data control &gt; API controls &gt; Manage domain-wide delegation &gt; Add new.
+            Go to <strong>admin.google.com</strong> &gt; Security &gt; Access and data control &gt; API
+            controls &gt; Manage domain-wide delegation &gt; Add new.
           </Sub>
           <Sub>
             Client ID: the numeric <Code>client_id</Code> from the JSON file.
@@ -192,14 +196,13 @@ function GoogleGuide() {
           <Sub>
             OAuth scope: <Code>https://www.googleapis.com/auth/admin.directory.user.readonly</Code>
           </Sub>
-          <Sub>
-            Click Authorize. This step requires a Super Admin account.
-          </Sub>
+          <Sub>Click Authorize. This step requires a Super Admin account.</Sub>
         </Step>
       </div>
 
       <Warning>
-        Without domain-wide delegation configured in the Admin Console, the sync will return a 403 even with valid service account credentials.
+        Without domain-wide delegation configured in the Admin Console, the sync will return a 403 even with
+        valid service account credentials.
       </Warning>
     </div>
   )
@@ -209,35 +212,39 @@ function LdapGuide() {
   return (
     <div className="space-y-4">
       <p className="text-xs text-muted-foreground">
-        Gardik connects directly to your LDAP server over the network. The server must be reachable from the host running Gardik.
+        Gardik connects directly to your LDAP server over the network. The server must be reachable from the
+        host running Gardik.
       </p>
 
       <div className="space-y-4">
         <Step n={1} title="Create a read-only bind account">
           <Sub>
-            Create a dedicated user in your directory with read-only access to the OU containing your employees. Do not use an admin account.
+            Create a dedicated user in your directory with read-only access to the OU containing your
+            employees. Do not use an admin account.
           </Sub>
           <Sub>
             Example bind DN: <Code>cn=gardik,ou=service-accounts,dc=company,dc=com</Code>
           </Sub>
           <Sub>
-            For Active Directory: grant the account <em>Read</em> permission on the target OU only. Do not add it to any privileged group.
+            For Active Directory: grant the account <em>Read</em> permission on the target OU only. Do not add
+            it to any privileged group.
           </Sub>
         </Step>
 
         <Step n={2} title="Use LDAPS (port 636) if possible">
           <Sub>
-            Plain LDAP (port 389) transmits credentials unencrypted. LDAPS encrypts the connection with TLS. Set SSL to <Code>true</Code> and port to <Code>636</Code>.
+            Plain LDAP (port 389) transmits credentials unencrypted. LDAPS encrypts the connection with TLS.
+            Set SSL to <Code>true</Code> and port to <Code>636</Code>.
           </Sub>
           <Warning>
-            If your LDAP server uses a self-signed certificate, the connection will fail by default. You must either install the CA certificate on the Gardik host or accept the risk of disabling certificate verification.
+            If your LDAP server uses a self-signed certificate, the connection will fail by default. You must
+            either install the CA certificate on the Gardik host or accept the risk of disabling certificate
+            verification.
           </Warning>
         </Step>
 
         <Step n={3} title="Set the Base DN">
-          <Sub>
-            The base DN is the starting point for the user search. Set it as narrow as possible.
-          </Sub>
+          <Sub>The base DN is the starting point for the user search. Set it as narrow as possible.</Sub>
           <Sub>
             Example: <Code>ou=employees,dc=company,dc=com</Code> rather than <Code>dc=company,dc=com</Code>.
           </Sub>
@@ -245,10 +252,13 @@ function LdapGuide() {
 
         <Step n={4} title="Set the user filter">
           <Sub>
-            The filter controls which LDAP entries are treated as users. It must match entries that have a <Code>mail</Code> attribute.
+            The filter controls which LDAP entries are treated as users. It must match entries that have a{" "}
+            <Code>mail</Code> attribute.
           </Sub>
           <Sub>
-            Active Directory: <Code>(&(objectClass=user)(mail=*)(!(userAccountControl:1.2.840.113556.1.4.803:=2)))</Code>. This excludes disabled accounts.
+            Active Directory:{" "}
+            <Code>(&(objectClass=user)(mail=*)(!(userAccountControl:1.2.840.113556.1.4.803:=2)))</Code>. This
+            excludes disabled accounts.
           </Sub>
           <Sub>
             OpenLDAP: <Code>(&(objectClass=inetOrgPerson)(mail=*))</Code>
@@ -257,11 +267,13 @@ function LdapGuide() {
 
         <Step n={5} title="Network access">
           <Sub>
-            The LDAP server must allow incoming connections from the Gardik host on port 636 (or 389).
-            If Gardik runs in a cloud environment, your on-premise LDAP server is likely not reachable without a VPN, a reverse proxy, or an explicit firewall rule.
+            The LDAP server must allow incoming connections from the Gardik host on port 636 (or 389). If
+            Gardik runs in a cloud environment, your on-premise LDAP server is likely not reachable without a
+            VPN, a reverse proxy, or an explicit firewall rule.
           </Sub>
           <Sub>
-            Verify with: <Code>{`ldapsearch -H ldaps://ldap.company.com:636 -D "cn=gardik,dc=company,dc=com" -W -b "dc=company,dc=com" "(mail=*)" mail`}</Code>
+            Verify with:{" "}
+            <Code>{`ldapsearch -H ldaps://ldap.company.com:636 -D "cn=gardik,dc=company,dc=com" -W -b "dc=company,dc=com" "(mail=*)" mail`}</Code>
           </Sub>
         </Step>
       </div>
@@ -273,37 +285,38 @@ function AWSGuide() {
   return (
     <div className="space-y-4">
       <p className="text-xs text-muted-foreground">
-        Gardik connects to AWS IAM Identity Center via the Identity Store API. This works
-        whether your identity source is AWS Managed Microsoft AD, an external IdP, or the
-        built-in Identity Center directory.
+        Gardik connects to AWS IAM Identity Center via the Identity Store API. This works whether your
+        identity source is AWS Managed Microsoft AD, an external IdP, or the built-in Identity Center
+        directory.
       </p>
 
       <div className="space-y-4">
         <Step n={1} title="Enable IAM Identity Center">
           <Sub>
-            Go to the <strong>AWS Management Console</strong> and open <strong>IAM Identity Center</strong> (search for it in the top bar).
-            If not already enabled, click Enable. IAM Identity Center is a free service but must be enabled once per AWS organization.
+            Go to the <strong>AWS Management Console</strong> and open <strong>IAM Identity Center</strong>{" "}
+            (search for it in the top bar). If not already enabled, click Enable. IAM Identity Center is a
+            free service but must be enabled once per AWS organization.
           </Sub>
           <Warning>
-            IAM Identity Center is region-specific. Note the region where you enable it: you must use the same region in Gardik.
+            IAM Identity Center is region-specific. Note the region where you enable it: you must use the same
+            region in Gardik.
           </Warning>
         </Step>
 
         <Step n={2} title="Find the Identity Store ID">
           <Sub>
-            In the IAM Identity Center console, go to <strong>Settings</strong>. Under the Identity source section,
-            copy the <strong>Identity store ID</strong>. It starts with <Code>d-</Code> followed by 10 characters (e.g. <Code>d-1234567890</Code>).
+            In the IAM Identity Center console, go to <strong>Settings</strong>. Under the Identity source
+            section, copy the <strong>Identity store ID</strong>. It starts with <Code>d-</Code> followed by
+            10 characters (e.g. <Code>d-1234567890</Code>).
           </Sub>
         </Step>
 
         <Step n={3} title="Create an IAM user for Gardik">
           <Sub>
-            Go to <strong>IAM</strong> (not Identity Center) and create a dedicated user for Gardik.
-            Select <em>Programmatic access</em> to get an Access Key ID and Secret Access Key.
+            Go to <strong>IAM</strong> (not Identity Center) and create a dedicated user for Gardik. Select{" "}
+            <em>Programmatic access</em> to get an Access Key ID and Secret Access Key.
           </Sub>
-          <Sub>
-            Attach the following inline policy to the user. It grants read-only access to list users:
-          </Sub>
+          <Sub>Attach the following inline policy to the user. It grants read-only access to list users:</Sub>
           <div className="rounded-lg border border-border bg-muted/50 p-3 font-mono text-xs leading-relaxed text-foreground whitespace-pre">{`{
   "Version": "2012-10-17",
   "Statement": [{
@@ -318,11 +331,10 @@ function AWSGuide() {
         </Step>
 
         <Step n={4} title="Enter credentials in Gardik">
+          <Sub>Access Key ID and Secret Access Key: from the IAM user created in step 3.</Sub>
           <Sub>
-            Access Key ID and Secret Access Key: from the IAM user created in step 3.
-          </Sub>
-          <Sub>
-            Region: the AWS region where IAM Identity Center is enabled (e.g. <Code>us-east-1</Code>, <Code>eu-west-1</Code>).
+            Region: the AWS region where IAM Identity Center is enabled (e.g. <Code>us-east-1</Code>,{" "}
+            <Code>eu-west-1</Code>).
           </Sub>
           <Sub>
             Identity Store ID: the <Code>d-</Code> value from step 2.
@@ -331,7 +343,8 @@ function AWSGuide() {
       </div>
 
       <Warning>
-        IAM credentials are long-lived. Prefer creating an IAM user with only the two permissions above rather than using credentials with broad access. Rotate the access key periodically.
+        IAM credentials are long-lived. Prefer creating an IAM user with only the two permissions above rather
+        than using credentials with broad access. Rotate the access key periodically.
       </Warning>
     </div>
   )
@@ -346,25 +359,27 @@ function OktaGuide() {
       <div className="space-y-4">
         <Step n={1} title="Find your Okta domain">
           <Sub>
-            Your Okta domain is the URL you use to sign in, e.g. <Code>company.okta.com</Code> or <Code>company.okta-emea.com</Code>.
-            Enter it without <Code>https://</Code>.
+            Your Okta domain is the URL you use to sign in, e.g. <Code>company.okta.com</Code> or{" "}
+            <Code>company.okta-emea.com</Code>. Enter it without <Code>https://</Code>.
           </Sub>
         </Step>
         <Step n={2} title="Create an API token">
           <Sub>
-            In the Okta Admin Console, go to <strong>Security</strong> &gt; <strong>API</strong> &gt; <strong>Tokens</strong> &gt; Create token.
+            In the Okta Admin Console, go to <strong>Security</strong> &gt; <strong>API</strong> &gt;{" "}
+            <strong>Tokens</strong> &gt; Create token.
           </Sub>
-          <Sub>
-            Name it (e.g. Gardik). Copy the token value immediately, it is only shown once.
-          </Sub>
+          <Sub>Name it (e.g. Gardik). Copy the token value immediately, it is only shown once.</Sub>
           <Warning>
-            The API token inherits the permissions of the admin account that created it. Create a dedicated read-only admin account in Okta and generate the token from that account to limit the blast radius if the token is compromised.
+            The API token inherits the permissions of the admin account that created it. Create a dedicated
+            read-only admin account in Okta and generate the token from that account to limit the blast radius
+            if the token is compromised.
           </Warning>
         </Step>
         <Step n={3} title="Read-only admin role">
           <Sub>
-            To create a read-only admin in Okta: Admin Console &gt; Security &gt; Administrators &gt; Add administrator.
-            Assign the <em>Read-Only Administrator</em> role. This role can list users but cannot modify anything.
+            To create a read-only admin in Okta: Admin Console &gt; Security &gt; Administrators &gt; Add
+            administrator. Assign the <em>Read-Only Administrator</em> role. This role can list users but
+            cannot modify anything.
           </Sub>
         </Step>
       </div>
@@ -376,9 +391,9 @@ function SCIMGuide() {
   return (
     <div className="space-y-4">
       <p className="text-xs text-muted-foreground">
-        SCIM 2.0 is a standard protocol supported by OVH, JumpCloud, OneLogin, Ping Identity,
-        IBM Security Verify, Oracle IDCS, Salesforce Identity, and many others.
-        Instead of Gardik pulling from your IdP, your IdP pushes users to Gardik automatically.
+        SCIM 2.0 is a standard protocol supported by OVH, JumpCloud, OneLogin, Ping Identity, IBM Security
+        Verify, Oracle IDCS, Salesforce Identity, and many others. Instead of Gardik pulling from your IdP,
+        your IdP pushes users to Gardik automatically.
       </p>
       <div className="space-y-4">
         <Step n={1} title="Create the SCIM connection in Gardik">
@@ -387,7 +402,8 @@ function SCIMGuide() {
             Gardik will generate a unique endpoint URL and bearer token.
           </Sub>
           <Warning>
-            Copy the bearer token immediately after creation, it is only shown once and cannot be retrieved later.
+            Copy the bearer token immediately after creation, it is only shown once and cannot be retrieved
+            later.
           </Warning>
         </Step>
         <Step n={2} title="Configure your identity provider">
@@ -395,7 +411,8 @@ function SCIMGuide() {
             In your IdP (OVH, JumpCloud, OneLogin, etc.), go to the SCIM or provisioning settings and enter:
           </Sub>
           <Sub>
-            <strong>SCIM base URL:</strong> the endpoint URL shown in Gardik (ends in <Code>/api/scim/[id]/Users</Code>).
+            <strong>SCIM base URL:</strong> the endpoint URL shown in Gardik (ends in{" "}
+            <Code>/api/scim/[id]/Users</Code>).
           </Sub>
           <Sub>
             <strong>Authentication:</strong> Bearer token: paste the token generated by Gardik.
@@ -406,13 +423,15 @@ function SCIMGuide() {
         </Step>
         <Step n={3} title="Enable user provisioning">
           <Sub>
-            In your IdP, enable provisioning for the relevant group or the entire directory.
-            Most IdPs will immediately push a full sync on first activation, then send incremental updates on user changes.
+            In your IdP, enable provisioning for the relevant group or the entire directory. Most IdPs will
+            immediately push a full sync on first activation, then send incremental updates on user changes.
           </Sub>
         </Step>
         <Step n={4} title="Supported SCIM operations">
           <Sub>
-            Gardik handles: <Code>POST /Users</Code> (create), <Code>GET /Users</Code> (list), <Code>PATCH /Users/:id</Code> (update), <Code>DELETE /Users/:id</Code> (acknowledged but the employee is kept for breach history).
+            Gardik handles: <Code>POST /Users</Code> (create), <Code>GET /Users</Code> (list),{" "}
+            <Code>PATCH /Users/:id</Code> (update), <Code>DELETE /Users/:id</Code> (acknowledged but the
+            employee is kept for breach history).
           </Sub>
           <Sub>
             Setting <Code>active: false</Code> in a PATCH is acknowledged without deleting the record.

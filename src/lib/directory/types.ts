@@ -37,7 +37,8 @@ export type SCIMConfig = {
   bearerToken: string
 }
 
-export type DirectoryConfig = AzureADConfig | GoogleWorkspaceConfig | LDAPConfig | AWSDirectoryConfig | OktaConfig | SCIMConfig
+export type DirectoryConfig =
+  AzureADConfig | GoogleWorkspaceConfig | LDAPConfig | AWSDirectoryConfig | OktaConfig | SCIMConfig
 
 export type DirectoryUser = {
   email: string

@@ -83,7 +83,7 @@ describe("reportPdf", () => {
   it("renders every section with rich data without throwing", async () => {
     const buf = await reportPdf(
       ["exposure", "compliance", "datatypes", "departments", "employees", "trends"],
-      rich,
+      rich
     )
     expect(buf.subarray(0, 5).toString("latin1")).toBe("%PDF-")
     // The richer document is materially larger than the empty-data baseline.

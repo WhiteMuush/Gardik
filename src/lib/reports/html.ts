@@ -8,9 +8,7 @@ function esc(value: string | number): string {
 
 function table(headers: string[], rows: (string | number)[][]): string {
   const head = headers.map((h) => `<th align="left">${esc(h)}</th>`).join("")
-  const body = rows
-    .map((r) => `<tr>${r.map((c) => `<td>${esc(c)}</td>`).join("")}</tr>`)
-    .join("")
+  const body = rows.map((r) => `<tr>${r.map((c) => `<td>${esc(c)}</td>`).join("")}</tr>`).join("")
   return `<table cellpadding="6" cellspacing="0" border="0" style="width:100%;border-collapse:collapse;font-size:13px">
     <thead><tr style="border-bottom:1px solid #ccc">${head}</tr></thead><tbody>${body}</tbody></table>`
 }
@@ -95,7 +93,10 @@ const RENDERERS: Record<ReportSection, { title: string; render: (d: ReportData) 
 export function reportHtml(sections: ReportSection[], data: ReportData): string {
   const blocks = sections
     .filter((s) => s in RENDERERS)
-    .map((s) => `<h2 style="font-size:15px;margin:24px 0 8px">${RENDERERS[s].title}</h2>${RENDERERS[s].render(data)}`)
+    .map(
+      (s) =>
+        `<h2 style="font-size:15px;margin:24px 0 8px">${RENDERERS[s].title}</h2>${RENDERERS[s].render(data)}`
+    )
     .join("")
 
   return `<!doctype html><html><body style="font-family:system-ui,sans-serif;color:#111;max-width:760px;margin:0 auto;padding:24px">

@@ -13,9 +13,11 @@ const STATUS_LABEL: Record<string, string> = {
 }
 
 function countdown(row: RegisterRow): { text: string; className: string } {
-  if (row.status !== "ASSESSING") return { text: STATUS_LABEL[row.status], className: "text-muted-foreground" }
+  if (row.status !== "ASSESSING")
+    return { text: STATUS_LABEL[row.status], className: "text-muted-foreground" }
   if (row.overdue) return { text: "72h deadline passed", className: "text-severity-critical" }
-  if (row.hoursRemaining <= 24) return { text: `${row.hoursRemaining}h left`, className: "text-severity-high" }
+  if (row.hoursRemaining <= 24)
+    return { text: `${row.hoursRemaining}h left`, className: "text-severity-high" }
   return { text: `${row.hoursRemaining}h left`, className: "text-muted-foreground" }
 }
 
@@ -168,7 +170,10 @@ export function ExposureRegister({
                 {r.categoryLabels.length > 0 && (
                   <div className="mt-2 flex flex-wrap gap-1">
                     {r.categoryLabels.map((c) => (
-                      <span key={c} className="rounded-full bg-muted px-2 py-0.5 text-[10px] text-muted-foreground">
+                      <span
+                        key={c}
+                        className="rounded-full bg-muted px-2 py-0.5 text-[10px] text-muted-foreground"
+                      >
                         {c}
                       </span>
                     ))}

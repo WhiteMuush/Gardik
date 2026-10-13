@@ -31,7 +31,11 @@ async function mapPool<T, R>(items: T[], limit: number, fn: (item: T) => Promise
 
 // Okta has no MFA flag on the user; enrollment means at least one active factor.
 // Returns undefined (unknown) on any error so a sync never fails over MFA.
-async function fetchOktaMfaEnabled(base: string, token: string, userId: string): Promise<boolean | undefined> {
+async function fetchOktaMfaEnabled(
+  base: string,
+  token: string,
+  userId: string
+): Promise<boolean | undefined> {
   try {
     const res = await fetch(`${base}/api/v1/users/${userId}/factors`, {
       headers: { Authorization: `SSWS ${token}`, Accept: "application/json" },
@@ -47,8 +51,7 @@ async function fetchOktaMfaEnabled(base: string, token: string, userId: string):
 export async function fetchOktaUsers(config: OktaConfig): Promise<DirectoryUser[]> {
   const base = `https://${config.domain.replace(/\/$/, "")}`
   const raw: { id: string; user: DirectoryUser }[] = []
-  let url: string | null =
-    `${base}/api/v1/users?filter=status+eq+"ACTIVE"&limit=200`
+  let url: string | null = `${base}/api/v1/users?filter=status+eq+"ACTIVE"&limit=200`
 
   while (url) {
     const oktaRes = await fetch(url, {
@@ -112,15 +115,12 @@ export async function oktaExpirePassword(config: OktaConfig, email: string): Pro
 export async function testOktaConnection(config: OktaConfig): Promise<TestResult> {
   try {
     const base = `https://${config.domain.replace(/\/$/, "")}`
-    const res = await fetch(
-      `${base}/api/v1/users?filter=status+eq+"ACTIVE"&limit=1`,
-      {
-        headers: {
-          Authorization: `SSWS ${config.apiToken}`,
-          Accept: "application/json",
-        },
-      }
-    )
+    const res = await fetch(`${base}/api/v1/users?filter=status+eq+"ACTIVE"&limit=1`, {
+      headers: {
+        Authorization: `SSWS ${config.apiToken}`,
+        Accept: "application/json",
+      },
+    })
     if (!res.ok) throw new Error(`Okta API error (${res.status}): ${await res.text()}`)
     return { ok: true }
   } catch (e) {

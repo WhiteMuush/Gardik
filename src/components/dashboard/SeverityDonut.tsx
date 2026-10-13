@@ -8,18 +8,18 @@ type AlertSeverity = { critical: number; high: number; medium: number; low: numb
 
 const SEVERITY = [
   { key: "critical", label: "Critical", color: "oklch(var(--severity-critical))" },
-  { key: "high",     label: "High",     color: "oklch(var(--severity-high))" },
-  { key: "medium",   label: "Medium",   color: "oklch(var(--severity-medium))" },
-  { key: "low",      label: "Low",      color: "oklch(var(--severity-low))" },
+  { key: "high", label: "High", color: "oklch(var(--severity-high))" },
+  { key: "medium", label: "Medium", color: "oklch(var(--severity-medium))" },
+  { key: "low", label: "Low", color: "oklch(var(--severity-low))" },
 ] as const
 
 export function SeverityDonut({ data }: { data: AlertSeverity }) {
   const { title } = useWidgetTitle("severity-donut", "Alert Severity")
   const { open } = useDetailDrawer()
 
-  const chartData = SEVERITY
-    .map((s) => ({ name: s.label, value: data[s.key], color: s.color }))
-    .filter((d) => d.value > 0)
+  const chartData = SEVERITY.map((s) => ({ name: s.label, value: data[s.key], color: s.color })).filter(
+    (d) => d.value > 0
+  )
 
   const total = Object.values(data).reduce((a, b) => a + b, 0)
 

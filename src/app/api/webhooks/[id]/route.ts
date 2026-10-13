@@ -12,8 +12,7 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
 
   const data: { enabled?: boolean; minSeverity?: Severity } = {}
   if (typeof body.enabled === "boolean") data.enabled = body.enabled
-  if (body.minSeverity && body.minSeverity in Severity)
-    data.minSeverity = body.minSeverity as Severity
+  if (body.minSeverity && body.minSeverity in Severity) data.minSeverity = body.minSeverity as Severity
 
   const { count } = await prisma.webhook.updateMany({
     where: { id, companyId: session.user.companyId },

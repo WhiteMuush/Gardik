@@ -27,7 +27,11 @@ export function PresetTab({
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    if (renaming) setTimeout(() => { inputRef.current?.focus(); inputRef.current?.select() }, 10)
+    if (renaming)
+      setTimeout(() => {
+        inputRef.current?.focus()
+        inputRef.current?.select()
+      }, 10)
   }, [renaming])
 
   const startRename = () => {
@@ -78,7 +82,10 @@ export function PresetTab({
         <div className="ml-1 flex items-center gap-0.5 opacity-0 group-hover:opacity-100 transition-opacity">
           {canRename && (
             <button
-              onClick={(e) => { e.stopPropagation(); startRename() }}
+              onClick={(e) => {
+                e.stopPropagation()
+                startRename()
+              }}
               className="rounded p-0.5 hover:bg-white/20"
             >
               <Pencil className="size-2.5" />
@@ -86,7 +93,10 @@ export function PresetTab({
           )}
           {canDelete && (
             <button
-              onClick={(e) => { e.stopPropagation(); onDelete() }}
+              onClick={(e) => {
+                e.stopPropagation()
+                onDelete()
+              }}
               className="rounded p-0.5 hover:bg-white/20"
             >
               <Trash2 className="size-2.5" />

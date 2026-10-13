@@ -19,13 +19,9 @@ type DetailResponse = {
 const fmtDate = (d: Date | string) =>
   new Date(d).toLocaleDateString("en-US", { day: "numeric", month: "short", year: "numeric" })
 
-const prettyList = (xs: string[]) =>
-  xs.length ? xs.map((x) => x.replace(/_/g, " ")).join(", ") : "None"
+const prettyList = (xs: string[]) => (xs.length ? xs.map((x) => x.replace(/_/g, " ")).join(", ") : "None")
 
-export async function GET(
-  _req: Request,
-  { params }: { params: Promise<{ kind: string; id: string }> }
-) {
+export async function GET(_req: Request, { params }: { params: Promise<{ kind: string; id: string }> }) {
   const { session, error } = await requirePermission("employees:read")
   if (error) return error
 
@@ -48,7 +44,10 @@ export async function GET(
         fields: [
           { label: "Email", value: emp.email },
           { label: "Department", value: emp.department ?? "Unknown" },
-          { label: "MFA", value: emp.mfaEnabled == null ? "Unknown" : emp.mfaEnabled ? "Enabled" : "Disabled" },
+          {
+            label: "MFA",
+            value: emp.mfaEnabled == null ? "Unknown" : emp.mfaEnabled ? "Enabled" : "Disabled",
+          },
           { label: "Breaches", value: emp.breachRecords.length },
           { label: "Open alerts", value: openAlerts },
         ],
@@ -160,7 +159,15 @@ export async function GET(
           { label: "Email", value: alert.employee.email },
           { label: "Department", value: alert.employee.department ?? "Unknown" },
           { label: "Total breaches", value: alert.employee.breachRecords.length },
-          { label: "MFA", value: alert.employee.mfaEnabled == null ? "Unknown" : alert.employee.mfaEnabled ? "Enabled" : "Disabled" },
+          {
+            label: "MFA",
+            value:
+              alert.employee.mfaEnabled == null
+                ? "Unknown"
+                : alert.employee.mfaEnabled
+                  ? "Enabled"
+                  : "Disabled",
+          },
         ],
       })
     }

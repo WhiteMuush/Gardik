@@ -22,8 +22,7 @@ export type BootstrapConfig = { email: string; token: string; domain: string }
 // running instance and every development machine, from "somebody asked and got
 // it wrong", which has to be said out loud.
 export type ResolveResult =
-  | { ok: true; config: BootstrapConfig }
-  | { ok: false; silent: boolean; reason: string }
+  { ok: true; config: BootstrapConfig } | { ok: false; silent: boolean; reason: string }
 
 // Only the two keys this actually reads. Next.js augments NodeJS.ProcessEnv with a
 // required NODE_ENV, so a test passing an object literal against that type would
@@ -201,8 +200,7 @@ export async function bootstrapFirstAdmin(
     // unique constraints. That is the design holding, not a failure, so it reads
     // as one sentence rather than a constraint violation an operator would have
     // to decode on their first deploy.
-    const raced =
-      typeof error === "object" && error !== null && "code" in error && error.code === "P2002"
+    const raced = typeof error === "object" && error !== null && "code" in error && error.code === "P2002"
     if (raced) {
       console.info("[bootstrap] Another replica bootstrapped first, nothing to do.")
       return

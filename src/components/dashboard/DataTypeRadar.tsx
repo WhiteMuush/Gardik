@@ -1,8 +1,6 @@
 "use client"
 
-import {
-  RadarChart, Radar, PolarGrid, PolarAngleAxis, ResponsiveContainer, Tooltip,
-} from "recharts"
+import { RadarChart, Radar, PolarGrid, PolarAngleAxis, ResponsiveContainer, Tooltip } from "recharts"
 import { useWidgetTitle } from "@/hooks/useWidgetTitle"
 
 type DataType = { type: string; count: number; percentage: number }

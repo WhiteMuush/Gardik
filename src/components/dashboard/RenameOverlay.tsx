@@ -9,7 +9,11 @@ export function RenameOverlay({ title, onChange }: { title: string; onChange: (t
   const inputRef = useRef<HTMLInputElement>(null)
 
   useEffect(() => {
-    if (renaming) setTimeout(() => { inputRef.current?.focus(); inputRef.current?.select() }, 10)
+    if (renaming)
+      setTimeout(() => {
+        inputRef.current?.focus()
+        inputRef.current?.select()
+      }, 10)
   }, [renaming])
 
   const startRename = () => {

@@ -3,10 +3,7 @@
 // stops a role manager from minting a role more powerful than their own and
 // granting it (to a puppet account or to themselves via reassignment).
 
-export function excessPermissions(
-  actorPerms: ReadonlySet<string>,
-  target: Iterable<string>,
-): string[] {
+export function excessPermissions(actorPerms: ReadonlySet<string>, target: Iterable<string>): string[] {
   const excess: string[] = []
   for (const p of target) if (!actorPerms.has(p)) excess.push(p)
   return excess

@@ -4,16 +4,16 @@
 @tailwind utilities;
 
 @font-face {
-  font-family: 'Satoshi';
-  src: url('/fonts/Satoshi-Variable.woff2') format('woff2');
+  font-family: "Satoshi";
+  src: url("/fonts/Satoshi-Variable.woff2") format("woff2");
   font-weight: 100 900;
   font-style: normal;
   font-display: swap;
 }
 
 @font-face {
-  font-family: 'Satoshi';
-  src: url('/fonts/Satoshi-VariableItalic.woff2') format('woff2');
+  font-family: "Satoshi";
+  src: url("/fonts/Satoshi-VariableItalic.woff2") format("woff2");
   font-weight: 100 900;
   font-style: italic;
   font-display: swap;
@@ -22,23 +22,23 @@
 @layer base {
   :root {
     /* Backgrounds */
-    --background: 0.97 0.015 80;        /* #FFF5E5 warm cream */
-    --foreground: 0.15 0.04 285;        /* near-black purple tint */
+    --background: 0.97 0.015 80; /* #FFF5E5 warm cream */
+    --foreground: 0.15 0.04 285; /* near-black purple tint */
 
-    --card: 1 0 0;                       /* white */
+    --card: 1 0 0; /* white */
     --card-foreground: 0.15 0.04 285;
 
     --popover: 1 0 0;
     --popover-foreground: 0.15 0.04 285;
 
     /* Brand colors */
-    --primary: 0.44 0.28 275;           /* #7F27FF violet */
+    --primary: 0.44 0.28 275; /* #7F27FF violet */
     --primary-foreground: 1 0 0;
 
-    --secondary: 0.63 0.19 278;         /* #9F70FD violet clair */
+    --secondary: 0.63 0.19 278; /* #9F70FD violet clair */
     --secondary-foreground: 1 0 0;
 
-    --accent: 0.72 0.19 58;             /* #FF8911 orange */
+    --accent: 0.72 0.19 58; /* #FF8911 orange */
     --accent-foreground: 0.15 0.04 285;
 
     /* UI */
@@ -75,7 +75,8 @@
   }
 
   @keyframes drag-glow {
-    0%, 100% {
+    0%,
+    100% {
       box-shadow:
         0 0 0 2px oklch(var(--primary) / 0.6),
         0 0 24px oklch(var(--primary) / 0.2);
@@ -96,7 +97,8 @@
   /* Glow for the widget a drop would replace: red, to read as "this one gets
      pushed out", distinct from the dragged widget's primary (violet) glow. */
   @keyframes swap-glow {
-    0%, 100% {
+    0%,
+    100% {
       box-shadow:
         0 0 0 2px oklch(var(--severity-critical) / 0.7),
         0 0 24px oklch(var(--severity-critical) / 0.25);

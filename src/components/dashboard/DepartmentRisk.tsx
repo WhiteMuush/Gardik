@@ -25,11 +25,7 @@ export function DepartmentRisk({ data }: { data: DeptData[] }) {
       ) : (
         <div className="flex-1 min-h-0">
           <ResponsiveContainer width="100%" height="100%">
-            <BarChart
-              data={data}
-              layout="vertical"
-              margin={{ top: 0, right: 40, bottom: 0, left: 0 }}
-            >
+            <BarChart data={data} layout="vertical" margin={{ top: 0, right: 40, bottom: 0, left: 0 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="oklch(var(--border))" horizontal={false} />
               <XAxis
                 type="number"
@@ -71,8 +67,8 @@ export function DepartmentRisk({ data }: { data: DeptData[] }) {
                         variant: (entry.percentage >= 50
                           ? "critical"
                           : entry.percentage >= 25
-                          ? "high"
-                          : "medium") as DetailVariant,
+                            ? "high"
+                            : "medium") as DetailVariant,
                         fields: [
                           { label: "Compromised", value: entry.compromised },
                           { label: "Total employees", value: entry.total },
@@ -84,8 +80,8 @@ export function DepartmentRisk({ data }: { data: DeptData[] }) {
                       entry.percentage >= 50
                         ? "oklch(var(--severity-critical))"
                         : entry.percentage >= 25
-                        ? "oklch(var(--severity-high))"
-                        : "oklch(var(--primary))"
+                          ? "oklch(var(--severity-high))"
+                          : "oklch(var(--primary))"
                     }
                   />
                 ))}

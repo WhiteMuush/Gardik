@@ -9,8 +9,7 @@ const MIN_SIEM_TOKEN = 16
 
 function parseInterval(value: unknown): number | null | undefined {
   if (value === null) return null
-  if (typeof value === "number" && Number.isInteger(value) && value >= MIN_INTERVAL_MINUTES)
-    return value
+  if (typeof value === "number" && Number.isInteger(value) && value >= MIN_INTERVAL_MINUTES) return value
   return undefined
 }
 

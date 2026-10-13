@@ -11,6 +11,4 @@ import { getUserPermissions } from "./authorize"
  * to its callers, so it lives here rather than in the authorize module, which
  * stays a pure function the unit tests can call without a request around it.
  */
-export const permissionsForRole = cache((roleId: string | null) =>
-  getUserPermissions(prisma, roleId)
-)
+export const permissionsForRole = cache((roleId: string | null) => getUserPermissions(prisma, roleId))

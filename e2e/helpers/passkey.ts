@@ -30,7 +30,7 @@ export async function addVirtualAuthenticator(page: Page): Promise<void> {
 export async function tryGeneratePasskeyOptions(
   request: APIRequestContext,
   email: string,
-  password: string,
+  password: string
 ): Promise<number> {
   const headers = { origin: ORIGIN }
 

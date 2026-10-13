@@ -23,11 +23,7 @@ export default async function RegisterPage() {
           GDPR Article 33/30 record of confirmed exposures, with a 72-hour notification countdown.
         </p>
       </div>
-      <ExposureRegister
-        initial={entries}
-        isAdmin={isAdmin}
-        canDownloadEvidence={canDownloadEvidence}
-      />
+      <ExposureRegister initial={entries} isAdmin={isAdmin} canDownloadEvidence={canDownloadEvidence} />
     </div>
   )
 }

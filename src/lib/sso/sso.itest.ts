@@ -127,7 +127,12 @@ describe("sso:config gate", () => {
       data: { email: viewerEmail, companyId: company.id, roleId: viewerRoleId, emailVerified: true },
     })
     await prisma.account.create({
-      data: { accountId: viewerUser.id, providerId: "credential", userId: viewerUser.id, password: hashedPassword },
+      data: {
+        accountId: viewerUser.id,
+        providerId: "credential",
+        userId: viewerUser.id,
+        password: hashedPassword,
+      },
     })
 
     const adminEmail = `sso-gate-admin-${Date.now()}@test.local`
@@ -135,7 +140,12 @@ describe("sso:config gate", () => {
       data: { email: adminEmail, companyId: company.id, roleId: administratorRoleId, emailVerified: true },
     })
     await prisma.account.create({
-      data: { accountId: adminUser.id, providerId: "credential", userId: adminUser.id, password: hashedPassword },
+      data: {
+        accountId: adminUser.id,
+        providerId: "credential",
+        userId: adminUser.id,
+        password: hashedPassword,
+      },
     })
 
     const registrationBody = (providerId: string) => ({
@@ -182,7 +192,11 @@ describe("provider helpers", () => {
         providerId: "itest-masked",
         domain: "gardik.local",
         organizationId: admin.companyId,
-        oidcConfig: JSON.stringify({ clientId: "client-1234", clientSecret: "shh", discoveryEndpoint: "https://idp.example.com/.well-known/openid-configuration" }),
+        oidcConfig: JSON.stringify({
+          clientId: "client-1234",
+          clientSecret: "shh",
+          discoveryEndpoint: "https://idp.example.com/.well-known/openid-configuration",
+        }),
       },
     })
 
@@ -263,7 +277,12 @@ async function setupCompanyWithViewerAndAdmin(label: string) {
     data: { email: viewerEmail, companyId: company.id, roleId: viewerRoleId, emailVerified: true },
   })
   await prisma.account.create({
-    data: { accountId: viewerUser.id, providerId: "credential", userId: viewerUser.id, password: hashedPassword },
+    data: {
+      accountId: viewerUser.id,
+      providerId: "credential",
+      userId: viewerUser.id,
+      password: hashedPassword,
+    },
   })
 
   const adminEmail = `${label}-admin-${Date.now()}@test.local`
@@ -271,7 +290,12 @@ async function setupCompanyWithViewerAndAdmin(label: string) {
     data: { email: adminEmail, companyId: company.id, roleId: administratorRoleId, emailVerified: true },
   })
   await prisma.account.create({
-    data: { accountId: adminUser.id, providerId: "credential", userId: adminUser.id, password: hashedPassword },
+    data: {
+      accountId: adminUser.id,
+      providerId: "credential",
+      userId: adminUser.id,
+      password: hashedPassword,
+    },
   })
 
   const viewerHeaders = await signInAndGetCookieHeaders(viewerEmail, password)
@@ -293,7 +317,8 @@ describe("provider route handlers", () => {
   })
 
   it("gates writes, masks reads, preserves secrets on a metadata-only PATCH, and enforces the ssoMandatory delete guard", async () => {
-    const { company, adminUser, viewerHeaders, adminHeaders } = await setupCompanyWithViewerAndAdmin("route-lifecycle")
+    const { company, adminUser, viewerHeaders, adminHeaders } =
+      await setupCompanyWithViewerAndAdmin("route-lifecycle")
 
     const createBody = {
       issuer: "https://idp.example.com/route-lifecycle",
@@ -343,9 +368,15 @@ describe("provider route handlers", () => {
     const patched = await PATCH(jsonRequest("PATCH", { domain: newDomain }))
     expect(patched.status).toBe(200)
 
-    const afterPatch = await authPrisma.ssoProvider.findUniqueOrThrow({ where: { providerId: `sso-${company.id}` } })
+    const afterPatch = await authPrisma.ssoProvider.findUniqueOrThrow({
+      where: { providerId: `sso-${company.id}` },
+    })
     expect(afterPatch.domain).toBe(newDomain)
-    const oidcConfig = JSON.parse(afterPatch.oidcConfig!) as { clientId?: string; clientSecret?: string; discoveryEndpoint?: string }
+    const oidcConfig = JSON.parse(afterPatch.oidcConfig!) as {
+      clientId?: string
+      clientSecret?: string
+      discoveryEndpoint?: string
+    }
     expect(oidcConfig.clientId).toBe("route-client-id")
     expect(oidcConfig.clientSecret).toBe("route-super-secret")
     expect(oidcConfig.discoveryEndpoint).toBe(createBody.discoveryEndpoint)
@@ -443,7 +474,8 @@ describe("domain verification route handlers", () => {
   })
 
   it("POST issues a real verification token and re-points ownership; PUT maps the plugin's DNS failure to 409", async () => {
-    const { company, viewerUser, adminUser, adminHeaders } = await setupCompanyWithViewerAndAdmin("domain-flow")
+    const { company, viewerUser, adminUser, adminHeaders } =
+      await setupCompanyWithViewerAndAdmin("domain-flow")
     const providerId = `itest-domain-flow-${Date.now()}`
     await authPrisma.ssoProvider.create({
       data: {
@@ -478,7 +510,8 @@ describe("domain verification route handlers", () => {
   })
 
   it("PUT stubbed to reject writes no audit entry and still maps to 409", async () => {
-    const { company, viewerUser, adminUser, adminHeaders } = await setupCompanyWithViewerAndAdmin("domain-put-stub")
+    const { company, viewerUser, adminUser, adminHeaders } =
+      await setupCompanyWithViewerAndAdmin("domain-put-stub")
     const providerId = `itest-domain-put-stub-${Date.now()}`
     await authPrisma.ssoProvider.create({
       data: {
@@ -506,9 +539,8 @@ describe("domain verification route handlers", () => {
   })
 
   it("PUT surfaces the plugin's CONFLICT response instead of the generic DNS message", async () => {
-    const { company, viewerUser, adminUser, adminHeaders } = await setupCompanyWithViewerAndAdmin(
-      "domain-put-conflict"
-    )
+    const { company, viewerUser, adminUser, adminHeaders } =
+      await setupCompanyWithViewerAndAdmin("domain-put-conflict")
     const providerId = `itest-domain-put-conflict-${Date.now()}`
     await authPrisma.ssoProvider.create({
       data: {

@@ -12,7 +12,9 @@ describe("breachAlertHtml", () => {
     expect(html).not.toContain("<b>Doe</b>")
     expect(html).not.toContain('<a href="https://evil.example">')
     expect(html).not.toContain("<img")
-    expect(html).toContain("Acme&quot;&gt;&lt;a href=&quot;https://evil.example&quot;&gt;Reset your password&lt;/a&gt;")
+    expect(html).toContain(
+      "Acme&quot;&gt;&lt;a href=&quot;https://evil.example&quot;&gt;Reset your password&lt;/a&gt;"
+    )
     expect(html).toContain("Jane &lt;b&gt;Doe&lt;/b&gt;")
   })
 })

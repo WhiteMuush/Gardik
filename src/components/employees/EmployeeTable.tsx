@@ -14,7 +14,15 @@ import {
   legacyCreateColumnHelper,
   type LegacyColumnDef,
 } from "@tanstack/react-table/legacy"
-import { ChevronUp, ChevronDown, ChevronsUpDown, ChevronLeft, ChevronRight, Search, Download } from "lucide-react"
+import {
+  ChevronUp,
+  ChevronDown,
+  ChevronsUpDown,
+  ChevronLeft,
+  ChevronRight,
+  Search,
+  Download,
+} from "lucide-react"
 import { RiskBadge } from "@/components/ui/RiskBadge"
 import { EmployeeDrawer } from "@/components/employees/EmployeeDrawer"
 import type { EmployeeRow, RiskLevel } from "@/lib/employees"
@@ -47,7 +55,12 @@ const columns: LegacyColumnDef<EmployeeRow, any>[] = [
   col.accessor("breachCount", {
     header: "Breaches",
     cell: (info) => (
-      <span className={cn("font-medium tabular-nums", info.getValue() > 0 ? "text-severity-high" : "text-muted-foreground")}>
+      <span
+        className={cn(
+          "font-medium tabular-nums",
+          info.getValue() > 0 ? "text-severity-high" : "text-muted-foreground"
+        )}
+      >
         {info.getValue()}
       </span>
     ),
@@ -56,9 +69,11 @@ const columns: LegacyColumnDef<EmployeeRow, any>[] = [
     header: "Last detected",
     cell: (info) => {
       const val = info.getValue()
-      return val
-        ? new Date(val).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })
-        : <span className="text-muted-foreground">-</span>
+      return val ? (
+        new Date(val).toLocaleDateString("en-US", { year: "numeric", month: "short", day: "numeric" })
+      ) : (
+        <span className="text-muted-foreground">-</span>
+      )
     },
   }),
 ]
@@ -81,8 +96,7 @@ export function EmployeeTable({ data }: { data: EmployeeRow[] }) {
     return data.filter((e) => {
       const q = search.toLowerCase()
       const matchSearch =
-        !q || e.email.toLowerCase().includes(q) ||
-        `${e.firstName} ${e.lastName}`.toLowerCase().includes(q)
+        !q || e.email.toLowerCase().includes(q) || `${e.firstName} ${e.lastName}`.toLowerCase().includes(q)
       const matchDept = !department || e.department === department
       const matchRisk = !riskFilter || e.riskLevel === riskFilter
       return matchSearch && matchDept && matchRisk
@@ -136,7 +150,11 @@ export function EmployeeTable({ data }: { data: EmployeeRow[] }) {
           className="rounded-lg border border-input bg-card px-3 py-2 text-sm text-foreground focus:border-ring focus:outline-none"
         >
           <option value="">All departments</option>
-          {departments.map((d) => <option key={d} value={d}>{d}</option>)}
+          {departments.map((d) => (
+            <option key={d} value={d}>
+              {d}
+            </option>
+          ))}
         </select>
         <select
           value={riskFilter}
@@ -144,7 +162,11 @@ export function EmployeeTable({ data }: { data: EmployeeRow[] }) {
           className="rounded-lg border border-input bg-card px-3 py-2 text-sm text-foreground focus:border-ring focus:outline-none"
         >
           <option value="">All risk levels</option>
-          {RISK_LEVELS.map((r) => <option key={r} value={r}>{r}</option>)}
+          {RISK_LEVELS.map((r) => (
+            <option key={r} value={r}>
+              {r}
+            </option>
+          ))}
         </select>
         <button
           onClick={exportCsv}

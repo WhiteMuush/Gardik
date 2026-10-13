@@ -17,7 +17,13 @@ function generateToken(): string {
   return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("")
 }
 
-export function SiemExport({ companyId, tokenHint: initialHint, pushHint: initialPushHint, pushFormat, isAdmin }: Props) {
+export function SiemExport({
+  companyId,
+  tokenHint: initialHint,
+  pushHint: initialPushHint,
+  pushFormat,
+  isAdmin,
+}: Props) {
   const [hint, setHint] = useState(initialHint)
   const [token, setToken] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
@@ -76,9 +82,9 @@ export function SiemExport({ companyId, tokenHint: initialHint, pushHint: initia
         <h3 className="text-sm font-semibold text-foreground">SIEM / SOAR export</h3>
       </div>
       <p className="mb-4 text-xs text-muted-foreground">
-        Pull alerts into Splunk, Microsoft Sentinel or any collector. Poll the feed with the bearer
-        token below. Supported formats: <code>cef</code>, <code>syslog</code>, <code>json</code> (set
-        the <code>format</code> query parameter).
+        Pull alerts into Splunk, Microsoft Sentinel or any collector. Poll the feed with the bearer token
+        below. Supported formats: <code>cef</code>, <code>syslog</code>, <code>json</code> (set the{" "}
+        <code>format</code> query parameter).
       </p>
 
       <label className="mb-1 block text-xs font-medium text-muted-foreground">Feed endpoint</label>
@@ -121,8 +127,8 @@ export function SiemExport({ companyId, tokenHint: initialHint, pushHint: initia
       <div className="mt-5 border-t border-border pt-4">
         <p className="mb-1 text-xs font-medium text-foreground">Push delivery (optional)</p>
         <p className="mb-3 text-xs text-muted-foreground">
-          POST new alerts to an HTTPS collector (Splunk HEC, Sentinel, generic) on each scheduler
-          tick. Raw UDP/TCP syslog sockets are not supported.
+          POST new alerts to an HTTPS collector (Splunk HEC, Sentinel, generic) on each scheduler tick. Raw
+          UDP/TCP syslog sockets are not supported.
         </p>
         {pushHint ? (
           <div className="flex items-center justify-between rounded-lg border border-border px-3 py-2">

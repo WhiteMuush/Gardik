@@ -30,10 +30,7 @@ export async function POST(req: Request) {
   }
 
   if (session.user.mustChangePassword !== true) {
-    return NextResponse.json(
-      { error: "Ask an administrator to require a password change" },
-      { status: 403 }
-    )
+    return NextResponse.json({ error: "Ask an administrator to require a password change" }, { status: 403 })
   }
 
   const body = (await req.json().catch(() => ({}))) as {

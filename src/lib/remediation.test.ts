@@ -61,7 +61,9 @@ describe("remediateAlert", () => {
 
     expect(res).toEqual({ ok: true, outcome: { status: "SUCCESS", detail: null } })
     expect(remediationCreate).toHaveBeenCalledWith(
-      expect.objectContaining({ data: expect.objectContaining({ status: "SUCCESS", target: "e@x.com", performedBy: "u1" }) })
+      expect.objectContaining({
+        data: expect.objectContaining({ status: "SUCCESS", target: "e@x.com", performedBy: "u1" }),
+      })
     )
   })
 
@@ -74,7 +76,9 @@ describe("remediateAlert", () => {
 
     expect(res).toEqual({ ok: true, outcome: { status: "FAILED", detail: "403 forbidden" } })
     expect(remediationCreate).toHaveBeenCalledWith(
-      expect.objectContaining({ data: expect.objectContaining({ status: "FAILED", detail: "403 forbidden" }) })
+      expect.objectContaining({
+        data: expect.objectContaining({ status: "FAILED", detail: "403 forbidden" }),
+      })
     )
   })
 })

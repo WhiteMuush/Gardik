@@ -187,8 +187,7 @@ const rateLimitDisabled = process.env.E2E === "1" && isLoopbackAuthUrl()
 // is "development", `next start` (which the e2e suite runs against) and any
 // real deployment are "production". A wildcard port is needed because the
 // stub listens on an OS-assigned port per test run.
-const testTrustedOrigins =
-  process.env.NODE_ENV === "test" ? ["http://127.0.0.1:*"] : []
+const testTrustedOrigins = process.env.NODE_ENV === "test" ? ["http://127.0.0.1:*"] : []
 
 // WebAuthn/passkey binds credentials to a relying-party ID (the host) and an
 // origin. Both come from AUTH_URL so dev (localhost) and prod stay correct

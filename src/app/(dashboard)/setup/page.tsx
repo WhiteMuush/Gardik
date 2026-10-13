@@ -25,11 +25,7 @@ export default async function SetupPage() {
   if (employeeCount > 0 || apiKeyCount > 0) redirect("/")
 
   return (
-    <SetupChecklist
-      hasEmployees={employeeCount > 0}
-      hasApiKey={apiKeyCount > 0}
-      visible={visible}
-    >
+    <SetupChecklist hasEmployees={employeeCount > 0} hasApiKey={apiKeyCount > 0} visible={visible}>
       <SecuritySettings />
     </SetupChecklist>
   )

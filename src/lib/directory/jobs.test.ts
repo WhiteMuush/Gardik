@@ -19,8 +19,7 @@ vi.mock("@/lib/prisma", () => ({
   },
 }))
 vi.mock("./sync", () => ({
-  syncDirectoryConnection: (id: string, companyId: string) =>
-    syncDirectoryConnection(id, companyId),
+  syncDirectoryConnection: (id: string, companyId: string) => syncDirectoryConnection(id, companyId),
 }))
 
 import { backoffMs, enqueueSyncJob, processSyncJobs } from "./jobs"
@@ -51,9 +50,7 @@ describe("enqueueSyncJob", () => {
     syncJobCreate.mockResolvedValue({ id: "job-2", status: "PENDING" })
     const res = await enqueueSyncJob("c1")
     expect(res).toEqual({ id: "job-2", status: "PENDING" })
-    expect(syncJobCreate).toHaveBeenCalledWith(
-      expect.objectContaining({ data: { connectionId: "c1" } })
-    )
+    expect(syncJobCreate).toHaveBeenCalledWith(expect.objectContaining({ data: { connectionId: "c1" } }))
   })
 })
 
