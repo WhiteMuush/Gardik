@@ -21,7 +21,6 @@ const OVER_LIMIT = {
   "src/lib/auth/bootstrap.itest.ts": 263,
   "src/components/employees/EmployeeTable.tsx": 263,
   "src/lib/auth/invitation.itest.ts": 242,
-  "src/lib/sso/round-trip.itest.ts": 227,
   "src/components/dashboard/WidgetLibrary.tsx": 226,
   "src/contexts/DetailDrawerContext.tsx": 219,
   "src/components/rbac/UserRoleAssignment.tsx": 215,
