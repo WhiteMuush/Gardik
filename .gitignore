@@ -25,6 +25,9 @@ backups/
 playwright-report/
 test-results/
 
+# test coverage
+coverage/
+
 # private
 ROADMAP.md
 prisma/seed.dev.ts
