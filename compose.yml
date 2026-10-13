@@ -27,7 +27,7 @@ services:
 
   db:
     image: postgres:16
-    container_name: gardik-db
+    container_name: gardik-stack-db
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-user}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}

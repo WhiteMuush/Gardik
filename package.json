@@ -41,7 +41,7 @@
     "db:restore": "sh scripts/db-restore.sh",
     "postinstall": "prisma generate",
     "prepare": "sh .githooks/install.sh",
-    "seed:dev": "tsx --env-file-if-exists=.env.local prisma/seed.dev.ts",
+    "seed:dev": "tsx --env-file-if-exists=.env.local prisma/seed.ts && tsx --env-file-if-exists=.env.local prisma/seed.demo.ts",
     "seed:2fa": "tsx --env-file-if-exists=.env.local prisma/seed.2fa.ts",
     "reencrypt:directory": "tsx --env-file-if-exists=.env.local scripts/reencrypt-directory-configs.ts"
   },

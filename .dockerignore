@@ -16,3 +16,4 @@ e2e
 tsconfig.tsbuildinfo
 .env.local
 .env*.local
+.image-local
