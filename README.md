@@ -124,7 +124,9 @@ make up    # app on http://localhost:3000 with hot reload, database seeded
 
 The demo data is fictional: invented employees on the reserved `example.com`
 domain, exposed in real public breaches (Adobe, LinkedIn...) as reported by
-Have I Been Pwned. `make down` stops the stack.
+Have I Been Pwned. `make down` stops the stack. If the host database from
+`make db-up` is running, stop it first with `make db-down`; if port 5432 is taken
+by another PostgreSQL, run `POSTGRES_PORT=5433 make up`.
 
 ### Running on the host
 

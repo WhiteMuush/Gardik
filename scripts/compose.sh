@@ -20,5 +20,12 @@ if [ -z "$CT_COMPOSE" ]; then
   exit 1
 fi
 
+# The host database from make db-up holds port 5432, which the stack also publishes.
+if [ "${1:-}" = "up" ] && [ "$("$CT_ENGINE" container inspect -f '{{.State.Running}}' "$DB_CONTAINER" 2>/dev/null)" = "true" ]; then
+  echo "make up runs its own database, but $DB_CONTAINER (make db-up) is running on port $DB_PORT." >&2
+  echo "Stop it first with: make db-down" >&2
+  exit 1
+fi
+
 # shellcheck disable=SC2086
 exec $CT_COMPOSE "$@"
