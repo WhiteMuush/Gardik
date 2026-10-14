@@ -11,12 +11,7 @@ import { SeverityDonut } from "@/components/dashboard/SeverityDonut"
 import type { WidgetContext } from "./widget-context"
 
 // Widgets shown on a new dashboard.
-export function defaultWidgets({
-  data,
-  gatedRecords,
-  gatedCatalog,
-  sourceFor,
-}: WidgetContext): WidgetEntry[] {
+export function defaultWidgets({ data, sourceFor }: WidgetContext): WidgetEntry[] {
   return [
     {
       instanceId: "stats-row",
@@ -43,7 +38,7 @@ export function defaultWidgets({
       defaultSize: { w: 7, h: 8 },
       defaultPosition: { x: 0, y: 4 },
       minSize: { w: 4, h: 5 },
-      content: <TrendChart data={buildTrendData(gatedRecords, sourceFor("trend-chart"))} />,
+      content: <TrendChart data={buildTrendData(data.breachRecordsRaw, sourceFor("trend-chart"))} />,
     },
     {
       instanceId: "breach-sources",
@@ -52,7 +47,9 @@ export function defaultWidgets({
       defaultSize: { w: 5, h: 8 },
       defaultPosition: { x: 7, y: 4 },
       minSize: { w: 3, h: 4 },
-      content: <BreachSourcesList data={buildBreachSources(gatedCatalog, sourceFor("breach-sources"))} />,
+      content: (
+        <BreachSourcesList data={buildBreachSources(data.breachCatalog, sourceFor("breach-sources"))} />
+      ),
     },
     {
       instanceId: "top-risky-employees",
@@ -88,7 +85,9 @@ export function defaultWidgets({
       defaultSize: { w: 6, h: 6 },
       defaultPosition: { x: 0, y: 19 },
       minSize: { w: 3, h: 4 },
-      content: <DataTypeBreakdown data={buildDataTypes(gatedRecords, sourceFor("data-type-breakdown"))} />,
+      content: (
+        <DataTypeBreakdown data={buildDataTypes(data.breachRecordsRaw, sourceFor("data-type-breakdown"))} />
+      ),
     },
     {
       instanceId: "alerts-feed",

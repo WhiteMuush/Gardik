@@ -47,14 +47,6 @@ export default async function DashboardPage() {
     label: providerMeta(c.provider)?.label ?? c.provider,
   }))
 
-  // Breach data counts only when one of its sources is connected, so with no API connected the breach widgets are empty.
-  const connected = new Set(credentials.map((c) => c.provider))
-  const isConnected = (sources: ApiProvider[]) => sources.some((s) => connected.has(s))
-  const gatedRecords = data.breachRecordsRaw.filter((r) => isConnected(r.sources))
-  const gatedCatalog = data.breachCatalog
-    .map((b) => ({ ...b, records: b.records.filter((r) => isConnected(r.sources)) }))
-    .filter((b) => b.records.length > 0)
-
   // Each widget's chosen source comes from the active preset, and filterable widgets re-derive their slice from it.
   const activeWidgets = typedPresets.find((p) => p.id === activePresetId)?.widgets ?? []
   const sourceFor = (instanceId: string): ApiProvider | undefined => {
@@ -62,7 +54,7 @@ export default async function DashboardPage() {
     return (s ?? undefined) as ApiProvider | undefined
   }
 
-  const ctx = { data, gatedRecords, gatedCatalog, sourceFor }
+  const ctx = { data, sourceFor }
   const widgets = [...defaultWidgets(ctx), ...libraryWidgets(ctx)]
 
   return (
