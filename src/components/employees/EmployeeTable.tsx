@@ -2,9 +2,7 @@
 
 import { useState, useMemo } from "react"
 import { flexRender, type SortingState } from "@tanstack/react-table"
-// v9 dropped the v8 hook and row-model factories from the main entry. The
-// /legacy subpath keeps them as a compat shim; port to useTable + tableFeatures
-// before v10 removes it.
+// The v9 /legacy entry keeps the v8 hook as a shim; port to useTable before v10 removes it.
 import {
   useLegacyTable,
   getCoreRowModel,

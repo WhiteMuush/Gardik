@@ -5,9 +5,7 @@ export const borderBySeverity: Record<string, string> = {
   LOW: "border-l-severity-low",
 }
 
-// Confidence is the reliability of the reporting source, not the impact. A
-// low-confidence hit (noisy OSINT feed) is muted/amber so a responder verifies
-// it before acting on it.
+// Confidence is source reliability, not impact, so a low-confidence hit is muted for the responder to verify first.
 export const confidenceChip: Record<string, string> = {
   HIGH: "border-border text-muted-foreground",
   MEDIUM: "border-border text-muted-foreground",

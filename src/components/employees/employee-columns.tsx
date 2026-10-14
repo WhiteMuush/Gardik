@@ -5,8 +5,7 @@ import { cn } from "@/lib/utils"
 
 const col = legacyCreateColumnHelper<EmployeeRow>()
 
-// v9 made ColumnDef invariant in TValue through the footer template, so a
-// mixed-value array no longer widens to the unknown-valued element type.
+// v9 ColumnDef is invariant in TValue, so a mixed-value array needs `any`.
 // eslint-disable-next-line @typescript-eslint/no-explicit-any
 export const columns: LegacyColumnDef<EmployeeRow, any>[] = [
   col.accessor((r) => `${r.firstName} ${r.lastName}`, {
