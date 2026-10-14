@@ -101,8 +101,7 @@ describe("createFirstAdmin", () => {
       await createFirstAdmin(tx, config)
       const user = await tx.user.findUnique({ where: { email: config.email } })
 
-      // Backdate it past its window: the state a restart finds after a day of
-      // nobody opening the link.
+      // Backdated past its window, the state a restart finds after a day without anyone opening the link.
       await tx.userInvitation.updateMany({
         where: { userId: user!.id },
         data: { expiresAt: new Date(Date.now() - 1000) },

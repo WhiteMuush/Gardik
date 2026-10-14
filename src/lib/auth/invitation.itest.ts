@@ -28,8 +28,7 @@ describe("issueInvitation", () => {
     expect(expiresAt.getTime() - now.getTime()).toBe(INVITATION_TTL_HOURS * 60 * 60 * 1000)
   })
 
-  // Re-inviting after a suspected leak has to retire the leaked link, or the
-  // resend hands the attacker a second chance rather than closing the first.
+  // Re-inviting after a suspected leak must retire the leaked link, not hand out a second one.
   it("voids the previous link when a new one is issued", async () => {
     const user = await makeUser("supersede")
     const first = await issueInvitation(prisma, { userId: user.id, createdByUserId: ctx.inviterId })

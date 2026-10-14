@@ -1,8 +1,7 @@
 import { describe, it, expect, beforeAll } from "vitest"
 import { sealOidcConfig, openOidcConfig } from "./encryption"
 
-// Any value of 32 characters or more works. Assigned through a constant because
-// the pre-commit secret scanner blocks a quoted literal on that env var line.
+// Built from a constant because the secret scanner blocks a quoted literal on that env var line.
 const TEST_KEY = "unit-test-key-".padEnd(40, "0")
 
 beforeAll(() => {
