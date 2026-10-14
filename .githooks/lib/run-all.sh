@@ -1,6 +1,5 @@
 #!/usr/bin/env sh
-# Run all compliance checks over a diff.
-# Usage: run-all.sh <old-pkg-ref> <new-pkg-ref> <added-lines-file> -- <changed-path>...
+# Runs every compliance check over a diff; usage: run-all.sh <old-pkg-ref> <new-pkg-ref> <added-lines-file> -- <path>...
 set -eu
 
 old_ref="$1"; new_ref="$2"; added="$3"; shift 3

@@ -1,6 +1,5 @@
 #!/usr/bin/env sh
-# Create .env.local from .env.example with generated secrets.
-# No-op if .env.local already exists (never clobbers secrets).
+# Creates .env.local from .env.example with generated secrets, and never overwrites an existing one.
 set -eu
 
 root="$(CDPATH='' cd "$(dirname "$0")/.." && pwd)"

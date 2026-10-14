@@ -1,7 +1,5 @@
 #!/usr/bin/env sh
-# Full setup diagnosis for Gardik: toolchain, env, Docker, database, Prisma.
-# After the report, offers to auto-fix detected issues (interactive only),
-# separating failures from warnings. Exits non-zero when failures remain.
+# Diagnoses the setup (toolchain, env, Docker, database, Prisma), offers interactive fixes, and exits non-zero on failures.
 set -u
 
 root="$(CDPATH='' cd "$(dirname "$0")/.." && pwd)"

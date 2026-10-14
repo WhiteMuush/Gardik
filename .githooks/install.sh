@@ -1,7 +1,5 @@
 #!/usr/bin/env sh
-# Point git at the versioned hooks. Non-fatal outside a git work tree
-# (tarball installs, CI cache restores) but loud about what it did, so a
-# contributor never silently ends up with inactive hooks.
+# Points git at the versioned hooks, non-fatal outside a work tree but loud about what it did.
 set -eu
 
 if ! git rev-parse --is-inside-work-tree >/dev/null 2>&1; then

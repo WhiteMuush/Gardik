@@ -1,6 +1,5 @@
 #!/usr/bin/env sh
-# Shared container helpers so the local database works the same whether a
-# machine has Docker or Podman. Sourced by the db-* scripts. POSIX sh.
+# Shared Docker or Podman helpers, sourced by the db-* scripts so the local database works on either.
 # shellcheck disable=SC2034 # the scripts that source this file read these variables
 
 # Local database settings (override via env or .env.local).
@@ -12,10 +11,7 @@ DB_PASSWORD="${POSTGRES_PASSWORD:-password}"
 DB_NAME="${POSTGRES_DB:-gardik}"
 DB_PORT="${POSTGRES_PORT:-5432}"
 
-# Resolve the container engine and, if present, a compose command. Prefers
-# Docker when its daemon is reachable, otherwise Podman. Sets CT_ENGINE, and
-# CT_COMPOSE (empty when no compose provider is installed). The local DB scripts
-# only need CT_ENGINE; compose is optional and used by the full-stack target.
+# Sets CT_ENGINE (Docker when its daemon answers, else Podman) and CT_COMPOSE, empty without a compose provider.
 ct_resolve() {
   if command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then
     CT_ENGINE="docker"

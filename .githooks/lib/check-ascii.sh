@@ -1,6 +1,5 @@
 #!/usr/bin/env sh
-# Reject non-ASCII bytes (em dash, accented letters, smart quotes) in added
-# lines. Reads "path:line:content". Stricter superset of check-english.sh.
+# Rejects non-ASCII bytes in added lines ("path:line:content"), a stricter superset of check-english.sh.
 set -eu
 status=0
 
