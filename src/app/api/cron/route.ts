@@ -12,9 +12,7 @@ function safeEqual(a: string, b: string): boolean {
   return timingSafeEqual(bufA, bufB)
 }
 
-// Scheduler tick. Meant to be called by an external cron (system cron, Vercel
-// Cron, uptime pinger) on a fixed interval, authenticated with CRON_SECRET:
-//   curl -X POST -H "authorization: Bearer $CRON_SECRET" https://host/api/cron
+// Scheduler tick for an external cron: curl -X POST -H "authorization: Bearer $CRON_SECRET" https://host/api/cron
 export async function POST(req: Request) {
   const secret = process.env.CRON_SECRET
   if (!secret) return NextResponse.json({ error: "Scheduler not configured" }, { status: 503 })
@@ -26,8 +24,7 @@ export async function POST(req: Request) {
   const result = await runDueSchedules()
   const { sent } = await runDueReportSchedules()
   const { pushed } = await runDueSiemPush()
-  // Counters whose window has closed are dead rows; sweeping them here avoids a
-  // dedicated job for something with no timing requirement.
+  // Sweeps closed rate-limit windows here rather than in a dedicated job.
   const rateLimitsPruned = await pruneRateLimits()
   return NextResponse.json({
     ...result,

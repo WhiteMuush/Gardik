@@ -18,8 +18,7 @@ function extractEmail(user: SCIMUser): string | null {
   return (primary ?? user.emails?.[0]?.value ?? user.userName ?? null)?.toLowerCase() ?? null
 }
 
-// Extracts the value of `userName eq "..."` from the SCIM filter, the only
-// filter an IdP emits while provisioning.
+// Reads `userName eq "..."`, the only filter an IdP emits while provisioning.
 function parseUserNameFilter(filter: string | null): string | undefined {
   return filter?.match(/userName\s+eq\s+"([^"]+)"/i)?.[1]?.toLowerCase()
 }

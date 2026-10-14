@@ -20,9 +20,7 @@ export async function POST(_req: Request, { params }: { params: Promise<{ id: st
   const { session, error } = await requirePermission("connectors:sync")
   if (error) return error
 
-  // Each call opens a connection to somebody else's directory (LDAP, Azure,
-  // Okta). Spamming it turns this endpoint into a way to hammer a third party
-  // from our address, so it is bounded well below the general API ceiling.
+  // Each call hits a third-party directory, so a tight limit keeps this from hammering it from our address.
   if (!(await rateLimit(`directory-test:${session.user.companyId}`, 10, 60_000))) {
     return NextResponse.json({ error: "Too many attempts" }, { status: 429 })
   }
