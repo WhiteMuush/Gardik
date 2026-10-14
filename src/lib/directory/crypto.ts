@@ -9,12 +9,12 @@ function deriveKey(raw: string): Buffer {
 }
 
 // Current key first, then the optional previous one for zero-downtime rotation; a missing or short current key throws.
-function getKeys(): Buffer[] {
+function getKeys(): [Buffer, ...Buffer[]] {
   const current = process.env.DIRECTORY_ENCRYPTION_KEY
   if (!current || current.length < 32) {
     throw new Error("DIRECTORY_ENCRYPTION_KEY missing or too short (32 characters minimum).")
   }
-  const keys = [deriveKey(current)]
+  const keys: [Buffer, ...Buffer[]] = [deriveKey(current)]
   const previous = process.env.DIRECTORY_ENCRYPTION_KEY_PREVIOUS
   if (previous && previous.length >= 32) keys.push(deriveKey(previous))
   return keys

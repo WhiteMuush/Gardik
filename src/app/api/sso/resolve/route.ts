@@ -21,7 +21,8 @@ export async function POST(req: Request) {
     select: { providerId: true },
     take: 2,
   })
-  if (providers.length !== 1) return NextResponse.json(NO_SSO)
+  const [only, other] = providers
+  if (!only || other) return NextResponse.json(NO_SSO)
 
-  return NextResponse.json({ sso: true, providerId: providers[0].providerId })
+  return NextResponse.json({ sso: true, providerId: only.providerId })
 }

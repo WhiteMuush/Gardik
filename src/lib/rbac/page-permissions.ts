@@ -19,7 +19,8 @@ export const PAGE_PERMISSIONS: Record<string, Permission | "AUTH_ONLY"> = {
 
 // The longest declared prefix wins, and null (undeclared) must be treated as a refusal.
 export function requiredPermissionForPage(pathname: string): Permission | "AUTH_ONLY" | null {
-  if (pathname in PAGE_PERMISSIONS) return PAGE_PERMISSIONS[pathname]
+  const exact = PAGE_PERMISSIONS[pathname]
+  if (exact) return exact
 
   let best: { path: string; permission: Permission | "AUTH_ONLY" } | null = null
   for (const [path, permission] of Object.entries(PAGE_PERMISSIONS)) {
@@ -31,10 +32,9 @@ export function requiredPermissionForPage(pathname: string): Permission | "AUTH_
 
 // Paths a permission set may open, resolved once by the layout so client components never re-derive the rule.
 export function visiblePages(perms: ReadonlySet<string>): string[] {
-  return Object.keys(PAGE_PERMISSIONS).filter((path) => {
-    const permission = PAGE_PERMISSIONS[path]
-    return permission === "AUTH_ONLY" || perms.has(permission)
-  })
+  return Object.entries(PAGE_PERMISSIONS)
+    .filter(([, permission]) => permission === "AUTH_ONLY" || perms.has(permission))
+    .map(([path]) => path)
 }
 
 // Landing path resolved from the role, preferring a section root, with the own-account pages as the floor.

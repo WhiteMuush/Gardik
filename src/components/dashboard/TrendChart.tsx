@@ -10,12 +10,12 @@ import { cn } from "@/lib/utils"
 
 type Period = "1m" | "3m" | "6m" | "1y"
 
-const PERIODS: { key: Period; label: string; months: number }[] = [
+const PERIODS = [
   { key: "1m", label: "1 month", months: 1 },
   { key: "3m", label: "3 months", months: 3 },
   { key: "6m", label: "6 months", months: 6 },
   { key: "1y", label: "1 year", months: 12 },
-]
+] as const satisfies readonly { key: Period; label: string; months: number }[]
 
 interface TrendChartProps {
   data: { month: string; count: number }[]

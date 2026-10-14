@@ -53,10 +53,9 @@ export default async function WidgetsPage() {
     }),
   ])
 
-  // Through the root, since dashboard:customize does not imply dashboard:read.
-  if (presets.length === 0) redirect("/")
-
   const activePreset = presets.find((p) => p.id === user?.activePresetId) ?? presets[0]
+  // Through the root, since dashboard:customize does not imply dashboard:read.
+  if (!activePreset) redirect("/")
 
   const perms = await permissionsForRole(session!.user.roleId ?? null)
   const visible = visiblePages(perms)

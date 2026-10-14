@@ -18,12 +18,10 @@ const MFA_CONCURRENCY = 8
 
 async function mapPool<T, R>(items: T[], limit: number, fn: (item: T) => Promise<R>): Promise<R[]> {
   const out = new Array<R>(items.length)
-  let next = 0
+  // One iterator shared by every worker, so each item is taken exactly once.
+  const queue = items.entries()
   async function worker(): Promise<void> {
-    while (next < items.length) {
-      const i = next++
-      out[i] = await fn(items[i])
-    }
+    for (const [i, item] of queue) out[i] = await fn(item)
   }
   await Promise.all(Array.from({ length: Math.min(limit, items.length) }, worker))
   return out
@@ -78,7 +76,7 @@ export async function fetchOktaUsers(config: OktaConfig): Promise<DirectoryUser[
 
     const link: string = oktaRes.headers.get("link") ?? ""
     const next: RegExpMatchArray | null = link.match(/<([^>]+)>;\s*rel="next"/)
-    url = next ? next[1] : null
+    url = next?.[1] ?? null
   }
 
   await mapPool(raw, MFA_CONCURRENCY, async ({ id, user }) => {

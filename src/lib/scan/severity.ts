@@ -35,5 +35,5 @@ export function moreConfident(a: AlertConfidence, b: AlertConfidence): AlertConf
 }
 
 export function bumpConfidence(c: AlertConfidence): AlertConfidence {
-  return CONFIDENCE_ORDER[Math.min(CONFIDENCE_ORDER.indexOf(c) + 1, CONFIDENCE_ORDER.length - 1)]
+  return CONFIDENCE_ORDER[CONFIDENCE_ORDER.indexOf(c) + 1] ?? c
 }

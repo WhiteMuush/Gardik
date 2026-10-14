@@ -6,7 +6,7 @@ import { Loader2, Download, ShieldAlert } from "lucide-react"
 import { PRESET_DATA_TYPES } from "@/lib/dataTypes"
 import type { RegisterRow } from "@/lib/register"
 
-const STATUS_LABEL: Record<string, string> = {
+const STATUS_LABEL: Record<RegisterRow["status"], string> = {
   ASSESSING: "Assessing",
   NOTIFIED: "Notified",
   NOT_REQUIRED: "Not required",
