@@ -1,19 +1,4 @@
-/**
- * Re-encrypts every DirectoryConnection.encryptedConfig with the current
- * DIRECTORY_ENCRYPTION_KEY. Used during key rotation.
- *
- * Procedure:
- *   1. Set DIRECTORY_ENCRYPTION_KEY to the new key and
- *      DIRECTORY_ENCRYPTION_KEY_PREVIOUS to the old key.
- *   2. Deploy (decryption already falls back to the previous key).
- *   3. Run this script: it decrypts each row (current or previous key) and
- *      writes it back encrypted under the current key.
- *   4. Once it completes cleanly, remove DIRECTORY_ENCRYPTION_KEY_PREVIOUS.
- *
- * Idempotent: re-running re-encrypts rows already on the current key.
- *
- *   npx tsx scripts/reencrypt-directory-configs.ts
- */
+// Re-encrypts every directory config under the current key during a rotation (see the wiki Configuration page).
 import { prisma } from "../src/lib/prisma"
 import { decryptConfig, encryptConfig } from "../src/lib/directory/crypto"
 

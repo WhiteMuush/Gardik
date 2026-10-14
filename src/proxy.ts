@@ -2,10 +2,7 @@ import { NextResponse, type NextRequest } from "next/server"
 import { getSessionCookie } from "better-auth/cookies"
 import { buildCsp } from "@/lib/csp"
 
-// Pages a signed-out visitor must be able to open. /invite belongs here for the
-// same reason /login does: an invited person has no session yet, and the
-// single-use token in the URL is what authorises them. Without this entry the
-// invitation link would bounce to a login form they cannot pass.
+// Pages open to signed-out visitors, /invite included since its single-use token is the authorization.
 function isPublicPage(path: string): boolean {
   return ["/login", "/invite"].some((p) => path === p || path.startsWith(`${p}/`))
 }
@@ -21,8 +18,7 @@ export default function proxy(req: NextRequest) {
   const nonce = btoa(crypto.randomUUID())
   const csp = buildCsp(nonce, process.env.NODE_ENV === "development")
 
-  // Next.js reads the nonce from the request CSP header and stamps it on
-  // its own inline scripts; without this the response header would block them.
+  // Next reads the nonce from the request CSP header and stamps its own inline scripts with it.
   const requestHeaders = new Headers(req.headers)
   requestHeaders.set("x-nonce", nonce)
   requestHeaders.set("content-security-policy", csp)

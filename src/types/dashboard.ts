@@ -12,15 +12,11 @@ export type WidgetMeta = {
   instanceId: string
   title: string | null
   visible: boolean
-  // Provider id (ApiProvider) scoping a source-filterable widget to a single
-  // intelligence tool. Undefined / absent means "all providers". Ignored by
-  // widgets that are not breach-centric (see SOURCE_FILTERABLE_WIDGETS).
+  // Provider id scoping a breach widget to one tool; absent means all providers, and other widgets ignore it.
   source?: string | null
 }
 
-// Widget types whose data is derived from breach intelligence and can therefore
-// be scoped to a single provider. Other widgets (alerts workflow, directory,
-// MFA) ignore the source filter.
+// Breach-derived widgets that can be scoped to one provider; the others ignore the source filter.
 export const SOURCE_FILTERABLE_WIDGETS = new Set([
   "trend-chart",
   "breach-sources",

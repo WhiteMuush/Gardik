@@ -1,8 +1,6 @@
 import type { NextConfig } from "next"
 
-// Baseline security headers applied to every response. A strict CSP needs
-// per-request nonces in the App Router and is tracked separately; these cover
-// the framing, sniffing, referrer, transport, and feature-policy surface.
+// Baseline headers on every response; the strict CSP with its per-request nonce lives in src/lib/csp.ts.
 const securityHeaders = [
   { key: "X-Frame-Options", value: "DENY" },
   { key: "X-Content-Type-Options", value: "nosniff" },
@@ -16,20 +14,15 @@ const securityHeaders = [
 ]
 
 const nextConfig: NextConfig = {
-  // Emit a self-contained server bundle (.next/standalone) so the production
-  // Docker image can ship without node_modules. See Dockerfile.
+  // Self-contained .next/standalone bundle, so the Docker image ships without node_modules.
   output: "standalone",
   serverExternalPackages: ["pg", "@prisma/adapter-pg"],
-  // The app never renders next/image, so the optimizer and the sharp/libvips
-  // binaries it would pull into the standalone bundle are dead weight and
-  // dead CVE surface in the image.
+  // No next/image in the app, so the optimizer and its sharp binaries stay out of the image.
   images: { unoptimized: true },
   outputFileTracingExcludes: {
     "*": ["node_modules/sharp/**", "node_modules/@img/**"],
   },
-  // Next 16.3 makes `next dev` append its own block to AGENTS.md on every run.
-  // The block ships a non-ASCII character, which the pre-push ASCII gate
-  // rejects, so the tree would go dirty on each dev start. We own that file.
+  // Stops `next dev` appending a non-ASCII block to AGENTS.md on every run.
   agentRules: false,
   async headers() {
     return [{ source: "/:path*", headers: securityHeaders }]
