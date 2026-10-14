@@ -3,8 +3,7 @@
 import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 
-// grantable is the server's own answer to "would you accept this from me",
-// so the picker cannot offer a role the write path will refuse.
+// grantable is the server's answer, so the picker cannot offer a role the write path refuses.
 type Role = { id: string; name: string; isAssignable: boolean; grantable: boolean }
 
 export function UserCreateForm() {

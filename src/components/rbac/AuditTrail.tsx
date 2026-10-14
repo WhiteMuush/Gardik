@@ -19,9 +19,7 @@ type Entry = {
 
 const PAGE = 20
 
-// Names are resolved from the roles and users endpoints when the viewer is
-// allowed to read them. audit:read does not imply roles:read or users:read, so
-// a denied lookup degrades to the raw id rather than blanking the column.
+// audit:read does not imply roles:read or users:read, so a denied lookup shows the raw id.
 function useNames() {
   const [names, setNames] = useState<Record<string, string>>({})
   useEffect(() => {
@@ -48,10 +46,7 @@ function describeTarget(e: Entry, names: Record<string, string>): string {
   return e.targetId ? e.targetId.slice(0, 8) : "-"
 }
 
-// What actually changed, in the terms the reader cares about: which permissions
-// moved, or which role a person went to. Raw JSON would be unreadable here, and
-// so is a plain "a -> b" string: only the destination matters, so the previous
-// value steps back rather than sharing the weight.
+// Shows what changed in the reader's terms, with the previous value dimmed beside the destination.
 function Change({ entry, names }: { entry: Entry; names: Record<string, string> }) {
   if (entry.action === "user.role.assign") {
     const from = entry.before?.roleId ? (names[entry.before.roleId] ?? "a role") : "No access"

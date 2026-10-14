@@ -28,11 +28,7 @@ export function ExposureRegister({
 }: {
   initial: RegisterRow[]
   isAdmin: boolean
-  /**
-   * Mirrors register:evidence, which the evidence route enforces. Distinct
-   * from isAdmin, which is register:manage: this link sits outside that block
-   * and was offered to every reader of the register.
-   */
+  // Mirrors register:evidence, which the evidence route enforces, unlike isAdmin (register:manage).
   canDownloadEvidence: boolean
 }) {
   const router = useRouter()

@@ -37,8 +37,7 @@ export function UserRoleAssignment() {
     [users, query]
   )
 
-  // Both credential actions run behind step-up, same as assigning a
-  // crown-jewel role: each one ends in somebody being able to sign in.
+  // Both credential actions need step-up, since each ends with somebody able to sign in.
   async function credentialAction(
     userId: string,
     path: string,
