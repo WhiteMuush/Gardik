@@ -5,8 +5,7 @@ import { googleForcePasswordReset, googleSignOut } from "./google"
 import { oktaExpirePassword, oktaRevokeSessions } from "./okta"
 import type { AzureADConfig, GoogleWorkspaceConfig, OktaConfig } from "./types"
 
-// Which remediation actions each directory type can perform. LDAP, AWS and
-// SCIM expose no usable remediation API, so they support nothing.
+// LDAP, AWS and SCIM expose no usable remediation API, so they support nothing.
 const CAPABILITIES: Record<DirectoryType, RemediationType[]> = {
   AZURE_AD: ["REVOKE_SESSIONS"],
   GOOGLE_WORKSPACE: ["REVOKE_SESSIONS", "FORCE_PASSWORD_RESET"],
@@ -20,8 +19,7 @@ export function supportsRemediation(type: DirectoryType, action: RemediationType
   return CAPABILITIES[type].includes(action)
 }
 
-// Run a single remediation against the directory for one employee. Throws on
-// any provider error; the caller records the outcome to the audit trail.
+// Throws on any provider error; the caller records the outcome in the audit trail.
 export async function executeRemediation(
   type: DirectoryType,
   encryptedConfig: string,

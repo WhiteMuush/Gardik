@@ -7,10 +7,7 @@ import type { SCIMConfig } from "@/lib/directory/types"
 const SCIM_RATE_LIMIT = 120
 const SCIM_RATE_WINDOW_MS = 60_000
 
-// Throttle inbound SCIM requests per connection, before token validation, so
-// an unauthenticated caller cannot brute-force tokens or flood the endpoint.
-// Returns true when the request is allowed. Shared across instances, see
-// rateLimit.
+// Throttles per connection before token validation, so nobody can brute-force tokens; shared across instances.
 export function checkScimRateLimit(connectionId: string): Promise<boolean> {
   return rateLimit(`scim:${connectionId}`, SCIM_RATE_LIMIT, SCIM_RATE_WINDOW_MS)
 }
@@ -23,8 +20,7 @@ function safeEqual(a: string, b: string): boolean {
   return timingSafeEqual(bufA, bufB)
 }
 
-// Authenticates an inbound SCIM request against the connection's bearer token.
-// Returns the matching companyId, or null (never a throw) so the caller answers 401.
+// Returns the companyId, or null (never a throw) so the caller answers 401.
 export async function authenticateScim(
   req: Request,
   connectionId: string

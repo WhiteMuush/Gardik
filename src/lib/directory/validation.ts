@@ -30,9 +30,7 @@ export interface BuiltConnection {
 
 export type ValidationResult = { ok: false; error: string } | { ok: true; built: BuiltConnection }
 
-// Validates raw POST input and builds the persistable connection payload
-// (including config encryption), so the route handler stays thin and the
-// logic is unit-testable without an HTTP request.
+// Validates input and builds the encrypted payload, so the route stays thin and the logic unit-testable.
 export function buildDirectoryConnection(input: DirectoryInput): ValidationResult {
   const { type, name, config } = input
 
