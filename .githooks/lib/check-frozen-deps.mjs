@@ -1,10 +1,5 @@
 #!/usr/bin/env node
-// Enforce the pinned major version of frozen dependencies.
-// Usage: node check-frozen-deps.mjs <old-pkg-ref> <new-pkg-ref>
-// Refs are `git show` targets, e.g. "origin/main:package.json" or ":package.json".
-// The new ref's frozen majors must match the canonical baseline below. This
-// rejects bumps in either direction, so an accidental major upgrade (e.g. a
-// Dependabot PR) is blocked even once it has landed on the baseline branch.
+// Rejects any move of a frozen dependency's pinned major, either way: node check-frozen-deps.mjs <old-ref> <new-ref>.
 import { execFileSync } from "node:child_process"
 
 // Canonical major version each frozen dependency is pinned to.

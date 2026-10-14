@@ -4,10 +4,7 @@ import bcrypt from "bcryptjs"
 import { seedPresetsForCompany, resolvePresetRoleId } from "@/lib/rbac/seed-roles"
 import { ADMINISTRATOR, VIEWER_ROLE } from "@/lib/rbac/presets"
 
-// E2E fixture: one employee so a fresh instance counts as set up
-// (the dashboard redirects empty workspaces to /setup), plus a dedicated
-// user the two-factor spec enrolls so the admin stays password-only.
-// Run after prisma/seed.ts; used by the CI e2e job only.
+// E2E fixtures for the CI job, run after prisma/seed.ts: one employee so the workspace counts as set up, plus a 2FA user.
 const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! })
 const prisma = new PrismaClient({ adapter })
 
@@ -26,9 +23,7 @@ const MEMBER_PASSWORD = "ChangeMe123!"
 const NARROW_EMAIL = "narrow@gardik.local"
 const NARROW_PASSWORD = "ChangeMe123!"
 
-// Sets (or resets) the credential-provider password for a user. Better Auth
-// stores it on a `credential` account row, so upsert that row rather than the
-// user.
+// Better Auth stores the password on a `credential` account row, so that row is upserted.
 async function setPassword(userId: string, password: string): Promise<void> {
   const hashed = await bcrypt.hash(password, 12)
   const cred = await prisma.account.findFirst({
@@ -71,9 +66,7 @@ async function main() {
   })
   await setPassword(mfaUser.id, MFA_PASSWORD)
 
-  // RBAC fixtures in the shared company: a manager holding users:manage and
-  // roles:read but NOT roles:manage, and a plain read-only member. The rbac
-  // spec uses them to assert the read gate from the outside.
+  // A manager with users:manage and roles:read but not roles:manage, plus a read-only member, for the read gate.
   const managerRoleId = await resolvePresetRoleId(prisma, company.id, "Security Manager")
   const manager = await prisma.user.upsert({
     where: { email: MANAGER_EMAIL },
@@ -90,10 +83,7 @@ async function main() {
   })
   await setPassword(member.id, MEMBER_PASSWORD)
 
-  // Narrow fixture: every preset role holds all the ":read" permissions, so
-  // none of them can show what happens to a user who lacks one. This role holds
-  // exactly two, which is what lets the rbac spec type a forbidden address into
-  // the bar and assert the page refuses rather than renders.
+  // Holds exactly two permissions, since every preset holds all ":read" ones and none can show a refusal.
   const narrowRole = await prisma.role.upsert({
     where: { companyId_name: { companyId: company.id, name: "E2E Narrow" } },
     update: { permissions: ["dashboard:read", "alerts:read"] },
@@ -112,9 +102,7 @@ async function main() {
   })
   await setPassword(narrow.id, NARROW_PASSWORD)
 
-  // One register row so the rbac spec can assert on the evidence download.
-  // Without a row the control is absent for everybody and the assertion would
-  // pass while proving nothing.
+  // One register row, or the evidence control is absent for everybody and the assertion proves nothing.
   await prisma.exposureRegisterEntry.upsert({
     where: { id: "e2e-register-entry" },
     update: {},
@@ -129,11 +117,7 @@ async function main() {
     },
   })
 
-  // Passkey fixture: its own company so the passkey spec can flip PASSKEY in and
-  // out of allowedAuthMethods without racing the two-factor spec, which mutates
-  // the shared gardik.dev policy. Seeded with PASSKEY allowed so enrollment
-  // works out of the box; the gate test removes it temporarily. One employee so
-  // the workspace counts as set up and /dashboard does not bounce to /setup.
+  // A separate company with PASSKEY allowed, so the passkey spec never races the two-factor spec's policy.
   const passkeyCompany = await prisma.company.upsert({
     where: { domain: "passkey.gardik.dev" },
     update: { allowedAuthMethods: ["PASSKEY", "TOTP"] },

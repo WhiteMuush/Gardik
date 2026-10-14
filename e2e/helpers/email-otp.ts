@@ -4,12 +4,7 @@ import { PrismaPg } from "@prisma/adapter-pg"
 
 const ORIGIN = "http://localhost:3000"
 
-// The two-factor OTP sub-mode stores the code in the verification table as
-// `identifier: "2fa-otp-<opaque session key>"`, `value: "<code>:<attempts>"`,
-// with the default "plain" storeOTP. The e2e suite runs serial and only one
-// user drives the email-code path, so reading the most recent such row back is
-// deterministic and lets the test assert the real send + verify round-trip
-// (the dev fallback only logs the code, which Playwright cannot read).
+// Reads the newest "2fa-otp-" verification row ("<code>:<attempts>"), deterministic as the serial suite has one email-code user.
 export async function latestEmailOtp(): Promise<string> {
   const adapter = new PrismaPg({ connectionString: process.env.DATABASE_URL! })
   const prisma = new PrismaClient({ adapter })
@@ -25,9 +20,7 @@ export async function latestEmailOtp(): Promise<string> {
   }
 }
 
-// Signs in with a password (which, for a 2FA-enrolled user, returns a pending
-// two-factor session) then requests an email code, returning the status so a
-// test can assert the policy gate rejects EMAIL_OTP when it is not allowed.
+// Signs in to a pending two-factor session and requests an email code, returning the status for the policy gate test.
 export async function trySendEmailOtp(
   request: APIRequestContext,
   email: string,
@@ -43,9 +36,7 @@ export async function trySendEmailOtp(
     throw new Error(`sign-in failed: ${signInRes.status()} ${await signInRes.text()}`)
   }
 
-  // Send an empty JSON body so the request carries an application/json
-  // content-type; without it Better Auth rejects the POST with 415 before the
-  // policy hook (which is what this call is meant to exercise) ever runs.
+  // An empty JSON body sets the content-type, without which Better Auth answers 415 before the policy hook runs.
   const res = await request.post(`${ORIGIN}/api/auth/two-factor/send-otp`, {
     headers,
     data: {},

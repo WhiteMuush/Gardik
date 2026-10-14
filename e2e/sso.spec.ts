@@ -1,16 +1,8 @@
 import { test, expect } from "@playwright/test"
 
-// This spec covers the client-side SSO escape hatch on step one of login and
-// the anti-lockout recovery added alongside it. It does not seed a real SSO
-// provider (e2e/seed.ts has no SSO fixtures) and does not attempt a genuine
-// identity-provider round trip: that is a separate, larger effort. Everything
-// here is provable by intercepting /api/sso/resolve, which is exactly what
-// the escape hatch is built to bypass.
+// Covers the client-side SSO escape hatch and anti-lockout recovery by intercepting /api/sso/resolve, without a real IdP.
 
-// Guards the anti-lockout escape hatch itself: User.ssoExempt only matters if
-// a user can reach the password step without ever asking the server whether
-// their company runs SSO. If usePasswordInstead ever regresses into calling
-// resolve first, this would start failing.
+// ssoExempt only matters if the password step is reachable without asking the server about SSO.
 test("the anti-lockout escape hatch skips the SSO lookup entirely", async ({ page }) => {
   let resolveCalled = false
   await page.route("**/api/sso/resolve", async (route) => {
@@ -30,20 +22,10 @@ test("the anti-lockout escape hatch skips the SSO lookup entirely", async ({ pag
   expect(resolveCalled).toBe(false)
 })
 
-// Guards the bfcache-trap fix for Finding 1: a page restored from
-// back-forward cache after a slow or broken IdP redirect must not leave
-// Continue and the escape hatch permanently disabled. A real back-forward
-// navigation is not exercised here: there is no SSO provider seeded to
-// redirect to, and Chromium's bfcache eligibility under CDP-driven automation
-// is not reliable enough to assert against. Instead this stalls the resolve
-// call (mirroring the network-stall half of the same finding) to catch
-// `pending` in the disabled state, then dispatches the same `pageshow`
-// event with `persisted: true` that a genuine restore delivers, exercising
-// the exact listener added to page.tsx.
+// Stalls resolve, then dispatches a persisted `pageshow`, since a real bfcache restore is unreliable under CDP.
 test("the pageshow listener clears the pending state on a restore", async ({ page }) => {
   await page.route("**/api/sso/resolve", async () => {
-    // Never calls fulfill/continue/abort: the request hangs from the page's
-    // point of view, same as a stalled network in production.
+    // Never settles, like a stalled network in production.
     await new Promise<void>(() => {})
   })
 

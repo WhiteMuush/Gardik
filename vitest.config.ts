@@ -5,8 +5,7 @@ export default defineConfig({
   resolve: {
     alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) },
   },
-  // The PDF report module is authored as .tsx (react-pdf primitives); override
-  // the tsconfig `jsx: preserve` so the test transformer (oxc) compiles it.
+  // The PDF module is .tsx, so oxc compiles JSX despite the tsconfig `jsx: preserve`.
   oxc: { jsx: { runtime: "automatic" } },
   test: {
     include: ["src/**/*.test.ts"],
