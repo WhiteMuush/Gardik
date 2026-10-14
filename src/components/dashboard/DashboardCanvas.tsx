@@ -99,7 +99,7 @@ export function DashboardCanvas({
               switchPreset={presetsState.switchPreset}
               renamePreset={presetsState.renamePreset}
               deletePreset={presetsState.deletePreset}
-              createPreset={presetsState.createPreset}
+              createPreset={(scope) => void presetsState.createPreset(scope)}
               reset={presetsState.reset}
             />
 

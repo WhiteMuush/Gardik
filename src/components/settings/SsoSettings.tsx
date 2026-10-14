@@ -55,7 +55,7 @@ export function SsoSettings({ canConfigure }: Props) {
             <p className="text-xs text-destructive">{loadError}</p>
             <button
               type="button"
-              onClick={load}
+              onClick={() => void load()}
               className="mt-1 flex items-center gap-1 text-xs font-medium text-muted-foreground underline-offset-2 hover:underline"
             >
               <RefreshCw className="size-3" />
@@ -69,7 +69,7 @@ export function SsoSettings({ canConfigure }: Props) {
         <ConnectForm
           form={form}
           setForm={setForm}
-          onSubmit={save}
+          onSubmit={(e) => void save(e)}
           pending={action === "save"}
           disabled={action !== null}
         />
@@ -88,8 +88,8 @@ export function SsoSettings({ canConfigure }: Props) {
             canConfigure={canConfigure}
             record={record}
             action={action}
-            onRequestRecord={requestRecord}
-            onVerify={verify}
+            onRequestRecord={() => void requestRecord()}
+            onVerify={() => void verify()}
           />
 
           {canConfigure && (
@@ -113,7 +113,7 @@ export function SsoSettings({ canConfigure }: Props) {
               )}
               <button
                 type="button"
-                onClick={removeProvider}
+                onClick={() => void removeProvider()}
                 disabled={action !== null}
                 className="text-xs font-medium text-destructive underline-offset-2 hover:underline disabled:opacity-40"
               >
@@ -126,7 +126,7 @@ export function SsoSettings({ canConfigure }: Props) {
             <EditForm
               form={form}
               setForm={setForm}
-              onSubmit={save}
+              onSubmit={(e) => void save(e)}
               pending={action === "save"}
               disabled={action !== null}
               clientIdLastFour={provider.clientIdLastFour}

@@ -36,7 +36,10 @@ export function PasswordChange({ required, continueTo }: { required: boolean; co
   }
 
   return (
-    <form onSubmit={submit} className="space-y-2 rounded-xl border border-border/60 bg-card p-4">
+    <form
+      onSubmit={(e) => void submit(e)}
+      className="space-y-2 rounded-xl border border-border/60 bg-card p-4"
+    >
       <p className="text-xs text-muted-foreground">
         {required
           ? "Every other session of yours is signed out when you save."

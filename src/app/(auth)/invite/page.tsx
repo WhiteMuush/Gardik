@@ -39,7 +39,7 @@ function InviteForm() {
   }
 
   return (
-    <form onSubmit={submit} className="w-full max-w-sm space-y-3">
+    <form onSubmit={(e) => void submit(e)} className="w-full max-w-sm space-y-3">
       <div className="mb-6 flex items-center gap-2">
         <ShieldCheck className="size-5 text-primary" />
         <span className="text-base font-semibold text-foreground">Gardik</span>

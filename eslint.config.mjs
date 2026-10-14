@@ -10,4 +10,13 @@ export default defineConfig([
     files: ["**/*.{ts,tsx,mjs}"],
     rules: { "max-lines": ["error", { max: 200 }] },
   },
+  {
+    files: ["**/*.{ts,tsx}"],
+    languageOptions: { parserOptions: { projectService: true, tsconfigRootDir: import.meta.dirname } },
+    rules: {
+      "@typescript-eslint/no-floating-promises": "error",
+      "@typescript-eslint/no-misused-promises": "error",
+      "@typescript-eslint/switch-exhaustiveness-check": "error",
+    },
+  },
 ])

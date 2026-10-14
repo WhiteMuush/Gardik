@@ -114,7 +114,7 @@ export function reportCsv(section: CsvSection, d: ReportData): string {
       return trendsCsv(d)
     case "compliance":
       return complianceCsv(d)
-    default:
+    case "all":
       return [
         `Exposure\n${exposureCsv(d)}`,
         `Data types\n${dataTypesCsv(d)}`,

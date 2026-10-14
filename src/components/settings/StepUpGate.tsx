@@ -34,7 +34,10 @@ export function StepUpGate({ hasPassword, hasTwoFactor }: { hasPassword: boolean
   }
 
   return (
-    <form onSubmit={submit} className="max-w-sm space-y-3 rounded-xl border border-border/60 bg-card p-4">
+    <form
+      onSubmit={(e) => void submit(e)}
+      className="max-w-sm space-y-3 rounded-xl border border-border/60 bg-card p-4"
+    >
       <div className="flex items-center gap-2">
         <Lock className="size-4 text-muted-foreground" />
         <h3 className="text-sm font-medium text-foreground">Confirm it is you</h3>

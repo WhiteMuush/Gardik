@@ -114,7 +114,7 @@ export function Sidebar({ openAlerts, visible }: SidebarProps) {
         </Link>
         <button
           onClick={() =>
-            signOut({
+            void signOut({
               fetchOptions: { onSuccess: () => router.push("/login") },
             })
           }

@@ -44,7 +44,9 @@ export async function executeRemediation(
         ? oktaRevokeSessions(config, email)
         : oktaExpirePassword(config, email)
     }
-    default:
+    case "LDAP":
+    case "AWS_DIRECTORY":
+    case "SCIM":
       throw new Error(`${type} does not support remediation`)
   }
 }

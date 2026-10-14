@@ -155,8 +155,8 @@ export function AlertTable({
               a={a}
               pending={pending}
               canRemediate={remediationEnabled && isAdmin}
-              updateStatus={updateStatus}
-              remediate={remediate}
+              updateStatus={(id, next) => void updateStatus(id, next)}
+              remediate={(id, action, label) => void remediate(id, action, label)}
             />
           ))}
         </div>

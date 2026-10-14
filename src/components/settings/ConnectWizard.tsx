@@ -170,13 +170,13 @@ export function ConnectWizard({ onClose, onCreated }: Props) {
 
           <div className="flex gap-2">
             {step === "configure" && (
-              <Button size="sm" onClick={handleSave} disabled={saving || !name.trim()}>
+              <Button size="sm" onClick={() => void handleSave()} disabled={saving || !name.trim()}>
                 {saving && <Loader2 className="mr-1.5 size-3.5 animate-spin" />}
                 Save
               </Button>
             )}
             {step === "test" && !testResult?.ok && (
-              <Button size="sm" onClick={handleTest} disabled={testing}>
+              <Button size="sm" onClick={() => void handleTest()} disabled={testing}>
                 {testing && <Loader2 className="mr-1.5 size-3.5 animate-spin" />}
                 Test connection
               </Button>

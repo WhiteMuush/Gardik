@@ -7,7 +7,7 @@ export function Code({ children }: { children: string }) {
   const [copied, setCopied] = useState(false)
 
   function copy() {
-    navigator.clipboard.writeText(children)
+    void navigator.clipboard.writeText(children)
     setCopied(true)
     setTimeout(() => setCopied(false), 1500)
   }
