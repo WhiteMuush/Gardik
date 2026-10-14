@@ -16,7 +16,7 @@ else
     -e POSTGRES_USER="$DB_USER" \
     -e POSTGRES_PASSWORD="$DB_PASSWORD" \
     -e POSTGRES_DB="$DB_NAME" \
-    -p "$DB_PORT:5432" \
+    -p "127.0.0.1:$DB_PORT:5432" \
     -v "$DB_VOLUME:/var/lib/postgresql/data" \
     "$DB_IMAGE" >/dev/null
 fi

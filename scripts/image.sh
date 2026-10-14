@@ -55,7 +55,7 @@ up() {
   done
 
   "$CT_ENGINE" rm -f "$APP" >/dev/null 2>&1 || true
-  "$CT_ENGINE" run -d --name "$APP" --network "$NET" -p "$PORT:3000" --env-file "$STATE/app.env" \
+  "$CT_ENGINE" run -d --name "$APP" --network "$NET" -p "127.0.0.1:$PORT:3000" --env-file "$STATE/app.env" \
     -e BETTER_AUTH_URL="$URL" -e BOOTSTRAP_ADMIN_EMAIL=admin@example.com \
     "$IMAGE" >/dev/null
 
