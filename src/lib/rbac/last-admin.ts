@@ -19,5 +19,5 @@ export async function wouldOrphanAdmins(
     select: { id: true },
   })
   // Orphaned only if the sole remaining admin is exactly the user being demoted.
-  return admins.length === 1 && admins[0].id === userId
+  return admins.length === 1 && admins[0]?.id === userId
 }

@@ -14,9 +14,10 @@ const pageTitles: Record<string, string> = {
 }
 
 function getTitle(pathname: string): string {
-  if (pageTitles[pathname]) return pageTitles[pathname]
-  const match = Object.keys(pageTitles).find((k) => pathname.startsWith(k + "/"))
-  return match ? pageTitles[match] : "Gardik"
+  const exact = pageTitles[pathname]
+  if (exact) return exact
+  const match = Object.entries(pageTitles).find(([k]) => pathname.startsWith(k + "/"))
+  return match ? match[1] : "Gardik"
 }
 
 export function Topbar() {

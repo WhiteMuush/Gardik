@@ -79,9 +79,10 @@ export function buildAlertsByMonth(alerts: { createdAt: Date; severity: string }
 
   alerts.forEach(({ createdAt, severity }) => {
     const key = new Date(createdAt).toLocaleString("en-US", { month: "short", year: "2-digit" })
-    if (!(key in months)) return
+    const month = months[key]
+    if (!month) return
     const s = severity.toLowerCase() as "critical" | "high" | "medium" | "low"
-    if (s in months[key]) months[key][s]++
+    if (s in month) month[s]++
   })
 
   return Object.values(months)
@@ -133,7 +134,8 @@ export function buildAlertVelocity(alerts: { createdAt: Date }[]) {
 
   alerts.forEach(({ createdAt }) => {
     const key = new Date(createdAt).toLocaleDateString("en-US", { month: "short", day: "numeric" })
-    if (key in days) days[key]++
+    const count = days[key]
+    if (count !== undefined) days[key] = count + 1
   })
 
   return Object.entries(days).map(([day, count]) => ({ day, count }))

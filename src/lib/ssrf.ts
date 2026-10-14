@@ -5,7 +5,7 @@ import { lookup } from "dns/promises"
 function isPrivateV4(ip: string): boolean {
   const parts = ip.split(".")
   if (parts.length !== 4) return false
-  const [a, b] = parts.map((p) => Number(p))
+  const [a = NaN, b = NaN] = parts.map((p) => Number(p))
   if (parts.some((p) => p === "" || !/^\d+$/.test(p)) || [a, b].some(Number.isNaN)) return false
 
   if (a === 0) return true // "this network"
@@ -26,8 +26,8 @@ export function isPrivateAddress(ip: string): boolean {
     .replace(/^\[|\]$/g, "")
 
   // An IPv4-mapped v6 address reaches its v4 host, so it is unwrapped before the check.
-  const mapped = addr.match(/^::ffff:(\d+\.\d+\.\d+\.\d+)$/)
-  if (mapped) return isPrivateV4(mapped[1])
+  const mappedV4 = addr.match(/^::ffff:(\d+\.\d+\.\d+\.\d+)$/)?.[1]
+  if (mappedV4) return isPrivateV4(mappedV4)
 
   if (addr.includes(":")) {
     if (addr === "::" || addr === "::1") return true

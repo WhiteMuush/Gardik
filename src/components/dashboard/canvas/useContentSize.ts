@@ -8,7 +8,7 @@ export function useContentSize(ref: RefObject<HTMLElement | null>, axis: "width"
   useEffect(() => {
     const el = ref.current
     if (!el) return
-    const ro = new ResizeObserver((entries) => setSize(entries[0].contentRect[axis]))
+    const ro = new ResizeObserver(([entry]) => entry && setSize(entry.contentRect[axis]))
     ro.observe(el)
     return () => ro.disconnect()
   }, [ref, axis])

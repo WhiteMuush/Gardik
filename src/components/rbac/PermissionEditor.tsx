@@ -6,7 +6,7 @@ import { PERMISSIONS, type Permission } from "@/lib/rbac/permissions"
 function groupByDomain(): Record<string, Permission[]> {
   const groups: Record<string, Permission[]> = {}
   for (const p of PERMISSIONS) {
-    const domain = p.split(":")[0]
+    const domain = p.slice(0, p.indexOf(":"))
     ;(groups[domain] ??= []).push(p)
   }
   return groups

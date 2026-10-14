@@ -35,9 +35,10 @@ export function buildDirectoryConnection(input: DirectoryInput): ValidationResul
   const { type, name, config } = input
 
   if (!type || !name?.trim()) return { ok: false, error: "Missing fields" }
-  if (!(type in REQUIRED_FIELDS)) return { ok: false, error: `Invalid type: ${type}` }
+  const required = Object.hasOwn(REQUIRED_FIELDS, type) ? REQUIRED_FIELDS[type] : undefined
+  if (!required) return { ok: false, error: `Invalid type: ${type}` }
 
-  const missing = REQUIRED_FIELDS[type].filter((k) => !config?.[k])
+  const missing = required.filter((k) => !config?.[k])
   if (missing.length) return { ok: false, error: `Missing config fields: ${missing.join(", ")}` }
 
   const isSCIM = type === "SCIM"

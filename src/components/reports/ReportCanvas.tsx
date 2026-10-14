@@ -32,9 +32,10 @@ export function ReportCanvas({ sections }: { sections: ReportSectionEntry[] }) {
     const el = containerRef.current
     if (!el) return
     // Rounded and deduped, since sub-pixel jitter in a fitHeights dependency would loop forever.
-    const ro = new ResizeObserver((entries) => {
+    const ro = new ResizeObserver(([entry]) => {
+      if (!entry) return
       // Floored, since 1px too wide toggles a scrollbar that shrinks the container in a loop.
-      const w = Math.floor(entries[0].contentRect.width)
+      const w = Math.floor(entry.contentRect.width)
       // Ignore sub-2px wobble so a 1px layout ping-pong cannot drive a loop.
       setContainerW((prev) => (Math.abs(prev - w) < 2 ? prev : w))
     })

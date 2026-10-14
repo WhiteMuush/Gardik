@@ -32,7 +32,7 @@ export function Table({ cols, rows }: { cols: Col[]; rows: (string | number)[][]
       {rows.map((row, ri) => (
         <View key={ri} style={[s.row, ri % 2 === 1 ? s.rowZebra : {}]} wrap={false}>
           {row.map((cell, ci) => (
-            <Text key={ci} style={[s.cell, { flex: cols[ci].flex, textAlign: cols[ci].align ?? "left" }]}>
+            <Text key={ci} style={[s.cell, { flex: cols[ci]?.flex, textAlign: cols[ci]?.align ?? "left" }]}>
               {String(cell)}
             </Text>
           ))}

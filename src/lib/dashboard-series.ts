@@ -28,7 +28,8 @@ export function buildTrendData(records: BreachRecordRaw[], provider?: ApiProvide
   records.forEach(({ detectedAt, sources }) => {
     if (!matchesProvider(sources, provider)) return
     const key = new Date(detectedAt).toLocaleString("en-US", { month: "short", year: "2-digit" })
-    if (key in months) months[key]++
+    const count = months[key]
+    if (count !== undefined) months[key] = count + 1
   })
 
   return Object.entries(months).map(([month, count]) => ({ month, count }))
