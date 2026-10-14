@@ -78,7 +78,7 @@ describe("fetchAzureUsers", () => {
     })
 
     const [u] = await fetchAzureUsers(config)
-    expect(u.mfaEnabled).toBeUndefined()
+    expect(u?.mfaEnabled).toBeUndefined()
   })
 
   it("throws the identity platform message when the token is refused", async () => {

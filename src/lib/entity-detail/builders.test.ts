@@ -45,7 +45,7 @@ describe("employeeDetail", () => {
   it("returns null for an employee outside the company", async () => {
     db.employee.findFirst.mockResolvedValue(null)
     expect(await employeeDetail("e1", "c1")).toBeNull()
-    expect(db.employee.findFirst.mock.calls[0][0].where).toEqual({ id: "e1", companyId: "c1" })
+    expect(db.employee.findFirst.mock.calls[0]?.[0].where).toEqual({ id: "e1", companyId: "c1" })
   })
 
   it("summarises the employee, then one group per breach and the remediation log", async () => {
@@ -59,9 +59,9 @@ describe("employeeDetail", () => {
     ])
     const detail = await employeeDetail("e1", "c1")
     expect(detail).toMatchObject({ title: "Ada Vale", subtitle: "R&D", variant: "critical" })
-    expect(detail!.groups[0].fields).toContainEqual({ label: "MFA", value: "Unknown" })
+    expect(detail!.groups[0]?.fields).toContainEqual({ label: "MFA", value: "Unknown" })
     expect(detail!.groups[1]).toMatchObject({ heading: "Trello" })
-    expect(detail!.groups[1].fields).toContainEqual({
+    expect(detail!.groups[1]?.fields).toContainEqual({
       label: "Exposed data",
       value: "email addresses, names",
     })
@@ -90,7 +90,7 @@ describe("breachDetail", () => {
       ],
     })
     const detail = await breachDetail("b1", "c1")
-    expect(detail!.groups[0].fields).toContainEqual({ label: "Affected employees", value: 1 })
+    expect(detail!.groups[0]?.fields).toContainEqual({ label: "Affected employees", value: 1 })
     expect(detail!.groups.slice(1).map((g) => g.heading)).toEqual(["Ada Vale"])
     expect(detail!.tags).toEqual(["email addresses"])
   })
@@ -115,7 +115,7 @@ describe("alertDetail", () => {
     const detail = await alertDetail("a1", "c1")
     expect(detail).toMatchObject({ title: "Ada Vale", subtitle: "Trello", variant: "high" })
     expect(detail!.groups.map((g) => g.heading)).toEqual([undefined, "Ada Vale", "Trello"])
-    expect(detail!.groups[1].fields).toContainEqual({ label: "MFA", value: "Enabled" })
+    expect(detail!.groups[1]?.fields).toContainEqual({ label: "MFA", value: "Enabled" })
   })
 
   it("falls back to a generic title without an employee", async () => {

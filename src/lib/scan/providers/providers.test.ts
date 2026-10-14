@@ -117,6 +117,6 @@ describe("hibp", () => {
       vi.fn().mockResolvedValue(json([{ Name: "X", BreachDate: "2020-01-01", DataClasses: classes }]))
     )
     const [finding] = await hibp.lookup("a@b.c", "k")
-    expect(finding.dataTypes).toEqual(["password", "credit_card", "bank_account", "ssn", "email_addresses"])
+    expect(finding?.dataTypes).toEqual(["password", "credit_card", "bank_account", "ssn", "email_addresses"])
   })
 })

@@ -106,7 +106,7 @@ describe("runScan", () => {
         checked: false,
       },
     ])
-    expect(scanCheckUpsert.mock.calls[0][0].update).not.toHaveProperty("lastCheckedAt")
+    expect(scanCheckUpsert.mock.calls[0]?.[0].update).not.toHaveProperty("lastCheckedAt")
   })
 
   it("retries a rate-limited lookup, then records it as checked", async () => {
@@ -120,7 +120,7 @@ describe("runScan", () => {
 
     expect(lookup).toHaveBeenCalledTimes(2)
     expect(res.failedChecks).toBe(0)
-    expect(checkWrites()[0].status).toBe("CHECKED")
+    expect(checkWrites()[0]?.status).toBe("CHECKED")
   })
 
   it("gives up after the retry budget and says why", async () => {

@@ -71,7 +71,7 @@ describe("buildBreachSources", () => {
   it("drops breaches with no record from the chosen provider", () => {
     const out = buildBreachSources(catalog, "HIBP")
     expect(out.map((b) => b.id)).toEqual(["b1"])
-    expect(out[0].affectedEmployees).toBe(1)
+    expect(out[0]?.affectedEmployees).toBe(1)
   })
   it("keeps only matching records in the affected count", () => {
     const out = buildBreachSources(catalog, "DEHASHED")

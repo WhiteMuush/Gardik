@@ -13,7 +13,7 @@ describe("issueInvitation", () => {
 
     const rows = await prisma.userInvitation.findMany({ where: { userId: user.id } })
     expect(rows).toHaveLength(1)
-    expect(rows[0].tokenHash).toBe(hashToken(token))
+    expect(rows[0]?.tokenHash).toBe(hashToken(token))
     expect(JSON.stringify(rows)).not.toContain(token)
   })
 

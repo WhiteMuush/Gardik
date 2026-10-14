@@ -20,6 +20,6 @@ describe("audit read (real DB)", () => {
       orderBy: { createdAt: "desc" },
       take: 1,
     })
-    expect(rows[0].targetId).toBe("probe")
+    expect(rows[0]?.targetId).toBe("probe")
   })
 })

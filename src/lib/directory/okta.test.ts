@@ -48,8 +48,8 @@ describe("fetchOktaUsers MFA enrichment", () => {
     })
 
     const [user] = await fetchOktaUsers(config)
-    expect(user.email).toBe("a@x.com")
-    expect(user.mfaEnabled).toBe(true)
+    expect(user?.email).toBe("a@x.com")
+    expect(user?.mfaEnabled).toBe(true)
   })
 
   it("leaves MFA unknown when the factors call fails", async () => {
@@ -68,7 +68,7 @@ describe("fetchOktaUsers MFA enrichment", () => {
     })
 
     const [user] = await fetchOktaUsers(config)
-    expect(user.mfaEnabled).toBeUndefined()
+    expect(user?.mfaEnabled).toBeUndefined()
   })
 })
 
@@ -80,7 +80,7 @@ describe("fetchOktaUsers", () => {
     )
     const users = await fetchOktaUsers(config)
     expect(users.map((u) => u.email)).toEqual(["a@x.com", "b@x.com"])
-    expect(String(fetch.mock.calls[0][0])).toContain('filter=status+eq+"ACTIVE"')
+    expect(String(fetch.mock.calls[0]?.[0])).toContain('filter=status+eq+"ACTIVE"')
   })
 
   it("falls back to the login only when it is an email", async () => {

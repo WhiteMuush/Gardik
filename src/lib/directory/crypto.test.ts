@@ -28,7 +28,7 @@ describe("crypto config encryption", () => {
   it("rejects a tampered ciphertext via the GCM auth tag", () => {
     const enc = encryptConfig({ x: 1 })
     const buf = Buffer.from(enc, "base64")
-    buf[buf.length - 1] ^= 0xff
+    buf[buf.length - 1]! ^= 0xff
     expect(() => decryptConfig(buf.toString("base64"))).toThrow()
   })
 

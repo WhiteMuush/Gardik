@@ -22,7 +22,7 @@ function source(id: "HIBP" | "LEAKCHECK", fail: boolean): ActiveProvider {
       source: id === "HIBP" ? "HIBP" : "DARK_WEB",
       defaultRatePerMinute: 60_000,
       async lookup(email) {
-        lookups[id].push(email)
+        lookups[id]?.push(email)
         if (fail) throw new ProviderError(`${id} error 401`, 401)
         return []
       },

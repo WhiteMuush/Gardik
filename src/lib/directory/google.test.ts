@@ -33,7 +33,7 @@ function mockFetch(...routes: Route[]) {
 
 function assertionClaims(fetch: ReturnType<typeof mockFetch>) {
   const body = fetch.mock.calls.find(([u]) => String(u).includes("oauth2"))?.[1]?.body as URLSearchParams
-  const [, payload] = String(body.get("assertion")).split(".")
+  const [, payload = ""] = String(body.get("assertion")).split(".")
   return JSON.parse(Buffer.from(payload, "base64url").toString())
 }
 
@@ -80,7 +80,7 @@ describe("fetchGoogleUsers", () => {
     const users = await fetchGoogleUsers(config)
     expect(users).toHaveLength(2)
     expect(users[0]).toMatchObject({ department: "Sales", mfaEnabled: false })
-    expect(users[1].mfaEnabled).toBeUndefined()
+    expect(users[1]?.mfaEnabled).toBeUndefined()
   })
 
   it("signs a read-only assertion that impersonates the delegated admin", async () => {

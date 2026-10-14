@@ -55,8 +55,8 @@ describe("POST /api/users/[id]/invite", () => {
 
     const stored = await prisma.userInvitation.findMany({ where: { userId: target.id } })
     expect(stored).toHaveLength(1)
-    expect(stored[0].createdByUserId).toBe(ctx.adminId)
-    expect(stored[0].consumedAt).toBeNull()
+    expect(stored[0]?.createdByUserId).toBe(ctx.adminId)
+    expect(stored[0]?.consumedAt).toBeNull()
 
     const audit = await prisma.auditLog.findFirst({
       where: { targetId: target.id, action: AUDIT_ACTIONS.USER_INVITE },
@@ -87,7 +87,7 @@ describe("POST /api/users/[id]/invite", () => {
 
     const stored = await prisma.userInvitation.findMany({ where: { userId: target.id } })
     expect(stored).toHaveLength(1)
-    expect(stored[0].consumedAt).not.toBeNull()
+    expect(stored[0]?.consumedAt).not.toBeNull()
   })
 
   it("never returns the link when email is configured", async () => {
