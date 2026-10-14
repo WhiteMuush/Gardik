@@ -7,8 +7,7 @@ import { auth } from "@/lib/auth/server"
 import { writeAudit, AUDIT_ACTIONS } from "@/lib/rbac/audit"
 import { findCompanyProvider, takeOwnership } from "@/lib/sso/provider"
 
-// Mirrors the plugin's getVerificationIdentifier: an underscore is prepended to
-// follow RFC 8552, and the providerId is appended.
+// Mirrors the plugin's getVerificationIdentifier: an RFC 8552 underscore prefix, then the providerId.
 function recordName(providerId: string, domain: string): string {
   return `_better-auth-token-${providerId}.${domain}`
 }
@@ -51,14 +50,7 @@ export async function PUT() {
       headers: await headers(),
     })
   } catch (err) {
-    // The plugin throws APIError("BAD_GATEWAY") only when the TXT record is
-    // absent or stale (index.mjs verifyDomain, resolveTxt branch). DNS
-    // propagation is the usual cause, so say that instead of "bad gateway".
-    // Every other plugin error (already verified -> CONFLICT, no pending
-    // verification -> NOT_FOUND, invalid domain/identifier -> BAD_REQUEST,
-    // dns module failure -> INTERNAL_SERVER_ERROR) carries its own real
-    // status and message, so it is surfaced as-is instead of being folded
-    // into this DNS-specific message.
+    // BAD_GATEWAY only means a missing or stale TXT record, so DNS propagation is named; other errors pass through.
     if (isAPIError(err) && err.status === "BAD_GATEWAY") {
       return NextResponse.json(
         { error: "The DNS record was not found yet. Propagation can take up to an hour." },

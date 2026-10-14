@@ -16,10 +16,7 @@ export async function GET() {
     orderBy: { name: "asc" },
   })
 
-  // grantable answers "would the server let me hand this out", so a picker can
-  // offer exactly what will be accepted. The server decides; the client only
-  // renders the answer. Not a substitute for the check on the write paths,
-  // which is where the rule is actually enforced.
+  // `grantable` lets a picker offer what the server accepts; the write paths still enforce the rule.
   const actorPerms = await getUserPermissions(prisma, session.user.roleId ?? null)
   return NextResponse.json({
     roles: roles.map((role) => ({
@@ -82,10 +79,7 @@ export async function POST(req: Request) {
     })
     return NextResponse.json({ role }, { status: 201 })
   } catch (e) {
-    // Unique (companyId, name) collision is the only expected failure here;
-    // any other error (e.g. the audit write failing) should surface as a 500
-    // rather than be mis-reported as a name collision, and create+audit stay
-    // atomic via the transaction above.
+    // Only a (companyId, name) collision is expected; any other error surfaces as a 500.
     if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
       return NextResponse.json({ error: "A role with that name already exists" }, { status: 409 })
     }

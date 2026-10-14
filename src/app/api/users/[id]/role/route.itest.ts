@@ -5,8 +5,7 @@ import { VIEWER_ROLE } from "@/lib/rbac/presets"
 import { getUserPermissions } from "@/lib/rbac/authorize"
 import { excessPermissions } from "@/lib/rbac/escalation"
 
-// Guards the assignment math against real data: the Viewer preset holds only
-// read permissions, so any admin can assign it without escalation.
+// The Viewer preset holds only read permissions, so any admin can assign it without escalation.
 describe("role assignment invariants (real DB)", () => {
   it("Viewer's permissions are a subset of the admin's", async () => {
     const admin = await prisma.user.findUniqueOrThrow({
