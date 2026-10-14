@@ -15,12 +15,7 @@ import { MfaCoverage } from "@/components/dashboard/MfaCoverage"
 import type { WidgetContext } from "./widget-context"
 
 // Widgets hidden by default, added from the Widget Library.
-export function libraryWidgets({
-  data,
-  gatedRecords,
-  gatedCatalog,
-  sourceFor,
-}: WidgetContext): WidgetEntry[] {
+export function libraryWidgets({ data, sourceFor }: WidgetContext): WidgetEntry[] {
   return [
     {
       instanceId: "risk-gauge",
@@ -93,7 +88,7 @@ export function libraryWidgets({
       minSize: { w: 2, h: 4 },
       defaultVisible: false,
       content: (
-        <BreachSourceDonut data={buildBreachSources(gatedCatalog, sourceFor("breach-source-donut"))} />
+        <BreachSourceDonut data={buildBreachSources(data.breachCatalog, sourceFor("breach-source-donut"))} />
       ),
     },
     {
@@ -103,7 +98,7 @@ export function libraryWidgets({
       defaultSize: { w: 4, h: 8 },
       minSize: { w: 3, h: 5 },
       defaultVisible: false,
-      content: <BreachTimeline data={buildBreachSources(gatedCatalog, sourceFor("breach-timeline"))} />,
+      content: <BreachTimeline data={buildBreachSources(data.breachCatalog, sourceFor("breach-timeline"))} />,
     },
     {
       instanceId: "top-breaches",
@@ -112,7 +107,7 @@ export function libraryWidgets({
       defaultSize: { w: 5, h: 6 },
       minSize: { w: 3, h: 4 },
       defaultVisible: false,
-      content: <TopBreaches data={buildBreachSources(gatedCatalog, sourceFor("top-breaches"))} />,
+      content: <TopBreaches data={buildBreachSources(data.breachCatalog, sourceFor("top-breaches"))} />,
     },
     {
       instanceId: "data-type-radar",
@@ -121,7 +116,7 @@ export function libraryWidgets({
       defaultSize: { w: 4, h: 6 },
       minSize: { w: 3, h: 4 },
       defaultVisible: false,
-      content: <DataTypeRadar data={buildDataTypes(gatedRecords, sourceFor("data-type-radar"))} />,
+      content: <DataTypeRadar data={buildDataTypes(data.breachRecordsRaw, sourceFor("data-type-radar"))} />,
     },
     {
       instanceId: "mfa-coverage",
