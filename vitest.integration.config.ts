@@ -1,5 +1,9 @@
 import { defineConfig } from "vitest/config"
+import { existsSync } from "node:fs"
 import { fileURLToPath } from "node:url"
+
+// Locally the database comes from .env.local, while CI sets the variables itself.
+if (existsSync(".env.local")) process.loadEnvFile(".env.local")
 
 export default defineConfig({
   resolve: {

@@ -42,7 +42,7 @@ Follow [Conventional Commits](https://www.conventionalcommits.org/), same rules 
 
 Run `make check` before every push, and push only when it passes:
 
-- it runs `npm run check` (lint, format, types, Prisma schema, unit tests with the coverage floor, knip, version consistency, licenses, production audit, ASCII, gitleaks, shellcheck, Trivy config, commit content of the branch), then the production build without real secrets;
+- it runs `npm run check` (lint, format, types, Prisma schema, unit tests with the coverage floor, knip, version consistency, licenses, production audit, ASCII, gitleaks, shellcheck, Trivy config, commit content of the branch), then the integration tests and the schema drift check against the local database (`make db-up`), then the production build without real secrets;
 - the pre-push hook only runs `npm run check`, so it does not replace `make check`.
 
 Also:
