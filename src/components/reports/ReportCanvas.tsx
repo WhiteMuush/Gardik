@@ -31,14 +31,9 @@ export function ReportCanvas({ sections }: { sections: ReportSectionEntry[] }) {
   useEffect(() => {
     const el = containerRef.current
     if (!el) return
-    // Round and dedupe: contentRect.width is fractional and jitters by
-    // sub-pixels as tiles auto-fit, and containerW is a dependency of the
-    // fitHeights effect. An unrounded value changes every render and feeds an
-    // endless update loop (Maximum update depth exceeded).
+    // Rounded and deduped, since sub-pixel jitter in a fitHeights dependency would loop forever.
     const ro = new ResizeObserver((entries) => {
-      // Floor (never round up): the grid is rendered at width=containerW, and a
-      // value 1px wider than the container overflows horizontally, toggling a
-      // scrollbar that shrinks the container, which feeds an endless loop.
+      // Floored, since 1px too wide toggles a scrollbar that shrinks the container in a loop.
       const w = Math.floor(entries[0].contentRect.width)
       // Ignore sub-2px wobble so a 1px layout ping-pong cannot drive a loop.
       setContainerW((prev) => (Math.abs(prev - w) < 2 ? prev : w))
@@ -47,16 +42,11 @@ export function ReportCanvas({ sections }: { sections: ReportSectionEntry[] }) {
     return () => ro.disconnect()
   }, [])
 
-  // Grow each tile to fit its content so nothing is clipped (RGL cells are
-  // fixed height). Only grows: a user resize larger than the content is kept.
-  // Also records each section's content-fit row count so it becomes a hard
-  // resize floor (minH): the handle stops at content height, no snap-back.
+  // Fits each tile to its content and records that height as the resize floor (minH).
   const fitHeights = useCallback(() => {
     const neededH = new Map<string, number>()
     contentEls.current.forEach((node, id) => {
-      // Measure the natural-height probe, not the cell-filling node, so the
-      // floor reflects the intrinsic content height and a manual grow does not
-      // raise the floor (which would block shrinking back down).
+      // Measures the natural-height probe, so a manual grow never raises the floor.
       const probe = (node.querySelector("[data-measure]") as HTMLElement | null) ?? node
       neededH.set(id, rowsForPx(probe.scrollHeight))
     })
@@ -75,9 +65,7 @@ export function ReportCanvas({ sections }: { sections: ReportSectionEntry[] }) {
       let changed = false
       const next = prev.map((l) => {
         const nh = neededH.get(l.i)
-        // Height auto-fits content (grow and shrink) so there is never dead
-        // space below short content. Safe from feedback loops because the
-        // measurement reads the intrinsic probe, not the cell-sized node.
+        // Grows and shrinks to content, loop-free because the probe is not the cell-sized node.
         if (nh !== undefined && nh !== l.h) {
           changed = true
           return { ...l, h: nh }
@@ -88,13 +76,7 @@ export function ReportCanvas({ sections }: { sections: ReportSectionEntry[] }) {
     })
   }, [])
 
-  // Content height only changes with width (container queries reflow on the
-  // tile width). Re-measure when widths change, never via a continuous
-  // ResizeObserver: height is intentionally NOT a dependency, so fitHeights
-  // setting h cannot retrigger this effect. That makes the auto-fit
-  // loop-free by construction (previous versions oscillated forever).
-  // The measurement runs in the next animation frame rather than in the effect
-  // body, so its state updates land as one batch before that frame paints.
+  // Re-measures on width changes only, never height, in the next frame so the auto-fit cannot loop.
   const widthSig = layout.map((l) => `${l.i}:${l.w}`).join("|")
   const hiddenSig = hidden.join(",")
   useEffect(() => {
@@ -134,12 +116,7 @@ export function ReportCanvas({ sections }: { sections: ReportSectionEntry[] }) {
   }
 
   const reset = () => {
-    // Seed the default layout with the heights already measured for each
-    // section so rows are packed at their true height from the start (no
-    // collapse-to-DEFAULT_H then regrow, no transient overlap that RGL would
-    // resolve by shoving tiles around). Keep minHeights as-is and bump the
-    // nonce so fitHeights still re-measures and corrects any width-dependent
-    // drift on the next frame.
+    // Seeds measured heights so rows pack at their true height, and the nonce still forces a re-measure.
     const l = buildDefaultLayout(sections, (id) => minHeights[id])
     setLayout(l)
     setHidden([])
@@ -158,9 +135,7 @@ export function ReportCanvas({ sections }: { sections: ReportSectionEntry[] }) {
         reset={reset}
       />
 
-      {/* Grid. react-grid-layout (same engine as the dashboard): drag is bounded
-          to the container, vertical compaction backfills holes, and tiles keep
-          their real size. Drag is limited to the explicit handle. */}
+      {/* Same grid engine as the dashboard, with drag bounded to the container and limited to the handle. */}
       <div
         ref={containerRef}
         className={cn("no-print", editing && "select-none [&_.react-resizable-handle]:block")}
