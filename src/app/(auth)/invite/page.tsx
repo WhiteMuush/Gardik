@@ -7,10 +7,7 @@ import { ShieldCheck } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { MIN_PASSWORD_LENGTH } from "@/lib/auth/invitation"
 
-// The invitee has no session yet, so this page is public. It never states
-// whether the token is real before a password is submitted: the answer comes
-// from the server in one uniform message, which keeps the page from being a
-// way to test tokens.
+// Public page that never says whether the token is real; the server answers with one uniform message.
 function InviteForm() {
   const router = useRouter()
   const token = useSearchParams().get("token") ?? ""
@@ -37,8 +34,7 @@ function InviteForm() {
       setError(((await res.json().catch(() => ({}))) as { error?: string }).error ?? "Failed")
       return
     }
-    // No session is issued by the accept endpoint, so the user signs in
-    // normally and meets whatever 2FA or SSO policy their company enforces.
+    // Accepting issues no session, so the user signs in normally and meets the company's 2FA and SSO policy.
     router.push("/login?invited=1")
   }
 

@@ -5,12 +5,7 @@ import { writeAudit, AUDIT_ACTIONS } from "@/lib/rbac/audit"
 
 type Params = { params: Promise<{ id: string }> }
 
-// Forces a rotation: the user keeps their current password just long enough to
-// sign in, and can do nothing else until they have replaced it. Existing
-// sessions are dropped in the same transaction, which is what makes this useful
-// after a suspected compromise and also what guarantees the flag is seen: a
-// session issued before the flag existed would otherwise carry stale data until
-// it expired.
+// Forces a rotation and drops sessions in the same transaction, so the flag is seen and an intruder is cut off.
 export async function POST(_req: Request, { params }: Params) {
   const { session, error } = await requirePermission("users:manage")
   if (error) return error
@@ -30,8 +25,7 @@ export async function POST(_req: Request, { params }: Params) {
     return NextResponse.json({ error: "Not found" }, { status: 404 })
   }
 
-  // An SSO-only account has no password to rotate, and flagging it would strand
-  // the user on a form they cannot complete.
+  // An SSO-only account has no password to rotate, and flagging it would strand the user.
   if (target.accounts.length === 0) {
     return NextResponse.json(
       { error: "This account signs in through the identity provider and has no password" },

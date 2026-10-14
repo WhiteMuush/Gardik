@@ -9,11 +9,7 @@ import { appBaseUrl } from "@/lib/appUrl"
 
 type Params = { params: Promise<{ id: string }> }
 
-// Issues a single-use link that lets somebody set their own first password.
-// Deliberately not "generate a temporary password and show it to the admin":
-// that hands a working credential to a second person, leaves it sitting in
-// whatever channel carried it, and makes every later action by that account
-// deniable. Nobody but the invitee ever learns the password chosen here.
+// A single-use link, so nobody but the invitee ever learns the password, unlike a temporary one.
 export async function POST(_req: Request, { params }: Params) {
   const { session, error } = await requirePermission("users:manage")
   if (error) return error
@@ -33,9 +29,7 @@ export async function POST(_req: Request, { params }: Params) {
     return NextResponse.json({ error: "Not found" }, { status: 404 })
   }
 
-  // Handing out a password path the sign-in policy then refuses would produce
-  // an account that cannot be used and a live token that grants nothing but
-  // still deserves to be stolen. Refuse up front instead.
+  // Refused when the sign-in policy forbids passwords, since the token would grant nothing yet be worth stealing.
   if (deniesLocalSignIn(target.company, target)) {
     return NextResponse.json(
       { error: "This company requires signing in through its identity provider" },
@@ -43,9 +37,7 @@ export async function POST(_req: Request, { params }: Params) {
     )
   }
 
-  // Same bar as assigning an administrator role: an invitation ends in working
-  // credentials for an account, so a hijacked admin session should not be
-  // enough on its own.
+  // Step-up required, as for an admin role, since an invitation ends in working credentials.
   const gate = await assertStepUp(session.user.id)
   if (gate) return gate
 
@@ -71,8 +63,7 @@ export async function POST(_req: Request, { params }: Params) {
     if (await sendInvitation(target.email, link, expiresAt)) {
       return NextResponse.json({ ok: true, delivered: "email", expiresAt })
     }
-    // The link exists but reached nobody. Retire it rather than leave a live
-    // token whose only copy is in a log somewhere.
+    // Undelivered, so the link is retired rather than left live in a log.
     await prisma.userInvitation.updateMany({
       where: { userId: target.id, consumedAt: null },
       data: { consumedAt: new Date() },
@@ -80,9 +71,7 @@ export async function POST(_req: Request, { params }: Params) {
     return NextResponse.json({ error: "Could not send the invitation email" }, { status: 502 })
   }
 
-  // No mail provider configured. Returning the link to the caller is a weaker
-  // arrangement (the administrator sees a credential-bearing URL), so it is
-  // confined to non-production: a deployment must configure email.
+  // Without a mail provider the link goes back to the admin, which production refuses.
   if (process.env.NODE_ENV === "production") {
     return NextResponse.json(
       { error: "Email delivery is not configured on this deployment" },

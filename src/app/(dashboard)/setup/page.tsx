@@ -6,9 +6,7 @@ import { visiblePages } from "@/lib/rbac/page-permissions"
 import { SetupChecklist } from "@/components/dashboard/SetupChecklist"
 import { SecuritySettings } from "@/components/settings/SecuritySettings"
 
-// Onboarding only. The security blocks below now have a permanent home at
-// /settings, so this page no longer needs the enroll=2fa escape that used to
-// keep it reachable after onboarding was over.
+// Onboarding only, since the security blocks now live on /security.
 export default async function SetupPage() {
   const session = await getSession()
   const companyId = session!.user.companyId
@@ -20,8 +18,7 @@ export default async function SetupPage() {
     prisma.apiCredential.count({ where: { companyId } }),
   ])
 
-  // Onboarding is over. Through the root, because a role that reaches this
-  // page is not guaranteed to hold dashboard:read.
+  // Onboarding is over; through the root, since this role may not hold dashboard:read.
   if (employeeCount > 0 || apiKeyCount > 0) redirect("/")
 
   return (

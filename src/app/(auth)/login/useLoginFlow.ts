@@ -83,8 +83,7 @@ export function useLoginFlow(ssoCode: string | string[] | undefined) {
     setSsoChecked(false)
   }
 
-  // Anti-lockout escape hatch: ssoExempt users skip the lookup to reach the password step, the server
-  // still enforces the policy, and without it ssoExempt is unreachable, so do not remove it.
+  // Anti-lockout path for ssoExempt users, who cannot reach the password step without it; the server still enforces policy.
   function usePasswordInstead() {
     const input = emailInputRef.current
     if (!input || !input.checkValidity()) {

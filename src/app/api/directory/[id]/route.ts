@@ -11,8 +11,7 @@ function parseInterval(value: unknown): number | null | undefined {
   return undefined // invalid
 }
 
-// Set the auto-sync cadence for a connection. SCIM is push-based, so it cannot
-// be put on a pull schedule.
+// SCIM is push-based, so it cannot be put on a pull schedule.
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
   const { session, error } = await requirePermission("connectors:manage")
   if (error) return error

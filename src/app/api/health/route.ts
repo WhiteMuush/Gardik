@@ -1,8 +1,7 @@
 import { NextResponse } from "next/server"
 import { prisma } from "@/lib/prisma"
 
-// Liveness + DB readiness probe. Unauthenticated and side-effect free: it only
-// confirms the process is up and can reach the database. No PII or secrets.
+// Unauthenticated liveness and DB readiness probe, side-effect free and without PII.
 export async function GET() {
   try {
     await prisma.$queryRaw`SELECT 1`

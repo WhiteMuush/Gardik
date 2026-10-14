@@ -6,25 +6,12 @@ import { rateLimit } from "@/lib/rateLimit"
 import { verifyPassword } from "@/lib/rbac/step-up"
 import { passwordProblem } from "@/lib/auth/invitation"
 
-// Setting a new password, and only as part of a rotation an administrator has
-// required. Changing a password at will is not a self-service action in this
-// product: a user who wants a new one asks an administrator, who requires the
-// rotation, which is what unlocks this endpoint for them.
-//
-// That rule is enforced here rather than by leaving the form out of the
-// interface. A control that exists only in the UI is not a control: the request
-// this route answers can be made with any HTTP client.
-//
-// Deliberately not behind requireAuth either: that guard refuses every call
-// from a user under a forced rotation, which is precisely who calls this. It
-// authenticates on its own terms and re-checks the current password, so a
-// stolen session cookie alone cannot lock the real owner out.
+// Only under an admin-required rotation, enforced here; it skips requireAuth, which refuses exactly these users.
 export async function POST(req: Request) {
   const session = await getSession()
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
 
-  // Bounds the guessing of the current password through this endpoint, which
-  // sits outside Better Auth's own rate limiting.
+  // Bounds guessing of the current password, since this route sits outside Better Auth's rate limiting.
   if (!(await rateLimit(`password-change:${session.user.id}`, 5, 60_000))) {
     return NextResponse.json({ error: "Too many attempts" }, { status: 429 })
   }
@@ -71,9 +58,7 @@ export async function POST(req: Request) {
       where: { id: session.user.id },
       data: { mustChangePassword: false },
     })
-    // Every other session dies with the old password. The one making this call
-    // survives, so the user is not thrown back to the login screen for doing
-    // the right thing.
+    // Every other session dies with the old password, but the caller's survives.
     await tx.session.deleteMany({
       where: { userId: session.user.id, token: { not: currentSessionToken } },
     })

@@ -50,9 +50,7 @@ export async function POST(req: Request) {
 
   const providerId = `sso-${session.user.companyId}`
 
-  // Registered without organizationId on purpose: the plugin looks up a `member`
-  // row whenever the body carries one, and that query is not guarded by
-  // hasPlugin("organization"). Our schema has no such model, so it would throw.
+  // No organizationId, since the plugin would then query a `member` model our schema lacks.
   await auth.api.registerSSOProvider({
     body: {
       providerId,

@@ -13,8 +13,7 @@ function parseInterval(value: unknown): number | null | undefined {
   return undefined
 }
 
-// Update company-wide settings: auto-scan cadence (null disables scheduled
-// scans) and/or the per-employee risk weights.
+// Updates the auto-scan cadence (null disables it) and/or the per-employee risk weights.
 export async function PATCH(req: Request) {
   const { session, error } = await requirePermission("policy:manage")
   if (error) return error
