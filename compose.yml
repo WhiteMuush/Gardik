@@ -17,7 +17,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
       POSTGRES_DB: ${POSTGRES_DB:-gardik}
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     volumes:
       - .:/app
       - /app/node_modules
@@ -36,7 +36,7 @@ services:
     # too. Set POSTGRES_PORT if 5432 is already taken on the host. In-container
     # the app still reaches it as db:5432 over the compose network.
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
     volumes:
       - gardik-db-data:/var/lib/postgresql/data
     healthcheck:
