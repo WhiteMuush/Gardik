@@ -5,11 +5,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { MIN_PASSWORD_LENGTH } from "@/lib/auth/invitation"
 
-// Only ever rendered on the pre-dashboard gate. Changing a password is not a
-// self-service action in this product: a user who wants a new one asks an
-// administrator, who requires a rotation, which is what brings them here. The
-// API enforces that too, so the rule does not depend on this component being
-// the only caller.
+// Only on the pre-dashboard gate, since a change needs an admin-required rotation, which the API enforces.
 export function PasswordChange({ required, continueTo }: { required: boolean; continueTo: string }) {
   const [currentPassword, setCurrentPassword] = useState("")
   const [newPassword, setNewPassword] = useState("")
@@ -35,8 +31,7 @@ export function PasswordChange({ required, continueTo }: { required: boolean; co
       setError(((await res.json().catch(() => ({}))) as { error?: string }).error ?? "Failed")
       return
     }
-    // Full navigation, not a router push: the flag lives on the session and the
-    // gate re-reads it to decide what is still owed.
+    // Full navigation, since the gate re-reads the session flag to decide what is still owed.
     window.location.assign(continueTo)
   }
 

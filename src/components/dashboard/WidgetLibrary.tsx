@@ -34,10 +34,7 @@ export function WidgetLibrary({
   preset: DashboardPreset
   allWidgets: WidgetDef[]
   widgetPreviews: Record<string, ReactNode>
-  /**
-   * Paths this role may open. Reaching this page needs dashboard:customize,
-   * which does not imply dashboard:read, so the way back is not guaranteed.
-   */
+  // Paths this role may open, since dashboard:customize does not imply dashboard:read.
   visible: string[]
 }) {
   const [metas, setMetas] = useState<WidgetMeta[]>(preset.widgets)

@@ -2,8 +2,7 @@
 
 import { useMemo, useState, useSyncExternalStore } from "react"
 
-// A save in this tab does not fire the storage event, so readers of the same
-// key are notified by hand; the event still covers other tabs.
+// A save fires no storage event in its own tab, so readers of the key are notified by hand.
 const listeners = new Set<() => void>()
 
 function subscribe(onChange: () => void) {
@@ -17,8 +16,7 @@ function subscribe(onChange: () => void) {
 
 export function useWidgetConfig<T>(widgetId: string, defaultValue: T): [T, (value: T) => void] {
   const key = `gardik-widget-${widgetId}`
-  // Callers pass a fresh literal on every render. Pinning the first one keeps
-  // config referentially stable while nothing is saved.
+  // Pins the first fallback, since callers pass a fresh literal each render.
   const [fallback] = useState(defaultValue)
   const raw = useSyncExternalStore(
     subscribe,

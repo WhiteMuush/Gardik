@@ -65,8 +65,7 @@ describe("squeezeResize", () => {
   })
 
   it("makes the evicted widget squeeze its landing row instead of pushing it down", () => {
-    // a + b on top, c spans the full width below. Growing a evicts b (minW 4
-    // won't fit the 3 leftover cols); b lands on c's row, so c must shrink to share.
+    // Growing a evicts b (minW 4 cannot fit 3 columns), so b lands on c's row and c shrinks to share.
     const stacked = [
       { i: "a", x: 0, y: 0, w: 6, h: 4, minW: 2, minH: 2 },
       { i: "b", x: 6, y: 0, w: 6, h: 4, minW: 4, minH: 2 },
@@ -79,8 +78,7 @@ describe("squeezeResize", () => {
   })
 
   it("leaves a stacked widget for vertical compaction on vertical grow, no squeeze", () => {
-    // a taller; c is stacked directly below it, b sits beside. Neither width changes,
-    // c keeps its slot here (the caller's vertical compaction pushes it down).
+    // a grows with c below and b beside; c keeps its slot, as the caller's compaction pushes it down.
     const col = [
       { i: "a", x: 0, y: 0, w: 6, h: 4, minW: 2, minH: 2 },
       { i: "b", x: 6, y: 0, w: 6, h: 4, minW: 2, minH: 2 },

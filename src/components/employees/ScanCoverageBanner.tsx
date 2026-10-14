@@ -11,8 +11,7 @@ type Props = {
   className?: string
 }
 
-// Shown while any configured source has employees it failed or never checked,
-// so an empty breach list is never read as "nothing leaked".
+// Shown while a configured source has unchecked employees, so an empty list never reads as "nothing leaked".
 export function ScanCoverageBanner({ coverage, canScan, className }: Props) {
   const incomplete = coverage.filter((c) => c.failed > 0 || c.neverChecked > 0)
   if (!incomplete.length) return null
