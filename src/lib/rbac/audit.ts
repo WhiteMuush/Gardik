@@ -2,9 +2,7 @@ import type { PrismaClient, Prisma } from "@prisma/client"
 
 type Db = Pick<PrismaClient, "auditLog">
 
-// Closed vocabulary of audited actions. Kept as constants so call sites cannot
-// typo an action string and so a later reader (audit UI, SIEM) can switch on a
-// known set. SSO and policy actions get appended by their own plans.
+// Closed set of audited actions, so call sites cannot typo one and readers (audit UI, SIEM) can switch on it.
 export const AUDIT_ACTIONS = {
   ROLE_CREATE: "role.create",
   ROLE_UPDATE: "role.update",
@@ -33,9 +31,7 @@ export type AuditEntry = {
   ip?: string | null
 }
 
-// Append-only: this is the ONLY writer, and there is no update or delete path.
-// before/after are stored as JSON snapshots so a reviewer can see what changed
-// without joining to a possibly-since-deleted row.
+// The only writer, append-only, with before/after snapshots so a change reads without joining a deleted row.
 export async function writeAudit(db: Db, entry: AuditEntry): Promise<void> {
   await db.auditLog.create({
     data: {

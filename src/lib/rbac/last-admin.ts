@@ -2,10 +2,7 @@ import type { PrismaClient } from "@prisma/client"
 
 type Db = Pick<PrismaClient, "user" | "role">
 
-// A company must always keep at least one user who can manage roles, or it locks
-// itself out of RBAC entirely. "Admin" here means "holds roles:manage", which the
-// Administrator preset does. Returns true when moving `userId` to `newRoleId`
-// would drop the count of such users to zero.
+// True when moving `userId` to `newRoleId` leaves nobody holding roles:manage, locking the company out of RBAC.
 export async function wouldOrphanAdmins(
   db: Db,
   companyId: string,

@@ -1,14 +1,6 @@
 import type { Permission } from "./permissions"
 
-// Every dashboard page and the permission needed to open it. The API side has
-// had this since the beginning (see route-permissions.ts); pages did not, and
-// most of them only used their permission to decide what to draw. Typing the
-// path into the address bar reached the page anyway, loaded the company's data
-// server-side, and rendered a read-only view of things the role was never
-// granted.
-//
-// "AUTH_ONLY" means any signed-in user of the company: pages about the caller's
-// own account rather than the company's data.
+// Every dashboard page and its permission, where "AUTH_ONLY" means any signed-in user (own-account pages).
 export const PAGE_PERMISSIONS: Record<string, Permission | "AUTH_ONLY"> = {
   "/dashboard": "dashboard:read",
   "/dashboard/widgets": "dashboard:customize",
@@ -20,22 +12,12 @@ export const PAGE_PERMISSIONS: Record<string, Permission | "AUTH_ONLY"> = {
   "/data-api": "api_credentials:read",
   "/notifications": "notifications:read",
   "/access": "roles:read",
-  // The caller's own sign-in methods. Reachable by everyone, but guarded by a
-  // step-up on the page itself: it is where a session can be turned into
-  // lasting access (a new authenticator, a passkey), so a borrowed unlocked
-  // screen should not be enough.
+  // Open to everyone but step-up guarded on the page, since it turns a session into lasting access.
   "/security": "AUTH_ONLY",
   "/setup": "AUTH_ONLY",
 }
 
-/**
- * Resolves the permission guarding a path, matching the longest declared
- * prefix so nested routes inherit their section's rule.
- *
- * Returns null for anything undeclared, and callers must treat null as a
- * refusal. A page added without an entry here is inaccessible rather than
- * unguarded, which is the failure the coverage test then points at by name.
- */
+// The longest declared prefix wins, and null (undeclared) must be treated as a refusal.
 export function requiredPermissionForPage(pathname: string): Permission | "AUTH_ONLY" | null {
   if (pathname in PAGE_PERMISSIONS) return PAGE_PERMISSIONS[pathname]
 
@@ -47,14 +29,7 @@ export function requiredPermissionForPage(pathname: string): Permission | "AUTH_
   return best?.permission ?? null
 }
 
-/**
- * The declared paths a permission set may open, in declaration order.
- *
- * The dashboard layout resolves this once per request and hands the result to
- * every component that renders links, so no client component re-derives the
- * rule and the two copies cannot drift. AUTH_ONLY counts as satisfied: those
- * pages are about the caller's own account rather than the company's data.
- */
+// Paths a permission set may open, resolved once by the layout so client components never re-derive the rule.
 export function visiblePages(perms: ReadonlySet<string>): string[] {
   return Object.keys(PAGE_PERMISSIONS).filter((path) => {
     const permission = PAGE_PERMISSIONS[path]
@@ -62,20 +37,7 @@ export function visiblePages(perms: ReadonlySet<string>): string[] {
   })
 }
 
-/**
- * Where to send someone who has just signed in, or who asked for the site root.
- *
- * Resolved from what the role can open rather than hardcoded. Sending everyone
- * to /dashboard meant a role without dashboard:read met a refusal as its first
- * screen, which reads as a broken product rather than as a permission it was
- * never granted.
- *
- * Prefers a section root: landing on a sub-page like the widget library is
- * disorienting, and it is only ever the first candidate when a role holds
- * dashboard:customize without dashboard:read, which is a misconfigured role
- * rather than a case to design around. The AUTH_ONLY pages are the floor, so a
- * role granted nothing still lands on its own account instead of nowhere.
- */
+// Landing path resolved from the role, preferring a section root, with the own-account pages as the floor.
 export function landingPath(perms: ReadonlySet<string>): string {
   const open = visiblePages(perms)
   return open.find((path) => path.lastIndexOf("/") === 0) ?? open[0] ?? "/login"

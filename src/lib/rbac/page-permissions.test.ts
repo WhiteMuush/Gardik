@@ -6,8 +6,7 @@ import { isPermission, PERMISSIONS } from "./permissions"
 
 const DASHBOARD_DIR = join(process.cwd(), "src/app/(dashboard)")
 
-// Mirrors Next's own mapping: directories become path segments, except route
-// groups in parentheses, which exist only to share a layout.
+// Mirrors Next's mapping: directories become segments, except route groups in parentheses.
 function pageRoutes(dir: string, base = ""): string[] {
   const out: string[] = []
   for (const entry of readdirSync(dir)) {
@@ -34,9 +33,7 @@ describe("page->permission coverage", () => {
     expect(stale, `Entries pointing at missing pages: ${stale.join(", ")}`).toEqual([])
   })
 
-  // The layout checks too, but it cannot stop the page from running: Next
-  // renders both, so a page that queries first and is hidden afterwards has
-  // already put its data in the response. The guard has to be in the page.
+  // The guard must be in the page, since the layout check cannot stop the page from rendering its data.
   it("every page mapped to a permission calls guardPage with it", () => {
     const unenforced: string[] = []
     for (const [path, permission] of Object.entries(PAGE_PERMISSIONS)) {
@@ -70,9 +67,7 @@ describe("requiredPermissionForPage", () => {
     expect(requiredPermissionForPage("/alerts/abc123")).toBe("alerts:read")
   })
 
-  // The important one: an undeclared page must come back as "no answer" so the
-  // caller refuses. Returning a permissive default here would mean any page
-  // somebody forgets to register is silently open to everyone.
+  // An undeclared page must return no answer so the caller refuses, never a permissive default.
   it("returns null for an undeclared path rather than guessing", () => {
     expect(requiredPermissionForPage("/brand-new-page")).toBeNull()
     expect(requiredPermissionForPage("/employeesx")).toBeNull()
@@ -81,8 +76,7 @@ describe("requiredPermissionForPage", () => {
 
 describe("visiblePages", () => {
   const AUTH_ONLY = Object.keys(PAGE_PERMISSIONS).filter((path) => PAGE_PERMISSIONS[path] === "AUTH_ONLY")
-  // Compared sorted: the contract is which paths come back, not the order
-  // PAGE_PERMISSIONS happens to declare them in.
+  // Compared sorted, since the contract is which paths come back, not their order.
   const sorted = (paths: string[]) => [...paths].sort()
 
   it("gives a role holding nothing only the pages about its own account", () => {
@@ -111,9 +105,7 @@ describe("landingPath", () => {
     expect(landingPath(new Set(["alerts:read"]))).toBe("/alerts")
   })
 
-  // Landing on the widget library is disorienting, and it is only reachable
-  // this way when a role holds dashboard:customize without dashboard:read,
-  // which is a misconfigured role rather than a case to design around.
+  // A sub-page only comes first for a role with dashboard:customize but not dashboard:read, a misconfigured role.
   it("skips a sub-page in favour of a section root", () => {
     expect(landingPath(new Set(["dashboard:customize"]))).toBe("/security")
   })
