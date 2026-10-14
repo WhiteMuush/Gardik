@@ -19,8 +19,7 @@ function safeEqual(a: string, b: string): boolean {
   return timingSafeEqual(bufA, bufB)
 }
 
-// Authenticate a SIEM pull request for one company via its bearer export token.
-// Returns true when valid; never throws (a missing/unreadable token is a 401).
+// Returns false, never throws, for a missing or unreadable token so the caller answers 401.
 export async function authenticateSiem(req: Request, companyId: string): Promise<boolean> {
   const token = (req.headers.get("authorization") ?? "").match(/^Bearer\s+(\S.*)$/i)?.[1]
   if (!token) return false
@@ -39,10 +38,7 @@ export async function authenticateSiem(req: Request, companyId: string): Promise
   }
 }
 
-// Push every company's new alerts to its configured HTTPS collector in batches.
-// The watermark (siemPushSince) advances only after a successful POST, so a
-// failed delivery is retried on the next tick. Raw UDP/TCP syslog sockets are
-// not used here; this targets HTTP collectors (Splunk HEC, Sentinel, generic).
+// Pushes to HTTPS collectors, advancing the siemPushSince watermark only after a successful POST.
 export async function runDueSiemPush(now: Date = new Date()): Promise<{ pushed: number }> {
   const companies = await prisma.company.findMany({
     where: { siemPushUrlEnc: { not: null } },

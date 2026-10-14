@@ -1,9 +1,6 @@
 import { type Permission } from "./permissions"
 
-// Permissions that grant control over who can do what. Handing any of these out,
-// or creating a role that holds one, is an escalation-sensitive act: it requires
-// a fresh step-up re-auth (see step-up.ts) on top of the normal permission and
-// the no-escalation subset check.
+// Permissions over who can do what, so granting one also requires a fresh step-up (see step-up.ts).
 export const CROWN_JEWELS: ReadonlySet<Permission> = new Set<Permission>([
   "roles:manage",
   "users:manage",

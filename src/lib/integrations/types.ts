@@ -1,7 +1,6 @@
 import type { Severity, AlertStatus, AlertConfidence } from "@prisma/client"
 
-// Minimal alert shape consumed by the SIEM formatters. Field mapping is kept
-// stable on purpose: SIEM parsers key off these names.
+// Field names stay stable, since SIEM parsers key off them.
 export type SiemAlert = {
   id: string
   severity: Severity

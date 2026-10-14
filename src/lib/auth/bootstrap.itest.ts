@@ -17,8 +17,7 @@ describe("bootstrapFirstAdmin", () => {
   })
 
   it("does nothing when an account already carries a password", async () => {
-    // The development database is seeded with a working admin, which is exactly
-    // the closed state a running instance is in.
+    // The seeded development admin is exactly the closed state of a running instance.
     const before = await prisma.company.count()
     await bootstrapFirstAdmin(prisma, env)
     expect(await prisma.company.count()).toBe(before)
@@ -38,9 +37,7 @@ describe("bootstrapFirstAdmin", () => {
   it("treats a lost race between replicas as a no-op, not a failure", async () => {
     const raced: BootstrapClient = {
       $transaction: async () => {
-        // The shape Prisma raises when a second replica loses on a unique
-        // constraint. Asserting on the log is the only way to tell this branch
-        // from the generic one: both end in the same silent resolve.
+        // Prisma's unique-constraint error from a losing replica; only the log tells this branch from the generic one.
         throw Object.assign(new Error("Unique constraint failed"), { code: "P2002" })
       },
     }
@@ -65,9 +62,7 @@ describe("bootstrapFirstAdmin", () => {
 
   it("routes every write through one transaction, so a rollback leaves nothing", async () => {
     let transactions = 0
-    // Captured rather than asserted in place: bootstrapFirstAdmin swallows every
-    // exception by contract, so an assertion thrown inside the callback would be
-    // caught and logged, and the test would pass while proving nothing.
+    // Captured, not asserted inside, because bootstrapFirstAdmin swallows every exception and would hide a failure.
     let stateInside: BootstrapState | null = null
 
     const observed: BootstrapClient = {
@@ -76,8 +71,7 @@ describe("bootstrapFirstAdmin", () => {
         return prisma.$transaction(async (tx) => {
           await tx.company.deleteMany({})
           stateInside = await fn(tx)
-          // Roll the whole thing back, including the company, the role presets,
-          // the user, the invitation and both audit rows.
+          // Rolls back the company, role presets, user, invitation and both audit rows.
           throw ROLLBACK
         })
       },

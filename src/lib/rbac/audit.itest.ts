@@ -11,8 +11,7 @@ beforeAll(async () => {
   companyId = c.id
 })
 
-// Deleting the company is enough: every row this suite creates hangs off it
-// through an onDelete: Cascade relation.
+// Deleting the company cascades to every row this suite creates.
 afterAll(async () => {
   await prisma.company.deleteMany({ where: { id: companyId } })
 })

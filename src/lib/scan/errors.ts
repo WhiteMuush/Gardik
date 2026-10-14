@@ -1,5 +1,4 @@
-// A source answered, but not with results. `status` is null when the failure is
-// not an HTTP status (e.g. an asynchronous search that never finished).
+// A source answered without results; `status` is null for a non-HTTP failure such as an unfinished search.
 export class ProviderError extends Error {
   constructor(
     message: string,
@@ -27,8 +26,7 @@ export function errorFromResponse(source: string, res: Response): ProviderError 
   )
 }
 
-// fetch() rejects with a TypeError when the network fails; any other non-source
-// error is a bug or a malformed payload, which a retry would not fix.
+// Only a network failure (a fetch TypeError) is retried, since a bug or a malformed payload would fail again.
 export function isRetryable(err: unknown): boolean {
   if (err instanceof ProviderError) {
     return err.status === null || err.status === 429 || err.status >= 500

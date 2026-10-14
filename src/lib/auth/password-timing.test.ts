@@ -7,9 +7,7 @@ describe("burnPasswordTime", () => {
     expect(await burnPasswordTime("anything")).toBe(false)
   })
 
-  // The whole point is the cost. If this ever returned quickly, an attacker
-  // could tell "no account here" from "wrong password" by the clock alone, and
-  // the login form would answer questions it was never asked.
+  // A fast return would let the clock tell "no account" from "wrong password".
   it("costs what a real comparison costs", async () => {
     const hash = await bcrypt.hash("a-real-password", 12)
 
@@ -21,9 +19,7 @@ describe("burnPasswordTime", () => {
     await burnPasswordTime("wrong-password")
     const burn = Date.now() - burnStart
 
-    // Generous bounds: this asserts the same order of magnitude, not a
-    // stopwatch reading, because CI machines are noisy and a tight bound here
-    // would fail for reasons that have nothing to do with the property.
+    // Same order of magnitude only, since CI machines are noisy.
     expect(burn).toBeGreaterThan(real / 4)
     expect(burn).toBeLessThan(real * 4)
   })

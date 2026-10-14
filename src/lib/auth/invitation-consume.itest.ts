@@ -41,9 +41,7 @@ describe("consumeInvitation", () => {
     expect(await bcrypt.compare("first-use-password-1", account.password!)).toBe(true)
   })
 
-  // The interesting failure: two requests arriving together, both reading the
-  // row as unconsumed before either writes. The claim is a conditional update
-  // rather than a read followed by a write, so exactly one can win.
+  // Two simultaneous requests both see the row unconsumed, and the conditional update lets exactly one win.
   it("refuses a second use even when both requests arrive at once", async () => {
     const user = await makeUser("race")
     const { token } = await issueInvitation(prisma, { userId: user.id, createdByUserId: ctx.inviterId })
@@ -95,8 +93,7 @@ describe("consumeInvitation", () => {
     expect((await consumeInvitation(prisma, { token, password: "a-proper-password-01" })).ok).toBe(true)
   })
 
-  // An invitation is also the recovery path for an account believed
-  // compromised, so redeeming one has to end whatever sessions already exist.
+  // An invitation is also the recovery path for a compromised account, so redeeming it ends existing sessions.
   it("drops every existing session of the invited user", async () => {
     const user = await makeUser("sessions", { withPassword: true })
     await prisma.session.create({

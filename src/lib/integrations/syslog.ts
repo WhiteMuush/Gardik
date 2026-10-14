@@ -1,8 +1,7 @@
 import type { Severity } from "@prisma/client"
 import type { SiemAlert } from "./types"
 
-// RFC 5424 severity (0-7, lower is worse). Gardik severities map onto the
-// classic crit/err/warning/notice levels.
+// RFC 5424 severity (lower is worse), mapped onto crit, err, warning and notice.
 const SYSLOG_SEVERITY: Record<Severity, number> = { CRITICAL: 2, HIGH: 3, MEDIUM: 4, LOW: 5 }
 
 // Facility 10 (security/authorization messages).
@@ -18,8 +17,7 @@ function sdValue(value: string): string {
   return oneLine(value).replace(/\\/g, "\\\\").replace(/"/g, '\\"').replace(/]/g, "\\]")
 }
 
-// Render one alert as an RFC 5424 syslog line.
-// <PRI>1 TIMESTAMP HOSTNAME APP-NAME PROCID MSGID STRUCTURED-DATA MSG
+// RFC 5424 line: <PRI>1 TIMESTAMP HOSTNAME APP-NAME PROCID MSGID STRUCTURED-DATA MSG.
 export function toSyslog(alert: SiemAlert, hostname = "gardik"): string {
   const pri = FACILITY * 8 + SYSLOG_SEVERITY[alert.severity]
   const timestamp = alert.createdAt.toISOString()

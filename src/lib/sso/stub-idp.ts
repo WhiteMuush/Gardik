@@ -1,20 +1,7 @@
 import { createServer, type Server } from "node:http"
 import { generateKeyPair, exportJWK, SignJWT, type JWK } from "jose"
 
-// Test-only OIDC identity provider: discovery document, JWKS, and a token
-// endpoint. Signs a real RS256 id_token so the plugin's signature and issuer
-// checks in round-trip.itest.ts run for real, not against a mock. Binds to
-// 127.0.0.1 on an OS-assigned port so it never touches DNS or the public
-// internet; src/lib/auth/server.ts allowlists that loopback range in
-// trustedOrigins only when NODE_ENV is "test", which is what lets the
-// plugin's discovery/token/jwks fetches reach it at all (see the comment
-// there for why that check exists and stays production-only otherwise).
-//
-// The /authorize endpoint below is never actually fetched: this stub is
-// driven by calling the plugin's callback handler directly with a code
-// minted by issueCode(), not by following a real browser redirect. It exists
-// only so the discovery document's authorization_endpoint points somewhere
-// real.
+// Test-only OIDC provider on loopback signing real RS256 tokens; server.ts trusts loopback only under NODE_ENV=test.
 export async function startStubIdp() {
   const { publicKey, privateKey } = await generateKeyPair("RS256")
   const jwk = (await exportJWK(publicKey)) as JWK
@@ -87,10 +74,7 @@ export async function startStubIdp() {
     discoveryEndpoint: `${issuer}/.well-known/openid-configuration`,
     clientId,
     clientSecret,
-    // Mints a one-time authorization code the token endpoint will exchange
-    // for the given email/sub. Mirrors what a real IdP hands back after the
-    // user authenticates at /authorize; the test calls this directly since
-    // nothing here drives a real browser through that redirect.
+    // Mints the code a real IdP would return after /authorize, which no browser drives here.
     issueCode(email: string, sub: string): string {
       const code = `code-${Math.random().toString(36).slice(2)}`
       codes.set(code, { email, sub })

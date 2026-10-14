@@ -30,8 +30,7 @@ async function startSearch(email: string, apiKey: string): Promise<string | null
   return data.status === 2 || !data.id ? null : data.id
 }
 
-// Poll results. status: 0 = results available, 1 = done, 2 = not found, 3 = keep trying.
-// A failed or unfinished poll throws: partial results must not pass for a full answer.
+// Status 0 = results, 1 = done, 2 = not found, 3 = retry; an unfinished poll throws, never a partial answer.
 async function collectResults(id: string, apiKey: string): Promise<IntelxRecord[]> {
   const url = `${ROOT}/intelligent/search/result?id=${encodeURIComponent(id)}&limit=100`
   const records: IntelxRecord[] = []

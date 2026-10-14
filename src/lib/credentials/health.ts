@@ -3,8 +3,7 @@ import type { SourceCoverage } from "@/lib/scan/coverage"
 export type HealthStatus = "CONNECTED" | "NEEDS_ACTION" | "NOT_SCANNED" | "NOT_CONNECTED"
 export type SourceHealth = { status: HealthStatus; label: string; detail: string | null }
 
-// What a source's last scan says about it. A key or rate changed after the last
-// failure is not shown as broken: the fix has not been tried yet.
+// A key or rate changed after the last failure is not shown as broken, since the fix is untried.
 export function sourceHealth(
   credential: { updatedAt: Date } | null,
   coverage: SourceCoverage | null

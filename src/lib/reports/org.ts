@@ -1,10 +1,7 @@
 import { prisma } from "@/lib/prisma"
 import type { OrgInfo } from "./types"
 
-// The organisation named on the report. companyId comes from the authenticated
-// session, so a missing row means broken referential integrity, not a normal
-// empty result. Throw rather than fall back to a placeholder name that would
-// silently mislead the reader of a security document.
+// Throws on a missing row, since a placeholder name would silently mislead a security document.
 export async function getOrgInfo(companyId: string): Promise<OrgInfo> {
   const company = await prisma.company.findUnique({
     where: { id: companyId },

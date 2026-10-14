@@ -12,11 +12,7 @@ describe("needsTwoFactorEnrollment", () => {
     ).toBe(true)
   })
 
-  // The lockout this function exists for. A pre-provisioned SSO account has no
-  // password credential, and the enrollment form asks for one to confirm
-  // identity before it will hand out a TOTP secret. Redirecting such a user
-  // parks them on a form they can never satisfy, while every other page bounces
-  // them back to it. Their second factor belongs to the identity provider.
+  // A password-less SSO account must not be parked on an enrollment form it can never pass.
   it("leaves a password-less SSO account alone instead of parking it on a form it cannot pass", () => {
     expect(
       needsTwoFactorEnrollment({

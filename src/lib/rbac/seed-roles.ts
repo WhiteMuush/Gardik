@@ -3,9 +3,7 @@ import { PRESETS } from "./presets"
 
 type Db = PrismaClient | Parameters<Parameters<PrismaClient["$transaction"]>[0]>[0]
 
-// Idempotently ensure every preset role exists for a company with the correct
-// permissions. Safe to call on company creation and to re-run (upsert by the
-// unique (companyId, name)). Used by the migration follow-up and company setup.
+// Upserts every preset role with its permissions, so it is safe on company creation and on re-runs.
 export async function seedPresetsForCompany(db: Db, companyId: string): Promise<void> {
   for (const preset of PRESETS) {
     await db.role.upsert({

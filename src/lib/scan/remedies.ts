@@ -6,8 +6,7 @@ export type Remedy = { title: string; explanation: string; steps: RemedyStep[] }
 
 const RETRY: RemedyStep = { text: "Click Scan unchecked to check only the employees that were missed." }
 
-// "elsewhere": read from a page that links to Data API (the scan banner).
-// "source": read inside the source's own panel, where the settings sit below.
+// "elsewhere" is read on a page linking to Data API, "source" inside the source's own settings panel.
 export type RemedyPlace = "elsewhere" | "source"
 
 // Matches the reasons written by failureReason() in ./errors.
