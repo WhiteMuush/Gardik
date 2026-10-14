@@ -88,8 +88,7 @@ const RENDERERS: Record<ReportSection, { title: string; render: (d: ReportData) 
   trends: { title: "Trends", render: trendsSection },
 }
 
-// A self-contained, print-ready HTML report for the selected sections. Sent as
-// the body of the scheduled email; recipients can print it to PDF.
+// Self-contained, print-ready HTML, sent as the scheduled email body.
 export function reportHtml(sections: ReportSection[], data: ReportData): string {
   const blocks = sections
     .filter((s) => s in RENDERERS)

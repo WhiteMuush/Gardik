@@ -13,16 +13,12 @@ export function summaryLine(event: WebhookEvent): string {
   return `${event.severity} exposure: ${event.employeeName} found in ${event.breachName}`
 }
 
-// Slack and Teams read "<...>" as mentions and links; escaping & < > is the
-// documented way to keep text literal.
+// Slack and Teams read "<...>" as mentions and links, so & < > are escaped.
 function escapeControls(value: string): string {
   return value.replace(/&/g, "&amp;").replace(/</g, "&lt;").replace(/>/g, "&gt;")
 }
 
-// Breach names and data types come from external sources, some of them dark
-// web aggregators. Inline code never renders as a link or formatting;
-// backticks are swapped so a value cannot close the span early, and line
-// breaks would split the span.
+// External values go in inline code with backticks swapped and line breaks removed, so they never render as markup.
 function untrusted(value: string): string {
   return "`" + escapeControls(value.replace(/`/g, "'").replace(/\r\n|\r|\n/g, " ")) + "`"
 }
@@ -39,8 +35,7 @@ export function slackPayload(event: WebhookEvent) {
   }
 }
 
-// Microsoft Teams connector payload (legacy MessageCard, the format an
-// "Incoming Webhook" connector accepts).
+// Legacy MessageCard, the format a Teams "Incoming Webhook" connector accepts.
 export function teamsPayload(event: WebhookEvent) {
   return {
     "@type": "MessageCard",

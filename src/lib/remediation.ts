@@ -7,9 +7,7 @@ export type RemediationResult =
   | { ok: true; outcome: RemediationOutcome }
   | { ok: false; code: "NOT_FOUND" | "NO_EMPLOYEE" | "NO_CAPABLE_CONNECTION" }
 
-// Find an active, capable directory connection for the alert's employee, run the
-// action against it, and append the outcome to the audit trail either way. The
-// caller is responsible for the remediation-enabled gate and authorization.
+// Runs the action on an active capable connection and audits the outcome; the caller handles gating and authorization.
 export async function remediateAlert(params: {
   companyId: string
   alertId: string

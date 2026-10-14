@@ -23,15 +23,13 @@ export function calculateRiskScore({
 // Data types that make an exposure materially worse for a single employee.
 export const CRITICAL_DATA = ["password", "credit_card", "ssn", "bank_account", "financial"]
 
-// Stealer-log artifacts that hand an attacker a ready-to-replay session,
-// bypassing MFA. Their presence dominates a per-employee score.
+// Ready-to-replay session artifacts bypass MFA, so they dominate an employee's score.
 const SESSION_ARTIFACTS = ["COOKIE", "TOKEN"]
 
 // How long a recent exposure keeps weighing on the recency component, in days.
 const RECENCY_WINDOW_DAYS = 180
 
-// Per-employee risk weights. Configurable per company; every component caps the
-// points it can add so a single signal cannot alone pin the score at 100.
+// Configurable per company, and each component is capped so no single signal pins the score at 100.
 export type RiskWeights = {
   recency: number
   session: number
@@ -50,8 +48,7 @@ export const DEFAULT_RISK_WEIGHTS: RiskWeights = {
   breaches: 10,
 }
 
-// Merge a stored (untrusted) weight override onto the defaults, keeping only
-// finite non-negative numbers for known keys.
+// Keeps only finite non-negative numbers for known keys from the untrusted stored override.
 export function resolveRiskWeights(stored: unknown): RiskWeights {
   if (!stored || typeof stored !== "object") return DEFAULT_RISK_WEIGHTS
   const out = { ...DEFAULT_RISK_WEIGHTS }

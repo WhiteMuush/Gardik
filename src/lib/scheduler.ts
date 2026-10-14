@@ -14,9 +14,7 @@ export type SchedulerResult = {
   jobsProcessed: number
 }
 
-// Enqueue due directory syncs and start due company scans, then drain the sync
-// queue. Idempotent per tick: nothing runs before its interval elapses.
-// Designed to be called by an external cron hitting /api/cron.
+// Called by an external cron on /api/cron; nothing runs before its interval elapses.
 export async function runDueSchedules(now: Date = new Date()): Promise<SchedulerResult> {
   // Directory syncs. SCIM is push-based (the IdP drives it), so it is excluded.
   const connections = await prisma.directoryConnection.findMany({
@@ -31,8 +29,7 @@ export async function runDueSchedules(now: Date = new Date()): Promise<Scheduler
     }
   }
 
-  // Company exposure scans. Stamp lastScanAt up front so a slow scan is not
-  // re-triggered on the next tick; the scan itself runs detached.
+  // lastScanAt is stamped first so a slow detached scan is not re-triggered next tick.
   const companies = await prisma.company.findMany({
     where: { scanIntervalMinutes: { not: null } },
     select: { id: true, lastScanAt: true, scanIntervalMinutes: true },

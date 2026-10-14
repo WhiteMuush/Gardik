@@ -42,8 +42,7 @@ export function listWebhooks(companyId: string): Promise<WebhookRow[]> {
 }
 
 async function postJson(url: string, body: unknown): Promise<boolean> {
-  // Re-checked at delivery, not only when the row was written: DNS can be
-  // repointed into the private space long after an endpoint was accepted.
+  // Re-checked at delivery, since DNS can be repointed into the private space after the endpoint was accepted.
   const parsed = parseOutboundUrl(url)
   if ("error" in parsed) return false
   if (!(await resolvesToPublicHost(parsed.url.hostname))) return false
@@ -61,8 +60,7 @@ async function postJson(url: string, body: unknown): Promise<boolean> {
   }
 }
 
-// Deliver one event through a single channel, formatting the payload for the
-// destination. Never throws: a failed notification must not abort a scan.
+// Never throws, since a failed notification must not abort a scan.
 export async function deliver(
   channel: NotificationChannel,
   target: string,

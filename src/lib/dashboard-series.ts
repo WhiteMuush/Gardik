@@ -34,9 +34,7 @@ export function buildTrendData(records: BreachRecordRaw[], provider?: ApiProvide
   return Object.entries(months).map(([month, count]) => ({ month, count }))
 }
 
-// Breaches affecting the company, optionally scoped to a single provider: a
-// breach only appears when at least one of its records was reported by that
-// provider, and the affected-employee count is computed over matching records.
+// Optionally scoped to one provider, counting affected employees over that provider's records only.
 export function buildBreachSources(catalog: BreachCatalogEntry[], provider?: ApiProvider) {
   return catalog
     .map((b) => ({

@@ -23,8 +23,7 @@ function escapeHtml(value: string): string {
     .replace(/'/g, "&#39;")
 }
 
-// Breach names and data types come from external sources, so every value is
-// escaped before it reaches the HTML an administrator opens.
+// Values come from external sources, so each one is escaped before reaching the HTML.
 export function breachAlertHtml(a: BreachAlert): string {
   const types = a.dataTypes.length ? a.dataTypes.map(escapeHtml).join(", ") : "unknown data"
   return [
@@ -55,10 +54,7 @@ export async function sendBreachAlert(recipients: string[], alert: BreachAlert):
   }
 }
 
-// The invitation link is the credential, so the body carries nothing else: no
-// temporary password, no account details worth harvesting if the mailbox is
-// later compromised, and an explicit expiry so a stale link found months later
-// is obviously stale.
+// The link is the credential, so the body carries nothing else to harvest and states its expiry.
 export async function sendInvitation(recipient: string, link: string, expiresAt: Date): Promise<boolean> {
   const html = [
     `<div style="font-family:system-ui,sans-serif;font-size:14px;color:#111;line-height:1.5">`,
@@ -73,8 +69,7 @@ export async function sendInvitation(recipient: string, link: string, expiresAt:
 
 export type EmailAttachment = { filename: string; content: string } // content: base64
 
-// Generic transactional send (HTML body plus optional attachments). Returns
-// whether it was dispatched; never throws so a scheduled job is not aborted.
+// Never throws, so a scheduled job is not aborted; returns whether it was dispatched.
 export async function sendEmail(
   recipients: string[],
   subject: string,
