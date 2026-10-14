@@ -44,10 +44,10 @@ COPY docker/prisma.config.ts ./prisma.config.ts
 # UI nor the embedded Postgres behind `prisma dev`, which are about 90 MB of
 # this tree. `--version` boots the CLI and its eager imports, so a Prisma
 # release that starts needing one of these fails the build, not the container.
-RUN cd node_modules \
-  && rm -rf @electric-sql @prisma/studio-core/dist/ui @prisma/studio-core/dist/metafile-*.json \
-    react react-dom @radix-ui @visx d3-* elkjs lodash csstype @types \
-  && cd .. \
+RUN rm -rf node_modules/@electric-sql node_modules/@prisma/studio-core/dist/ui \
+    node_modules/@prisma/studio-core/dist/metafile-*.json node_modules/react node_modules/react-dom \
+    node_modules/@radix-ui node_modules/@visx node_modules/d3-* node_modules/elkjs node_modules/lodash \
+    node_modules/csstype node_modules/@types \
   && node node_modules/prisma/build/index.js --version > /dev/null
 
 FROM node:${NODE_VERSION} AS builder
