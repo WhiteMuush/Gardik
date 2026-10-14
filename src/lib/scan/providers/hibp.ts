@@ -6,6 +6,19 @@ const API = "https://haveibeenpwned.com/api/v3/breachedaccount"
 
 type HibpBreach = { Name: string; BreachDate: string; DataClasses: string[] }
 
+// HIBP labels are plural, so the critical ones are mapped onto the keys severity and risk compare against.
+const CANONICAL: Record<string, string> = {
+  passwords: "password",
+  credit_cards: "credit_card",
+  bank_account_numbers: "bank_account",
+  social_security_numbers: "ssn",
+}
+
+function dataType(label: string): string {
+  const key = normalizeType(label)
+  return CANONICAL[key] ?? key
+}
+
 // Have I Been Pwned, account (email) lookup.
 export const hibp: BreachProvider = {
   id: "HIBP",
@@ -23,7 +36,7 @@ export const hibp: BreachProvider = {
     return breaches.map((b) => ({
       name: b.Name,
       breachDate: parseBreachDate(b.BreachDate),
-      dataTypes: b.DataClasses.map(normalizeType),
+      dataTypes: b.DataClasses.map(dataType),
     }))
   },
 }
