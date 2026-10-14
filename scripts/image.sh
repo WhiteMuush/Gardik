@@ -2,7 +2,7 @@
 # Builds the production image and runs it with its own database, to test it locally before publishing.
 set -eu
 
-root="$(CDPATH= cd "$(dirname "$0")/.." && pwd)"
+root="$(CDPATH='' cd "$(dirname "$0")/.." && pwd)"
 cd "$root"
 . "$root/scripts/container.sh"
 ct_resolve || exit 1

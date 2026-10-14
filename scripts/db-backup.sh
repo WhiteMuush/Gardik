@@ -3,7 +3,7 @@
 # provider's native backups instead (see docs/backup.md).
 set -eu
 
-root="$(CDPATH= cd "$(dirname "$0")/.." && pwd)"
+root="$(CDPATH='' cd "$(dirname "$0")/.." && pwd)"
 cd "$root"
 . "$root/scripts/container.sh"
 ct_resolve || exit 1

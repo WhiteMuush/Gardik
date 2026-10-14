@@ -3,7 +3,7 @@
 # No-op if .env.local already exists (never clobbers secrets).
 set -eu
 
-root="$(CDPATH= cd "$(dirname "$0")/.." && pwd)"
+root="$(CDPATH='' cd "$(dirname "$0")/.." && pwd)"
 cd "$root"
 
 if [ -f .env.local ]; then

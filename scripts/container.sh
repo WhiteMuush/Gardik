@@ -1,6 +1,7 @@
 #!/usr/bin/env sh
 # Shared container helpers so the local database works the same whether a
 # machine has Docker or Podman. Sourced by the db-* scripts. POSIX sh.
+# shellcheck disable=SC2034 # the scripts that source this file read these variables
 
 # Local database settings (override via env or .env.local).
 DB_CONTAINER="gardik-db"
