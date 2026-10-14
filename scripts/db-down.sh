@@ -1,6 +1,5 @@
 #!/usr/bin/env sh
-# Stop the local database container (Docker or Podman). Keeps the data volume so
-# the next `db-up` resumes with the same data.
+# Stops the local database container but keeps its volume, so the next db-up resumes the same data.
 set -eu
 
 root="$(CDPATH='' cd "$(dirname "$0")/.." && pwd)"

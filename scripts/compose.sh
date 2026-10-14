@@ -1,7 +1,5 @@
 #!/usr/bin/env sh
-# Run the full local stack (app + db) via whichever compose provider exists,
-# forwarding all arguments to it. For the database alone use `make db-up`, which
-# needs no compose provider. Not for production.
+# Runs the full local stack, not for production, through whichever compose provider exists (`make db-up` needs none).
 set -eu
 
 root="$(CDPATH='' cd "$(dirname "$0")/.." && pwd)"

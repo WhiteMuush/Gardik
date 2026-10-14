@@ -1,8 +1,5 @@
 #!/usr/bin/env sh
-# Run a command under the project's Node version (.nvmrc) via nvm, then exec it.
-# Best-effort: if nvm is missing or fails, the command still runs under the
-# active Node. --delete-prefix sidesteps a global npm `prefix` in ~/.npmrc
-# (it only affects this process, the file is left untouched).
+# Runs a command under the .nvmrc Node via nvm when available; --delete-prefix ignores a global npm prefix for this process.
 
 if [ -s "$HOME/.nvm/nvm.sh" ]; then
   # shellcheck disable=SC1091

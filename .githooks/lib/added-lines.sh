@@ -1,7 +1,5 @@
 #!/usr/bin/env sh
-# Emit added lines of a diff as "path:linenumber:content".
-# Usage: added-lines.sh staged
-#        added-lines.sh range <base-sha>
+# Emits added lines as "path:linenumber:content"; usage: added-lines.sh staged | range <base-sha>.
 set -eu
 
 case "${1:-}" in

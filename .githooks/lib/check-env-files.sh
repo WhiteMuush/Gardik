@@ -1,6 +1,5 @@
 #!/usr/bin/env sh
-# Reject committed environment files. Only .env.example is allowed.
-# Usage: check-env-files.sh <path>...
+# Rejects committed environment files other than .env.example; usage: check-env-files.sh <path>...
 set -eu
 status=0
 
