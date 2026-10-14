@@ -106,7 +106,8 @@ author.
 
 ## Tech stack
 
-- Next.js 16 (App Router), React 19, TypeScript in strict mode
+- Next.js 16 (App Router), React 19, TypeScript in strict mode with
+  `noUncheckedIndexedAccess`
 - Prisma 7 with PostgreSQL
 - Better Auth (SSO, passkeys, TOTP)
 - Tailwind CSS
