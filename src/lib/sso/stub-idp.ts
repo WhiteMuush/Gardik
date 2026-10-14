@@ -1,4 +1,4 @@
-import { createServer, type Server } from "node:http"
+import { createServer, type IncomingMessage, type Server, type ServerResponse } from "node:http"
 import { generateKeyPair, exportJWK, SignJWT, type JWK } from "jose"
 
 // Test-only OIDC provider on loopback signing real RS256 tokens; server.ts trusts loopback only under NODE_ENV=test.
@@ -13,7 +13,7 @@ export async function startStubIdp() {
   const clientSecret = "stub-secret"
 
   let issuer = ""
-  const server: Server = createServer(async (req, res) => {
+  const handle = async (req: IncomingMessage, res: ServerResponse) => {
     const url = new URL(req.url ?? "/", issuer)
     if (url.pathname === "/.well-known/openid-configuration") {
       res.setHeader("content-type", "application/json")
@@ -62,7 +62,8 @@ export async function startStubIdp() {
     }
     res.statusCode = 404
     res.end()
-  })
+  }
+  const server: Server = createServer((req, res) => void handle(req, res))
 
   await new Promise<void>((resolve) => server.listen(0, "127.0.0.1", resolve))
   const address = server.address()

@@ -102,14 +102,14 @@ export function Webhooks({ initial, isAdmin }: Props) {
               <>
                 <span className="text-xs text-muted-foreground">{w.enabled ? "On" : "Off"}</span>
                 <button
-                  onClick={() => toggle(w.id, !w.enabled)}
+                  onClick={() => void toggle(w.id, !w.enabled)}
                   disabled={busy === w.id}
                   className="text-xs text-muted-foreground underline-offset-2 hover:underline disabled:opacity-40"
                 >
                   {w.enabled ? "Disable" : "Enable"}
                 </button>
                 <button
-                  onClick={() => test(w.id)}
+                  onClick={() => void test(w.id)}
                   disabled={busy === w.id}
                   title="Send test"
                   className="text-muted-foreground hover:text-foreground disabled:opacity-40"
@@ -117,7 +117,7 @@ export function Webhooks({ initial, isAdmin }: Props) {
                   {busy === w.id ? <Loader2 className="size-4 animate-spin" /> : <Send className="size-4" />}
                 </button>
                 <button
-                  onClick={() => remove(w.id)}
+                  onClick={() => void remove(w.id)}
                   disabled={busy === w.id}
                   title="Delete"
                   className="text-muted-foreground hover:text-severity-critical disabled:opacity-40"
@@ -166,7 +166,11 @@ export function Webhooks({ initial, isAdmin }: Props) {
               </option>
             ))}
           </select>
-          <Button size="sm" onClick={add} disabled={busy === "add" || !label.trim() || !url.trim()}>
+          <Button
+            size="sm"
+            onClick={() => void add()}
+            disabled={busy === "add" || !label.trim() || !url.trim()}
+          >
             {busy === "add" ? <Loader2 className="size-3.5 animate-spin" /> : "Add"}
           </Button>
         </div>

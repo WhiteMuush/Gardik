@@ -100,13 +100,13 @@ export function ReportSchedules({ initial, isAdmin }: { initial: ScheduleRow[]; 
             {isAdmin && (
               <>
                 <button
-                  onClick={() => toggleEnabled(s.id, !s.enabled)}
+                  onClick={() => void toggleEnabled(s.id, !s.enabled)}
                   className="text-xs text-muted-foreground underline-offset-2 hover:underline"
                 >
                   {s.enabled ? "Disable" : "Enable"}
                 </button>
                 <button
-                  onClick={() => remove(s.id)}
+                  onClick={() => void remove(s.id)}
                   title="Delete"
                   className="text-muted-foreground hover:text-severity-critical"
                 >
@@ -153,7 +153,7 @@ export function ReportSchedules({ initial, isAdmin }: { initial: ScheduleRow[]; 
           </div>
           <div className="flex justify-end">
             <button
-              onClick={add}
+              onClick={() => void add()}
               disabled={busy || !recipients.trim() || sections.length === 0}
               className="flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-40"
             >

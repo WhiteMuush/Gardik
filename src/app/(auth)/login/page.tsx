@@ -37,7 +37,7 @@ export default function LoginPage({
         {flow.needsTotp && flow.emailMode && flow.otpSent ? (
           <CodeForm
             label="Email code"
-            onSubmit={flow.handleEmailVerify}
+            onSubmit={(e) => void flow.handleEmailVerify(e)}
             loading={flow.loading}
             error={flow.error}
             switchLabel="Use an authenticator app instead"
@@ -45,7 +45,7 @@ export default function LoginPage({
           />
         ) : flow.needsTotp && flow.emailMode ? (
           <EmailCodeRequest
-            onSend={flow.handleSendOtp}
+            onSend={() => void flow.handleSendOtp()}
             loading={flow.loading}
             error={flow.error}
             onSwitch={flow.chooseTotp}
@@ -53,7 +53,7 @@ export default function LoginPage({
         ) : flow.needsTotp ? (
           <CodeForm
             label="Authentication code"
-            onSubmit={flow.handleTotp}
+            onSubmit={(e) => void flow.handleTotp(e)}
             loading={flow.loading}
             error={flow.error}
             switchLabel="Email me a code instead"
@@ -61,17 +61,17 @@ export default function LoginPage({
           />
         ) : !flow.ssoChecked ? (
           <EmailStep
-            onSubmit={flow.handleContinue}
+            onSubmit={(e) => void flow.handleContinue(e)}
             inputRef={flow.emailInputRef}
             defaultEmail={flow.email}
             pending={flow.pending}
             error={flow.error}
-            onPasskey={flow.handlePasskey}
+            onPasskey={() => void flow.handlePasskey()}
             onPasswordInstead={flow.usePasswordInstead}
           />
         ) : (
           <PasswordStep
-            onSubmit={flow.handlePassword}
+            onSubmit={(e) => void flow.handlePassword(e)}
             email={flow.email}
             pending={flow.pending}
             error={flow.error}

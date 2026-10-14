@@ -107,8 +107,8 @@ export function DirectoryConnections({ initial, isAdmin }: Props) {
                 isAdmin={isAdmin}
                 isSyncing={syncingId === conn.id}
                 isDeleting={deletingId === conn.id}
-                onSync={handleSync}
-                onDelete={handleDelete}
+                onSync={(id) => void handleSync(id)}
+                onDelete={(id) => void handleDelete(id)}
               />
             ))}
           </div>

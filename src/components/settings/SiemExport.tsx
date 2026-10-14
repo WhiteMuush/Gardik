@@ -95,7 +95,7 @@ export function SiemExport({
           className="min-w-0 flex-1 rounded-lg border border-input bg-background px-3 py-2 text-xs text-foreground"
         />
         <button
-          onClick={() => navigator.clipboard?.writeText(feedUrl)}
+          onClick={() => void navigator.clipboard?.writeText(feedUrl)}
           className="flex size-8 items-center justify-center rounded-md border border-border text-muted-foreground hover:bg-muted"
           title="Copy"
         >
@@ -109,7 +109,7 @@ export function SiemExport({
         </span>
         {isAdmin && (
           <button
-            onClick={rotate}
+            onClick={() => void rotate()}
             disabled={busy}
             className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground underline-offset-2 hover:underline disabled:opacity-40"
           >
@@ -137,7 +137,7 @@ export function SiemExport({
             </span>
             {isAdmin && (
               <button
-                onClick={clearPush}
+                onClick={() => void clearPush()}
                 disabled={pushBusy}
                 className="text-xs font-medium text-muted-foreground underline-offset-2 hover:underline disabled:opacity-40"
               >
@@ -163,7 +163,7 @@ export function SiemExport({
                 className="min-w-0 flex-1 rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none"
               />
               <button
-                onClick={savePush}
+                onClick={() => void savePush()}
                 disabled={pushBusy || !pushUrl.trim()}
                 className="rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-40"
               >

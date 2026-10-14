@@ -113,7 +113,7 @@ export function SourceConfiguration({ source, isAdmin }: { source: SourceView; i
             onChange={(e) => setKeyDraft(e.target.value)}
             className={cn(inputClass, "flex-1")}
           />
-          <Button size="sm" onClick={saveKey} disabled={pending || !keyDraft.trim()}>
+          <Button size="sm" onClick={() => void saveKey()} disabled={pending || !keyDraft.trim()}>
             {pending ? <Loader2 className="size-3.5 animate-spin" /> : cred ? "Replace" : "Connect"}
           </Button>
         </div>
@@ -150,13 +150,13 @@ export function SourceConfiguration({ source, isAdmin }: { source: SourceView; i
               <Button
                 size="sm"
                 variant="outline"
-                onClick={() => setRate(Number(rateDraft))}
+                onClick={() => void setRate(Number(rateDraft))}
                 disabled={pending || !rateDraft.trim()}
               >
                 Set rate
               </Button>
               {cred.rateLimitPerMinute !== null && (
-                <Button size="sm" variant="ghost" onClick={() => setRate(null)} disabled={pending}>
+                <Button size="sm" variant="ghost" onClick={() => void setRate(null)} disabled={pending}>
                   Use default
                 </Button>
               )}
@@ -172,7 +172,7 @@ export function SourceConfiguration({ source, isAdmin }: { source: SourceView; i
               <p className="flex-1 text-xs text-foreground">
                 Remove this key? Scans stop using {source.meta.label}.
               </p>
-              <Button size="sm" variant="destructive" onClick={removeKey} disabled={pending}>
+              <Button size="sm" variant="destructive" onClick={() => void removeKey()} disabled={pending}>
                 Remove
               </Button>
               <Button size="sm" variant="ghost" onClick={() => setConfirmRemove(false)} disabled={pending}>

@@ -133,7 +133,7 @@ export function RolesManager() {
         pages={pages}
         setPage={setPage}
         onEdit={startEdit}
-        onDelete={remove}
+        onDelete={(role) => void remove(role)}
       />
 
       {formOpen && (
@@ -145,7 +145,7 @@ export function RolesManager() {
           setPerms={setPerms}
           error={error}
           onCancel={closeForm}
-          onSave={save}
+          onSave={() => void save()}
         />
       )}
 

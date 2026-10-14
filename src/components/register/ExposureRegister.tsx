@@ -106,7 +106,7 @@ export function ExposureRegister({
           </div>
           <div className="mt-3 flex justify-end">
             <button
-              onClick={add}
+              onClick={() => void add()}
               disabled={busy || !title.trim()}
               className="flex items-center gap-1.5 rounded-lg bg-primary px-4 py-2 text-sm font-medium text-primary-foreground disabled:opacity-40"
             >
@@ -140,13 +140,13 @@ export function ExposureRegister({
                   {isAdmin && r.status === "ASSESSING" && (
                     <>
                       <button
-                        onClick={() => setStatus(r.id, "NOTIFIED")}
+                        onClick={() => void setStatus(r.id, "NOTIFIED")}
                         className="shrink-0 rounded-md border border-border px-2 py-1 text-xs text-muted-foreground hover:bg-muted"
                       >
                         Mark notified
                       </button>
                       <button
-                        onClick={() => setStatus(r.id, "NOT_REQUIRED")}
+                        onClick={() => void setStatus(r.id, "NOT_REQUIRED")}
                         className="shrink-0 rounded-md border border-border px-2 py-1 text-xs text-muted-foreground hover:bg-muted"
                       >
                         Not required
