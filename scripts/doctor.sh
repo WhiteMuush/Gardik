@@ -140,9 +140,9 @@ if [ "$do_err" = "1" ]; then
     export NVM_DIR="$HOME/.nvm"
     # shellcheck source=/dev/null
     . "$NVM_DIR/nvm.sh" 2>/dev/null || true
-    nvm install 22 >/dev/null 2>&1
-    nvm use 22 >/dev/null 2>&1
-    echo "fixed: using $(node -v) via nvm (also run 'nvm use 22' in your shell)"
+    nvm install >/dev/null 2>&1
+    nvm use >/dev/null 2>&1
+    echo "fixed: using $(node -v) via nvm from .nvmrc (also run 'nvm use' in your shell)"
     npm install
     fx_install=0
     applied=1
