@@ -3,10 +3,7 @@ import { errorFromResponse } from "../errors"
 
 const API = "https://haveibeenpwned.com/api/v3/stealerlogsbyemail"
 
-// Have I Been Pwned stealer logs, email lookup. Returns the list of website
-// domains for which this address had credentials captured by an infostealer.
-// HIBP exposes only the domains: the artifact is a browser-saved password, and
-// infection metadata (machine id, malware family, capture time) is not provided.
+// HIBP stealer logs expose only the captured domains, so each one becomes a saved-password artifact.
 export const hibpStealer: BreachProvider = {
   id: "HIBP_STEALER",
   source: "STEALER_LOG",

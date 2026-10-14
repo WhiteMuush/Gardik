@@ -1,8 +1,7 @@
 import { Prisma } from "@prisma/client"
 import { encryptConfig, decryptConfig } from "@/lib/directory/crypto"
 
-// The plugin stores oidcConfig as a JSON string carrying the client secret.
-// encryptConfig works on objects, so the string travels wrapped.
+// The plugin stores oidcConfig as a JSON string, so it is wrapped for encryptConfig, which takes objects.
 export function sealOidcConfig(raw: string | null | undefined): string | null {
   if (raw === null || raw === undefined) return null
   return encryptConfig({ v: raw })
@@ -35,8 +34,7 @@ function openResult<T>(result: T): T {
   return result
 }
 
-// Scoped to the ssoProvider model only. Applied to the client Better Auth uses,
-// never to the app-wide client, so the extension cannot change types elsewhere.
+// Applied only to Better Auth's client, so the extension cannot change types elsewhere.
 export const ssoEncryption = Prisma.defineExtension({
   name: "sso-oidc-config-encryption",
   query: {

@@ -33,11 +33,9 @@ type Entry = {
   notifiedAt: Date | null
 }
 
-// Deadline fields are computed, not stored, so they stay correct as time passes
-// and are never out of sync with detectedAt.
+// Deadlines are computed, never stored, so they never drift from detectedAt.
 function toRow(e: Entry): RegisterRow {
-  // The countdown only matters while still assessing; once notified or ruled
-  // out, the 72h clock is no longer pending.
+  // The 72h countdown only runs while the entry is still being assessed.
   const pending = e.status === "ASSESSING"
   return {
     id: e.id,
@@ -79,8 +77,7 @@ function escapeCell(value: string | number): string {
   return /[",\n]/.test(s) ? `"${s.replace(/"/g, '""')}"` : s
 }
 
-// Evidence pack: a flat field/value CSV documenting a single register entry, for
-// an Article 33 notification dossier.
+// Flat field/value CSV of one entry, for an Article 33 notification dossier.
 export function evidenceCsv(row: RegisterRow): string {
   return [["Field", "Value"], ...CSV_FIELDS.map(([label, get]) => [label, get(row)])]
     .map((r) => r.map(escapeCell).join(","))

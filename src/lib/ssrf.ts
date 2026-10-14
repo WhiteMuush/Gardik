@@ -1,10 +1,6 @@
 import { lookup } from "dns/promises"
 
-// Outbound URLs are supplied by admins (webhooks, directory endpoints), so they
-// are attacker-controlled from the server's point of view: a request the app
-// makes reaches whatever the network reaches, including sibling services and
-// the cloud metadata endpoint. Forcing https already blocks the AWS IMDS
-// address, which is http only, but not an internal host behind TLS.
+// Admin-supplied outbound URLs are attacker-controlled, and https alone does not block an internal host behind TLS.
 
 function isPrivateV4(ip: string): boolean {
   const parts = ip.split(".")
@@ -29,8 +25,7 @@ export function isPrivateAddress(ip: string): boolean {
     .toLowerCase()
     .replace(/^\[|\]$/g, "")
 
-  // An IPv4-mapped v6 address reaches the same host as the v4 it wraps, so it
-  // has to be unwrapped rather than treated as an opaque v6 string.
+  // An IPv4-mapped v6 address reaches its v4 host, so it is unwrapped before the check.
   const mapped = addr.match(/^::ffff:(\d+\.\d+\.\d+\.\d+)$/)
   if (mapped) return isPrivateV4(mapped[1])
 
@@ -46,9 +41,7 @@ export function isPrivateAddress(ip: string): boolean {
 
 export type OutboundUrl = { url: URL } | { error: string }
 
-// Synchronous checks only: shape, scheme, credentials, and a literal private
-// address. A hostname still has to be resolved before the request is made, see
-// resolvesToPublicHost.
+// Synchronous checks only; a hostname must still pass resolvesToPublicHost before the request.
 export function parseOutboundUrl(raw: string): OutboundUrl {
   let url: URL
   try {
@@ -62,10 +55,7 @@ export function parseOutboundUrl(raw: string): OutboundUrl {
   return { url }
 }
 
-// A hostname that looks public can still resolve into the private space, which
-// is the whole point of a DNS rebinding attack. Checked at write time so a bad
-// endpoint is refused up front, and again before delivery so a record that was
-// valid when saved cannot be repointed later.
+// Checked when saved and again before delivery, since DNS rebinding can repoint a public name to a private address.
 export async function resolvesToPublicHost(hostname: string): Promise<boolean> {
   if (isPrivateAddress(hostname)) return false
   try {

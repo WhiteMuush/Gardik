@@ -98,8 +98,7 @@ describe("POST /api/invitations/accept", () => {
 })
 
 describe("POST /api/account/password", () => {
-  // Every case but one runs with a rotation pending, because that is the only
-  // state in which this endpoint does anything at all.
+  // Runs with a rotation pending by default, the only state in which this endpoint does anything.
   async function actAs(userId: string, sessionToken: string, mustChangePassword = true) {
     mocks.stub.user = { id: userId, companyId: ctx.companyId, roleId: ctx.viewerRoleId, mustChangePassword }
     mocks.stub.session = { token: sessionToken }

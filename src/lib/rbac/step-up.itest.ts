@@ -26,8 +26,7 @@ beforeAll(async () => {
   })
 })
 
-// Deleting the company is enough: the user, its credential account and any
-// step-up grant cascade with it.
+// Deleting the company cascades to the user, its credential account and any step-up grant.
 afterAll(async () => {
   await prisma.company.deleteMany({ where: { id: companyId } })
 })
@@ -38,10 +37,7 @@ describe("step-up grants (real DB)", () => {
     expect(await verifyPassword(prisma, userId, "nope")).toBe(false)
   })
 
-  // An account with no password used to be refused in a millisecond while a
-  // wrong password cost a quarter of a second. That gap is measurable from
-  // outside and answers a question nobody asked: which addresses are worth
-  // attacking. Both paths now cost the same.
+  // A fast refusal for password-less accounts would reveal which addresses have a password worth attacking.
   it("refuses a password-less account no faster than a wrong password", async () => {
     const ssoOnly = await prisma.user.create({
       data: { email: `stepup-sso-${Date.now()}@test.local`, companyId },
@@ -57,8 +53,7 @@ describe("step-up grants (real DB)", () => {
 
     expect(noPassword).toBeGreaterThanOrEqual(MIN_VERIFY_MS - 20)
     expect(wrong).toBeGreaterThanOrEqual(MIN_VERIFY_MS - 20)
-    // Same order of magnitude rather than a stopwatch reading: the property is
-    // that neither answer stands out, not that they match to the millisecond.
+    // Same order of magnitude, since the property is that neither answer stands out.
     expect(Math.abs(noPassword - wrong)).toBeLessThan(MIN_VERIFY_MS)
   })
 

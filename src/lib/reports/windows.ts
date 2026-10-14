@@ -4,9 +4,7 @@ const DAY = 24 * 60 * 60 * 1000
 
 export type Window = { curStart: Date; curEnd: Date; prevStart: Date; prevEnd: Date; label: string }
 
-// Comparison windows derived from the active filters. With an explicit date range
-// we compare it against the equal-length window immediately before it; otherwise we
-// compare the trailing 30 days against the 30 days before that.
+// A date range is compared with the equal window before it, otherwise the last 30 days with the 30 before.
 export function windows(f: ReportFilters): Window {
   if (f.from && f.to) {
     const curStart = new Date(`${f.from}T00:00:00.000`)

@@ -19,9 +19,7 @@ async function getToken(config: AzureADConfig): Promise<string> {
   return data.access_token as string
 }
 
-// MFA registration state keyed by lower-cased userPrincipalName. Read from the
-// authentication-methods report; returns an empty map (MFA stays unknown) if the
-// app lacks the report permission, so a sync never fails over missing MFA data.
+// MFA state by lower-cased UPN from the auth-methods report, empty (unknown) without that permission so a sync never fails.
 async function fetchMfaByUpn(token: string): Promise<Map<string, boolean>> {
   const map = new Map<string, boolean>()
   let url: string | null =
@@ -80,8 +78,7 @@ export async function fetchAzureUsers(config: AzureADConfig): Promise<DirectoryU
   return users
 }
 
-// Revoke a user's refresh tokens, invalidating their active sessions. The user
-// key accepts the userPrincipalName/email. Requires User.ReadWrite.All.
+// Revokes the user's refresh tokens, ending active sessions; needs User.ReadWrite.All.
 export async function revokeAzureSessions(config: AzureADConfig, email: string): Promise<void> {
   const token = await getToken(config)
   const res = await fetch(

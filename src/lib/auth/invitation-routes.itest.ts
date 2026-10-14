@@ -26,8 +26,7 @@ describe("POST /api/users/[id]/invite", () => {
     expect(await prisma.userInvitation.count({ where: { userId: target.id } })).toBe(0)
   })
 
-  // Tenant isolation: an administrator of one company must not be able to mint
-  // credentials for somebody else's user by passing their id.
+  // Tenant isolation: an administrator cannot mint credentials for another company's user by id.
   it("refuses a target in another company, and says only 'not found'", async () => {
     const outsider = await makeUser("outsider", { companyId: ctx.otherCompanyId })
 
@@ -65,8 +64,7 @@ describe("POST /api/users/[id]/invite", () => {
     expect(audit?.actorUserId).toBe(ctx.adminId)
   })
 
-  // A company that mandates SSO refuses password sign-in, so an invitation
-  // would produce a live token that buys nothing but is still worth stealing.
+  // Under mandatory SSO a password invitation would buy nothing yet still be worth stealing.
   it("refuses to create a password path the sign-in policy forbids", async () => {
     await prisma.company.update({ where: { id: ctx.companyId }, data: { ssoMandatory: true } })
     try {
@@ -78,8 +76,7 @@ describe("POST /api/users/[id]/invite", () => {
     }
   })
 
-  // The link exists the moment it is issued. If the mail never leaves, leaving
-  // it live means a working credential whose only copy sits in a log.
+  // An undelivered link would stay a live credential whose only copy sits in a log.
   it("voids the invitation when the email cannot be delivered", async () => {
     mocks.email.on = true
     mocks.email.delivers = false
@@ -104,10 +101,7 @@ describe("POST /api/users/[id]/invite", () => {
   })
 })
 
-// The ceiling that applies to every authenticated route, checked through a real
-// one rather than against the limiter in isolation: what matters is that the
-// guard consults it at all. The counter is filled directly instead of by making
-// 120 requests, which would prove the same thing far more slowly.
+// Checked through a real route, since what matters is that the guard consults the limiter; the counter is pre-filled.
 describe("the API rate ceiling in requirePermission", () => {
   it("refuses once the account has spent its allowance", async () => {
     const target = await makeUser("flood")
@@ -124,9 +118,7 @@ describe("the API rate ceiling in requirePermission", () => {
   })
 })
 
-// The heart of "server-side": a user under a forced rotation must be refused by
-// the API guard itself, not merely redirected by a page. Otherwise the browser
-// obeys and everything else (scripts, the mobile client, curl) does not.
+// The API guard itself must refuse a forced rotation, since only the browser obeys a page redirect.
 describe("the forced-rotation gate in requirePermission", () => {
   it("refuses an otherwise authorized call while a rotation is pending", async () => {
     const target = await makeUser("gate")

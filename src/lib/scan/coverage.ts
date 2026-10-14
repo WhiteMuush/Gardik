@@ -16,8 +16,7 @@ type LastFailure = { reason: string; at: Date }
 
 type StatusCount = { provider: ApiProvider; status: ScanCheckStatus; count: number }
 
-// Coverage of the configured sources only: checks left by a removed source say
-// nothing about what the next scan will cover.
+// Covers configured sources only, since checks left by a removed source say nothing about the next scan.
 export function summarizeCoverage(
   totalEmployees: number,
   activeProviders: ApiProvider[],
@@ -89,8 +88,7 @@ export function checkLabel(check: CheckView | null): string {
   return `Failed on ${day(check.lastAttemptAt)}: ${check.failureReason ?? "Unknown error"}. ${last}`
 }
 
-// Identifies the current scan status, so a dismissed banner comes back as soon
-// as a scan changes what is missing or why.
+// Changes whenever a scan changes what is missing or why, so a dismissed banner comes back.
 export function coverageSignature(coverage: SourceCoverage[]): string {
   return coverage
     .filter((c) => c.failed > 0 || c.neverChecked > 0)

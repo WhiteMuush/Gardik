@@ -2,11 +2,7 @@ import { describe, it, expect, beforeAll } from "vitest"
 import { prisma } from "@/lib/prisma"
 import { seedPresetsForCompany, resolvePresetRoleId } from "./seed-roles"
 
-// Seeds its own company rather than borrowing the shared admin account. The
-// previous version reassigned that admin to Viewer and restored it at the end,
-// which only holds if suites run one at a time. Vitest runs test files in
-// parallel against the same database, so any suite reading the admin's role
-// during that window saw the read-only Viewer set and failed.
+// Seeds its own company, since suites run in parallel and borrowing the shared admin raced the others.
 let companyId: string
 
 beforeAll(async () => {

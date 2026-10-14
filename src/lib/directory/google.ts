@@ -70,8 +70,7 @@ export async function fetchGoogleUsers(config: GoogleWorkspaceConfig): Promise<D
         firstName: u.name?.givenName ?? "",
         lastName: u.name?.familyName ?? "",
         department: u.organizations?.[0]?.department ?? undefined,
-        // isEnrolledIn2Sv is part of the user resource (full projection); only
-        // trust it when present as a boolean, leave unknown otherwise.
+        // Trusted only when present as a boolean, otherwise MFA stays unknown.
         mfaEnabled: typeof u.isEnrolledIn2Sv === "boolean" ? u.isEnrolledIn2Sv : undefined,
       })
     }

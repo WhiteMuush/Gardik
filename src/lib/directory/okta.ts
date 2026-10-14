@@ -13,8 +13,7 @@ type OktaUser = {
   }
 }
 
-// Bound the per-user MFA fan-out so a large directory does not open hundreds of
-// concurrent requests or trip Okta rate limits.
+// Caps the per-user MFA fan-out so a large directory stays under Okta's rate limits.
 const MFA_CONCURRENCY = 8
 
 async function mapPool<T, R>(items: T[], limit: number, fn: (item: T) => Promise<R>): Promise<R[]> {
@@ -30,8 +29,7 @@ async function mapPool<T, R>(items: T[], limit: number, fn: (item: T) => Promise
   return out
 }
 
-// Okta has no MFA flag on the user; enrollment means at least one active factor.
-// Returns undefined (unknown) on any error so a sync never fails over MFA.
+// Okta has no MFA flag, so one active factor means enrolled, and any error leaves it unknown.
 async function fetchOktaMfaEnabled(
   base: string,
   token: string,
@@ -94,8 +92,7 @@ function oktaBase(config: OktaConfig): string {
   return `https://${config.domain.replace(/\/$/, "")}`
 }
 
-// Clear all of a user's active sessions. Okta resolves the login/email as the
-// user id in the path.
+// Clears all the user's sessions; Okta accepts the login email as the id in the path.
 export async function oktaRevokeSessions(config: OktaConfig, email: string): Promise<void> {
   const res = await fetch(`${oktaBase(config)}/api/v1/users/${encodeURIComponent(email)}/sessions`, {
     method: "DELETE",

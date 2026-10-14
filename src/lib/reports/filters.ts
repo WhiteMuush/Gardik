@@ -71,8 +71,7 @@ export function employeeWhere(companyId: string, f: ReportFilters): Prisma.Emplo
   return { companyId, ...departmentClause(f) }
 }
 
-// Employees considered "exposed" within the active filters: matching department AND
-// having at least one breach record inside the date / data-type constraints.
+// Exposed means in a matching department with a breach record inside the date and data-type filters.
 export function exposedEmployeeWhere(companyId: string, f: ReportFilters): Prisma.EmployeeWhereInput {
   const some = breachRecordSome(f)
   return {

@@ -1,7 +1,4 @@
-// Linear, backtracking-free email check. A regex like
-// /^[^\s@]+@[^\s@]+\.[^\s@]+$/ has overlapping quantifiers and is vulnerable to
-// polynomial ReDoS on attacker-supplied input (CodeQL js/polynomial-redos), so
-// validation is done with index scans instead.
+// Index scans instead of a regex, which would be open to polynomial ReDoS (CodeQL js/polynomial-redos).
 export function isEmail(value: string): boolean {
   if (value.length > 254 || /\s/.test(value)) return false
   const at = value.indexOf("@")

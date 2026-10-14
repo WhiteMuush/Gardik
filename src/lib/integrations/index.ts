@@ -19,8 +19,7 @@ function toJsonRecord(a: SiemAlert) {
   }
 }
 
-// Serialize a batch of alerts in the requested SIEM format. CEF and syslog are
-// newline-delimited (one event per line); json is a single JSON array.
+// CEF and syslog are one event per line; json is a single array.
 export function formatAlerts(alerts: SiemAlert[], format: SiemFormat): string {
   switch (format) {
     case "cef":
