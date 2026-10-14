@@ -105,8 +105,10 @@ e2e: ## Run the Playwright smoke test (app must be reachable on :3000)
 	$(N) npm run test:e2e
 
 .PHONY: check
-check: ## Run every quality gate (npm run check), then the production build
+check: ## Every quality gate, integration tests and schema drift (local DB), then the build
 	$(N) npm run check
+	$(N) npm run test:integration
+	$(N) node scripts/check-schema-drift.mjs
 	$(N) npm run build
 
 .PHONY: doctor
