@@ -1,9 +1,7 @@
 import type { Metadata } from "next"
 import "./globals.css"
 
-// Statically prerendered pages cannot carry the per-request CSP nonce, so
-// their script tags get blocked under strict-dynamic. Force dynamic rendering
-// globally; only /login was static anyway.
+// Prerendered pages cannot carry the per-request CSP nonce, so rendering is dynamic everywhere.
 export const dynamic = "force-dynamic"
 
 export const metadata: Metadata = {

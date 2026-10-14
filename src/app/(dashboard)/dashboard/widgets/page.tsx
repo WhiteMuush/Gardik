@@ -53,8 +53,7 @@ export default async function WidgetsPage() {
     }),
   ])
 
-  // Nothing to customise. Through the root: dashboard:customize opens this
-  // page and does not imply dashboard:read.
+  // Through the root, since dashboard:customize does not imply dashboard:read.
   if (presets.length === 0) redirect("/")
 
   const activePreset = presets.find((p) => p.id === user?.activePresetId) ?? presets[0]
