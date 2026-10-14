@@ -6,8 +6,7 @@ import { cn } from "@/lib/utils"
 
 const KEY = "gardik-scan-banner-dismissed"
 
-// A dismiss in this tab does not fire the storage event, so readers are
-// notified by hand; the event still covers other tabs.
+// A dismiss fires no storage event in its own tab, so readers are notified by hand.
 const listeners = new Set<() => void>()
 
 function subscribe(onChange: () => void) {
@@ -27,8 +26,7 @@ function read(): string | null {
   }
 }
 
-// Hidden while the dismissed status is still the current one; a different
-// signature (a new scan result) shows the banner again.
+// Hidden while the dismissed signature is current, so a new scan result shows it again.
 type Props = { signature: string; className?: string; children: React.ReactNode }
 
 export function DismissibleBanner({ signature, className, children }: Props) {

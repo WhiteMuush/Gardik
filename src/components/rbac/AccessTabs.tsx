@@ -5,9 +5,7 @@ import { cn } from "@/lib/utils"
 
 type Tab = { id: string; label: string; panel: ReactNode }
 
-// Three lists stacked on one page ran past 2000px. Tabs keep each one inside a
-// single viewport without inventing a new visual language: the strip is a plain
-// underlined row, no pills, no colour.
+// Tabs keep each list in one viewport, as three stacked lists ran past 2000px.
 export function AccessTabs({ tabs }: { tabs: Tab[] }) {
   const [active, setActive] = useState(tabs[0]?.id)
   const current = tabs.find((t) => t.id === active) ?? tabs[0]

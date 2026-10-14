@@ -6,10 +6,7 @@ import { useRouter } from "next/navigation"
 import { Lock } from "lucide-react"
 import { Button } from "@/components/ui/button"
 
-// Stands in front of the account section until the caller proves it is them
-// again. A live session is not enough here: this is where a session can be
-// turned into lasting access (a new authenticator, a passkey, an identity
-// provider), so an unlocked screen somebody walked away from should not be.
+// Requires a fresh proof of identity, since this section turns a session into lasting access.
 export function StepUpGate({ hasPassword, hasTwoFactor }: { hasPassword: boolean; hasTwoFactor: boolean }) {
   const router = useRouter()
   const [password, setPassword] = useState("")

@@ -16,8 +16,7 @@ export function RolesManager() {
   const [query, setQuery] = useState("")
   const [page, setPage] = useState(0)
   const [editing, setEditing] = useState<Role | null>(null)
-  // Explicit, because a new role starts with no name and no permissions, so
-  // the form's own fields cannot tell "closed" from "creating".
+  // Explicit, since a new role's empty fields cannot tell "closed" from "creating".
   const [formOpen, setFormOpen] = useState(false)
   const [perms, setPerms] = useState<Set<string>>(new Set())
   const [name, setName] = useState("")
@@ -57,8 +56,7 @@ export function RolesManager() {
     setFormOpen(false)
   }
 
-  // Runs a mutation; on STEP_UP_REQUIRED it stashes the retry and opens the
-  // dialog, replaying the same call once the password is re-verified.
+  // On STEP_UP_REQUIRED, stashes the call and replays it once the password is re-verified.
   async function mutate(run: () => Promise<Response>) {
     const res = await run()
     if (res.status === 403) {

@@ -5,8 +5,7 @@ export type UserRow = {
   roleId: string | null
   roleName: string | null
 }
-// grantable comes from the server and already folds in the no-escalation rule,
-// so the dropdown never offers a role the assignment call would refuse.
+// grantable comes from the server with the no-escalation rule folded in, so no refused role is offered.
 export type RoleRow = { id: string; name: string; isAssignable: boolean; grantable: boolean }
 
 type Props = {

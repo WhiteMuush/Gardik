@@ -57,8 +57,7 @@ const subscribeNever = () => () => {}
 export function DetailDrawerProvider({ children }: { children: ReactNode }) {
   const [payload, setPayload] = useState<DetailPayload | null>(null)
   const [loading, setLoading] = useState(false)
-  // false on the server and during hydration, true once on the client: the
-  // portal target (document.body) only exists there.
+  // True only once on the client, where the portal target (document.body) exists.
   const mounted = useSyncExternalStore(
     subscribeNever,
     () => true,
