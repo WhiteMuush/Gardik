@@ -112,8 +112,8 @@ describe("createFirstAdmin", () => {
     })
 
     expect(rows).toHaveLength(1)
-    expect(rows[0].consumedAt).toBeNull()
-    expect(rows[0].expiresAt.getTime()).toBeGreaterThan(Date.now())
+    expect(rows[0]?.consumedAt).toBeNull()
+    expect(rows[0]?.expiresAt.getTime()).toBeGreaterThan(Date.now())
   })
 
   it("writes the creation and the invitation to the audit trail, with no actor", async () => {

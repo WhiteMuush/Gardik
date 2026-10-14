@@ -185,7 +185,7 @@ describe("domain verification route handlers", () => {
 
     const audits = await prisma.auditLog.findMany({ where: { targetId: providerId } })
     expect(audits).toHaveLength(1)
-    expect(audits[0].action).toBe(AUDIT_ACTIONS.SSO_DOMAIN_VERIFY)
-    expect(audits[0].companyId).toBe(company.id)
+    expect(audits[0]?.action).toBe(AUDIT_ACTIONS.SSO_DOMAIN_VERIFY)
+    expect(audits[0]?.companyId).toBe(company.id)
   })
 })

@@ -88,7 +88,7 @@ describe("processSyncJobs", () => {
 
     await processSyncJobs()
 
-    const arg = syncJobUpdate.mock.calls[0][0]
+    const arg = syncJobUpdate.mock.calls[0]![0]
     expect(arg.data.status).toBe("PENDING")
     expect(arg.data.attempts).toBe(1)
     expect(arg.data.lastError).toBe("boom")

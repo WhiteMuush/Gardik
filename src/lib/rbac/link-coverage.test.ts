@@ -33,7 +33,8 @@ const HREF_LITERAL = /href[\s\S]{0,80}?["'`](\/[^"'`\s]*)["'`]/g
 function linkedPaths(source: string): string[] {
   const found: string[] = []
   for (const match of source.matchAll(HREF_LITERAL)) {
-    found.push(match[1].split(/[?#]/)[0])
+    const path = match[1]?.split(/[?#]/)[0]
+    if (path) found.push(path)
   }
   return found
 }
@@ -97,8 +98,8 @@ describe("link -> permission coverage", () => {
     for (const file of tsxFiles(SRC)) {
       const source = readFileSync(file, "utf8")
       for (const match of source.matchAll(NAVIGATION)) {
-        const path = match[1].split(/[?#]/)[0]
-        if (isGatedPage(path)) offenders.push(`${relative(SRC, file)} -> ${path}`)
+        const path = match[1]?.split(/[?#]/)[0]
+        if (path && isGatedPage(path)) offenders.push(`${relative(SRC, file)} -> ${path}`)
       }
     }
     expect(

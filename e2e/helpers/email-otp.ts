@@ -14,7 +14,7 @@ export async function latestEmailOtp(): Promise<string> {
       orderBy: { createdAt: "desc" },
     })
     if (!row) throw new Error("no 2fa-otp verification row found")
-    return row.value.split(":")[0]
+    return row.value.split(":")[0] ?? ""
   } finally {
     await prisma.$disconnect()
   }

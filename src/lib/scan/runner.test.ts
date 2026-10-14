@@ -93,11 +93,11 @@ describe("runScan", () => {
     expect(breachRecordUpdate).toHaveBeenCalledTimes(1)
     expect(alertUpdate).toHaveBeenCalledTimes(1)
 
-    const recordMerge = breachRecordUpdate.mock.calls[0][0].data
+    const recordMerge = breachRecordUpdate.mock.calls[0]![0].data
     expect(recordMerge.exposedData.sort()).toEqual(["email", "password"])
     expect(recordMerge.sources).toEqual(["HIBP", "DEHASHED"])
     // Two tools confirm: the merged password makes it HIGH, and the second tool lifts the confidence.
-    const alertMerge = alertUpdate.mock.calls[0][0].data
+    const alertMerge = alertUpdate.mock.calls[0]![0].data
     expect(alertMerge.severity).toBe("HIGH")
     expect(alertMerge.confidence).toBe("HIGH")
   })

@@ -40,9 +40,9 @@ describe("recommendation levels", () => {
   it("recommends HIBP and its stealer logs, and keeps Intelligence X for its free tier", () => {
     const groups = providersByLevel()
     expect(groups.map((g) => g.level)).toEqual(["Recommended", "Additional", "Free or limited"])
-    expect(groups[0].providers.map((p) => p.id)).toEqual(["HIBP", "HIBP_STEALER"])
-    expect(groups[1].providers.map((p) => p.id).sort()).toEqual(["DEHASHED", "LEAKCHECK", "SNUSBASE"])
-    expect(groups[2].providers.map((p) => p.id)).toEqual(["INTELX"])
+    expect(groups[0]?.providers.map((p) => p.id)).toEqual(["HIBP", "HIBP_STEALER"])
+    expect(groups[1]?.providers.map((p) => p.id).sort()).toEqual(["DEHASHED", "LEAKCHECK", "SNUSBASE"])
+    expect(groups[2]?.providers.map((p) => p.id)).toEqual(["INTELX"])
   })
 })
 

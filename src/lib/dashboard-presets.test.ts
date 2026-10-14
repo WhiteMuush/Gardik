@@ -29,9 +29,9 @@ describe("loadDashboardPresets", () => {
     db.user.findUnique.mockResolvedValue({ activePresetId: "shared" })
     const { typedPresets, activePresetId } = await loadDashboardPresets("u1", "c1")
     expect(typedPresets.map((p) => p.id)).toEqual(["mine", "shared"])
-    expect(typedPresets[0].createdAt).toBe("2026-01-01T00:00:00.000Z")
+    expect(typedPresets[0]?.createdAt).toBe("2026-01-01T00:00:00.000Z")
     expect(activePresetId).toBe("shared")
-    expect(db.dashboardPreset.findMany.mock.calls[0][0].where).toEqual({
+    expect(db.dashboardPreset.findMany.mock.calls[0]?.[0].where).toEqual({
       OR: [
         { userId: "u1", scope: "PERSONAL" },
         { companyId: "c1", scope: "COMPANY" },
@@ -45,7 +45,7 @@ describe("loadDashboardPresets", () => {
     db.user.findUnique.mockResolvedValue({ activePresetId: null })
     db.dashboardPreset.create.mockResolvedValue(row("new", "PERSONAL"))
     const { typedPresets, activePresetId } = await loadDashboardPresets("u1", "c1")
-    expect(db.dashboardPreset.create.mock.calls[0][0].data).toMatchObject({
+    expect(db.dashboardPreset.create.mock.calls[0]?.[0].data).toMatchObject({
       name: "Default",
       scope: "PERSONAL",
     })
