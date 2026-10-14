@@ -15,10 +15,7 @@ async function login(page: import("@playwright/test").Page, u: { email: string; 
   await page.waitForURL("**/dashboard")
 }
 
-// The hole this guards: pages used to check permissions only to decide what to
-// draw, so typing the address reached them anyway and rendered the company's
-// data to a role that was never granted it. The rail hiding the entry was the
-// only thing in the way, and an address bar goes around that.
+// Typing a page's address must be refused, not only hidden from the rail.
 test("a page the role cannot open refuses, and its rail entry is absent", async ({ page }) => {
   await login(page, NARROW)
 
@@ -32,10 +29,7 @@ test("a page the role cannot open refuses, and its rail entry is absent", async 
     await expect(page.getByText("Not available to your role")).toBeVisible()
   }
 
-  // The refusal has to happen before the page queries, not after. Hiding a
-  // rendered page still ships its data: with only the layout check in place,
-  // this address was in the HTML of /employees for a role without
-  // employees:read.
+  // The refusal must come before the page queries, or the HTML still ships the data.
   await page.goto("/employees")
   expect(await page.content()).not.toContain("jane.doe@gardik.dev")
 
@@ -46,10 +40,7 @@ test("a page the role cannot open refuses, and its rail entry is absent", async 
   }
 })
 
-// A Viewer (roles:read only, no roles:manage) can open Access and see roles but
-// gets no "New role" mutation power server-side. Guards the read gate.
-// Uses page.request, not the isolated request fixture, so the call carries the
-// browser context cookies and reaches the permission check rather than 401.
+// page.request carries the browser cookies, so the call reaches the permission check rather than a 401.
 test("a viewer can view roles but not create one", async ({ page }) => {
   await login(page, MEMBER)
   await page.goto("/access")
@@ -63,13 +54,9 @@ test("a viewer can view roles but not create one", async ({ page }) => {
   expect(res.status()).toBe(403)
 })
 
-// The dashboard shell is h-screen with overflow-hidden at every level, so each
-// page owns its scrolling. Opening the permission editor makes /access taller
-// than the viewport, and without a scroll container the Cancel button sits below
-// the fold with no way to reach it: the panel cannot be closed.
+// The shell never scrolls, so the editor needs its own scroll container or Cancel is out of reach.
 test("the permission editor stays reachable once it overflows the viewport", async ({ page }) => {
-  // Laptop height, not the 1280x720 default: the editor fits in 720 and the
-  // clipping only shows up on a shorter viewport.
+  // Laptop height, since the editor fits in the 720px default.
   await page.setViewportSize({ width: 1280, height: 620 })
   await login(page, ADMIN)
   await page.goto("/access")
@@ -77,10 +64,7 @@ test("the permission editor stays reachable once it overflows the viewport", asy
   await page.getByRole("button", { name: "Edit" }).first().click()
   await expect(page.getByPlaceholder("Role name")).toBeVisible()
 
-  // Walk out from the form and fail on any ancestor that clips content it is
-  // too short to show. Asserting the Cancel button's position instead would
-  // pass or fail on how many roles happen to be seeded, and Playwright can
-  // force a click on a clipped node where a user cannot.
+  // Fails on any ancestor clipping content, which unlike a button position does not depend on the seeded roles.
   const clipped = await page.evaluate(() => {
     let el: Element | null = document.querySelector('input[placeholder="Role name"]')
     const bad: string[] = []
@@ -101,11 +85,7 @@ test("the permission editor stays reachable once it overflows the viewport", asy
   await expect(page.getByPlaceholder("Role name")).toBeHidden()
 })
 
-// An admin creates a plain role through the UI. The crown-jewel step-up path is
-// covered at the API level by the Task 8/9 integration tests.
-// The name is unique per run and deleted afterwards: a fixed name would survive
-// in the dev database and make a rerun pass on the leftover row while the POST
-// silently returned 409.
+// A unique name deleted afterwards, so a rerun cannot pass on a leftover row while the POST returns 409.
 test("admin creates a role through the management UI", async ({ page }) => {
   const roleName = `Playbook Author ${Date.now()}`
   await login(page, ADMIN)
@@ -124,12 +104,7 @@ test("admin creates a role through the management UI", async ({ page }) => {
   expect(del.ok()).toBeTruthy()
 })
 
-// The other half of the rule the test above covers. That one proves the guard
-// refuses the target; this one proves the interface stops offering the way in.
-// A Viewer holds every ":read" permission and none of the actions, so it opens
-// all three of these pages legitimately and must find no control on them that
-// leads to a refusal. Each assertion is paired with the admin case, because a
-// selector that matches nothing passes whether or not the code is right.
+// A Viewer opens these pages legitimately and must find no control leading to a refusal, checked against the admin case.
 test("a read-only role is offered no control it cannot use", async ({ page }) => {
   await login(page, MEMBER)
 
@@ -149,14 +124,7 @@ test("a read-only role is offered no control it cannot use", async ({ page }) =>
   await page.getByRole("button", { name: "Customize" }).click()
   await expect(page.getByRole("link", { name: "Library" })).toHaveCount(0)
 
-  // dashboard:manage_shared, the one change on this branch that alters what a
-  // role may do rather than only what it is shown. The client used to decide
-  // this by comparing the role's name to "Administrator" while the preset
-  // routes check the permission, so the two could disagree in both directions.
-  // Without it the button makes a personal preset outright and never offers the
-  // company scope, which is what the API would refuse. That click is a real
-  // write, and the extra personal preset it leaves behind is the price of
-  // testing the branch that has no menu to inspect.
+  // Without dashboard:manage_shared the button makes a personal preset directly, a real write this test accepts.
   await page.getByTitle("Add preset").click()
   await expect(page.getByText("Company preset")).toHaveCount(0)
 })
@@ -175,8 +143,7 @@ test("an admin is offered the same controls, so the selectors above mean somethi
   await page.getByRole("button", { name: "Customize" }).click()
   await expect(page.getByRole("link", { name: "Library" })).toBeVisible()
 
-  // Holding dashboard:manage_shared, the same button opens the scope menu
-  // instead of writing anything.
+  // With dashboard:manage_shared, the same button opens the scope menu instead of writing.
   await page.getByTitle("Add preset").click()
   await expect(page.getByText("Company preset")).toBeVisible()
 })

@@ -7,20 +7,15 @@ const EMAIL = "mfa@gardik.local"
 const PASSWORD = "ChangeMe123!"
 const ADMIN = { email: "admin@gardik.local", password: "ChangeMe123!" }
 
-// Serial: both tests move the shared company policy, so they must not overlap.
-// smoke.spec uses password-only admin login, which allowedAuthMethods does not
-// gate, so it stays safe to run in parallel.
+// Serial, since both tests move the shared company policy; the password-only smoke spec stays parallel-safe.
 test.describe.configure({ mode: "serial" })
 
-// Drop any enrollment left by an earlier local run, otherwise the enable call
-// below returns 401 on an already-enrolled user. The serial chain then builds
-// its own state: the second test enrolls, the last two rely on it.
+// Drops an earlier local enrollment, or enable returns 401; the serial chain then builds its own state.
 test.beforeAll(async () => {
   await resetTwoFactorEnrollment(EMAIL)
 })
 
-// Guards the "decorative policy" fix: enrolling a method the company has not
-// allowed must be refused server-side, not merely hidden in the UI.
+// Enrolling a method the company has not allowed must be refused server-side, not merely hidden.
 test("company can forbid a method it has not allowed", async ({ request }) => {
   await setAllowedMethods(request, ADMIN, ["EMAIL_OTP"])
   try {
@@ -30,9 +25,7 @@ test("company can forbid a method it has not allowed", async ({ request }) => {
   }
 })
 
-// Guards the missing TwoFactor column regression: enrollment 500s and login can
-// never be gated. The unit suite mocks Prisma, so only a real DB round-trip
-// catches it.
+// Only a real DB round-trip catches enrollment failing, since the unit suite mocks Prisma.
 test("2FA-enrolled user must pass a TOTP challenge to sign in", async ({ page, request }) => {
   const secret = await enrollTwoFactor(request, EMAIL, PASSWORD)
 
@@ -53,16 +46,13 @@ test("2FA-enrolled user must pass a TOTP challenge to sign in", async ({ page, r
   await expect(page.getByRole("main")).toBeVisible()
 })
 
-// EMAIL_OTP is a second factor gated by the same policy: a company that does
-// not allow it must get a 403 at the send step, the entry point of the flow.
-// Runs after enrollment above, so the user already has 2FA enabled.
+// A company without EMAIL_OTP must get a 403 at the send step; the user is already enrolled above.
 test("company can forbid EMAIL_OTP at the send step", async ({ request }) => {
   await setAllowedMethods(request, ADMIN, ["TOTP"])
   expect(await trySendEmailOtp(request, EMAIL, PASSWORD)).toBe(403)
 })
 
-// Full email-code challenge: with EMAIL_OTP allowed, a 2FA user can sign in via
-// a code sent to their email instead of TOTP.
+// With EMAIL_OTP allowed, a 2FA user can sign in with an emailed code instead of TOTP.
 test("2FA user can complete the email-code challenge", async ({ page, request }) => {
   await setAllowedMethods(request, ADMIN, ["TOTP", "EMAIL_OTP"])
   try {

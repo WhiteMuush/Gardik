@@ -4,9 +4,7 @@ import { base32 } from "@better-auth/utils/base32"
 
 const ORIGIN = "http://localhost:3000"
 
-// Better Auth exposes the base32-encoded secret in the otpauth URI but runs
-// TOTP over the original secret string, so decode back to UTF-8 before
-// generating a code or it will not match.
+// The otpauth URI carries the base32 secret but TOTP runs over the original string, so decode it first.
 export async function totpCode(secret: string): Promise<string> {
   return createOTP(new TextDecoder().decode(base32.decode(secret))).totp()
 }
@@ -34,8 +32,7 @@ export async function setAllowedMethods(
   if (!res.ok()) throw new Error(`policy update failed: ${res.status()} ${await res.text()}`)
 }
 
-// Returns the status of a two-factor enable attempt without asserting success,
-// so a test can check the policy gate rejects a disallowed method.
+// Returns the enable status without asserting, for the policy gate test.
 export async function tryEnableTotp(
   request: APIRequestContext,
   email: string,
@@ -49,9 +46,7 @@ export async function tryEnableTotp(
   return res.status()
 }
 
-// Drives the real Better Auth enrollment flow (sign-in, enable, verify) and
-// returns the TOTP secret so the caller can produce codes. Exercises the
-// TwoFactor DB write that unit tests mock away.
+// Drives the real enrollment (sign-in, enable, verify) and returns the secret, covering the write unit tests mock.
 export async function enrollTwoFactor(
   request: APIRequestContext,
   email: string,
