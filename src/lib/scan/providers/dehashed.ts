@@ -19,8 +19,7 @@ const EXPOSABLE = [
 type DeHashedEntry = Record<string, unknown> & { database_name?: string }
 type DeHashedResponse = { entries?: DeHashedEntry[] | null }
 
-// DeHashed v2, exact email lookup. Entries carry no breach date, so we group by
-// source database and infer which exposable fields are present.
+// DeHashed v2 exact email lookup, grouped by source database since entries carry no breach date.
 export const dehashed: BreachProvider = {
   id: "DEHASHED",
   source: "DARK_WEB",

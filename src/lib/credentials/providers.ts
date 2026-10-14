@@ -1,16 +1,9 @@
 import type { AlertConfidence, ApiProvider } from "@prisma/client"
 
-// Confidence tier of a breach intelligence provider, from most to least
-// reliable. Tier 1 sources are curated and verified (rare false positives);
-// tier 2 are structured aggregators; tier 3 are broad OSINT feeds that are
-// noisier and often return no structured data. The tier feeds alert confidence,
-// it never lowers severity on its own (a real exposure stays severe whoever
-// reported it).
+// Tier 1 is curated, 2 structured aggregators, 3 noisy OSINT; the tier sets confidence, never severity.
 export type ProviderTier = 1 | 2 | 3
 
-// What a source costs, as published on its pricing page when last checked.
-// Prices change and Gardik runs on the customer's servers, so the UI always
-// shows the check date and links to the live page.
+// Published price at the last check, so the UI shows that date and links to the live page.
 export interface ProviderPricing {
   from: string | null // cheapest plan with API access; null when not published
   freeTier: string | null
@@ -19,8 +12,7 @@ export interface ProviderPricing {
   checkedOn: string
 }
 
-// Metadata for the breach/leak intelligence API providers.
-// `wired` indicates whether the code actually consumes the key today.
+// `wired` tells whether the code consumes the key today.
 export interface ProviderMeta {
   id: ApiProvider
   label: string
@@ -172,16 +164,14 @@ export function providerMeta(id: ApiProvider): ProviderMeta | undefined {
   return API_PROVIDERS.find((p) => p.id === id)
 }
 
-// Base alert confidence implied by a provider tier. Tier 1 sources are trusted
-// (HIGH), tier 2 structured aggregators (MEDIUM), tier 3 noisy OSINT (LOW).
+// Tier 1 is trusted (HIGH), tier 2 MEDIUM, tier 3 noisy OSINT LOW.
 const TIER_CONFIDENCE: Record<ProviderTier, AlertConfidence> = {
   1: "HIGH",
   2: "MEDIUM",
   3: "LOW",
 }
 
-// Confidence to stamp on an alert raised from a given provider. Unknown
-// providers fall back to MEDIUM rather than over- or under-stating reliability.
+// Unknown providers fall back to MEDIUM rather than over- or under-stating reliability.
 export function confidenceForProvider(id: ApiProvider): AlertConfidence {
   const tier = providerMeta(id)?.tier ?? 2
   return TIER_CONFIDENCE[tier]

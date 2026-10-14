@@ -2,8 +2,7 @@ import { sleep } from "./normalize"
 
 export type Pace = () => Promise<void>
 
-// Spaces calls to one source so it never sees more than `ratePerMinute`.
-// Each source gets its own pacer, so a slow plan never slows the others down.
+// Keeps one source under `ratePerMinute`, and each source has its own pacer so a slow plan slows no other.
 export function createPacer(ratePerMinute: number, now: () => number = Date.now): Pace {
   const interval = 60_000 / Math.max(1, ratePerMinute)
   let next = 0
