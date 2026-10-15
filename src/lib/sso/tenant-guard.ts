@@ -1,6 +1,4 @@
-// The only thing standing between company A's IdP and company B's data. An
-// unbound provider (no organizationId) is refused rather than treated as
-// wildcard: a row without a company is a misconfiguration, not a permission.
+// The only barrier between one company's IdP and another's data, so an unbound provider is refused.
 export function isSameTenant(
   userCompanyId: string,
   providerOrganizationId: string | null | undefined

@@ -6,9 +6,7 @@ type SCIMPatch = {
   Operations?: { op?: string; path?: string; value?: unknown }[]
 }
 
-// Detects a deactivation in both shapes RFC 7644 allows:
-// { op: "replace", path: "active", value: false } or { op: "replace", value: { active: false } }.
-// The op verb is matched case-insensitively ("Replace" / "replace").
+// Detects both RFC 7644 deactivation shapes (path "active", or value { active: false }), op matched case-insensitively.
 function isDeactivation(body: SCIMPatch): boolean {
   return (body.Operations ?? []).some((op) => {
     if (op.op?.toLowerCase() !== "replace") return false

@@ -9,9 +9,7 @@ import { writeAudit, AUDIT_ACTIONS } from "@/lib/rbac/audit"
 
 type Params = { params: Promise<{ id: string }> }
 
-// Load a role and confirm it belongs to the caller's company. Returns null when
-// it does not exist or is another company's (both surface as 404 to avoid
-// leaking existence across tenants).
+// Null for a missing role or another company's, both answered 404 so existence never leaks across tenants.
 async function loadOwnRole(id: string, companyId: string) {
   const role = await prisma.role.findUnique({ where: { id } })
   return role && role.companyId === companyId ? role : null
@@ -52,8 +50,7 @@ export async function PATCH(req: Request, { params }: Params) {
     return NextResponse.json({ error: "Exceeds your permissions", excess }, { status: 403 })
   }
 
-  // Step-up only when this edit newly introduces a crown jewel (adding power),
-  // not when it merely keeps or removes one.
+  // Step-up only when the edit adds a crown jewel, not when it keeps or removes one.
   const added = permissions.filter((p) => !role.permissions.includes(p))
   if (containsCrownJewel(added)) {
     const gate = await assertStepUp(session.user.id)

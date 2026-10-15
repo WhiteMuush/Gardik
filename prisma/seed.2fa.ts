@@ -1,8 +1,4 @@
-// Dev-only: enrolls a dedicated user in TOTP two-factor by driving the real
-// Better Auth HTTP flow, so the stored secret is encrypted the way the app
-// expects. Prints the secret + backup codes so you can add the account to an
-// authenticator app (or generate codes in tests). Requires the dev server
-// running on BASE_URL. Admin stays password-only for quick local login.
+// Dev-only: enrolls a TOTP user through the real HTTP flow on BASE_URL and prints the secret and backup codes.
 import { PrismaClient } from "@prisma/client"
 import { PrismaPg } from "@prisma/adapter-pg"
 import bcrypt from "bcryptjs"
@@ -81,9 +77,7 @@ async function main() {
   const secret = new URL(totpURI).searchParams.get("secret")
   if (!secret) throw new Error("no secret in totpURI")
 
-  // 3) Generate the current TOTP and verify to finalize enrollment. The URI
-  // carries the base32-encoded secret; Better Auth runs TOTP over the original
-  // secret string, so decode base32 back to UTF-8 or the code will not match.
+  // The URI carries the base32 secret but TOTP runs over the original string, so decode it before verifying.
   const rawSecret = new TextDecoder().decode(base32.decode(secret))
   const code = await createOTP(rawSecret).totp()
   const verifyRes = await fetch(`${BASE_URL}/api/auth/two-factor/verify-totp`, {

@@ -3,8 +3,7 @@
 import { useEffect, useState } from "react"
 import { Button } from "@/components/ui/button"
 
-// grantable is the server's own answer to "would you accept this from me",
-// so the picker cannot offer a role the write path will refuse.
+// grantable is the server's answer, so the picker cannot offer a role the write path refuses.
 type Role = { id: string; name: string; isAssignable: boolean; grantable: boolean }
 
 export function UserCreateForm() {
@@ -43,7 +42,7 @@ export function UserCreateForm() {
   }
 
   return (
-    <form onSubmit={submit} className="mb-6 rounded-lg border border-border p-4">
+    <form onSubmit={(e) => void submit(e)} className="mb-6 rounded-lg border border-border p-4">
       <h3 className="mb-1 text-sm font-semibold text-foreground">Add a person</h3>
       <p className="mb-3 text-xs text-muted-foreground">
         Creates an SSO-only account. It can sign in once this company has a verified identity provider.

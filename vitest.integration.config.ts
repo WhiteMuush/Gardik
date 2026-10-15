@@ -1,21 +1,19 @@
 import { defineConfig } from "vitest/config"
+import { existsSync } from "node:fs"
 import { fileURLToPath } from "node:url"
+
+// Locally the database comes from .env.local, while CI sets the variables itself.
+if (existsSync(".env.local")) process.loadEnvFile(".env.local")
 
 export default defineConfig({
   resolve: {
     alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) },
   },
-  // The PDF report module is authored as .tsx (react-pdf primitives); override
-  // the tsconfig `jsx: preserve` so the test transformer (oxc) compiles it.
+  // The PDF module is .tsx, so oxc compiles JSX despite the tsconfig `jsx: preserve`.
   oxc: { jsx: { runtime: "automatic" } },
   test: {
     include: ["src/**/*.itest.ts"],
-    // Every file here talks to the same database, so they were never actually
-    // independent, and running them in parallel only worked by luck of timing.
-    // src/lib/auth/bootstrap.itest.ts has to empty the Company table to reach
-    // the states its gate exists to distinguish, which takes locks the other
-    // suites are writing behind, and CI eventually deadlocked on it. Files run
-    // one at a time; tests inside a file already did.
+    // Files run one at a time, since they share one database and bootstrap.itest.ts deadlocked CI in parallel.
     fileParallelism: false,
   },
 })

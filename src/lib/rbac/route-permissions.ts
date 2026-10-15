@@ -1,8 +1,6 @@
 import type { Permission } from "./permissions"
 
-// Every mutating API route must appear here. The coverage test fails the build
-// if a mutating route is missing. "PUBLIC" = no session (own auth or none).
-// "AUTH_ONLY" = any authenticated user, no specific permission.
+// Every API route must appear here, where "PUBLIC" means no session and "AUTH_ONLY" any signed-in user.
 export const ROUTE_PERMISSIONS: Record<string, Permission | "PUBLIC" | "AUTH_ONLY"> = {
   "auth/[...all]": "PUBLIC",
   health: "PUBLIC",
@@ -10,16 +8,11 @@ export const ROUTE_PERMISSIONS: Record<string, Permission | "PUBLIC" | "AUTH_ONL
   "integrations/siem/[companyId]": "PUBLIC",
   "scim/[connectionId]/Users": "PUBLIC",
   "scim/[connectionId]/Users/[scimId]": "PUBLIC",
-  // Runs before sign-in: the login page calls it to learn whether a typed
-  // email's company has a verified SSO provider, so there is no session yet.
+  // Runs before sign-in, when the login page asks whether an email's company has a verified SSO provider.
   "sso/resolve": "PUBLIC",
-  // The invitee has no account to authenticate with yet; the single-use token
-  // in the body is the authorization.
+  // The invitee has no account yet, so the single-use token in the body is the authorization.
   "invitations/accept": "PUBLIC",
-  // Checks the session itself rather than going through requireAuth, because a
-  // user under a forced rotation is refused by that guard everywhere else and
-  // this is the one call that must still go through. It re-verifies the current
-  // password before writing.
+  // Checks the session itself, since requireAuth refuses users under a forced rotation; it re-verifies the password.
   "account/password": "PUBLIC",
 
   "alerts/[id]": "alerts:status",

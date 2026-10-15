@@ -1,9 +1,8 @@
 #!/usr/bin/env sh
-# Dump the local database (Docker or Podman). Managed databases should use their
-# provider's native backups instead (see docs/backup.md).
+# Dumps the local database, while managed databases should use their provider's backups (see docs/backup.md).
 set -eu
 
-root="$(CDPATH= cd "$(dirname "$0")/.." && pwd)"
+root="$(CDPATH='' cd "$(dirname "$0")/.." && pwd)"
 cd "$root"
 . "$root/scripts/container.sh"
 ct_resolve || exit 1

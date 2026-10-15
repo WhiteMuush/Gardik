@@ -3,38 +3,13 @@
 import { useMemo, useState } from "react"
 import { Search } from "lucide-react"
 import { cn } from "@/lib/utils"
-import {
-  API_PROVIDERS,
-  recommendationLevel,
-  type ProviderMeta,
-  type RecommendationLevel,
-} from "@/lib/credentials/providers"
-import { sourceHealth, type SourceHealth } from "@/lib/credentials/health"
+import { API_PROVIDERS, recommendationLevel, type ProviderMeta } from "@/lib/credentials/providers"
+import { sourceHealth } from "@/lib/credentials/health"
 import type { SourceCoverage } from "@/lib/scan/coverage"
 import { SourceDrawer } from "./SourceDrawer"
 import { HealthPill, LevelBadge, SourceAvatar } from "./SourceBadges"
-
-export type SourceCredential = {
-  id: string
-  provider: ProviderMeta["id"]
-  keyHint: string
-  rateLimitPerMinute: number | null
-  lastUsedAt: string | null
-  updatedAt: string
-}
-
-export type SourceView = {
-  meta: ProviderMeta
-  level: RecommendationLevel
-  credential: SourceCredential | null
-  coverage: SourceCoverage | null
-  health: SourceHealth
-  defaultRate: number
-}
-
-type Filter = "All" | "Connected" | "Needs action" | RecommendationLevel
-
-const FILTERS: Filter[] = ["All", "Connected", "Needs action", "Recommended", "Additional", "Free or limited"]
+import { CatalogStats } from "./CatalogStats"
+import { FILTERS, matches, type Filter, type SourceCredential, type SourceView } from "./source-view"
 
 type Props = {
   credentials: SourceCredential[]
@@ -43,26 +18,6 @@ type Props = {
   lastScanAt: string | null
   isAdmin: boolean
   canScan: boolean
-}
-
-function matches(view: SourceView, filter: Filter, query: string): boolean {
-  const q = query.trim().toLowerCase()
-  if (q && !`${view.meta.label} ${view.meta.description}`.toLowerCase().includes(q)) return false
-  if (filter === "All") return true
-  if (filter === "Connected") return view.credential !== null
-  if (filter === "Needs action") return view.health.status === "NEEDS_ACTION"
-  return view.level === filter
-}
-
-function formatScan(iso: string | null): string {
-  if (!iso) return "Never"
-  return new Date(iso).toLocaleString("en-US", {
-    month: "short",
-    day: "numeric",
-    year: "numeric",
-    hour: "2-digit",
-    minute: "2-digit",
-  })
 }
 
 export function SourceCatalog({ credentials, coverage, defaultRates, lastScanAt, isAdmin, canScan }: Props) {
@@ -96,39 +51,13 @@ export function SourceCatalog({ credentials, coverage, defaultRates, lastScanAt,
 
   return (
     <div>
-      <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
-        <div className="rounded-xl border border-border/60 bg-card px-4 py-3">
-          <p className="text-xs text-muted-foreground">Connected sources</p>
-          <p className="mt-1 text-xl font-semibold text-foreground">
-            {connected} <span className="text-sm font-normal text-muted-foreground">of {views.length}</span>
-          </p>
-        </div>
-        <div className="rounded-xl border border-border/60 bg-card px-4 py-3">
-          <p className="text-xs text-muted-foreground">Last scan</p>
-          <p className="mt-1 text-xl font-semibold text-foreground">{formatScan(lastScanAt)}</p>
-        </div>
-        <button
-          type="button"
-          onClick={() => setFilter("Needs action")}
-          disabled={needsAction === 0}
-          className={cn(
-            "rounded-xl border px-4 py-3 text-left transition-colors",
-            needsAction > 0
-              ? "border-destructive/40 bg-destructive/5 hover:bg-destructive/10"
-              : "border-border/60 bg-card"
-          )}
-        >
-          <p className="text-xs text-muted-foreground">Needs action</p>
-          <p
-            className={cn(
-              "mt-1 text-xl font-semibold",
-              needsAction > 0 ? "text-destructive" : "text-foreground"
-            )}
-          >
-            {needsAction}
-          </p>
-        </button>
-      </div>
+      <CatalogStats
+        connected={connected}
+        total={views.length}
+        lastScanAt={lastScanAt}
+        needsAction={needsAction}
+        onNeedsAction={() => setFilter("Needs action")}
+      />
 
       <div className="mb-4 flex flex-wrap items-center gap-3">
         <div className="relative w-full max-w-xs">

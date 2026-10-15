@@ -15,9 +15,7 @@ describe("generateToken", () => {
     for (const token of tokens) expect(token).toMatch(/^[A-Za-z0-9_-]+$/)
   })
 
-  // 32 bytes, base64url, so 43 characters with no padding. Asserted because the
-  // whole flow's security is this number: shorten it and the link becomes
-  // guessable without anything else in the code looking wrong.
+  // 32 bytes in base64url is 43 characters, and the flow's security rests on that length.
   it("carries 32 bytes of entropy", () => {
     expect(generateToken()).toHaveLength(43)
   })
@@ -49,15 +47,13 @@ describe("passwordProblem", () => {
     expect(passwordProblem("a".repeat(MIN_PASSWORD_LENGTH - 1))).toContain("at least")
   })
 
-  // bcrypt truncates past 72 bytes, so a longer passphrase would quietly lose
-  // its tail and offer less protection than the user believes.
+  // bcrypt truncates past 72 bytes, so a longer passphrase would silently lose its tail.
   it("rejects a passphrase past bcrypt's truncation point", () => {
     expect(passwordProblem("a".repeat(MAX_PASSWORD_LENGTH + 1))).toContain("at most")
   })
 
   it("counts bytes rather than characters, since bcrypt truncates bytes", () => {
-    // 24 emoji at 4 bytes each is 96 bytes, well past the limit, but only 24
-    // code points: a length check would have waved it through.
+    // 24 emoji are 96 bytes but only 24 code points, which a length check would accept.
     expect(passwordProblem("\u{1F600}".repeat(24))).toContain("at most")
   })
 })

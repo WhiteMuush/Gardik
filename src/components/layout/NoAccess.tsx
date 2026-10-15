@@ -1,10 +1,6 @@
 import { Lock } from "lucide-react"
 
-// Shown in place of a page the caller's role does not open. Deliberately not a
-// redirect: bouncing to the dashboard hides whether the page exists at all, and
-// a user who typed the address deserves to know their role is the reason rather
-// than wonder whether the link is broken. It says nothing about what the page
-// contains.
+// Shown instead of a redirect, so users learn their role is the reason without learning what the page holds.
 export function NoAccess() {
   return (
     <div className="flex h-full items-center justify-center p-6">

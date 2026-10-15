@@ -8,6 +8,7 @@ vi.mock("../normalize", async (importOriginal) => ({
 import { PROVIDERS } from "../registry"
 import { ProviderError } from "../errors"
 import { intelx } from "./intelx"
+import { hibp } from "./hibp"
 import { leakcheck } from "./leakcheck"
 
 function json(body: unknown, status = 200) {
@@ -99,5 +100,23 @@ describe("leakcheck", () => {
     vi.stubGlobal("fetch", vi.fn().mockResolvedValue(json({ success: false, error: "Invalid query" }, 400)))
     const err = await leakcheck.lookup("a@x.com", "k").catch((e: unknown) => e)
     expect((err as ProviderError).status).toBe(400)
+  })
+})
+
+describe("hibp", () => {
+  it("maps plural HIBP data classes onto the canonical critical keys", async () => {
+    const classes = [
+      "Passwords",
+      "Credit cards",
+      "Bank account numbers",
+      "Social security numbers",
+      "Email addresses",
+    ]
+    vi.stubGlobal(
+      "fetch",
+      vi.fn().mockResolvedValue(json([{ Name: "X", BreachDate: "2020-01-01", DataClasses: classes }]))
+    )
+    const [finding] = await hibp.lookup("a@b.c", "k")
+    expect(finding?.dataTypes).toEqual(["password", "credit_card", "bank_account", "ssn", "email_addresses"])
   })
 })

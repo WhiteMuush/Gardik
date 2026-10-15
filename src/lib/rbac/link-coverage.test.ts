@@ -16,33 +16,25 @@ function tsxFiles(dir: string): string[] {
   return out
 }
 
-// Components that link to a permission-gated API route, and the permission the
-// link must be gated on. Hand-maintained on purpose, exactly like
-// ROUTE_PERMISSIONS itself: the map does not prove a gate is correct, it forces
-// the decision to be made and written down when a link is added.
+// Hand-maintained like ROUTE_PERMISSIONS, so adding a gated link forces its permission to be written down.
 const API_LINK_PERMISSIONS: Record<string, string> = {
   "components/reports/ReportToolbar.tsx": "reports:export",
   "components/register/ExposureRegister.tsx": "register:evidence",
 }
 
-// "${...}" in a template literal and "[param]" in a route key both stand for
-// one variable segment. Normalising both is what lets them compare.
+// "${...}" and "[param]" both stand for one variable segment, so both normalise to the same token.
 function normalise(path: string): string {
   return path.replace(/\$\{[^}]*\}/g, "*").replace(/\[[^\]]*\]/g, "*")
 }
 
-// A path counts when it appears as a literal within a short window after an
-// `href`, which is what makes it something the reader can click. The window
-// spans newlines, so an attribute Prettier wrapped onto its own line is
-// still seen. A fetch() to the same route is deliberately out of scope: it
-// is not an affordance, the server refuses it on its own, and there is no
-// button to withdraw.
+// A path counts when it follows an `href` within a short window that spans wrapped lines; fetch() is out of scope.
 const HREF_LITERAL = /href[\s\S]{0,80}?["'`](\/[^"'`\s]*)["'`]/g
 
 function linkedPaths(source: string): string[] {
   const found: string[] = []
   for (const match of source.matchAll(HREF_LITERAL)) {
-    found.push(match[1].split(/[?#]/)[0])
+    const path = match[1]?.split(/[?#]/)[0]
+    if (path) found.push(path)
   }
   return found
 }
@@ -53,12 +45,7 @@ const GATED_PAGES = new Set(
     .map(([path]) => path)
 )
 
-// The app resolves a page's permission by longest matching prefix
-// (requiredPermissionForPage in page-permissions.ts), so a gated section's
-// rule governs every page below it, not just the section path itself. A
-// link to a detail page, /employees/<id> and the like, is the realistic
-// case: it matches no entry in GATED_PAGES by equality, so exact-equality
-// alone would let it slip past this file unseen.
+// Matches by longest prefix like requiredPermissionForPage, so detail pages such as /employees/<id> are caught.
 function isGatedPage(path: string): boolean {
   return GATED_PAGES.has(path) || [...GATED_PAGES].some((p) => path.startsWith(`${p}/`))
 }
@@ -76,11 +63,7 @@ function apiLinks(source: string): string[] {
     .filter((path) => GATED_API.has(path))
 }
 
-// The limit, stated so nobody reads more into a green run than is there: these
-// assertions prove a file received the means to gate its links, not that it
-// gated the right one. They catch the omission, which is the failure that
-// actually happened: three checklist buttons and two download buttons shipped
-// pointing at refusals, and nothing said a word.
+// These tests prove a file can gate its links, not that it gates the right one: they catch the omission.
 describe("link -> permission coverage", () => {
   it("a file linking to a gated page receives the visible list", () => {
     const offenders: string[] = []
@@ -108,19 +91,15 @@ describe("link -> permission coverage", () => {
     ).toEqual([])
   })
 
-  // The other way to put someone in front of a refusal, and the one the href
-  // rule above cannot see: sending them there in code. Signing in used to do
-  // exactly this, hardcoding /dashboard for a role that might not hold
-  // dashboard:read. The site root resolves the destination from the role now,
-  // so a redirect to a gated page is always the wrong instrument.
+  // A redirect in code to a gated page is never right, since the site root resolves the landing from the role.
   it("never sends someone to a gated page in code", () => {
     const NAVIGATION = /(?:redirect|router\.(?:push|replace))\(\s*["'`](\/[^"'`\s]*)["'`]/g
     const offenders: string[] = []
     for (const file of tsxFiles(SRC)) {
       const source = readFileSync(file, "utf8")
       for (const match of source.matchAll(NAVIGATION)) {
-        const path = match[1].split(/[?#]/)[0]
-        if (isGatedPage(path)) offenders.push(`${relative(SRC, file)} -> ${path}`)
+        const path = match[1]?.split(/[?#]/)[0]
+        if (path && isGatedPage(path)) offenders.push(`${relative(SRC, file)} -> ${path}`)
       }
     }
     expect(

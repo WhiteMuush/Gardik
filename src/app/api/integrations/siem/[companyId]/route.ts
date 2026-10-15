@@ -4,8 +4,7 @@ import { CONTENT_TYPE, formatAlerts, type SiemFormat } from "@/lib/integrations"
 
 const FORMATS: SiemFormat[] = ["cef", "syslog", "json"]
 
-// Authenticated pull feed for SIEM/SOAR ingestion. Splunk, Sentinel or any
-// collector polls this with the company's bearer export token.
+// Pull feed for SIEM collectors, authenticated with the company's bearer export token.
 export async function GET(req: Request, { params }: { params: Promise<{ companyId: string }> }) {
   const { companyId } = await params
 

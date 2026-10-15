@@ -106,7 +106,8 @@ author.
 
 ## Tech stack
 
-- Next.js 16 (App Router), React 19, TypeScript in strict mode
+- Next.js 16 (App Router), React 19, TypeScript in strict mode with
+  `noUncheckedIndexedAccess`
 - Prisma 7 with PostgreSQL
 - Better Auth (SSO, passkeys, TOTP)
 - Tailwind CSS
@@ -118,9 +119,15 @@ The quickest path needs only Docker, no Node on the host. It builds the app,
 starts PostgreSQL, applies migrations and seeds demo data in one command.
 
 ```bash
-make env            # create .env.local with generated secrets
-docker compose up   # app on http://localhost:3000, database seeded
+make env   # create .env.local with generated secrets
+make up    # app on http://localhost:3000 with hot reload, database seeded
 ```
+
+The demo data is fictional: invented employees on the reserved `example.com`
+domain, exposed in real public breaches (Adobe, LinkedIn...) as reported by
+Have I Been Pwned. `make down` stops the stack. If the host database from
+`make db-up` is running, stop it first with `make db-down`; if port 5432 is taken
+by another PostgreSQL, run `POSTGRES_PORT=5433 make up`.
 
 ### Running on the host
 
@@ -147,7 +154,7 @@ admin@gardik.local / ChangeMe123!
 
 ### Switching machines / after `git pull`
 
-With `docker compose up`, migrations and the demo seed run on every start, so a
+With `make up`, migrations and the demo seed run on every start, so a
 fresh machine is ready right after `git pull`.
 
 On the host, the Prisma client is regenerated automatically on `npm install`
@@ -167,11 +174,13 @@ npx prisma migrate dev --name <change>
 
 ### Database commands
 
-- `npm run db:init` starts a Postgres container (`compose.yml`), applies all
-  migrations and seeds demo data (breaches, employees, alerts).
+- `npm run db:init` starts a Postgres container (`scripts/db-up.sh`, Docker or
+  Podman), applies all migrations and seeds demo data (breaches, employees,
+  alerts).
 - `npm run db:up` / `npm run db:down` start and stop the container.
 - `npm run db:migrate` applies pending migrations to the current database.
-- `npm run seed:dev` reseeds the demo data; `npm run seed` seeds only the admin.
+- `npm run seed:dev` seeds the admin, then the demo data (`prisma/seed.demo.ts`);
+  `npm run seed` seeds only the admin. Both can run again safely.
 
 No Docker? Point `DATABASE_URL` at your own PostgreSQL, then run
 `npx prisma migrate deploy && npm run seed:dev`.
@@ -190,6 +199,17 @@ built by `compose.yml`: it bind-mounts the source and runs `next dev`.
 `Dockerfile` is the production one, a multi-stage build that ships the Next.js
 standalone server, runs as an unprivileged user and applies pending migrations
 on start.
+
+To test the production image before it is published:
+
+```bash
+make image        # build it and run it on http://localhost:3001 with its own database
+make image-scan   # Trivy scan, HIGH and CRITICAL
+make image-down   # stop it and wipe its database
+```
+
+`make image` prints the invite link that sets the first administrator's
+password, the same bootstrap a real deployment goes through.
 
 The published image lives on Docker Hub at
 [`whitemuush/gardik`](https://hub.docker.com/r/whitemuush/gardik), so a
@@ -251,7 +271,7 @@ Contributions are welcome.
 
 > **Contribution rules are enforced automatically by Git hooks (`.githooks/`) and CI (`.github/workflows/compliance.yml`). Non-compliant PR titles are rejected: invalid conventional commit format, AI attribution trailers, secrets, non-English text, frozen-dependency major bumps, and forbidden code patterns. The hooks activate on `npm install`.**
 
-Before every push, the hook runs `npm run check`: every quality gate (lint, format, types, unit tests with a coverage floor, dead code, licenses, audit), the same command CI runs. Run it yourself any time, or `make check` to add the production build.
+Before every push, the hook runs `npm run check`: every quality gate (lint, format, types, unit tests with a coverage floor, dead code, licenses, audit, secret and script scanners), the same command CI runs. Run it yourself any time, or `make check` to add the integration tests and the schema drift check against the local database, then the production build.
 
 Please also read [CONTRIBUTING.md](.github/CONTRIBUTING.md) and [CODE_OF_CONDUCT.md](.github/CODE_OF_CONDUCT.md).
 

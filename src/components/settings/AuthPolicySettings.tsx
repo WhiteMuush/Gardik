@@ -81,7 +81,7 @@ export function AuthPolicySettings({
         </span>
         {isAdmin && (
           <button
-            onClick={toggleRequire2fa}
+            onClick={() => void toggleRequire2fa()}
             disabled={busy}
             className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground underline-offset-2 hover:underline disabled:opacity-40"
           >
@@ -99,7 +99,7 @@ export function AuthPolicySettings({
         </div>
         {isAdmin && (
           <button
-            onClick={toggleSsoMandatory}
+            onClick={() => void toggleSsoMandatory()}
             disabled={busy}
             className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground underline-offset-2 hover:underline disabled:opacity-40"
           >
@@ -126,7 +126,7 @@ export function AuthPolicySettings({
                 type="checkbox"
                 checked={allowedAuthMethods.includes(method)}
                 disabled={!isAdmin || busy}
-                onChange={() => toggleMethod(method)}
+                onChange={() => void toggleMethod(method)}
               />
               {METHOD_LABEL[method]}
             </label>

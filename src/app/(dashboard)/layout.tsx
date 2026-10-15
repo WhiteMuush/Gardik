@@ -15,20 +15,14 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const session = await getSession()
   if (!session) redirect("/login")
 
-  // A session can outlive its company row (DB reseed, deleted tenant). Without
-  // this check the stale companyId reaches data loaders and crashes every
-  // dashboard page; force a re-auth instead.
+  // A session can outlive its company row (reseed, deleted tenant), so force a re-auth instead of crashing loaders.
   const company = await prisma.company.findUnique({
     where: { id: session.user.companyId },
     select: { id: true, require2fa: true },
   })
   if (!company) redirect("/login")
 
-  // Anything a user owes before the dashboard opens (a forced password
-  // rotation, a mandatory second factor) is settled on /secure, which lives
-  // outside this layout entirely: no sidebar, no other page to wander into
-  // while the requirement is outstanding. The API guard refuses those users
-  // independently, so this redirect is a courtesy rather than the control.
+  // Owed steps are settled on /secure; the API guard is the real control, this redirect only a courtesy.
   if (session.user.mustChangePassword || (company.require2fa && !session.user.twoFactorEnabled)) {
     // Only queried on the path that can redirect, which is the rare one.
     const credential = await prisma.account.findFirst({
@@ -46,10 +40,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
     }
   }
 
-  // Page authorization, enforced here rather than page by page. Every dashboard
-  // page renders through this layout, so a page that forgets its own check is
-  // still covered, and a page nobody registered is refused rather than left
-  // open. Pages keep their finer-grained checks for what to draw once inside.
+  // Page authorization for every dashboard page, so an unregistered page is refused rather than left open.
   const pathname = (await headers()).get("x-pathname") ?? ""
   const perms = await permissionsForRole(session.user.roleId ?? null)
   const may = (permission: ReturnType<typeof requiredPermissionForPage>) =>
@@ -57,9 +48,7 @@ export default async function DashboardLayout({ children }: { children: React.Re
 
   const openAlerts = await getOpenAlertCount(session.user.companyId)
 
-  // The rail advertises exactly what the server would let this user open, from
-  // the same map: no entry that leads to a refusal, and no hidden entry that
-  // would have worked.
+  // The rail shows exactly the pages the server would open for this user, from the same map.
   const visible = visiblePages(perms)
 
   return (

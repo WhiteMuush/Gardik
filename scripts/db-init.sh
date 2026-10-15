@@ -1,9 +1,8 @@
 #!/usr/bin/env sh
-# Bring up the local database (Docker or Podman), apply migrations, seed demo
-# data. One command for a fresh clone. Not for production.
+# Starts the local database, migrates it and seeds demo data in one command for a fresh clone, not for production.
 set -eu
 
-root="$(CDPATH= cd "$(dirname "$0")/.." && pwd)"
+root="$(CDPATH='' cd "$(dirname "$0")/.." && pwd)"
 cd "$root"
 
 sh scripts/db-up.sh

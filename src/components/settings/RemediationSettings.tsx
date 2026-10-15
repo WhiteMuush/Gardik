@@ -63,7 +63,7 @@ export function RemediationSettings({ enabled: initialEnabled, isAdmin, recent }
         </span>
         {isAdmin && (
           <button
-            onClick={toggle}
+            onClick={() => void toggle()}
             disabled={busy}
             className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground underline-offset-2 hover:underline disabled:opacity-40"
           >

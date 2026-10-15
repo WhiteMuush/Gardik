@@ -29,6 +29,7 @@ while IFS= read -r entry; do
   match '\bdebugger\b' "$content" && { echo "'debugger' statement: $loc"; status=1; }
   match 'as unknown as ' "$content" && { echo "Double cast 'as unknown as': $loc"; status=1; }
   match '@ts-nocheck' "$content" && { echo "'@ts-nocheck' forbidden: $loc"; status=1; }
+  # shellcheck disable=SC2016 # a literal $( in the pattern, not an expansion
   match '\$(queryRawUnsafe|executeRawUnsafe)' "$content" && { echo "Unsafe raw SQL: $loc"; status=1; }
   match 'prisma +db +push' "$content" && { echo "'prisma db push' forbidden: $loc"; status=1; }
 

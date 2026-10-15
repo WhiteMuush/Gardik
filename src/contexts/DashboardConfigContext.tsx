@@ -6,9 +6,7 @@ type DashboardConfigContextValue = {
   getTitle: (instanceId: string, defaultTitle: string) => string
   setTitle: (instanceId: string, title: string) => void
   editing: boolean
-  // A widget can ask its grid cell to grow by `rows` (0 = collapse) while an
-  // in-widget editor is open, so the extra content pushes neighbours instead of
-  // overflowing onto them.
+  // Lets a widget grow its cell by `rows` (0 collapses) while an in-widget editor is open.
   requestRows: (instanceId: string, rows: number) => void
 }
 

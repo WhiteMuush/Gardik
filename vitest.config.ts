@@ -5,8 +5,7 @@ export default defineConfig({
   resolve: {
     alias: { "@": fileURLToPath(new URL("./src", import.meta.url)) },
   },
-  // The PDF report module is authored as .tsx (react-pdf primitives); override
-  // the tsconfig `jsx: preserve` so the test transformer (oxc) compiles it.
+  // The PDF module is .tsx, so oxc compiles JSX despite the tsconfig `jsx: preserve`.
   oxc: { jsx: { runtime: "automatic" } },
   test: {
     include: ["src/**/*.test.ts"],
@@ -14,10 +13,10 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       include: ["src/lib/**"],
-      exclude: ["src/lib/**/*.test.ts", "src/lib/**/*.itest.ts"],
+      exclude: ["src/lib/**/*.test.ts", "src/lib/**/*.itest.ts", "src/lib/**/*.fixtures.ts"],
       reporter: ["text-summary"],
       // Floor at today's unit coverage, raise it as tests are added.
-      thresholds: { statements: 56, branches: 50, functions: 49, lines: 57 },
+      thresholds: { statements: 57, branches: 52, functions: 51, lines: 58 },
     },
   },
 })

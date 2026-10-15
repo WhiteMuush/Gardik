@@ -9,8 +9,7 @@ import { useDashboardEditing } from "@/contexts/DashboardEditContext"
 import { useDashboardConfig } from "@/contexts/DashboardConfigContext"
 import { cn } from "@/lib/utils"
 
-// Extra grid rows the cell needs to fit the open Visible cards panel so it
-// pushes neighbours instead of overflowing onto them.
+// Extra grid rows so the open Visible cards panel pushes neighbours instead of overflowing them.
 const SETTINGS_EXTRA_ROWS = 2
 
 type CardKey = "employees" | "alerts" | "detections" | "risk"
@@ -41,8 +40,7 @@ export function StatsRow({ compromisedEmployees, openAlerts, recentBreaches, ris
   const { requestRows } = useDashboardConfig()
   const risk = getRiskLevel(riskScore)
 
-  // Grow the grid cell while the panel is open (and on unmount / leaving edit
-  // mode), so the in-flow panel pushes the rows above and below.
+  // Grows the cell only while the panel is open, so the in-flow panel pushes the rows around it.
   const open = editing && showSettings
   useEffect(() => {
     requestRows("stats-row", open ? SETTINGS_EXTRA_ROWS : 0)

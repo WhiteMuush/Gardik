@@ -6,13 +6,7 @@ import { needsTwoFactorEnrollment } from "@/lib/auth/two-factor-gate"
 import { PasswordChange } from "@/components/settings/PasswordChange"
 import { TwoFactorSetup } from "@/components/settings/TwoFactorSetup"
 
-// Everything a user is required to do before the dashboard opens, on its own
-// screen outside the dashboard shell. Deliberately not a page inside the
-// application: there is no navigation, no sidebar and nothing else to click,
-// because none of it is available to them yet anyway.
-//
-// Steps run in order and the page re-evaluates after each one, so a user who
-// owes both a password rotation and a second factor sees them one at a time.
+// Owed steps (password rotation, second factor) one at a time, outside the dashboard shell since nothing else is open yet.
 export default async function SecurePage() {
   const session = await getSession()
   if (!session) redirect("/login")
@@ -35,8 +29,7 @@ export default async function SecurePage() {
     userHasPassword: credential !== null,
   })
 
-  // Nothing owed: this page has no reason to exist for this user. The root
-  // decides where they belong instead, since not every role opens /dashboard.
+  // Nothing owed, so the root decides where they belong, since not every role opens /dashboard.
   if (!mustChangePassword && !mustEnrollTwoFactor) redirect("/")
 
   return (

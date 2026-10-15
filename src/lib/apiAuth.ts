@@ -6,13 +6,7 @@ import { getUserPermissions, authorize } from "@/lib/rbac/authorize"
 import type { Permission } from "@/lib/rbac/permissions"
 import { hasValidStepUp } from "@/lib/rbac/step-up"
 
-// Single source of truth for API route authorization.
-// Permission model: each route requires a specific Permission (see
-// lib/rbac/permissions.ts). `requirePermission(permission)` resolves the
-// caller's role permissions from the DB and checks the grant; `requireAuth`
-// only requires a valid session, for routes any authenticated user may hit.
-// Callers do `const { session, error } = await requireX()` and return
-// `error` when present.
+// The only API authorization module: requirePermission checks a role grant, requireAuth only a valid session.
 type AuthResult = NonNullable<Awaited<ReturnType<typeof getSession>>>
 type Guard = { session: AuthResult; error: null } | { session: null; error: NextResponse }
 
@@ -21,23 +15,11 @@ const forbidden = () => NextResponse.json({ error: "Forbidden" }, { status: 403 
 const twoFactorRequired = () =>
   NextResponse.json({ error: "Two-factor enrollment required" }, { status: 403 })
 
-// Distinct code so the client can route the user to the password form instead
-// of showing a dead end, the same way STEP_UP_REQUIRED works.
+// A distinct code, like STEP_UP_REQUIRED, so the client routes to the password form instead of a dead end.
 const passwordChangeRequired = () =>
   NextResponse.json({ error: "Password change required", code: "PASSWORD_CHANGE_REQUIRED" }, { status: 403 })
 
-// A ceiling on how fast one account can call the API at all, applied in the
-// guard every authenticated route already goes through rather than route by
-// route, where the next route added would be the one nobody remembers.
-//
-// Sized for a dashboard: a page load makes a handful of calls, so a person
-// never approaches this, while a script hammering an endpoint does within
-// seconds. Endpoints that deserve a stricter ceiling (signing in, redeeming an
-// invitation, changing a password, proving identity again, scanning) keep their
-// own tighter limit on top of this one.
-//
-// The cost is one indexed upsert per API call. That is the price of the ceiling
-// existing at all rather than living in the routes somebody remembers to guard.
+// Per-account API ceiling in the shared guard, sized so a person never reaches it but a script does.
 export const API_RATE_LIMIT = 120
 export const API_RATE_WINDOW_MS = 60_000
 
@@ -49,24 +31,12 @@ function enforceApiRate(userId: string): Promise<NextResponse | null> {
   )
 }
 
-// A forced rotation has to hold at the API, not only in the layout redirect.
-// Otherwise the user simply keeps calling the endpoints the pages would have
-// used, and the requirement becomes a suggestion aimed at browsers.
-//
-// Read from the session rather than the database: the flag is only ever set
-// together with deleting that user's sessions, so a session carrying
-// mustChangePassword: false was necessarily issued after the flag was cleared.
-// The password endpoints themselves live under /api/auth and never pass through
-// this guard, which is what leaves the user a way out.
+// Enforced at the API and read from the session, since setting the flag deletes the user's sessions.
 function enforcePasswordRotation(session: AuthResult): NextResponse | null {
   return session.user.mustChangePassword ? passwordChangeRequired() : null
 }
 
-// A company can force 2FA. The dashboard layout redirects un-enrolled users to
-// /setup, but that only guards pages, so mirror the policy here to keep the API
-// behind the same gate. The enrollment endpoints live under /api/auth and are
-// not routed through this guard, so a forced user can still enroll. Only enrolled
-// users skip the extra query, so the common path stays a single round-trip.
+// Mirrors the layout's 2FA mandate at the API; /api/auth stays outside so a forced user can still enroll.
 async function enforce2fa(session: AuthResult): Promise<NextResponse | null> {
   if (session.user.twoFactorEnabled) return null
   const company = await prisma.company.findUnique({
@@ -102,14 +72,11 @@ export async function requirePermission(perm: Permission): Promise<Guard> {
   return { session, error: null }
 }
 
-// Distinct 403 shape so the client can tell "you lack the permission" (plain
-// Forbidden) from "re-enter your password" (STEP_UP_REQUIRED) and open the
-// step-up dialog instead of showing a dead end.
+// A distinct 403 so the client opens the step-up dialog rather than a plain Forbidden dead end.
 export const stepUpRequired = () =>
   NextResponse.json({ error: "Step-up required", code: "STEP_UP_REQUIRED" }, { status: 403 })
 
-// Call AFTER requirePermission, only on crown-jewel mutations. Returns an error
-// response when the caller has no fresh step-up grant, else null to proceed.
+// Call after requirePermission on crown-jewel mutations; returns an error without a fresh step-up grant.
 export async function assertStepUp(userId: string): Promise<NextResponse | null> {
   return (await hasValidStepUp(prisma, userId)) ? null : stepUpRequired()
 }

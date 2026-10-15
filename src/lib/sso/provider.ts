@@ -18,8 +18,7 @@ export type MaskedProvider = {
   clientIdLastFour: string | null
 }
 
-// One active provider per company in v1. Reads go through the extended client so
-// oidcConfig comes back as plaintext JSON in memory.
+// One active provider per company, read through the extended client so oidcConfig comes back decrypted.
 export async function findCompanyProvider(companyId: string): Promise<ProviderRow | null> {
   return authPrisma.ssoProvider.findFirst({
     where: { organizationId: companyId },
@@ -27,9 +26,7 @@ export async function findCompanyProvider(companyId: string): Promise<ProviderRo
   })
 }
 
-// The plugin's own access check is provider.userId === session.user.id when the
-// organization plugin is absent, which would lock every admin except the one who
-// registered. Our RBAC already decided the caller may act, so the row follows.
+// Without the organization plugin only the registering user could act, so the row follows our RBAC decision.
 export async function takeOwnership(providerId: string, userId: string): Promise<void> {
   await prisma.ssoProvider.update({ where: { providerId }, data: { userId } })
 }

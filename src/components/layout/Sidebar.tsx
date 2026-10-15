@@ -31,9 +31,7 @@ const navItems = [
   { href: "/access", label: "Access", icon: ShieldCheck },
 ]
 
-// Layers (within the aside stacking context): labels z-10 sit UNDER the rail
-// surface z-20, icons/pills z-30 sit ABOVE it. A label starts tucked behind the
-// surface and slides right on hover, so it emerges from under the panel.
+// Labels (z-10) sit under the rail surface (z-20) and icons (z-30) above, so labels slide out from under it.
 function RailLabel({ children }: { children: ReactNode }) {
   return (
     <span className="pointer-events-none absolute left-full top-1/2 z-10 -ml-4 -translate-y-1/2">
@@ -46,13 +44,7 @@ function RailLabel({ children }: { children: ReactNode }) {
 
 interface SidebarProps {
   openAlerts: number
-  /**
-   * Hrefs this user may actually open, resolved server-side from the same map
-   * the layout enforces. Passed in rather than computed here: a client
-   * component cannot be trusted with the decision, and duplicating the rule
-   * would let the two copies drift until the rail advertises a page the server
-   * refuses.
-   */
+  // Resolved server-side from the map the layout enforces, so the rail never advertises a page the server refuses.
   visible: string[]
 }
 
@@ -106,8 +98,7 @@ export function Sidebar({ openAlerts, visible }: SidebarProps) {
 
       <div className="relative space-y-1 px-2 py-3">
         <div aria-hidden className="absolute inset-x-2 top-0 z-30 border-t border-sidebar-border" />
-        {/* The account, not a section of the product: the caller's own sign-in
-            methods, and whatever else about them comes later. */}
+        {/* The caller's own account, not a section of the product. */}
         <Link href="/security" className="group/item relative flex">
           <span
             className={cn(
@@ -123,7 +114,7 @@ export function Sidebar({ openAlerts, visible }: SidebarProps) {
         </Link>
         <button
           onClick={() =>
-            signOut({
+            void signOut({
               fetchOptions: { onSuccess: () => router.push("/login") },
             })
           }

@@ -19,13 +19,7 @@ export function SetupChecklist({
 }: {
   hasEmployees: boolean
   hasApiKey: boolean
-  /**
-   * Paths this role may open, resolved server-side from the same map the
-   * layout enforces. A step whose target is not in here keeps its title and
-   * description and loses only its link: the person should still learn what
-   * the company is missing, which is what the "managed by admins" note below
-   * then accounts for.
-   */
+  // Paths this role may open; a step outside them keeps its text but loses its link.
   visible: string[]
   children?: React.ReactNode
 }) {
@@ -107,10 +101,7 @@ export function SetupChecklist({
           ))}
         </ol>
 
-        {/* The explanation for the buttons that are not there, so it appears
-            exactly when one is missing. It used to be keyed on users:manage,
-            which governs neither the steps nor their links: a role holding it
-            without connectors:read saw stripped steps and no account of why. */}
+        {/* Explains the missing buttons, shown exactly when a step has lost its link. */}
         {steps.some((step) => !step.done && !visible.includes(step.href)) && (
           <p className="mt-4 text-xs text-muted-foreground">
             Data sources and API keys are managed by admins. Ask an admin to complete the setup.

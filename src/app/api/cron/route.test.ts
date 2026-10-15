@@ -7,8 +7,7 @@ const pruneRateLimits = vi.fn()
 vi.mock("@/lib/scheduler", () => ({ runDueSchedules: () => runDueSchedules() }))
 vi.mock("@/lib/reportSchedules", () => ({ runDueReportSchedules: () => runDueReportSchedules() }))
 vi.mock("@/lib/siem", () => ({ runDueSiemPush: () => runDueSiemPush() }))
-// Mocked like the rest: this one reaches Postgres, and the unit suite runs
-// without a database.
+// Mocked, since it reaches Postgres and the unit suite runs without a database.
 vi.mock("@/lib/rateLimit", () => ({ pruneRateLimits: () => pruneRateLimits() }))
 
 import { POST } from "./route"

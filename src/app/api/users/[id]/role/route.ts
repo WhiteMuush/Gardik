@@ -29,9 +29,7 @@ export async function PATCH(req: Request, { params }: Params) {
     if (!role.isAssignable) {
       return NextResponse.json({ error: "Role is not assignable" }, { status: 403 })
     }
-    // No-escalation, plus a step-up when the role carries a crown jewel. Shared
-    // with the account-creation route, which is the other way to hand out a
-    // role and once checked neither.
+    // No-escalation plus step-up for crown jewels, shared with account creation (see grant-role.ts).
     const grant = await assertMayGrantRole(session.user, role)
     if (grant) return grant
   }

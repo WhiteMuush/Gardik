@@ -23,8 +23,7 @@ export function TwoFactorSetup({
 
   async function enable() {
     setError(null)
-    // The response is a union keyed on the method that was enabled, and only
-    // the TOTP arm carries a URI to render, so ask for it by name.
+    // Only the TOTP arm of the response union carries a URI, so it is asked for by name.
     const { data, error } = await twoFactor.enable({ password, method: "totp" })
     if (error || !data) {
       setError("Wrong password")
@@ -46,8 +45,7 @@ export function TwoFactorSetup({
       return
     }
     setDone(true)
-    // Full navigation rather than a router push: the session carries
-    // twoFactorEnabled, and the gate that sent the user here reads it.
+    // Full navigation, since the gate that sent the user here reads twoFactorEnabled from the session.
     if (continueTo) window.location.assign(continueTo)
   }
 
@@ -63,7 +61,7 @@ export function TwoFactorSetup({
             placeholder="Confirm your password"
             className="w-full rounded-lg border border-input bg-card px-3 py-2 text-sm"
           />
-          <Button onClick={enable}>Enable two-factor</Button>
+          <Button onClick={() => void enable()}>Enable two-factor</Button>
         </div>
       ) : (
         <div className="space-y-3">
@@ -83,7 +81,7 @@ export function TwoFactorSetup({
             placeholder="6-digit code"
             className="w-full rounded-lg border border-input bg-card px-3 py-2 text-sm"
           />
-          <Button onClick={verify}>Verify and finish</Button>
+          <Button onClick={() => void verify()}>Verify and finish</Button>
         </div>
       )}
       {error && <p className="text-sm text-destructive">{error}</p>}

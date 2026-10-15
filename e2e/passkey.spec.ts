@@ -5,25 +5,17 @@ import { resetPasskeys, resetStepUp } from "./helpers/reset"
 
 const PASSKEY_USER = { email: "passkey@gardik.local", password: "ChangeMe123!" }
 
-// Serial: both tests move the passkey company's policy. This spec uses its own
-// company (passkey.gardik.dev, seeded in e2e/seed.ts), separate from the
-// gardik.dev company the two-factor spec mutates, so the two files do not
-// race on a shared allowedAuthMethods across workers.
+// Serial, on its own company (passkey.gardik.dev) so it never races the two-factor spec on allowedAuthMethods.
 test.describe.configure({ mode: "serial" })
 
-// Drop credentials left by an earlier local run. They are bound to a virtual
-// authenticator that no longer exists, so sign-in would hang waiting on a
-// credential nothing can satisfy.
+// Drops credentials from an earlier local run, whose authenticator no longer exists and would hang sign-in.
 test.beforeAll(async () => {
   await resetPasskeys(PASSKEY_USER.email)
-  // The account section sits behind a step-up whose grant outlives a single
-  // test, so clear it or the form this spec fills may not be there at all.
+  // The step-up grant outlives a test, so it is cleared or the form may not be there.
   await resetStepUp(PASSKEY_USER.email)
 })
 
-// The policy gate must refuse passkey registration server-side, not merely hide
-// the setup card: with PASSKEY removed, the register-options endpoint (a GET
-// behind a fresh session) returns 403.
+// With PASSKEY removed, the register-options endpoint must answer 403, not merely hide the card.
 test("company can forbid passkey registration it has not allowed", async ({ request }) => {
   await setAllowedMethods(request, PASSKEY_USER, ["TOTP"])
   try {
@@ -33,10 +25,7 @@ test("company can forbid passkey registration it has not allowed", async ({ requ
   }
 })
 
-// Full WebAuthn round-trip against a CDP virtual authenticator: register a
-// passkey from the setup page, drop the session, then sign back in with the
-// passkey alone. Guards that enrollment persists a usable credential and that
-// usernameless passkey sign-in reaches the dashboard.
+// Full WebAuthn round-trip: register a passkey, drop the session, sign back in with the passkey alone.
 test("a registered passkey signs the user in", async ({ page, request }) => {
   await setAllowedMethods(request, PASSKEY_USER, ["PASSKEY", "TOTP"])
   await addVirtualAuthenticator(page)
@@ -49,9 +38,7 @@ test("a registered passkey signs the user in", async ({ page, request }) => {
   await page.getByRole("button", { name: "Sign in", exact: true }).click()
   await page.waitForURL("**/dashboard")
 
-  // Register a passkey from the account page, which stays reachable for the
-  // life of the workspace (unlike the onboarding checklist). It sits behind a
-  // step-up, so re-prove identity first.
+  // Registered from the account page, which stays reachable, after re-proving identity for its step-up.
   await page.goto("/security")
   await page.getByPlaceholder("Password").fill(PASSKEY_USER.password)
   await page.getByRole("button", { name: "Continue" }).click()
@@ -59,8 +46,7 @@ test("a registered passkey signs the user in", async ({ page, request }) => {
   await page.getByRole("button", { name: "Add a passkey" }).click()
   await expect(page.getByText("E2E Key")).toBeVisible()
 
-  // Drop the session, keep the authenticator (it lives on the CDP target), and
-  // sign in with the passkey alone.
+  // Drops the session but keeps the authenticator, which lives on the CDP target.
   await page.context().clearCookies()
   await page.goto("/login")
   await page.getByRole("button", { name: "Sign in with a passkey" }).click()

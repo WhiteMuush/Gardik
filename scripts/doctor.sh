@@ -1,16 +1,13 @@
 #!/usr/bin/env sh
-# Full setup diagnosis for Gardik: toolchain, env, Docker, database, Prisma.
-# After the report, offers to auto-fix detected issues (interactive only),
-# separating failures from warnings. Exits non-zero when failures remain.
+# Diagnoses the setup (toolchain, env, Docker, database, Prisma), offers interactive fixes, and exits non-zero on failures.
 set -u
 
-root="$(CDPATH= cd "$(dirname "$0")/.." && pwd)"
-cd "$root"
+root="$(CDPATH='' cd "$(dirname "$0")/.." && pwd)"
+cd "$root" || exit 1
 
 ok=0
 warn=0
 bad=0
-dkr=0
 fx_env=0
 fx_auth=0
 fx_enc=0
@@ -59,7 +56,7 @@ if [ ! -f .env.local ]; then
   fx_env=1
 else
   pass ".env.local present"
-  [ -n "$(getv DATABASE_URL)" ] && pass "DATABASE_URL set" || err "DATABASE_URL empty"
+  if [ -n "$(getv DATABASE_URL)" ]; then pass "DATABASE_URL set"; else err "DATABASE_URL empty"; fi
   as="$(getv BETTER_AUTH_SECRET)"
   if [ -z "$as" ]; then err "BETTER_AUTH_SECRET empty"; fx_auth=1
   elif [ "${as#change-me}" != "$as" ]; then err "BETTER_AUTH_SECRET still the placeholder"; fx_auth=1
@@ -74,7 +71,8 @@ else
   else wrn "BETTER_AUTH_URL empty (defaults to http://localhost:3000)"; fx_authurl=1; fi
   if [ -n "$(getv CRON_SECRET)" ]; then pass "CRON_SECRET set"
   else wrn "CRON_SECRET empty (scheduler endpoint /api/cron returns 503)"; fx_cron=1; fi
-  [ -n "$(getv HIBP_API_KEY)" ] && pass "HIBP_API_KEY set" || wrn "HIBP_API_KEY empty (no breach lookups unless a per-company key is stored)"
+  if [ -n "$(getv HIBP_API_KEY)" ]; then pass "HIBP_API_KEY set"
+  else wrn "HIBP_API_KEY empty (no breach lookups unless a per-company key is stored)"; fi
   rk="$(getv RESEND_API_KEY)"; ef="$(getv EMAIL_FROM)"
   if [ -n "$rk" ] && [ -n "$ef" ]; then pass "email configured (RESEND_API_KEY + EMAIL_FROM)"
   elif [ -z "$rk" ] && [ -z "$ef" ]; then wrn "email disabled (RESEND_API_KEY + EMAIL_FROM unset)"
@@ -85,7 +83,7 @@ echo "Container engine:"
 engine=""
 if command -v docker >/dev/null 2>&1 && docker info >/dev/null 2>&1; then engine="docker"
 elif command -v podman >/dev/null 2>&1; then engine="podman"; fi
-if [ -n "$engine" ]; then pass "$engine available ($($engine --version 2>/dev/null | awk '{print $3}' | tr -d ','))"; dkr=1
+if [ -n "$engine" ]; then pass "$engine available ($($engine --version 2>/dev/null | awk '{print $3}' | tr -d ','))"
 elif command -v docker >/dev/null 2>&1; then err "docker installed but daemon not running (start Docker Desktop / enable WSL integration)"
 else err "no container engine found (install Docker or Podman for the local database)"; fi
 if [ -n "$engine" ]; then
@@ -125,7 +123,7 @@ if [ $((errfix + warnfix)) -gt 0 ] && [ -t 0 ]; then
   echo ""
   echo "Auto-fixable: $errfix from failures, $warnfix from warnings."
   printf "Fix now? [e]rrors only / [a]ll / [n]o: "
-  read ans
+  read -r ans
 fi
 
 do_err=0; do_warn=0
@@ -138,10 +136,11 @@ applied=0
 if [ "$do_err" = "1" ]; then
   if [ "$fx_node" = "1" ]; then
     export NVM_DIR="$HOME/.nvm"
+    # shellcheck source=/dev/null
     . "$NVM_DIR/nvm.sh" 2>/dev/null || true
-    nvm install 22 >/dev/null 2>&1
-    nvm use 22 >/dev/null 2>&1
-    echo "fixed: using $(node -v) via nvm (also run 'nvm use 22' in your shell)"
+    nvm install >/dev/null 2>&1
+    nvm use >/dev/null 2>&1
+    echo "fixed: using $(node -v) via nvm from .nvmrc (also run 'nvm use' in your shell)"
     npm install
     fx_install=0
     applied=1

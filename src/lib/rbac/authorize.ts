@@ -7,9 +7,7 @@ export function authorize(perms: ReadonlySet<string>, needed: Permission): boole
   return perms.has(needed)
 }
 
-// A null roleId means no-access pending: zero permissions. Otherwise load the
-// role's permission list. Kept as its own function so callers can memoize per
-// request if needed.
+// A null roleId means no access yet, so no permissions; callers memoize per request.
 export async function getUserPermissions(db: Db, roleId: string | null): Promise<Set<string>> {
   if (!roleId) return new Set()
   const role = await db.role.findUnique({ where: { id: roleId }, select: { permissions: true } })

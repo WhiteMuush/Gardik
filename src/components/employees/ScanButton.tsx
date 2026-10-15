@@ -60,7 +60,7 @@ export function ScanButton({ onlyIncomplete = false, label = "Scan employees" }:
         </p>
       )}
       {error && <p className="text-xs text-destructive">{error}</p>}
-      <Button variant="outline" size="sm" onClick={scan} disabled={loading} className="gap-1.5">
+      <Button variant="outline" size="sm" onClick={() => void scan()} disabled={loading} className="gap-1.5">
         {loading ? <Loader2 className="size-3.5 animate-spin" /> : <ScanSearch className="size-3.5" />}
         {loading ? "Scanning..." : label}
       </Button>

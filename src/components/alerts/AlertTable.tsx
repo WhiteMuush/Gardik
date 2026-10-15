@@ -2,55 +2,15 @@
 
 import { useState, useMemo } from "react"
 import { useRouter } from "next/navigation"
-import { Search, Check, CheckCheck, Loader2, Download, LogOut, KeyRound } from "lucide-react"
-import { RiskBadge } from "@/components/ui/RiskBadge"
+import { Search, Download } from "lucide-react"
 import type { AlertRow } from "@/lib/alerts"
-import type { RiskLevel } from "@/lib/employees"
 import { downloadCsv } from "@/lib/csv"
-import { cn } from "@/lib/utils"
+import { confidenceLabel, statusLabel } from "./alert-meta"
+import { AlertItem } from "./AlertItem"
 
 const SEVERITIES = ["CRITICAL", "HIGH", "MEDIUM", "LOW"] as const
 const STATUSES = ["OPEN", "ACKNOWLEDGED", "RESOLVED"] as const
 const CONFIDENCES = ["HIGH", "MEDIUM", "LOW"] as const
-
-const borderBySeverity: Record<string, string> = {
-  CRITICAL: "border-l-severity-critical",
-  HIGH: "border-l-severity-high",
-  MEDIUM: "border-l-severity-medium",
-  LOW: "border-l-severity-low",
-}
-
-// Confidence is the reliability of the reporting source, not the impact. A
-// low-confidence hit (noisy OSINT feed) is muted/amber so a responder verifies
-// it before acting on it.
-const confidenceChip: Record<string, string> = {
-  HIGH: "border-border text-muted-foreground",
-  MEDIUM: "border-border text-muted-foreground",
-  LOW: "border-severity-medium/40 text-severity-medium",
-}
-
-const confidenceLabel: Record<string, string> = {
-  HIGH: "High confidence",
-  MEDIUM: "Medium confidence",
-  LOW: "Low confidence",
-}
-
-const statusLabel: Record<string, string> = {
-  OPEN: "Open",
-  ACKNOWLEDGED: "Acknowledged",
-  RESOLVED: "Resolved",
-}
-
-function timeAgo(date: Date): string {
-  const s = Math.floor((Date.now() - new Date(date).getTime()) / 1000)
-  if (s < 60) return "just now"
-  const m = Math.floor(s / 60)
-  if (m < 60) return `${m}m ago`
-  const h = Math.floor(m / 60)
-  if (h < 24) return `${h}h ago`
-  const d = Math.floor(h / 24)
-  return `${d}d ago`
-}
 
 export function AlertTable({
   data,
@@ -190,79 +150,14 @@ export function AlertTable({
       ) : (
         <div className="space-y-2">
           {filtered.map((a) => (
-            <div
+            <AlertItem
               key={a.id}
-              className={cn(
-                "flex items-center gap-4 rounded-xl border border-l-4 border-border/60 bg-card px-4 py-3",
-                borderBySeverity[a.severity],
-                a.status === "RESOLVED" && "opacity-60"
-              )}
-            >
-              <RiskBadge level={a.severity as RiskLevel} />
-              <div className="min-w-0 flex-1">
-                <p className="truncate text-sm font-medium text-foreground">{a.message}</p>
-                <p className="truncate text-xs text-muted-foreground">
-                  {a.employeeEmail ?? "Unknown employee"}
-                  {a.breachName ? ` - ${a.breachName}` : ""} - {timeAgo(a.createdAt)}
-                </p>
-              </div>
-              <span
-                title={confidenceLabel[a.confidence]}
-                className={cn(
-                  "shrink-0 rounded-full border px-2 py-0.5 text-[10px] font-medium uppercase tracking-wide",
-                  confidenceChip[a.confidence]
-                )}
-              >
-                {a.confidence}
-              </span>
-              <span className="shrink-0 text-xs text-muted-foreground">{statusLabel[a.status]}</span>
-              <div className="flex shrink-0 items-center gap-1">
-                {remediationEnabled && isAdmin && a.employeeEmail && (
-                  <>
-                    <button
-                      onClick={() => remediate(a.id, "REVOKE_SESSIONS", "Revoke all sessions")}
-                      disabled={pending === a.id}
-                      title="Revoke sessions"
-                      className="flex size-7 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:bg-muted hover:text-severity-critical disabled:opacity-30"
-                    >
-                      <LogOut className="size-3.5" />
-                    </button>
-                    <button
-                      onClick={() => remediate(a.id, "FORCE_PASSWORD_RESET", "Force a password reset")}
-                      disabled={pending === a.id}
-                      title="Force password reset"
-                      className="flex size-7 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:bg-muted hover:text-severity-critical disabled:opacity-30"
-                    >
-                      <KeyRound className="size-3.5" />
-                    </button>
-                  </>
-                )}
-                {a.status === "OPEN" && (
-                  <button
-                    onClick={() => updateStatus(a.id, "ACKNOWLEDGED")}
-                    disabled={pending === a.id}
-                    title="Acknowledge"
-                    className="flex size-7 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:bg-muted disabled:opacity-30"
-                  >
-                    {pending === a.id ? (
-                      <Loader2 className="size-3.5 animate-spin" />
-                    ) : (
-                      <Check className="size-3.5" />
-                    )}
-                  </button>
-                )}
-                {a.status !== "RESOLVED" && (
-                  <button
-                    onClick={() => updateStatus(a.id, "RESOLVED")}
-                    disabled={pending === a.id}
-                    title="Resolve"
-                    className="flex size-7 items-center justify-center rounded-md border border-border text-muted-foreground transition-colors hover:bg-muted disabled:opacity-30"
-                  >
-                    <CheckCheck className="size-3.5" />
-                  </button>
-                )}
-              </div>
-            </div>
+              a={a}
+              pending={pending}
+              canRemediate={remediationEnabled && isAdmin}
+              updateStatus={(id, next) => void updateStatus(id, next)}
+              remediate={(id, action, label) => void remediate(id, action, label)}
+            />
           ))}
         </div>
       )}

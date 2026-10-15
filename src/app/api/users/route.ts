@@ -5,10 +5,7 @@ import { prisma } from "@/lib/prisma"
 import { writeAudit, AUDIT_ACTIONS } from "@/lib/rbac/audit"
 import { assertMayGrantRole } from "@/lib/rbac/grant-role"
 
-// Bounded on purpose. The unbounded form (+ on each part) backtracks
-// polynomially on a long adversarial local part, which CodeQL flags as
-// js/polynomial-redos. The limits are the addressing ones: 64 for the local
-// part, 255 for the whole domain, 63 for a single label.
+// Bounded quantifiers (64, 255 and 63 per addressing rules) avoid polynomial ReDoS (CodeQL js/polynomial-redos).
 const EMAIL = /^[^\s@]{1,64}@[^\s@]{1,255}\.[^\s@]{1,63}$/
 
 export async function GET() {
@@ -30,9 +27,7 @@ export async function GET() {
   })
 }
 
-// Creates an SSO-only shell account: no password credential, no invitation
-// token, no temporary secret to pass around. It can sign in only once the
-// company has a verified SSO provider.
+// Creates an SSO-only shell account with no password, token or secret; it signs in once SSO is verified.
 export async function POST(req: Request) {
   const { session, error } = await requirePermission("users:manage")
   if (error) return error
@@ -50,10 +45,7 @@ export async function POST(req: Request) {
   })
   if (!role) return NextResponse.json({ error: "Unknown role" }, { status: 400 })
 
-  // Same bar as reassigning somebody's role. Creating an account is the other
-  // way to hand out a role, and it used to accept any assignable one: a holder
-  // of users:manage could mint an Administrator account and then take it over
-  // through the invitation flow.
+  // Same grant rule as role reassignment, since account creation is the other way to hand out a role.
   const grant = await assertMayGrantRole(session.user, role)
   if (grant) return grant
 
@@ -85,11 +77,7 @@ export async function POST(req: Request) {
     })
     return NextResponse.json({ user: { ...created, roleName: role.name } }, { status: 201 })
   } catch (e) {
-    // The pre-check above handles the common case; this catch is the race
-    // backstop when two concurrent requests both pass it for the same email.
-    // Any other error (e.g. the audit write failing) should surface as a 500
-    // rather than be mis-reported as a duplicate, and create+audit stay
-    // atomic via the transaction above.
+    // Race backstop for two requests with the same email; any other error surfaces as a 500.
     if (e instanceof Prisma.PrismaClientKnownRequestError && e.code === "P2002") {
       return NextResponse.json({ error: "That email already has an account" }, { status: 409 })
     }

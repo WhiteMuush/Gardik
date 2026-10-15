@@ -17,16 +17,11 @@ export default async function AccessPage() {
   if (!session) redirect("/login")
   const perms = await permissionsForRole(session.user.roleId ?? null)
 
-  // users:manage, not users:read: the section exists only to reassign roles, and
-  // READ_ONLY grants every ":read" permission, so gating on read would show a
-  // Viewer a dropdown the server refuses on every change.
+  // users:manage, since READ_ONLY grants users:read and a Viewer would see a dropdown the server always refuses.
   const canManageUsers = authorize(perms, "users:manage")
   const canReadAudit = authorize(perms, "audit:read")
 
-  // The shell is h-screen with overflow-hidden at every level, so a page owns its
-  // own scrolling. Without the outer container the permission editor pushes the
-  // rest of the page past the fold with no way to reach it, and the panel can no
-  // longer be closed. Same shape as every other dashboard page.
+  // The shell never scrolls, so the page owns its scrolling or the permission editor pushes content out of reach.
   return (
     <div className="h-full overflow-y-auto p-6">
       <div className="mb-6">

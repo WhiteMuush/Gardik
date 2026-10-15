@@ -7,8 +7,7 @@ import { isEmail } from "@/lib/validators"
 import { parseOutboundUrl, resolvesToPublicHost } from "@/lib/ssrf"
 import { NotificationChannel, Severity } from "@prisma/client"
 
-// Resolve the encrypted delivery target and its display hint for a channel.
-// EMAIL targets a recipient address; every other channel targets an HTTPS URL.
+// EMAIL targets an address and every other channel an HTTPS URL, both returned encrypted.
 async function resolveTarget(
   channel: NotificationChannel,
   raw: string
@@ -20,8 +19,7 @@ async function resolveTarget(
   }
   const parsed = parseOutboundUrl(raw)
   if ("error" in parsed) return parsed
-  // Refuse an endpoint that resolves inside the private space up front, rather
-  // than storing it and discovering the problem on the first delivery.
+  // Refused up front when it resolves inside the private space.
   if (!(await resolvesToPublicHost(parsed.url.hostname))) {
     return { error: "URL must point to a public host" }
   }

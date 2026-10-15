@@ -28,11 +28,7 @@ export function ReportToolbar({
 }: {
   generatedAt: string
   filterQuery?: string
-  /**
-   * Mirrors reports:export, which /api/reports/export enforces. Without it
-   * both controls below lead to a 403, so neither is offered. The generated
-   * timestamp stays: it is information, not an action.
-   */
+  // Mirrors reports:export, which the export route enforces; the timestamp stays as information.
   canExport: boolean
 }) {
   const [open, setOpen] = useState(false)

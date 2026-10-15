@@ -9,9 +9,7 @@ export function backoffMs(attempts: number): number {
   return BASE_BACKOFF_MS * 2 ** Math.max(0, attempts - 1)
 }
 
-// Enqueue a sync for a connection, unless one is already pending or running.
-// The find-then-create has a small race window; a duplicate at worst causes a
-// redundant re-sync, which is harmless (upserts are idempotent).
+// Skips a connection already pending or running; the small race only causes a harmless re-sync, as upserts are idempotent.
 export async function enqueueSyncJob(connectionId: string): Promise<{ id: string; status: SyncJobStatus }> {
   const existing = await prisma.syncJob.findFirst({
     where: { connectionId, status: { in: ["PENDING", "RUNNING"] } },
@@ -31,8 +29,7 @@ type ClaimedJob = {
   maxAttempts: number
 }
 
-// Atomically claim the next due job and mark it RUNNING. FOR UPDATE SKIP LOCKED
-// lets multiple instances drain the queue without processing the same job twice.
+// FOR UPDATE SKIP LOCKED lets several instances drain the queue without taking the same job twice.
 async function claimNextJob(): Promise<ClaimedJob | null> {
   const rows = await prisma.$queryRaw<ClaimedJob[]>`
     UPDATE "SyncJob"
@@ -80,9 +77,7 @@ async function runJob(job: ClaimedJob): Promise<void> {
   }
 }
 
-// Drain up to `limit` due jobs. Returns how many were processed (run to a
-// terminal or re-queued state). Safe to call from a request, a scheduler, or
-// concurrently across instances.
+// Drains up to `limit` due jobs, safe from a request, a scheduler, or several instances at once.
 export async function processSyncJobs(limit = 10): Promise<{ processed: number }> {
   let processed = 0
   for (let i = 0; i < limit; i++) {

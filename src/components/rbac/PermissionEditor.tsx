@@ -2,12 +2,11 @@
 
 import { PERMISSIONS, type Permission } from "@/lib/rbac/permissions"
 
-// Groups the flat permission catalog by its "domain:" prefix into labelled
-// sections of checkboxes. Controlled: parent owns the selected set.
+// Groups the catalog by its "domain:" prefix; the parent owns the selected set.
 function groupByDomain(): Record<string, Permission[]> {
   const groups: Record<string, Permission[]> = {}
   for (const p of PERMISSIONS) {
-    const domain = p.split(":")[0]
+    const domain = p.slice(0, p.indexOf(":"))
     ;(groups[domain] ??= []).push(p)
   }
   return groups

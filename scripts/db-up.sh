@@ -1,10 +1,8 @@
 #!/usr/bin/env sh
-# Start the local PostgreSQL database with whichever engine is available
-# (Docker or Podman). Publishes the port so host tools and `npm run dev` can
-# reach it, and keeps data in a named volume across restarts. Not for production.
+# Starts the local PostgreSQL with Docker or Podman, port published and data in a named volume, not for production.
 set -eu
 
-root="$(CDPATH= cd "$(dirname "$0")/.." && pwd)"
+root="$(CDPATH='' cd "$(dirname "$0")/.." && pwd)"
 cd "$root"
 . "$root/scripts/container.sh"
 ct_resolve || exit 1
@@ -18,7 +16,7 @@ else
     -e POSTGRES_USER="$DB_USER" \
     -e POSTGRES_PASSWORD="$DB_PASSWORD" \
     -e POSTGRES_DB="$DB_NAME" \
-    -p "$DB_PORT:5432" \
+    -p "127.0.0.1:$DB_PORT:5432" \
     -v "$DB_VOLUME:/var/lib/postgresql/data" \
     "$DB_IMAGE" >/dev/null
 fi

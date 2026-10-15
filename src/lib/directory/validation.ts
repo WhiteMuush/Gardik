@@ -30,16 +30,15 @@ export interface BuiltConnection {
 
 export type ValidationResult = { ok: false; error: string } | { ok: true; built: BuiltConnection }
 
-// Validates raw POST input and builds the persistable connection payload
-// (including config encryption), so the route handler stays thin and the
-// logic is unit-testable without an HTTP request.
+// Validates input and builds the encrypted payload, so the route stays thin and the logic unit-testable.
 export function buildDirectoryConnection(input: DirectoryInput): ValidationResult {
   const { type, name, config } = input
 
   if (!type || !name?.trim()) return { ok: false, error: "Missing fields" }
-  if (!(type in REQUIRED_FIELDS)) return { ok: false, error: `Invalid type: ${type}` }
+  const required = Object.hasOwn(REQUIRED_FIELDS, type) ? REQUIRED_FIELDS[type] : undefined
+  if (!required) return { ok: false, error: `Invalid type: ${type}` }
 
-  const missing = REQUIRED_FIELDS[type].filter((k) => !config?.[k])
+  const missing = required.filter((k) => !config?.[k])
   if (missing.length) return { ok: false, error: `Missing config fields: ${missing.join(", ")}` }
 
   const isSCIM = type === "SCIM"

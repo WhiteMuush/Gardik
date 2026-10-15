@@ -4,9 +4,7 @@ import { hasValidStepUp } from "@/lib/rbac/step-up"
 import { SecuritySettings } from "@/components/settings/SecuritySettings"
 import { StepUpGate } from "@/components/settings/StepUpGate"
 
-// The account section. Deliberately not /settings: next.config.ts keeps a
-// permanent redirect from that path to /data-sources, and a 308 already cached
-// by a browser would keep sending users away from here.
+// Not /settings, since next.config.ts permanently redirects it and browsers cache the 308.
 export default async function SecurityPage() {
   const session = await getSession()
   const userId = session!.user.id

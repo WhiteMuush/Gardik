@@ -49,7 +49,7 @@ describe("fetchLDAPUsers", () => {
 
   it("uses plain LDAP when SSL is off", async () => {
     await fetchLDAPUsers({ ...config, ssl: false, port: 389 })
-    expect(ldap.options[0].url).toBe("ldap://dc.x.com:389")
+    expect(ldap.options[0]?.url).toBe("ldap://dc.x.com:389")
   })
 
   it("searches persons by default, or the configured filter", async () => {
@@ -59,7 +59,7 @@ describe("fetchLDAPUsers", () => {
       "ou=people,dc=x,dc=com",
       expect.objectContaining({ filter: "(objectClass=person)", paged: true }),
     ])
-    expect(ldap.search.mock.calls[1][1].filter).toBe("(memberOf=cn=staff)")
+    expect(ldap.search.mock.calls[1]?.[1].filter).toBe("(memberOf=cn=staff)")
   })
 
   it("maps entries, lowercases emails and skips entries without mail", async () => {
@@ -81,8 +81,8 @@ describe("fetchLDAPUsers", () => {
     })
 
     const [user] = await fetchLDAPUsers(config)
-    expect(user.email).toBe("a@x.com")
-    expect(user.firstName).toBe("Ada")
+    expect(user?.email).toBe("a@x.com")
+    expect(user?.firstName).toBe("Ada")
   })
 
   it("closes the connection when the search fails", async () => {

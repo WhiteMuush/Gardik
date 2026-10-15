@@ -29,8 +29,7 @@ function isSection(value: string): value is CsvSection {
   return (SECTIONS as string[]).includes(value)
 }
 
-// Filename-safe slug: strip accents, keep alphanumerics, collapse the rest to
-// single hyphens. Keeps downloads readable and portable across filesystems.
+// Filename-safe slug: accents stripped, alphanumerics kept, the rest collapsed to single hyphens.
 function slug(value: string): string {
   return value
     .normalize("NFKD")
@@ -40,8 +39,7 @@ function slug(value: string): string {
     .toLowerCase()
 }
 
-// e.g. gardik_acme-corp_report_2026-06-25 or
-//      gardik_acme-corp_employees_2026-06-25
+// For example gardik_acme-corp_report_2026-06-25 or gardik_acme-corp_employees_2026-06-25.
 function reportFilename(orgName: string, generatedAt: string, part: string): string {
   const company = slug(orgName) || "report"
   const date = generatedAt.slice(0, 10)
@@ -52,8 +50,7 @@ export async function GET(request: Request): Promise<Response> {
   const { session, error } = await requirePermission("reports:export")
   if (error) return error
 
-  // Rendering a PDF walks the whole company's data and costs real CPU, so it
-  // gets a tighter ceiling than an ordinary read.
+  // Rendering a PDF walks the company's data, so it gets a tighter ceiling than a read.
   if (!(await rateLimit(`report-export:${session.user.companyId}`, 10, 60_000))) {
     return new Response(JSON.stringify({ error: "Too many exports" }), {
       status: 429,

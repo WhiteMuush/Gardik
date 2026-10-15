@@ -88,8 +88,8 @@ describe("coverageSignature", () => {
   })
 
   it("changes when the counts or the last error change", () => {
-    const fewer = [{ ...base[0], failed: 3, checked: 2 }]
-    const other = [{ ...base[0], lastFailureReason: "Rate limited by the source" }]
+    const fewer = base.map((c) => ({ ...c, failed: 3, checked: 2 }))
+    const other = base.map((c) => ({ ...c, lastFailureReason: "Rate limited by the source" }))
     expect(coverageSignature(fewer)).not.toBe(coverageSignature(base))
     expect(coverageSignature(other)).not.toBe(coverageSignature(base))
   })

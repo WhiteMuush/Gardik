@@ -22,6 +22,13 @@ describe("buildDirectoryConnection", () => {
     })
   })
 
+  it("rejects a type that only exists on the object prototype", () => {
+    expect(buildDirectoryConnection({ type: "toString", name: "x", config: {} })).toEqual({
+      ok: false,
+      error: "Invalid type: toString",
+    })
+  })
+
   it("reports each missing config field", () => {
     const res = buildDirectoryConnection({ type: "OKTA", name: "x", config: { domain: "d" } })
     expect(res).toEqual({ ok: false, error: "Missing config fields: apiToken" })

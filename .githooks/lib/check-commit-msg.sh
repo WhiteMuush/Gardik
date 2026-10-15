@@ -1,6 +1,5 @@
 #!/usr/bin/env sh
-# Validate a single commit message: Conventional Commits + no AI attribution.
-# Usage: check-commit-msg.sh <path-to-message-file>
+# Validates one commit message (Conventional Commits, no AI attribution); usage: check-commit-msg.sh <message-file>.
 set -eu
 
 msg_file="${1:?usage: check-commit-msg.sh <message-file>}"

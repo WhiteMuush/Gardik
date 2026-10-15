@@ -15,10 +15,7 @@ function routeFiles(dir: string, base = ""): { key: string; file: string }[] {
   return out
 }
 
-// Every exported handler, not only the mutating ones. Reading is the half
-// that leaks: a GET serves the company's data, and the first version of this
-// test could not see one. A route file with no entry in ROUTE_PERMISSIONS is
-// the omission this catches, whichever verb it answers.
+// Every exported handler counts, since a GET is the half that leaks data.
 const HANDLER = /export\s+async\s+function\s+(GET|POST|PATCH|PUT|DELETE)/
 
 describe("route->permission coverage", () => {
@@ -31,15 +28,9 @@ describe("route->permission coverage", () => {
     expect(missing, `Unregistered routes: ${missing.join(", ")}`).toEqual([])
   })
 
-  // What let eight read endpoints serve the company's data to a role holding
-  // nothing: a GET could sit on requireAuth (any valid session) while the POST
-  // beside it demanded a permission, and nothing noticed. Pages were fixed; the
-  // APIs behind them were not. The check above now reads every verb, so an
-  // undeclared route is caught whichever one it answers.
+  // A GET on a bare session check beside a gated POST once let eight endpoints leak data.
   it("a route that declares a permission never falls back to a bare session check", () => {
-    // Two endpoints authenticate on their own terms and are documented as
-    // doing so: minting a step-up grant, and setting a new password under a
-    // forced rotation, which the permission guard itself refuses.
+    // These two authenticate on their own terms: minting a step-up grant, and a forced password rotation.
     const OWN_TERMS = new Set(["rbac/step-up", "account/password"])
     const offenders: string[] = []
     for (const { key, file } of routeFiles(API_DIR)) {

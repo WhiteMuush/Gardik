@@ -5,6 +5,8 @@ services:
       context: .
       dockerfile: Dockerfile.dev
     container_name: gardik-app
+    # Must own the bind-mounted source; set APP_UID/APP_GID if your user is not 1000.
+    user: "${APP_UID:-1000}:${APP_GID:-1000}"
     depends_on:
       db:
         condition: service_healthy
@@ -15,7 +17,7 @@ services:
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
       POSTGRES_DB: ${POSTGRES_DB:-gardik}
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
     volumes:
       - .:/app
       - /app/node_modules
@@ -25,7 +27,7 @@ services:
 
   db:
     image: postgres:16
-    container_name: gardik-db
+    container_name: gardik-stack-db
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-user}
       POSTGRES_PASSWORD: ${POSTGRES_PASSWORD:-password}
@@ -34,7 +36,7 @@ services:
     # too. Set POSTGRES_PORT if 5432 is already taken on the host. In-container
     # the app still reaches it as db:5432 over the compose network.
     ports:
-      - "${POSTGRES_PORT:-5432}:5432"
+      - "127.0.0.1:${POSTGRES_PORT:-5432}:5432"
     volumes:
       - gardik-db-data:/var/lib/postgresql/data
     healthcheck:

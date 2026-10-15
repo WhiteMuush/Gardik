@@ -1,10 +1,8 @@
 #!/usr/bin/env sh
-# Run the full local stack (app + db) via whichever compose provider exists,
-# forwarding all arguments to it. For the database alone use `make db-up`, which
-# needs no compose provider. Not for production.
+# Runs the full local stack, not for production, through whichever compose provider exists (`make db-up` needs none).
 set -eu
 
-root="$(CDPATH= cd "$(dirname "$0")/.." && pwd)"
+root="$(CDPATH='' cd "$(dirname "$0")/.." && pwd)"
 cd "$root"
 . "$root/scripts/container.sh"
 ct_resolve || exit 1
@@ -17,6 +15,13 @@ if [ -z "$CT_COMPOSE" ]; then
     echo "Install the docker compose plugin," >&2
   fi
   echo "or skip compose entirely with: make db-up && make run" >&2
+  exit 1
+fi
+
+# The host database from make db-up holds port 5432, which the stack also publishes.
+if [ "${1:-}" = "up" ] && [ "$("$CT_ENGINE" container inspect -f '{{.State.Running}}' "$DB_CONTAINER" 2>/dev/null)" = "true" ]; then
+  echo "make up runs its own database, but $DB_CONTAINER (make db-up) is running on port $DB_PORT." >&2
+  echo "Stop it first with: make db-down" >&2
   exit 1
 fi
 

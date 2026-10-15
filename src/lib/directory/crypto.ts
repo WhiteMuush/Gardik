@@ -8,17 +8,13 @@ function deriveKey(raw: string): Buffer {
   return createHash("sha256").update(raw, "utf8").digest()
 }
 
-// Returns the decryption keys in priority order: the current key first, then
-// the optional previous key. Encryption always uses the first (current) key;
-// decryption falls back to the previous one so a key rotation can run without
-// downtime (rotate env, then re-encrypt rows in the background).
-// No silent fallback on a missing/short current key: fail loudly.
-function getKeys(): Buffer[] {
+// Current key first, then the optional previous one for zero-downtime rotation; a missing or short current key throws.
+function getKeys(): [Buffer, ...Buffer[]] {
   const current = process.env.DIRECTORY_ENCRYPTION_KEY
   if (!current || current.length < 32) {
     throw new Error("DIRECTORY_ENCRYPTION_KEY missing or too short (32 characters minimum).")
   }
-  const keys = [deriveKey(current)]
+  const keys: [Buffer, ...Buffer[]] = [deriveKey(current)]
   const previous = process.env.DIRECTORY_ENCRYPTION_KEY_PREVIOUS
   if (previous && previous.length >= 32) keys.push(deriveKey(previous))
   return keys
@@ -38,9 +34,7 @@ export function decryptConfig<T>(encoded: string): T {
   const tag = buf.subarray(IV_LENGTH, IV_LENGTH + TAG_LENGTH)
   const encrypted = buf.subarray(IV_LENGTH + TAG_LENGTH)
 
-  // Try each key in order. The GCM auth tag check throws on the wrong key, so
-  // a failure just means "try the previous key". Throw the last error if none
-  // succeed, rather than leaking a partial result.
+  // A wrong key fails the GCM tag check, so each key is tried in turn and the last error is thrown.
   let lastError: unknown
   for (const key of getKeys()) {
     try {

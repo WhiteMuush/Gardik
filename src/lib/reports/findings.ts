@@ -112,8 +112,7 @@ function deltaFindings(d: ReportDeltas): Finding[] {
   return out
 }
 
-// An exposed employee without MFA is the highest-leverage account to fix: a
-// leaked credential is directly usable. Flag the cohort when it is non-empty.
+// An exposed employee without MFA has a directly usable leaked credential, the highest-leverage fix.
 function mfaFindings(employees: EmployeeReportRow[]): Finding[] {
   const gap = employees.filter((e) => e.breachCount > 0 && e.mfaEnabled === false).length
   if (gap === 0) return []

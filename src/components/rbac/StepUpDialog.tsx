@@ -3,9 +3,7 @@
 import { PasswordInput } from "@/components/ui/password-input"
 import { useState } from "react"
 
-// Shown when a mutation returns 403 with code STEP_UP_REQUIRED. Re-verifies the
-// password against POST /api/rbac/step-up, then calls onVerified so the caller
-// can retry the original request.
+// Re-verifies the password on a STEP_UP_REQUIRED 403, then calls onVerified so the caller retries.
 export function StepUpDialog({
   open,
   onVerified,
@@ -56,7 +54,7 @@ export function StepUpDialog({
             Cancel
           </button>
           <button
-            onClick={submit}
+            onClick={() => void submit()}
             disabled={busy}
             className="rounded-lg bg-primary px-3 py-1.5 text-sm text-primary-foreground disabled:opacity-50"
           >

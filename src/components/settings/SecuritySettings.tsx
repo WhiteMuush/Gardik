@@ -6,11 +6,7 @@ import { PasskeySetup } from "@/components/settings/PasskeySetup"
 import { AuthPolicySettings } from "@/components/settings/AuthPolicySettings"
 import { SsoSettings } from "@/components/settings/SsoSettings"
 
-// The account and company security blocks, shared by /settings (always
-// reachable from the sidebar) and by the onboarding checklist on /setup. They
-// lived only inside /setup before, which meant they disappeared for good once a
-// company had its first employee: an admin could no longer reach the SSO
-// configuration or the auth policy at all.
+// Account and company security blocks, shared by /security and the onboarding checklist on /setup.
 export async function SecuritySettings() {
   const session = await getSession()
   const companyId = session!.user.companyId
@@ -25,9 +21,7 @@ export async function SecuritySettings() {
     select: { require2fa: true, allowedAuthMethods: true, ssoMandatory: true },
   })
 
-  // No password block here on purpose: a rotation is something an
-  // administrator requires, and it is done on /secure before the dashboard
-  // opens, not from a settings page inside it.
+  // No password block, since a rotation is admin-required and done on /secure.
   return (
     <>
       {(company?.allowedAuthMethods.includes("TOTP") ?? true) && (

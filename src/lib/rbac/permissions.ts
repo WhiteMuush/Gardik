@@ -1,7 +1,4 @@
-// Fixed vocabulary of authorization permissions, "domain:action". A Role holds
-// a validated subset of these. Namespaced so a domain can be subdivided later
-// without breaking a role that held the broader grant. Adding a feature means
-// adding its permissions here.
+// Fixed "domain:action" vocabulary that a role holds a subset of; a new feature adds its permissions here.
 export const PERMISSIONS = Object.freeze([
   // Alerts (SOC core)
   "alerts:read",

@@ -1,15 +1,5 @@
 #!/usr/bin/env sh
-# Reject non-ASCII bytes anywhere in the tracked tree.
-#
-# check-ascii.sh reads a diff, so it only ever sees lines a commit adds.
-# Anything written before that hook existed was never inspected, and the debt
-# it missed kept compiling: French comments in the SCIM routes, box-drawing
-# separators, em dashes in user-facing strings. This walks every tracked text
-# file instead, so the rule is true of the repository rather than of the last
-# patch.
-#
-# Run in CI rather than on every commit: it reads the whole tree, and the diff
-# check already covers the fast path.
+# Rejects non-ASCII anywhere in the tracked tree, which the diff check never sees (run by npm run check, not per commit).
 set -eu
 
 status=0

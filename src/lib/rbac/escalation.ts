@@ -1,7 +1,4 @@
-// The no-escalation rule: an actor can only put into a role, or assign, a set of
-// permissions that is a subset of the permissions the actor themselves hold. This
-// stops a role manager from minting a role more powerful than their own and
-// granting it (to a puppet account or to themselves via reassignment).
+// An actor can only put into a role, or assign, permissions they hold themselves.
 
 export function excessPermissions(actorPerms: ReadonlySet<string>, target: Iterable<string>): string[] {
   const excess: string[] = []

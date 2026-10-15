@@ -4,14 +4,7 @@ import { convertSetCookieToCookie } from "better-auth/test"
 import { prisma } from "@/lib/prisma"
 import { auth } from "@/lib/auth/server"
 
-// Covers two settings whose absence leaves no trace in this codebase, because
-// the wrong behaviour is the library's default rather than anything written
-// here: public signup being open, and the TOTP issuer falling back to Better
-// Auth's own name.
-//
-// Throwaway company and user, never the shared seeded admin: itest files run
-// in parallel against one seeded DB and signing in as that row races the
-// suites that mutate it.
+// Covers two library defaults (open signup, Better Auth as TOTP issuer) with a throwaway user, as itests run in parallel.
 
 const suffix = Date.now()
 const password = "itest-config-password-1"

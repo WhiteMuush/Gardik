@@ -42,13 +42,13 @@ Follow [Conventional Commits](https://www.conventionalcommits.org/), same rules 
 
 Run `make check` before every push, and push only when it passes:
 
-- it runs `npm run check` (lint, format, types, Prisma schema, unit tests with the coverage floor, knip, version consistency, licenses, production audit, ASCII), then the production build without real secrets;
+- it runs `npm run check` (lint, format, types, Prisma schema, unit tests with the coverage floor, knip, version consistency, licenses, production audit, ASCII, gitleaks, shellcheck, Trivy config, commit content of the branch), then the integration tests and the schema drift check against the local database (`make db-up`), then the production build without real secrets;
 - the pre-push hook only runs `npm run check`, so it does not replace `make check`.
 
 Also:
 
 - Format with Prettier (`npm run format`), the check rejects unformatted files.
-- Keep every code file, tests included, at 200 lines or fewer; capped files may only shrink.
+- Keep every code file, tests included, at 200 lines or fewer.
 - Report problems noticed outside the task in the final message, without fixing them.
 - Do not push to remote unless explicitly asked.
 - Do not open, close, or comment on issues or pull requests unless explicitly asked.

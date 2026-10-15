@@ -28,12 +28,12 @@ describe("teamsPayload", () => {
     const p = teamsPayload(event)
     expect(p["@type"]).toBe("MessageCard")
     expect(p.themeColor).toBe("D32F2F")
-    expect(p.sections[0].facts).toContainEqual({ name: "Source", value: "`Acme`" })
+    expect(p.sections[0]?.facts).toContainEqual({ name: "Source", value: "`Acme`" })
   })
 
   it("falls back to unknown data when no types leaked", () => {
     const p = teamsPayload({ ...event, dataTypes: [] })
-    expect(p.sections[0].facts).toContainEqual({ name: "Exposed data", value: "unknown data" })
+    expect(p.sections[0]?.facts).toContainEqual({ name: "Exposed data", value: "unknown data" })
   })
 })
 
@@ -65,7 +65,7 @@ describe("untrusted values in Slack", () => {
 
 describe("untrusted values in Teams", () => {
   it("shows the breach name and data as inline code so links do not render", () => {
-    const facts = teamsPayload(hostile).sections[0].facts
+    const facts = teamsPayload(hostile).sections[0]!.facts
     expect(facts).toContainEqual({
       name: "Source",
       value:

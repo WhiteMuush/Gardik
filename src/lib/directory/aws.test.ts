@@ -36,7 +36,7 @@ describe("fetchAWSUsers", () => {
     expect(users.map((u) => u.email)).toEqual(["a@x.com", "b@x.com"])
     const inputs = send.mock.calls.map(([cmd]) => (cmd as ListUsersCommand).input)
     expect(inputs[0]).toMatchObject({ IdentityStoreId: "d-123", NextToken: undefined })
-    expect(inputs[1].NextToken).toBe("t2")
+    expect(inputs[1]?.NextToken).toBe("t2")
   })
 
   it("prefers the primary email over the first one", async () => {
@@ -53,7 +53,7 @@ describe("fetchAWSUsers", () => {
   it("falls back to the user name when it is an email", async () => {
     mockSend({ Users: [awsUser(undefined, "Ada@X.com")] })
     const [user] = await fetchAWSUsers(config)
-    expect(user.email).toBe("ada@x.com")
+    expect(user?.email).toBe("ada@x.com")
   })
 
   it("skips users whose only identifier is not an email", async () => {
@@ -71,7 +71,7 @@ describe("testAWSConnection", () => {
   it("lists one user to prove access", async () => {
     const send = mockSend({ Users: [awsUser([{ Value: "a@x.com" }])] })
     expect(await testAWSConnection(config)).toEqual({ ok: true, userCount: 1 })
-    expect((send.mock.calls[0][0] as ListUsersCommand).input.MaxResults).toBe(1)
+    expect((send.mock.calls[0]?.[0] as ListUsersCommand).input.MaxResults).toBe(1)
   })
 
   it("returns the error instead of throwing", async () => {
