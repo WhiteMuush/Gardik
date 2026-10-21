@@ -9,7 +9,7 @@ Generated from `package-lock.json`; do not edit by hand. Regenerate with
 `npm run licenses:write`. Build-time-only dependencies are excluded: they
 are not part of anything that ships.
 
-Runtime packages: 477.
+Runtime packages: 542.
 
 ## Obligations worth knowing
 
@@ -23,7 +23,7 @@ Runtime packages: 477.
 
 ## Packages by license
 
-### MIT (340)
+### MIT (393)
 
 - @authenio/xml-encryption@2.0.2
 - @babel/helper-string-parser@7.29.7
@@ -33,6 +33,7 @@ Runtime packages: 477.
 - @babel/types@7.29.8
 - @base-ui/react@1.8.0
 - @base-ui/utils@0.4.0
+- @bcoe/v8-coverage@1.0.2
 - @better-auth/core@1.7.5
 - @better-auth/core@1.7.7
 - @better-auth/drizzle-adapter@1.7.5
@@ -47,6 +48,32 @@ Runtime packages: 477.
 - @better-auth/utils@0.5.0
 - @better-fetch/fetch@1.3.2
 - @emnapi/runtime@1.11.3
+- @esbuild/aix-ppc64@0.28.1
+- @esbuild/android-arm64@0.28.1
+- @esbuild/android-arm@0.28.1
+- @esbuild/android-x64@0.28.1
+- @esbuild/darwin-arm64@0.28.1
+- @esbuild/darwin-x64@0.28.1
+- @esbuild/freebsd-arm64@0.28.1
+- @esbuild/freebsd-x64@0.28.1
+- @esbuild/linux-arm64@0.28.1
+- @esbuild/linux-arm@0.28.1
+- @esbuild/linux-ia32@0.28.1
+- @esbuild/linux-loong64@0.28.1
+- @esbuild/linux-mips64el@0.28.1
+- @esbuild/linux-ppc64@0.28.1
+- @esbuild/linux-riscv64@0.28.1
+- @esbuild/linux-s390x@0.28.1
+- @esbuild/linux-x64@0.28.1
+- @esbuild/netbsd-arm64@0.28.1
+- @esbuild/netbsd-x64@0.28.1
+- @esbuild/openbsd-arm64@0.28.1
+- @esbuild/openbsd-x64@0.28.1
+- @esbuild/openharmony-arm64@0.28.1
+- @esbuild/sunos-x64@0.28.1
+- @esbuild/win32-arm64@0.28.1
+- @esbuild/win32-ia32@0.28.1
+- @esbuild/win32-x64@0.28.1
 - @floating-ui/core@1.8.0
 - @floating-ui/dom@1.8.0
 - @floating-ui/react-dom@2.1.9
@@ -72,7 +99,7 @@ Runtime packages: 477.
 - @noble/hashes@2.2.0
 - @noble/hashes@2.3.0
 - @nodable/entities@3.0.0
-- @oxc-project/types@0.151.0
+- @oxc-project/types@0.154.0
 - @peculiar/asn1-android@2.8.0
 - @peculiar/asn1-cms@2.8.0
 - @peculiar/asn1-csr@2.8.0
@@ -109,6 +136,21 @@ Runtime packages: 477.
 - @react-pdf/textkit@7.0.1
 - @react-pdf/types@2.14.0
 - @reduxjs/toolkit@2.12.0
+- @rolldown/binding-android-arm-eabi@1.2.14
+- @rolldown/binding-android-arm64@1.2.14
+- @rolldown/binding-darwin-arm64@1.2.14
+- @rolldown/binding-darwin-x64@1.2.14
+- @rolldown/binding-freebsd-x64@1.2.14
+- @rolldown/binding-linux-arm-gnueabihf@1.2.14
+- @rolldown/binding-linux-arm64-gnu@1.2.14
+- @rolldown/binding-linux-arm64-musl@1.2.14
+- @rolldown/binding-linux-ppc64-gnu@1.2.14
+- @rolldown/binding-linux-s390x-gnu@1.2.14
+- @rolldown/binding-linux-x64-gnu@1.2.14
+- @rolldown/binding-linux-x64-musl@1.2.14
+- @rolldown/binding-openharmony-arm64@1.2.14
+- @rolldown/binding-win32-arm64-msvc@1.2.14
+- @rolldown/binding-win32-x64-msvc@1.2.14
 - @rolldown/pluginutils@1.0.1
 - @simplewebauthn/browser@13.3.0
 - @simplewebauthn/server@13.3.2
@@ -155,6 +197,9 @@ Runtime packages: 477.
 - @visx/responsive@4.0.1-alpha.0
 - @visx/scale@4.0.1-alpha.0
 - @visx/shape@4.0.1-alpha.0
+- @vitest/coverage-v8@5.0.1
+- @vitest/istanbul-lib-coverage@1.0.2
+- @vitest/istanbul-lib-report@1.0.2
 - @vitest/mocker@5.0.1
 - @vitest/spy@5.0.1
 - @xmldom/is-dom-node@1.0.1
@@ -167,6 +212,7 @@ Runtime packages: 477.
 - anynum@1.0.1
 - asn1@0.2.6
 - assertion-error@2.0.1
+- ast-v8-to-istanbul@1.0.7
 - aws-ssl-profiles@1.1.2
 - base64-js@0.0.8
 - base64-js@1.5.1
@@ -204,6 +250,7 @@ Runtime packages: 477.
 - env-paths@3.0.0
 - es-module-lexer@2.3.2
 - es-toolkit@1.47.0
+- esbuild@0.28.1
 - escape-html@1.0.3
 - estree-walker@3.0.3
 - eventemitter3@5.0.4
@@ -221,6 +268,7 @@ Runtime packages: 477.
 - find-my-way@9.9.0
 - find-up@4.1.0
 - fontkit@2.0.4
+- fsevents@2.3.3
 - generate-function@2.3.1
 - get-port-please@3.2.0
 - giget@3.3.1
@@ -234,8 +282,10 @@ Runtime packages: 477.
 - is-unsafe@2.0.0
 - is-url@1.2.4
 - jay-peg@1.1.1
+- jiti@1.21.7
 - jiti@2.7.0
 - jose@6.2.4
+- js-tokens@10.0.0
 - js-tokens@4.0.0
 - json-schema-traverse@1.0.0
 - kysely@0.29.5
@@ -316,7 +366,7 @@ Runtime packages: 477.
 - restructure@3.0.2
 - ret@0.5.0
 - retry@0.12.0
-- rolldown@1.2.10
+- rolldown@1.2.14
 - rou3@0.9.2
 - safe-regex2@5.1.1
 - safer-buffer@2.1.2
@@ -330,6 +380,7 @@ Runtime packages: 477.
 - stackback@0.0.2
 - std-env@3.10.0
 - std-env@4.2.0
+- std-env@4.3.0
 - string-width@4.2.3
 - strip-ansi@6.0.1
 - strnum@2.4.2
@@ -340,8 +391,10 @@ Runtime packages: 477.
 - tinybench@6.1.4
 - tinyexec@1.3.0
 - tinyglobby@0.2.17
+- tinyrainbow@3.2.0
 - tldts-core@7.4.11
 - tldts@7.4.11
+- tsx@4.23.15
 - tsyringe@4.10.0
 - tw-animate-css@1.4.0
 - undici-types@8.9.0
@@ -349,7 +402,7 @@ Runtime packages: 477.
 - unicode-trie@2.0.0
 - use-sync-external-store@1.6.0
 - valibot@1.4.2
-- vite@8.3.0
+- vite@8.3.4
 - vitest@5.0.1
 - why-is-node-running@2.3.0
 - wrap-ansi@6.2.0
@@ -435,7 +488,7 @@ Runtime packages: 477.
 - sharp@0.35.5
 - typescript@5.9.3
 
-### ISC (41)
+### ISC (42)
 
 - @prisma/dev@0.24.17
 - cliui@6.0.0
@@ -477,7 +530,23 @@ Runtime packages: 477.
 - which-module@2.0.1
 - which@2.0.2
 - y18n@4.0.3
+- yaml@2.9.1
 - yargs-parser@18.1.3
+
+### MPL-2.0 (12)
+
+- lightningcss-android-arm64@1.33.0
+- lightningcss-darwin-arm64@1.33.0
+- lightningcss-darwin-x64@1.33.0
+- lightningcss-freebsd-x64@1.33.0
+- lightningcss-linux-arm-gnueabihf@1.33.0
+- lightningcss-linux-arm64-gnu@1.33.0
+- lightningcss-linux-arm64-musl@1.33.0
+- lightningcss-linux-x64-gnu@1.33.0
+- lightningcss-linux-x64-musl@1.33.0
+- lightningcss-win32-arm64-msvc@1.33.0
+- lightningcss-win32-x64-msvc@1.33.0
+- lightningcss@1.33.0
 
 ### LGPL-3.0-or-later (10)
 
@@ -537,7 +606,3 @@ Runtime packages: 477.
 ### EPL-2.0 (1)
 
 - elkjs@0.11.1
-
-### MPL-2.0 (1)
-
-- lightningcss@1.33.0
