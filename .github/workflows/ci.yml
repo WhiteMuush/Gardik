@@ -79,8 +79,24 @@ jobs:
       - name: Install dependencies
         run: npm ci
 
+      - name: Restore the Next.js build cache
+        id: next-cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .next/cache
+          key: nextjs-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ hashFiles('src/**', 'public/**', 'next.config.ts', 'tsconfig.json') }}
+          restore-keys: nextjs-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
+
       - name: Build
         run: npm run build
+
+      # Only pushes to develop and main store an entry (about 160 MB), pull requests read it from their base branch.
+      - name: Save the Next.js build cache
+        if: github.event_name == 'push' && steps.next-cache.outputs.cache-hit != 'true'
+        uses: actions/cache/save@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .next/cache
+          key: ${{ steps.next-cache.outputs.cache-primary-key }}
 
   integration:
     # Run the suite twice, against a UTC database and against one provisioned in
@@ -192,6 +208,14 @@ jobs:
 
       - name: Seed e2e fixtures
         run: npx tsx e2e/seed.ts
+
+      # Read only: the build job stores the entry for both.
+      - name: Restore the Next.js build cache
+        uses: actions/cache/restore@55cc8345863c7cc4c66a329aec7e433d2d1c52a9 # v6.1.0
+        with:
+          path: .next/cache
+          key: nextjs-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-${{ hashFiles('src/**', 'public/**', 'next.config.ts', 'tsconfig.json') }}
+          restore-keys: nextjs-${{ runner.os }}-${{ hashFiles('package-lock.json') }}-
 
       - name: Build
         run: npm run build
