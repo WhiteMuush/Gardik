@@ -226,11 +226,21 @@ jobs:
       - name: Smoke test
         run: npx playwright test
 
-  # Aggregate gate required by the main branch protection rule.
-  # Reports the "ci" status check, green only when all gates pass.
+  # Required check of the protect-main-develop ruleset, it runs even when a gate fails because a skipped job counts as passed.
   ci:
     name: ci
     runs-on: ubuntu-latest
+    timeout-minutes: 5
     needs: [quality, build, integration, e2e]
+    if: ${{ !cancelled() }}
     steps:
-      - run: echo "Quality, build, integration and e2e gates passed."
+      - env:
+          RESULTS: ${{ join(needs.*.result, ' ') }}
+        run: |
+          for result in $RESULTS; do
+            if [ "$result" != "success" ]; then
+              echo "::error::a gate ended with: $result ($RESULTS)"
+              exit 1
+            fi
+          done
+          echo "Quality, build, integration and e2e gates passed."
