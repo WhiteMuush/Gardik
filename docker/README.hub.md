@@ -21,6 +21,11 @@ connecting a directory, troubleshooting, is in the wiki.
 Images are `linux/amd64`. Each one carries the Next.js standalone server and
 runs as an unprivileged user.
 
+Images published after 1.6.2 also carry an SBOM and a build provenance
+attestation, readable with
+`docker buildx imagetools inspect whitemuush/gardik:<tag> --format '{{ json .SBOM }}'`.
+The `latest` image is rescanned for vulnerabilities every day.
+
 ## Quick start
 
 The app needs a PostgreSQL 16 database. The container applies pending
