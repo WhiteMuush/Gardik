@@ -27,16 +27,21 @@ jobs:
         with:
           node-version: 26
 
+      # Event fields go through env, never inlined in the script, so a crafted PR title cannot run shell code.
       - name: Resolve PR range
         id: range
+        env:
+          BASE_REF: ${{ github.event.pull_request.base.ref }}
         run: |
-          git fetch --no-tags --depth=200 origin "${{ github.event.pull_request.base.ref }}"
+          git fetch --no-tags --depth=200 origin "$BASE_REF"
           base="$(git merge-base FETCH_HEAD HEAD)"
           echo "base=$base" >> "$GITHUB_OUTPUT"
 
       - name: Validate PR title
+        env:
+          PR_TITLE: ${{ github.event.pull_request.title }}
         run: |
-          printf '%s\n' "${{ github.event.pull_request.title }}" > /tmp/msg.txt
+          printf '%s\n' "$PR_TITLE" > /tmp/msg.txt
           sh .githooks/lib/check-commit-msg.sh /tmp/msg.txt
 
       - name: Run content and dependency checks
