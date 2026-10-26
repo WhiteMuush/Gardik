@@ -56,13 +56,7 @@ jobs:
           push: false
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          # A cached runner layer would replay an old `apk upgrade` and ship
-          # whatever base packages were current on that day. The heavy stages
-          # (npm ci, next build) stay cached. The push step below has no such
-          # filter on purpose, so it reuses the exact layers scanned here.
-          no-cache-filters: runner
+          # No GHA cache: GitHub scopes it to the tag ref, so a release could never read the previous one.
 
       # Scanning before the push is the whole point: a scan that runs after it
       # only tells us a vulnerable image is already public. `ignore-unfixed`
@@ -76,8 +70,11 @@ jobs:
           severity: HIGH,CRITICAL
           ignore-unfixed: true
           exit-code: "1"
+          # Outside the workspace, a database download would change the build context the push step sees.
+          cache-dir: ${{ runner.temp }}/trivy
+          cache: "false"
 
-      # Layers are already in the GHA cache, so this re-runs in seconds.
+      # The builder still holds every layer from the build step, so this re-runs in seconds.
       - name: Push the image
         uses: docker/build-push-action@v7
         with:
@@ -87,7 +84,19 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
+
+      # A rebuilt layer in the push step would mean Docker Hub serves an image Trivy never scanned.
+      - name: Check the pushed image is the scanned one
+        env:
+          IMAGE: ${{ fromJSON(steps.meta.outputs.json).tags[0] }}
+        run: |
+          scanned=$(docker image inspect --format '{{.Id}}' "$IMAGE")
+          docker pull --quiet --platform linux/amd64 "$IMAGE" > /dev/null
+          pushed=$(docker image inspect --format '{{.Id}}' "$IMAGE")
+          if [ "$scanned" != "$pushed" ]; then
+            echo "::error::pushed image $pushed differs from scanned image $scanned"
+            exit 1
+          fi
 
       # The Docker Hub page has its own audience (operators deploying the
       # image), hence its own README. Never fatal: a description that fails to
