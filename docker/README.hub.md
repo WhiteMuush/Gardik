@@ -21,6 +21,11 @@ connecting a directory, troubleshooting, is in the wiki.
 Images are `linux/amd64`. Each one carries the Next.js standalone server and
 runs as an unprivileged user.
 
+Images published after 1.6.2 also carry an SBOM and a build provenance
+attestation, readable with
+`docker buildx imagetools inspect whitemuush/gardik:<tag> --format '{{ json .SBOM }}'`.
+The `latest` image is rescanned for vulnerabilities every day.
+
 ## Quick start
 
 The app needs a PostgreSQL 16 database. The container applies pending
@@ -43,8 +48,14 @@ services:
       # First start only, both together. See First administrator below.
       BOOTSTRAP_ADMIN_EMAIL: admin@yourdomain.com
       BOOTSTRAP_INVITE_TOKEN: replace-with-openssl-rand-hex-32
+    # The process needs no Linux capability and never gains privileges.
+    cap_drop:
+      - ALL
+    security_opt:
+      - no-new-privileges:true
+    # Loopback only: the TLS reverse proxy in front reaches it, the network does not.
     ports:
-      - "3000:3000"
+      - "127.0.0.1:3000:3000"
 
   db:
     image: postgres:16
@@ -69,8 +80,10 @@ volumes:
 docker compose up -d
 ```
 
-The app answers on port 3000. Generate every secret with
-`openssl rand -base64 32`; never reuse the placeholders above.
+The app answers on `127.0.0.1:3000` of the host, in plain HTTP, for a reverse
+proxy on the same machine to serve it over HTTPS (see Reverse proxy below).
+Generate every secret with `openssl rand -base64 32`; never reuse the
+placeholders above.
 
 ## First administrator
 
@@ -156,7 +169,15 @@ header `authorization: Bearer <CRON_SECRET>`.
 
 **Reverse proxy.** The image serves plain HTTP on 3000. Terminate TLS in front
 of it and make `BETTER_AUTH_URL` match the public HTTPS URL, otherwise the
-authentication callbacks break.
+authentication callbacks break. Keep the published port on `127.0.0.1`: a port
+published as `3000:3000` listens on every interface, and Docker writes its own
+firewall rules, so a host firewall such as `ufw` does not block it. Sessions
+and invitation links would then cross the network unencrypted.
+
+**Database rights.** Migrations need a role that can change the schema, the
+running app only reads and writes rows. To keep schema rights out of the app,
+apply migrations from a separate job with the owner role, and start the app with
+a role limited to data access and `RUN_MIGRATIONS=false`.
 
 ## License
 

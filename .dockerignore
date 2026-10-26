@@ -13,6 +13,7 @@ backups
 docs
 e2e
 *.log
+.cache
 tsconfig.tsbuildinfo
 .env.local
 .env*.local

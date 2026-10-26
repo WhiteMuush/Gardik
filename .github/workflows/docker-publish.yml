@@ -21,20 +21,20 @@ jobs:
     environment: dockerhub
     timeout-minutes: 45
     steps:
-      - uses: actions/checkout@v7
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
       - name: Set up Buildx
-        uses: docker/setup-buildx-action@v4
+        uses: docker/setup-buildx-action@f87e5991a6d7451dcb8d9637bfbc97413f497069 # v4.4.1
 
       - name: Log in to Docker Hub
-        uses: docker/login-action@v4
+        uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
       - name: Derive image tags
         id: meta
-        uses: docker/metadata-action@v6
+        uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
         with:
           images: ${{ vars.DOCKERHUB_IMAGE || 'whitemuush/gardik' }}
           tags: |
@@ -43,7 +43,7 @@ jobs:
             type=raw,value=edge,enable=${{ github.event_name == 'workflow_dispatch' }}
 
       - name: Build the image
-        uses: docker/build-push-action@v7
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: .
           file: ./Dockerfile
@@ -56,30 +56,27 @@ jobs:
           push: false
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
-          cache-to: type=gha,mode=max
-          # A cached runner layer would replay an old `apk upgrade` and ship
-          # whatever base packages were current on that day. The heavy stages
-          # (npm ci, next build) stay cached. The push step below has no such
-          # filter on purpose, so it reuses the exact layers scanned here.
-          no-cache-filters: runner
+          # No GHA cache: GitHub scopes it to the tag ref, so a release could never read the previous one.
 
       # Scanning before the push is the whole point: a scan that runs after it
       # only tells us a vulnerable image is already public. `ignore-unfixed`
       # keeps the gate on findings that can actually be acted on, otherwise a
       # base-image CVE with no upstream patch blocks every release.
       - name: Scan the image for vulnerabilities
-        uses: aquasecurity/trivy-action@v0.36.0
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
           image-ref: ${{ fromJSON(steps.meta.outputs.json).tags[0] }}
           format: table
           severity: HIGH,CRITICAL
           ignore-unfixed: true
           exit-code: "1"
+          # Outside the workspace, a database download would change the build context the push step sees.
+          cache-dir: ${{ runner.temp }}/trivy
+          cache: "false"
 
-      # Layers are already in the GHA cache, so this re-runs in seconds.
+      # The builder still holds every layer from the build step, so this re-runs in seconds.
       - name: Push the image
-        uses: docker/build-push-action@v7
+        uses: docker/build-push-action@c3c9e263c25d99ce0380d002d59b67737d91b0dc # v7.4.0
         with:
           context: .
           file: ./Dockerfile
@@ -87,13 +84,28 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
-          cache-from: type=gha
+          # The SBOM is a separate attestation manifest, so the image layers stay those that were scanned.
+          sbom: true
+
+      # A rebuilt layer in the push step would mean Docker Hub serves an image Trivy never scanned.
+      - name: Check the pushed image is the scanned one
+        env:
+          IMAGE: ${{ fromJSON(steps.meta.outputs.json).tags[0] }}
+        # Layer digests, not the image ID, which the containerd store sets to the pulled index digest.
+        run: |
+          scanned=$(docker image inspect --format '{{json .RootFS.Layers}}' "$IMAGE")
+          docker pull --quiet --platform linux/amd64 "$IMAGE" > /dev/null
+          pushed=$(docker image inspect --format '{{json .RootFS.Layers}}' "$IMAGE")
+          if [ "$scanned" != "$pushed" ]; then
+            echo "::error::the layers pushed to Docker Hub differ from the layers Trivy scanned"
+            exit 1
+          fi
 
       # The Docker Hub page has its own audience (operators deploying the
       # image), hence its own README. Never fatal: a description that fails to
       # sync must not fail a publish that already pushed the image.
       - name: Sync the Docker Hub description
-        uses: peter-evans/dockerhub-description@v5
+        uses: peter-evans/dockerhub-description@1b9a80c056b620d92cedb9d9b5a223409c68ddfa # v5.0.0
         continue-on-error: true
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
