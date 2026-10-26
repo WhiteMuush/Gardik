@@ -1,0 +1,56 @@
+name: Image scan
+
+# Rescans the published image every day, because advisories keep landing on an image that is already public.
+on:
+  schedule:
+    - cron: "17 5 * * *"
+  workflow_dispatch:
+  # Runs in the pull request that edits this file, since a manual run needs the workflow on main first.
+  pull_request:
+    paths: [.github/workflows/image-scan.yml]
+
+permissions:
+  contents: read
+
+jobs:
+  scan:
+    name: Scan the published image
+    runs-on: ubuntu-latest
+    timeout-minutes: 15
+    permissions:
+      contents: read
+      security-events: write # upload findings to the Security tab
+    env:
+      IMAGE: ${{ vars.DOCKERHUB_IMAGE || 'whitemuush/gardik' }}:latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+
+      - name: Scan to SARIF
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: ${{ env.IMAGE }}
+          format: sarif
+          output: trivy.sarif
+          ignore-unfixed: true
+          cache-dir: ${{ runner.temp }}/trivy
+          cache: "false"
+
+      # Each finding stays open in the Security tab until a release that fixes it is published.
+      - name: Upload to the Security tab
+        uses: github/codeql-action/upload-sarif@2892aa5e19bbd11bc0cff5427e3b750a04d9e3c2 # v4.38.2
+        with:
+          sarif_file: trivy.sarif
+          category: image-latest
+
+      # A failed scheduled run emails the maintainer, which a new Security tab entry alone does not.
+      - name: Fail on fixable high or critical findings
+        uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
+        with:
+          image-ref: ${{ env.IMAGE }}
+          format: table
+          severity: HIGH,CRITICAL
+          ignore-unfixed: true
+          exit-code: "1"
+          cache-dir: ${{ runner.temp }}/trivy
+          cache: "false"
+          skip-setup-trivy: true

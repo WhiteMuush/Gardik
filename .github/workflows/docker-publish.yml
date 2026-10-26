@@ -84,6 +84,8 @@ jobs:
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
+          # The SBOM is a separate attestation manifest, so the image layers stay those that were scanned.
+          sbom: true
 
       # A rebuilt layer in the push step would mean Docker Hub serves an image Trivy never scanned.
       - name: Check the pushed image is the scanned one
