@@ -74,8 +74,8 @@ WORKDIR /app
 # repository can reach.
 # The upgrade closes base-image CVEs that Alpine has already patched but the
 # upstream node image has not rebuilt against yet. It only does so if the layer
-# is rebuilt, which is why the publish workflow excludes this stage from the
-# build cache.
+# is rebuilt, which is why the publish workflow builds without a persistent
+# cache.
 RUN apk upgrade --no-cache \
   && apk add --no-cache openssl \
   && rm -rf /usr/local/lib/node_modules/npm /usr/local/bin/npm /usr/local/bin/npx
