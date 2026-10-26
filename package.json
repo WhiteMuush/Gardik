@@ -1,6 +1,6 @@
 {
   "name": "gardik",
-  "version": "1.6.1",
+  "version": "1.6.2",
   "description": "Gardik is a self-hosted service that lets businesses know if these employees haven't had compromised data",
   "homepage": "https://github.com/WhiteMuush/Gardik#readme",
   "bugs": {
@@ -60,7 +60,7 @@
     "clsx": "^2.1.1",
     "ldapts": "^9.2.0",
     "lucide-react": "^1.47.0",
-    "next": "^16.3.8",
+    "next": "^16.4.3",
     "pg": "^8.23.0",
     "prisma": "^7.10.0",
     "qrcode": "^1.5.4",
@@ -80,17 +80,17 @@
     "@types/qrcode": "^1.5.6",
     "@types/react": "^19.3.0",
     "@types/react-dom": "^19.3.0",
-    "@vitest/coverage-v8": "^5.0.1",
+    "@vitest/coverage-v8": "^5.0.5",
     "autoprefixer": "^10.6.1",
     "eslint": "^9.39.5",
-    "eslint-config-next": "^16.3.8",
+    "eslint-config-next": "^16.4.3",
     "jose": "^6.2.4",
     "knip": "^6.38.0",
     "prettier": "^3.9.9",
     "tailwindcss": "^3.4.19",
     "tsx": "^4.23.15",
     "typescript": "^5.9.3",
-    "vitest": "^5.0.1"
+    "vitest": "^5.0.5"
   },
   "overrides": {
     "deepmerge-ts": "^8.0.0",
@@ -100,7 +100,7 @@
     "sharp": "^0.35.5",
     "valibot": "^1.4.2",
     "find-my-way": "^9.7.0",
-    "fast-uri": "^3.1.5",
+    "fast-uri": "^3.1.9",
     "js-yaml": "^4.3.2",
     "nanoid": "^3.3.18",
     "mysql2": "^3.24.3",

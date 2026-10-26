@@ -9,7 +9,7 @@ Generated from `package-lock.json`; do not edit by hand. Regenerate with
 `npm run licenses:write`. Build-time-only dependencies are excluded: they
 are not part of anything that ships.
 
-Runtime packages: 542.
+Runtime packages: 539.
 
 ## Obligations worth knowing
 
@@ -23,7 +23,7 @@ Runtime packages: 542.
 
 ## Packages by license
 
-### MIT (393)
+### MIT (391)
 
 - @authenio/xml-encryption@2.0.2
 - @babel/helper-string-parser@7.29.7
@@ -84,22 +84,22 @@ Runtime packages: 542.
 - @jridgewell/sourcemap-codec@1.6.0
 - @jridgewell/trace-mapping@0.3.31
 - @levischuck/tiny-cbor@0.2.11
-- @next/env@16.3.8
-- @next/swc-darwin-arm64@16.3.8
-- @next/swc-darwin-x64@16.3.8
-- @next/swc-linux-arm64-gnu@16.3.8
-- @next/swc-linux-arm64-musl@16.3.8
-- @next/swc-linux-x64-gnu@16.3.8
-- @next/swc-linux-x64-musl@16.3.8
-- @next/swc-win32-arm64-msvc@16.3.8
-- @next/swc-win32-x64-msvc@16.3.8
+- @next/env@16.4.3
+- @next/swc-darwin-arm64@16.4.3
+- @next/swc-darwin-x64@16.4.3
+- @next/swc-linux-arm64-gnu@16.4.3
+- @next/swc-linux-arm64-musl@16.4.3
+- @next/swc-linux-x64-gnu@16.4.3
+- @next/swc-linux-x64-musl@16.4.3
+- @next/swc-win32-arm64-msvc@16.4.3
+- @next/swc-win32-x64-msvc@16.4.3
 - @noble/ciphers@1.3.0
 - @noble/ciphers@2.2.0
 - @noble/hashes@1.8.0
 - @noble/hashes@2.2.0
 - @noble/hashes@2.3.0
 - @nodable/entities@3.0.0
-- @oxc-project/types@0.154.0
+- @oxc-project/types@0.155.0
 - @peculiar/asn1-android@2.8.0
 - @peculiar/asn1-cms@2.8.0
 - @peculiar/asn1-csr@2.8.0
@@ -136,21 +136,21 @@ Runtime packages: 542.
 - @react-pdf/textkit@7.0.1
 - @react-pdf/types@2.14.0
 - @reduxjs/toolkit@2.12.0
-- @rolldown/binding-android-arm-eabi@1.2.14
-- @rolldown/binding-android-arm64@1.2.14
-- @rolldown/binding-darwin-arm64@1.2.14
-- @rolldown/binding-darwin-x64@1.2.14
-- @rolldown/binding-freebsd-x64@1.2.14
-- @rolldown/binding-linux-arm-gnueabihf@1.2.14
-- @rolldown/binding-linux-arm64-gnu@1.2.14
-- @rolldown/binding-linux-arm64-musl@1.2.14
-- @rolldown/binding-linux-ppc64-gnu@1.2.14
-- @rolldown/binding-linux-s390x-gnu@1.2.14
-- @rolldown/binding-linux-x64-gnu@1.2.14
-- @rolldown/binding-linux-x64-musl@1.2.14
-- @rolldown/binding-openharmony-arm64@1.2.14
-- @rolldown/binding-win32-arm64-msvc@1.2.14
-- @rolldown/binding-win32-x64-msvc@1.2.14
+- @rolldown/binding-android-arm-eabi@1.2.15
+- @rolldown/binding-android-arm64@1.2.15
+- @rolldown/binding-darwin-arm64@1.2.15
+- @rolldown/binding-darwin-x64@1.2.15
+- @rolldown/binding-freebsd-x64@1.2.15
+- @rolldown/binding-linux-arm-gnueabihf@1.2.15
+- @rolldown/binding-linux-arm64-gnu@1.2.15
+- @rolldown/binding-linux-arm64-musl@1.2.15
+- @rolldown/binding-linux-ppc64-gnu@1.2.15
+- @rolldown/binding-linux-s390x-gnu@1.2.15
+- @rolldown/binding-linux-x64-gnu@1.2.15
+- @rolldown/binding-linux-x64-musl@1.2.15
+- @rolldown/binding-openharmony-arm64@1.2.15
+- @rolldown/binding-win32-arm64-msvc@1.2.15
+- @rolldown/binding-win32-x64-msvc@1.2.15
 - @rolldown/pluginutils@1.0.1
 - @simplewebauthn/browser@13.3.0
 - @simplewebauthn/server@13.3.2
@@ -197,11 +197,11 @@ Runtime packages: 542.
 - @visx/responsive@4.0.1-alpha.0
 - @visx/scale@4.0.1-alpha.0
 - @visx/shape@4.0.1-alpha.0
-- @vitest/coverage-v8@5.0.1
+- @vitest/coverage-v8@5.0.5
 - @vitest/istanbul-lib-coverage@1.0.2
 - @vitest/istanbul-lib-report@1.0.2
-- @vitest/mocker@5.0.1
-- @vitest/spy@5.0.1
+- @vitest/mocker@5.0.5
+- @vitest/spy@5.0.5
 - @xmldom/is-dom-node@1.0.1
 - @xmldom/xmldom@0.8.15
 - @xmldom/xmldom@0.9.12
@@ -224,7 +224,7 @@ Runtime packages: 542.
 - brotli@1.3.3
 - c12@3.3.4
 - camelcase@5.3.1
-- chai@6.2.2
+- chai@6.3.0
 - chokidar@5.0.0
 - classnames@2.5.1
 - client-only@0.0.1
@@ -295,18 +295,18 @@ Runtime packages: 542.
 - lodash@4.18.1
 - loose-envify@1.4.0
 - lru.min@1.1.5
-- magic-string@1.4.2
+- magic-string@1.4.4
 - magicast@0.5.5
 - media-engine@2.0.0
 - mysql2@3.24.3
 - named-placeholders@1.1.6
 - nanoid@3.3.18
 - nanostores@1.4.2
-- next@16.3.8
+- next@16.4.3
 - node-rsa@1.1.1
 - normalize-svg-path@1.1.0
 - object-assign@4.1.1
-- obug@2.2.1
+- obug@3.0.0
 - ohash@2.0.12
 - p-limit@2.3.0
 - p-locate@4.1.0
@@ -366,7 +366,7 @@ Runtime packages: 542.
 - restructure@3.0.2
 - ret@0.5.0
 - retry@0.12.0
-- rolldown@1.2.14
+- rolldown@1.2.15
 - rou3@0.9.2
 - safe-regex2@5.1.1
 - safer-buffer@2.1.2
@@ -377,9 +377,7 @@ Runtime packages: 542.
 - shebang-command@2.0.0
 - shebang-regex@3.0.0
 - sql-escaper@1.5.1
-- stackback@0.0.2
 - std-env@3.10.0
-- std-env@4.2.0
 - std-env@4.3.0
 - string-width@4.2.3
 - strip-ansi@6.0.1
@@ -388,8 +386,8 @@ Runtime packages: 542.
 - tailwind-merge@3.7.0
 - tiny-inflate@1.0.3
 - tiny-invariant@1.3.3
-- tinybench@6.1.4
-- tinyexec@1.3.0
+- tinybench@6.2.2
+- tinyexec@1.3.1
 - tinyglobby@0.2.17
 - tinyrainbow@3.2.0
 - tldts-core@7.4.11
@@ -402,9 +400,9 @@ Runtime packages: 542.
 - unicode-trie@2.0.0
 - use-sync-external-store@1.6.0
 - valibot@1.4.2
-- vite@8.3.4
-- vitest@5.0.1
-- why-is-node-running@2.3.0
+- vite@8.3.5
+- vitest@5.0.5
+- why-is-node-running@3.2.1
 - wrap-ansi@6.2.0
 - xml-crypto@6.1.2
 - xml-escape@1.1.0
@@ -417,7 +415,7 @@ Runtime packages: 542.
 - yargs@15.4.1
 - yoga-layout@3.2.1
 - zeptomatch@2.1.0
-- zod@4.6.5
+- zod@4.6.7
 
 ### Apache-2.0 (66)
 
@@ -488,7 +486,7 @@ Runtime packages: 542.
 - sharp@0.35.5
 - typescript@5.9.3
 
-### ISC (42)
+### ISC (41)
 
 - @prisma/dev@0.24.17
 - cliui@6.0.0
@@ -521,7 +519,6 @@ Runtime packages: 542.
 - require-main-filename@2.0.0
 - semver@7.8.5
 - set-blocking@2.0.0
-- siginfo@2.0.0
 - signal-exit@3.0.7
 - signal-exit@4.1.0
 - split2@4.2.0
@@ -567,7 +564,7 @@ Runtime packages: 542.
 - bcryptjs@3.0.3
 - d3-ease@3.0.1
 - deepmerge-ts@8.0.2
-- fast-uri@3.1.8
+- fast-uri@3.1.9
 - source-map-js@1.2.2
 
 ### Apache-2.0 AND LGPL-3.0-or-later (3)
