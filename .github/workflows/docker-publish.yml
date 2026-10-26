@@ -89,12 +89,13 @@ jobs:
       - name: Check the pushed image is the scanned one
         env:
           IMAGE: ${{ fromJSON(steps.meta.outputs.json).tags[0] }}
+        # Layer digests, not the image ID, which the containerd store sets to the pulled index digest.
         run: |
-          scanned=$(docker image inspect --format '{{.Id}}' "$IMAGE")
+          scanned=$(docker image inspect --format '{{json .RootFS.Layers}}' "$IMAGE")
           docker pull --quiet --platform linux/amd64 "$IMAGE" > /dev/null
-          pushed=$(docker image inspect --format '{{.Id}}' "$IMAGE")
+          pushed=$(docker image inspect --format '{{json .RootFS.Layers}}' "$IMAGE")
           if [ "$scanned" != "$pushed" ]; then
-            echo "::error::pushed image $pushed differs from scanned image $scanned"
+            echo "::error::the layers pushed to Docker Hub differ from the layers Trivy scanned"
             exit 1
           fi
 
