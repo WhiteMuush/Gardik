@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { Copy, FileCode, KeyRound, Link, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { AutomationPanel } from "./AutomationPanel"
+import { OverviewPanel } from "@/components/ui/OverviewPanel"
 
 type Props = {
   companyId: string
@@ -59,7 +59,7 @@ export function SiemPullPanel({ companyId, tokenHint, isAdmin }: Props) {
   }
 
   return (
-    <AutomationPanel
+    <OverviewPanel
       title="Let your SIEM pull alerts"
       description="Your SIEM or SOAR calls Gardik on its own schedule and fetches new alerts over HTTPS."
       status={{ on: hint !== null, label: hint ? `Token ${hint}` : "No token" }}
@@ -99,6 +99,6 @@ export function SiemPullPanel({ companyId, tokenHint, isAdmin }: Props) {
           </Button>
         </div>
       </div>
-    </AutomationPanel>
+    </OverviewPanel>
   )
 }

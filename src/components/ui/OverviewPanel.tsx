@@ -1,7 +1,8 @@
+import Image from "next/image"
 import type { LucideIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
 
-export type Feature = { icon: LucideIcon; title: string; text: string }
+export type Feature = { icon?: LucideIcon; logo?: string; title: string; text: string }
 
 type Props = {
   title: string
@@ -12,7 +13,7 @@ type Props = {
   children: React.ReactNode
 }
 
-export function AutomationPanel({ title, description, status, action, features, children }: Props) {
+export function OverviewPanel({ title, description, status, action, features, children }: Props) {
   return (
     <div className="py-8">
       <div className="mx-auto max-w-2xl text-center">
@@ -37,12 +38,23 @@ export function AutomationPanel({ title, description, status, action, features, 
         </div>
       </div>
 
-      <div className="mx-auto mt-10 grid max-w-4xl gap-8 sm:grid-cols-3">
-        {features.map(({ icon: Icon, title: featureTitle, text }) => (
+      <div
+        className={cn(
+          "mx-auto mt-10 grid max-w-4xl gap-8",
+          features.length === 4 ? "sm:grid-cols-2 lg:grid-cols-4" : "sm:grid-cols-3"
+        )}
+      >
+        {features.map(({ icon: Icon, logo, title: featureTitle, text }) => (
           <div key={featureTitle}>
-            <span className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
-              <Icon className="size-5" />
-            </span>
+            {logo ? (
+              <Image src={logo} alt="" width={36} height={36} unoptimized className="size-9 rounded-lg" />
+            ) : (
+              Icon && (
+                <span className="flex size-9 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <Icon className="size-5" />
+                </span>
+              )
+            )}
             <p className="mt-3 text-sm font-semibold text-foreground">{featureTitle}</p>
             <p className="mt-1 text-sm text-muted-foreground">{text}</p>
           </div>

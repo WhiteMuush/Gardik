@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { FileText, Loader2, RefreshCw, Server } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { AutomationPanel } from "./AutomationPanel"
+import { OverviewPanel } from "@/components/ui/OverviewPanel"
 
 type Props = {
   pushHint: string | null
@@ -58,7 +58,7 @@ export function SiemPushPanel({ pushHint: initialHint, pushFormat, isAdmin }: Pr
   }
 
   return (
-    <AutomationPanel
+    <OverviewPanel
       title="Push alerts to your collector"
       description="Gardik sends every new alert to your HTTPS collector on each scheduler run, so nothing has to poll."
       status={{ on: hint !== null, label: hint ? `${format.toUpperCase()} to ${hint}` : "Not set" }}
@@ -100,6 +100,6 @@ export function SiemPushPanel({ pushHint: initialHint, pushFormat, isAdmin }: Pr
           </div>
         </div>
       )}
-    </AutomationPanel>
+    </OverviewPanel>
   )
 }
