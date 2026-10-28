@@ -4,7 +4,7 @@ import { useState } from "react"
 import { Building2, KeyRound, Loader2, LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Warning } from "../setup-guides/parts"
-import { AutomationPanel } from "./AutomationPanel"
+import { OverviewPanel } from "@/components/ui/OverviewPanel"
 
 export type RemediationLogRow = {
   action: string
@@ -67,7 +67,7 @@ export function RemediationPanel({ enabled: initialEnabled, isAdmin, recent }: P
   }
 
   return (
-    <AutomationPanel
+    <OverviewPanel
       title="Act on exposed accounts"
       description="When an employee shows up in a breach, admins can cut off access from the alert itself, through the connected directory."
       status={{ on: enabled, label: enabled ? "Enabled" : "Disabled" }}
@@ -105,6 +105,6 @@ export function RemediationPanel({ enabled: initialEnabled, isAdmin, recent }: P
           </div>
         )}
       </div>
-    </AutomationPanel>
+    </OverviewPanel>
   )
 }

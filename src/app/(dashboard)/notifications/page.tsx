@@ -3,8 +3,9 @@ import { getSession } from "@/lib/auth/session"
 import { prisma } from "@/lib/prisma"
 import { authorize } from "@/lib/rbac/authorize"
 import { permissionsForRole } from "@/lib/rbac/session-permissions"
-import { Webhooks } from "@/components/credentials/Webhooks"
-import { ReportSchedules } from "@/components/reports/ReportSchedules"
+import { AccessTabs } from "@/components/rbac/AccessTabs"
+import { AlertChannelsPanel } from "@/components/notifications/AlertChannelsPanel"
+import { ReportSchedulesPanel } from "@/components/notifications/ReportSchedulesPanel"
 import { listWebhooks } from "@/lib/webhooks"
 
 export default async function NotificationsPage() {
@@ -26,18 +27,27 @@ export default async function NotificationsPage() {
 
   return (
     <div className="h-full overflow-y-auto p-6">
-      <div className="mb-8">
+      <div className="mb-6">
         <h2 className="text-lg font-semibold text-foreground">Notifications</h2>
         <p className="text-sm text-muted-foreground">
-          Where Gardik delivers alerts and reports: webhooks for real-time notifications and scheduled report
-          emails.
+          Where Gardik sends alerts and reports, so your team hears about an exposure without opening the app.
         </p>
       </div>
 
-      <div className="mx-auto max-w-3xl space-y-6">
-        <Webhooks initial={webhooks} isAdmin={isAdmin} />
-        <ReportSchedules initial={scheduleRows} isAdmin={isAdmin} />
-      </div>
+      <AccessTabs
+        tabs={[
+          {
+            id: "alerts",
+            label: "Real-time alerts",
+            panel: <AlertChannelsPanel initial={webhooks} isAdmin={isAdmin} />,
+          },
+          {
+            id: "reports",
+            label: "Scheduled reports",
+            panel: <ReportSchedulesPanel initial={scheduleRows} isAdmin={isAdmin} />,
+          },
+        ]}
+      />
     </div>
   )
 }
