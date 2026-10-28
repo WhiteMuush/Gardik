@@ -5,7 +5,7 @@ export type DirectoryStatus = "ACTIVE" | "ERROR" | "PENDING" | "NOT_CONNECTED"
 
 export type DirectoryView = {
   provider: ProviderOption
-  logo: string | null
+  logo: string
   initials: string
   connections: Connection[]
   status: DirectoryStatus
@@ -15,14 +15,13 @@ export type DirectoryFilter = "All" | "Connected" | "Not connected" | "Needs act
 
 export const DIRECTORY_FILTERS: DirectoryFilter[] = ["All", "Connected", "Not connected", "Needs action"]
 
-// LDAP and SCIM are open protocols with no brand of their own, so they show initials.
-const BRAND: Record<DirectoryType, { logo: string | null; initials: string }> = {
+const BRAND: Record<DirectoryType, { logo: string; initials: string }> = {
   AZURE_AD: { logo: "/sources/microsoft.png", initials: "AZ" },
   GOOGLE_WORKSPACE: { logo: "/sources/google.png", initials: "GW" },
-  LDAP: { logo: null, initials: "LD" },
+  LDAP: { logo: "/sources/active-directory.svg", initials: "LD" },
   AWS_DIRECTORY: { logo: "/sources/aws.png", initials: "AW" },
   OKTA: { logo: "/sources/okta.png", initials: "OK" },
-  SCIM: { logo: null, initials: "SC" },
+  SCIM: { logo: "/sources/scim.png", initials: "SC" },
 }
 
 export function directoryStatus(connections: Connection[]): DirectoryStatus {

@@ -38,12 +38,6 @@ describe("buildDirectoryViews", () => {
     expect(views.find((v) => v.provider.type === "OKTA")?.connections).toHaveLength(1)
     expect(views.find((v) => v.provider.type === "SCIM")?.status).toBe("NOT_CONNECTED")
   })
-
-  it("gives branded types a logo and generic protocols initials", () => {
-    const views = buildDirectoryViews([])
-    expect(views.find((v) => v.provider.type === "OKTA")?.logo).toBe("/sources/okta.png")
-    expect(views.find((v) => v.provider.type === "SCIM")?.logo).toBeNull()
-  })
 })
 
 describe("matchesDirectory", () => {

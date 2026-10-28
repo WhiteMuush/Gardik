@@ -1,7 +1,7 @@
 import { RefreshCw, Trash2, Loader2, AlertCircle } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { cn } from "@/lib/utils"
-import { TYPE_META, STATUS_DOT, STATUS_LABEL, formatDate, type Connection } from "./meta"
+import { STATUS_DOT, STATUS_LABEL, formatDate, type Connection } from "./meta"
 
 type Props = {
   conn: Connection
@@ -13,26 +13,10 @@ type Props = {
 }
 
 export function ConnectionCard({ conn, isAdmin, isSyncing, isDeleting, onSync, onDelete }: Props) {
-  const meta = TYPE_META[conn.type]
-
   return (
     <div className="flex items-start gap-4 rounded-xl border border-border/60 bg-card px-4 py-4">
-      <span className={cn("flex size-9 shrink-0 items-center justify-center rounded-lg", meta.color)}>
-        {meta.icon}
-      </span>
-
       <div className="flex-1 min-w-0">
-        <div className="flex items-center gap-2">
-          <p className="text-sm font-medium text-foreground truncate">{conn.name}</p>
-          <span
-            className={cn(
-              "inline-flex items-center gap-1 rounded-full px-2 py-0.5 text-xs font-medium",
-              meta.color
-            )}
-          >
-            {meta.label}
-          </span>
-        </div>
+        <p className="text-sm font-medium text-foreground truncate">{conn.name}</p>
 
         <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
           <span className={cn("size-1.5 rounded-full", STATUS_DOT[conn.status])} />

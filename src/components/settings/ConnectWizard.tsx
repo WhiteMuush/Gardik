@@ -4,20 +4,18 @@ import { useState } from "react"
 import { X, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { PROVIDERS, type DirectoryType } from "./connect-wizard/providers"
-import { ChooseStep } from "./connect-wizard/ChooseStep"
 import { FIELDS } from "./connect-wizard/fields"
 import { ConfigureStep } from "./connect-wizard/ConfigureStep"
 import { DoneStep, TestStep, type TestResult } from "./connect-wizard/ResultSteps"
 
 type Props = {
-  initialType: DirectoryType
+  type: DirectoryType
   onClose: () => void
   onCreated: (conn: unknown) => void
 }
 
-export function ConnectWizard({ initialType, onClose, onCreated }: Props) {
-  const [step, setStep] = useState<"choose" | "configure" | "test" | "done">("configure")
-  const [selectedType, setSelectedType] = useState<DirectoryType | null>(initialType)
+export function ConnectWizard({ type, onClose, onCreated }: Props) {
+  const [step, setStep] = useState<"configure" | "test" | "done">("configure")
   const [name, setName] = useState("")
   const [fields, setFields] = useState<Record<string, string>>({})
   const [saving, setSaving] = useState(false)
@@ -37,7 +35,7 @@ export function ConnectWizard({ initialType, onClose, onCreated }: Props) {
     })
   }
 
-  const fieldDefs = selectedType ? FIELDS[selectedType] : []
+  const fieldDefs = FIELDS[type]
 
   function handleFieldChange(key: string, value: string) {
     setFields((prev) => ({ ...prev, [key]: value }))
@@ -54,19 +52,19 @@ export function ConnectWizard({ initialType, onClose, onCreated }: Props) {
   }
 
   async function handleSave() {
-    if (!selectedType || !name.trim()) return
+    if (!name.trim()) return
     setSaving(true)
     setError(null)
     try {
       const res = await fetch("/api/directory", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ type: selectedType, name: name.trim(), config: buildConfig() }),
+        body: JSON.stringify({ type, name: name.trim(), config: buildConfig() }),
       })
       if (!res.ok) throw new Error((await res.json()).error)
       const conn = await res.json()
       setCreatedId(conn.id)
-      if (selectedType === "SCIM") {
+      if (type === "SCIM") {
         setScimToken(conn.bearerToken ?? null)
         setStep("done")
       } else {
@@ -94,18 +92,17 @@ export function ConnectWizard({ initialType, onClose, onCreated }: Props) {
   }
 
   function handleFinish() {
-    onCreated({ id: createdId, type: selectedType, name, status: testResult?.ok ? "ACTIVE" : "PENDING" })
+    onCreated({ id: createdId, type, name, status: testResult?.ok ? "ACTIVE" : "PENDING" })
     onClose()
   }
 
-  const provider = PROVIDERS.find((p) => p.type === selectedType)
+  const provider = PROVIDERS.find((p) => p.type === type)
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/40 backdrop-blur-sm">
       <div className="relative w-full max-w-xl rounded-xl border border-border/60 bg-background shadow-2xl">
         <div className="flex items-center justify-between border-b border-border px-6 py-4">
           <h2 className="text-sm font-semibold text-foreground">
-            {step === "choose" && "Connect a directory"}
             {step === "configure" && `Configure ${provider?.label}`}
             {step === "test" && "Test connection"}
             {step === "done" && "Connection successful"}
@@ -119,20 +116,9 @@ export function ConnectWizard({ initialType, onClose, onCreated }: Props) {
         </div>
 
         <div className="px-6 py-5">
-          {step === "choose" && (
-            <ChooseStep
-              onChoose={(type) => {
-                setSelectedType(type)
-                setFields({})
-                setName("")
-                setStep("configure")
-              }}
-            />
-          )}
-
-          {step === "configure" && selectedType && (
+          {step === "configure" && (
             <ConfigureStep
-              selectedType={selectedType}
+              selectedType={type}
               provider={provider}
               fieldDefs={fieldDefs}
               name={name}
@@ -149,7 +135,7 @@ export function ConnectWizard({ initialType, onClose, onCreated }: Props) {
 
           {step === "done" && (
             <DoneStep
-              isScim={selectedType === "SCIM"}
+              isScim={type === "SCIM"}
               testResult={testResult}
               createdId={createdId}
               scimToken={scimToken}
@@ -161,12 +147,10 @@ export function ConnectWizard({ initialType, onClose, onCreated }: Props) {
           <Button
             variant="ghost"
             size="sm"
-            onClick={
-              step === "choose" ? onClose : () => setStep(step === "configure" ? "choose" : "configure")
-            }
+            onClick={step === "configure" ? onClose : () => setStep("configure")}
             disabled={step === "done"}
           >
-            {step === "choose" ? "Cancel" : "Back"}
+            {step === "configure" ? "Cancel" : "Back"}
           </Button>
 
           <div className="flex gap-2">

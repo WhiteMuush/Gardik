@@ -93,7 +93,7 @@ export function DirectoryCatalog({ initial, isAdmin }: Props) {
 
       {wizardType && (
         <ConnectWizard
-          initialType={wizardType}
+          type={wizardType}
           onClose={() => setWizardType(null)}
           onCreated={(conn) => add(conn as Parameters<typeof add>[0])}
         />
