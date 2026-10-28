@@ -146,8 +146,8 @@ export function DashboardCanvas({
                       onDragStop={gestures.onDragStop}
                       onResizeStart={gestures.onResizeStart}
                       onResizeStop={gestures.onResizeStop}
-                      margin={[16, 16]}
-                      containerPadding={[16, 16]}
+                      margin={[20, 20]}
+                      containerPadding={scaledWidth >= 768 ? [24, 24] : [16, 16]}
                     >
                       {visibleWidgets.map((w) => {
                         const title = getTitle(w.instanceId, w.defaultTitle)

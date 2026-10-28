@@ -25,7 +25,7 @@ export default async function NotificationsPage() {
   const scheduleRows = schedules.map((s) => ({ ...s, lastSentAt: s.lastSentAt?.toISOString() ?? null }))
 
   return (
-    <div className="h-full overflow-y-auto p-6">
+    <div className="h-full overflow-y-auto p-4 sm:p-6">
       <div className="mb-8">
         <h2 className="text-lg font-semibold text-foreground">Notifications</h2>
         <p className="text-sm text-muted-foreground">

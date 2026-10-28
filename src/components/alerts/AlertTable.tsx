@@ -148,7 +148,7 @@ export function AlertTable({
           No alerts found
         </div>
       ) : (
-        <div className="space-y-2">
+        <div className="space-y-4">
           {filtered.map((a) => (
             <AlertItem
               key={a.id}

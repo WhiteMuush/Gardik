@@ -40,7 +40,7 @@ export default async function DataApiPage() {
   const defaultRates = Object.fromEntries(PROVIDERS.map((p) => [p.id, p.defaultRatePerMinute]))
 
   return (
-    <div className="h-full overflow-y-auto p-6">
+    <div className="h-full overflow-y-auto p-4 sm:p-6">
       <div className="mb-6">
         <h2 className="text-lg font-semibold text-foreground">Data API</h2>
         <p className="text-sm text-muted-foreground">
