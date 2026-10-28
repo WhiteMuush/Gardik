@@ -92,7 +92,9 @@ export function RemediationPanel({ enabled: initialEnabled, isAdmin, recent }: P
           <div className="divide-y divide-border/60 rounded-xl border border-border/60 bg-card">
             {recent.map((r, i) => (
               <div key={i} className="flex items-center gap-3 px-4 py-2.5 text-sm">
-                <span className={r.status === "SUCCESS" ? "text-severity-ok" : "text-severity-critical"}>
+                <span
+                  className={r.status === "SUCCESS" ? "text-severity-ok-fg" : "text-severity-critical-fg"}
+                >
                   {r.status === "SUCCESS" ? "OK" : "FAIL"}
                 </span>
                 <span className="text-foreground">{ACTION_LABEL[r.action] ?? r.action}</span>
