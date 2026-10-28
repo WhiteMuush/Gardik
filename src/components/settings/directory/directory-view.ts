@@ -46,8 +46,3 @@ export function matchesDirectory(view: DirectoryView, filter: DirectoryFilter, q
   if (filter === "Needs action") return view.status === "ERROR"
   return true
 }
-
-export function lastSyncAt(connections: Connection[]): string | null {
-  const dates = connections.map((c) => c.lastSyncAt).filter((d): d is string => d !== null)
-  return dates.length ? dates.reduce((a, b) => (a > b ? a : b)) : null
-}

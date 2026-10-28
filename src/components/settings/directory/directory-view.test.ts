@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest"
 import type { Connection } from "./meta"
-import { buildDirectoryViews, directoryStatus, lastSyncAt, matchesDirectory } from "./directory-view"
+import { buildDirectoryViews, directoryStatus, matchesDirectory } from "./directory-view"
 
 function conn(over: Partial<Connection>): Connection {
   return {
@@ -53,17 +53,5 @@ describe("matchesDirectory", () => {
   it("searches label and description, ignoring case", () => {
     expect(matchesDirectory(google!, "All", "gmail")).toBe(true)
     expect(matchesDirectory(google!, "All", "okta")).toBe(false)
-  })
-})
-
-describe("lastSyncAt", () => {
-  it("returns the most recent sync, or null", () => {
-    expect(lastSyncAt([conn({ lastSyncAt: null })])).toBeNull()
-    expect(
-      lastSyncAt([
-        conn({ lastSyncAt: "2026-10-02T00:00:00.000Z" }),
-        conn({ lastSyncAt: "2026-10-05T00:00:00.000Z" }),
-      ])
-    ).toBe("2026-10-05T00:00:00.000Z")
   })
 })

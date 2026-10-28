@@ -6,7 +6,6 @@ import { sourceHealth } from "@/lib/credentials/health"
 import type { SourceCoverage } from "@/lib/scan/coverage"
 import { SourceDrawer } from "./SourceDrawer"
 import { HealthPill, LevelBadge, SourceAvatar } from "./SourceBadges"
-import { CatalogStats } from "./CatalogStats"
 import { CatalogToolbar } from "./CatalogToolbar"
 import { FILTERS, matches, type Filter, type SourceCredential, type SourceView } from "./source-view"
 
@@ -14,12 +13,11 @@ type Props = {
   credentials: SourceCredential[]
   coverage: SourceCoverage[]
   defaultRates: Partial<Record<ProviderMeta["id"], number>>
-  lastScanAt: string | null
   isAdmin: boolean
   canScan: boolean
 }
 
-export function SourceCatalog({ credentials, coverage, defaultRates, lastScanAt, isAdmin, canScan }: Props) {
+export function SourceCatalog({ credentials, coverage, defaultRates, isAdmin, canScan }: Props) {
   const [filter, setFilter] = useState<Filter>("All")
   const [query, setQuery] = useState("")
   const [openId, setOpenId] = useState<ProviderMeta["id"] | null>(null)
@@ -44,22 +42,10 @@ export function SourceCatalog({ credentials, coverage, defaultRates, lastScanAt,
   )
 
   const visible = views.filter((v) => matches(v, filter, query))
-  const connected = views.filter((v) => v.credential).length
-  const needsAction = views.filter((v) => v.health.status === "NEEDS_ACTION").length
   const open = views.find((v) => v.meta.id === openId) ?? null
 
   return (
     <div>
-      <CatalogStats
-        connectedLabel="Connected sources"
-        lastLabel="Last scan"
-        connected={connected}
-        total={views.length}
-        lastScanAt={lastScanAt}
-        needsAction={needsAction}
-        onNeedsAction={() => setFilter("Needs action")}
-      />
-
       <CatalogToolbar
         noun="sources"
         query={query}

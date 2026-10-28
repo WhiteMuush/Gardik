@@ -1,7 +1,6 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { CatalogStats } from "@/components/credentials/CatalogStats"
 import { CatalogToolbar } from "@/components/credentials/CatalogToolbar"
 import type { DirectoryType } from "../connect-wizard/providers"
 import { ConnectWizard } from "../ConnectWizard"
@@ -10,7 +9,6 @@ import { DirectoryTile } from "./DirectoryTile"
 import {
   buildDirectoryViews,
   DIRECTORY_FILTERS,
-  lastSyncAt,
   matchesDirectory,
   type DirectoryFilter,
 } from "./directory-view"
@@ -35,16 +33,6 @@ export function DirectoryCatalog({ initial, isAdmin }: Props) {
 
   return (
     <div>
-      <CatalogStats
-        connectedLabel="Connected directories"
-        lastLabel="Last sync"
-        connected={views.filter((v) => v.connections.length > 0).length}
-        total={views.length}
-        lastScanAt={lastSyncAt(connections)}
-        needsAction={views.filter((v) => v.status === "ERROR").length}
-        onNeedsAction={() => setFilter("Needs action")}
-      />
-
       <CatalogToolbar
         noun="directories"
         query={query}
