@@ -1,14 +1,13 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { Search } from "lucide-react"
-import { cn } from "@/lib/utils"
 import { API_PROVIDERS, recommendationLevel, type ProviderMeta } from "@/lib/credentials/providers"
 import { sourceHealth } from "@/lib/credentials/health"
 import type { SourceCoverage } from "@/lib/scan/coverage"
 import { SourceDrawer } from "./SourceDrawer"
 import { HealthPill, LevelBadge, SourceAvatar } from "./SourceBadges"
 import { CatalogStats } from "./CatalogStats"
+import { CatalogToolbar } from "./CatalogToolbar"
 import { FILTERS, matches, type Filter, type SourceCredential, type SourceView } from "./source-view"
 
 type Props = {
@@ -52,6 +51,8 @@ export function SourceCatalog({ credentials, coverage, defaultRates, lastScanAt,
   return (
     <div>
       <CatalogStats
+        connectedLabel="Connected sources"
+        lastLabel="Last scan"
         connected={connected}
         total={views.length}
         lastScanAt={lastScanAt}
@@ -59,36 +60,14 @@ export function SourceCatalog({ credentials, coverage, defaultRates, lastScanAt,
         onNeedsAction={() => setFilter("Needs action")}
       />
 
-      <div className="mb-4 flex flex-wrap items-center gap-3">
-        <div className="relative w-full max-w-xs">
-          <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-          <input
-            placeholder="Search sources..."
-            aria-label="Search sources"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            className="w-full rounded-lg border border-input bg-card py-2 pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
-          />
-        </div>
-        <div className="flex flex-wrap gap-1.5" role="group" aria-label="Filter sources">
-          {FILTERS.map((f) => (
-            <button
-              key={f}
-              type="button"
-              aria-pressed={filter === f}
-              onClick={() => setFilter(f)}
-              className={cn(
-                "rounded-full border px-3 py-1 text-xs transition-colors",
-                filter === f
-                  ? "border-primary bg-primary text-primary-foreground"
-                  : "border-border bg-card text-muted-foreground hover:text-foreground"
-              )}
-            >
-              {f}
-            </button>
-          ))}
-        </div>
-      </div>
+      <CatalogToolbar
+        noun="sources"
+        query={query}
+        onQuery={setQuery}
+        filters={FILTERS}
+        filter={filter}
+        onFilter={setFilter}
+      />
 
       <p className="mb-4 text-xs text-muted-foreground">
         Levels are advice only: enable any source, in any combination.

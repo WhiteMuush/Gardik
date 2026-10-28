@@ -10,13 +10,14 @@ import { ConfigureStep } from "./connect-wizard/ConfigureStep"
 import { DoneStep, TestStep, type TestResult } from "./connect-wizard/ResultSteps"
 
 type Props = {
+  initialType: DirectoryType
   onClose: () => void
   onCreated: (conn: unknown) => void
 }
 
-export function ConnectWizard({ onClose, onCreated }: Props) {
-  const [step, setStep] = useState<"choose" | "configure" | "test" | "done">("choose")
-  const [selectedType, setSelectedType] = useState<DirectoryType | null>(null)
+export function ConnectWizard({ initialType, onClose, onCreated }: Props) {
+  const [step, setStep] = useState<"choose" | "configure" | "test" | "done">("configure")
+  const [selectedType, setSelectedType] = useState<DirectoryType | null>(initialType)
   const [name, setName] = useState("")
   const [fields, setFields] = useState<Record<string, string>>({})
   const [saving, setSaving] = useState(false)

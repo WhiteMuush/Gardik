@@ -34,7 +34,7 @@ export function ConnectionCard({ conn, isAdmin, isSyncing, isDeleting, onSync, o
           </span>
         </div>
 
-        <div className="mt-1 flex items-center gap-2">
+        <div className="mt-1 flex flex-wrap items-center gap-x-2 gap-y-1">
           <span className={cn("size-1.5 rounded-full", STATUS_DOT[conn.status])} />
           <span className="text-xs text-muted-foreground">{STATUS_LABEL[conn.status]}</span>
           <span className="text-xs text-muted-foreground">-</span>

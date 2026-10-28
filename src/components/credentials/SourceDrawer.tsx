@@ -1,8 +1,6 @@
 "use client"
 
-import { useEffect } from "react"
 import { ExternalLink, X } from "lucide-react"
-import { cn } from "@/lib/utils"
 import { ScanButton } from "@/components/employees/ScanButton"
 import { priceLabel } from "@/lib/credentials/providers"
 import { remedyFor } from "@/lib/scan/remedies"
@@ -10,6 +8,7 @@ import { RemedyPanel } from "@/components/employees/RemedyPanel"
 import type { SourceView } from "./source-view"
 import { HealthPill, LevelBadge, SourceAvatar } from "./SourceBadges"
 import { Section } from "./DrawerSection"
+import { CatalogDrawer } from "./CatalogDrawer"
 import { SourceConfiguration } from "./SourceConfiguration"
 
 const LEVEL_WHY = {
@@ -26,42 +25,22 @@ type Props = {
 }
 
 export function SourceDrawer({ source, isAdmin, canScan, onClose }: Props) {
-  useEffect(() => {
-    if (!source) return
-    const onKey = (e: KeyboardEvent) => {
-      if (e.key === "Escape") onClose()
-    }
-    document.addEventListener("keydown", onKey)
-    return () => document.removeEventListener("keydown", onKey)
-  }, [source, onClose])
-
   return (
-    <>
-      <div
-        className={cn(
-          "fixed inset-0 z-40 bg-foreground/10 backdrop-blur-sm transition-opacity duration-300",
-          source ? "opacity-100" : "pointer-events-none opacity-0"
-        )}
-        onClick={onClose}
-      />
-      <aside
-        aria-label={source ? `${source.meta.label} details` : undefined}
-        className={cn(
-          "fixed right-0 top-0 z-50 flex h-full w-full max-w-[480px] flex-col border-l border-border bg-card shadow-2xl transition-transform duration-300",
-          source ? "translate-x-0" : "translate-x-full"
-        )}
-      >
-        {source && (
-          <SourceDetails
-            key={source.meta.id}
-            source={source}
-            isAdmin={isAdmin}
-            canScan={canScan}
-            onClose={onClose}
-          />
-        )}
-      </aside>
-    </>
+    <CatalogDrawer
+      open={source !== null}
+      label={source ? `${source.meta.label} details` : undefined}
+      onClose={onClose}
+    >
+      {source && (
+        <SourceDetails
+          key={source.meta.id}
+          source={source}
+          isAdmin={isAdmin}
+          canScan={canScan}
+          onClose={onClose}
+        />
+      )}
+    </CatalogDrawer>
   )
 }
 

@@ -11,7 +11,7 @@ export function SCIMGuide() {
       <div className="space-y-4">
         <Step n={1} title="Create the SCIM connection in Gardik">
           <Sub>
-            Click <strong>Connect directory</strong>, choose <strong>SCIM 2.0</strong>, enter a name and save.
+            Click <strong>Connect SCIM 2.0</strong> above, enter a name and save.
             Gardik will generate a unique endpoint URL and bearer token.
           </Sub>
           <Warning>

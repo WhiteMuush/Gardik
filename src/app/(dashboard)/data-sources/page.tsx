@@ -3,10 +3,9 @@ import { getSession } from "@/lib/auth/session"
 import { prisma } from "@/lib/prisma"
 import { authorize } from "@/lib/rbac/authorize"
 import { permissionsForRole } from "@/lib/rbac/session-permissions"
-import { DirectoryConnections } from "@/components/settings/DirectoryConnections"
+import { DirectoryCatalog } from "@/components/settings/directory/DirectoryCatalog"
 import { RemediationSettings } from "@/components/settings/RemediationSettings"
 import { SiemExport } from "@/components/settings/SiemExport"
-import { SetupGuides } from "@/components/settings/SetupGuides"
 
 export default async function SettingsPage() {
   const denied = await guardPage("connectors:read")
@@ -57,29 +56,32 @@ export default async function SettingsPage() {
 
   return (
     <div className="h-full overflow-y-auto p-6">
-      <div className="mb-8">
+      <div className="mb-6">
         <h2 className="text-lg font-semibold text-foreground">Data Sources</h2>
         <p className="text-sm text-muted-foreground">
-          Connect directories and breach feeds that power your Gardik workspace.
+          Directories that feed your employee list. Open a tile to connect, sync or follow its setup guide.
         </p>
       </div>
 
-      <div className="mx-auto max-w-3xl space-y-10">
-        <DirectoryConnections initial={serialized} isAdmin={isAdmin} />
-        <RemediationSettings
-          enabled={company?.remediationEnabled ?? false}
-          isAdmin={isAdmin}
-          recent={remediationRecent}
-        />
-        <SiemExport
-          companyId={companyId}
-          tokenHint={company?.siemTokenHint ?? null}
-          pushHint={company?.siemPushHint ?? null}
-          pushFormat={company?.siemPushFormat ?? null}
-          isAdmin={isAdmin}
-        />
-        <SetupGuides />
-      </div>
+      <DirectoryCatalog initial={serialized} isAdmin={isAdmin} />
+
+      <section className="mt-10">
+        <h3 className="mb-4 text-sm font-semibold text-foreground">Settings</h3>
+        <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-2">
+          <RemediationSettings
+            enabled={company?.remediationEnabled ?? false}
+            isAdmin={isAdmin}
+            recent={remediationRecent}
+          />
+          <SiemExport
+            companyId={companyId}
+            tokenHint={company?.siemTokenHint ?? null}
+            pushHint={company?.siemPushHint ?? null}
+            pushFormat={company?.siemPushFormat ?? null}
+            isAdmin={isAdmin}
+          />
+        </div>
+      </section>
     </div>
   )
 }

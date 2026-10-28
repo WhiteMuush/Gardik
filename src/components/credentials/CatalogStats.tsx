@@ -3,23 +3,25 @@ import { formatScan } from "./source-view"
 
 // The three headline numbers; "Needs action" filters the grid when clicked.
 export function CatalogStats(props: {
+  connectedLabel: string
+  lastLabel: string
   connected: number
   total: number
   lastScanAt: string | null
   needsAction: number
   onNeedsAction: () => void
 }) {
-  const { connected, total, lastScanAt, needsAction, onNeedsAction } = props
+  const { connectedLabel, lastLabel, connected, total, lastScanAt, needsAction, onNeedsAction } = props
   return (
     <div className="mb-6 grid grid-cols-1 gap-3 sm:grid-cols-3">
       <div className="rounded-xl border border-border/60 bg-card px-4 py-3">
-        <p className="text-xs text-muted-foreground">Connected sources</p>
+        <p className="text-xs text-muted-foreground">{connectedLabel}</p>
         <p className="mt-1 text-xl font-semibold text-foreground">
           {connected} <span className="text-sm font-normal text-muted-foreground">of {total}</span>
         </p>
       </div>
       <div className="rounded-xl border border-border/60 bg-card px-4 py-3">
-        <p className="text-xs text-muted-foreground">Last scan</p>
+        <p className="text-xs text-muted-foreground">{lastLabel}</p>
         <p className="mt-1 text-xl font-semibold text-foreground">{formatScan(lastScanAt)}</p>
       </div>
       <button
