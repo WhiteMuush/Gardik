@@ -12,7 +12,7 @@ function formatType(type: string) {
 export function DataTypeRadar({ data }: { data: DataType[] }) {
   const { title } = useWidgetTitle("data-type-radar", "Data Type Radar")
 
-  const chartData = data.map((d) => ({
+  const chartData = data.slice(0, 8).map((d) => ({
     type: formatType(d.type),
     value: d.count,
     fullMark: Math.max(...data.map((x) => x.count), 1),

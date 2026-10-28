@@ -1,4 +1,5 @@
 import type { ApiProvider } from "@prisma/client"
+import { rate } from "./reports/utils"
 
 // A record belongs to the providers that reported it; untagged legacy records only show in the unfiltered view.
 export type BreachRecordRaw = { detectedAt: Date; exposedData: string[]; sources: ApiProvider[] }
@@ -68,10 +69,20 @@ export function buildDataTypes(records: BreachRecordRaw[], provider?: ApiProvide
 
   return Object.entries(counts)
     .sort((a, b) => b[1] - a[1])
-    .slice(0, 8)
     .map(([type, count]) => ({
       type,
       count,
       percentage: total > 0 ? Math.round((count / total) * 100) : 0,
     }))
+}
+
+// Shares use every detected type, like the reports, even though only tracked types and the top eight others are shown.
+export function mergeTrackedTypes(data: { type: string; count: number }[], tracked: string[]) {
+  const total = data.reduce((sum, d) => sum + d.count, 0)
+  const byType = new Map(data.map((d) => [d.type, d.count]))
+  const items = [
+    ...tracked.map((type) => ({ type, count: byType.get(type) ?? 0 })),
+    ...data.filter((d) => !tracked.includes(d.type)).slice(0, 8),
+  ].map(({ type, count }) => ({ type, count, percentage: rate(count, total) }))
+  return { items, total }
 }
