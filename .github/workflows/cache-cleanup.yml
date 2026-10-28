@@ -1,0 +1,42 @@
+name: Cache cleanup
+
+# Deletes the Actions caches no run can read anymore, so the repository stays under its 10 GB quota.
+on:
+  workflow_run:
+    workflows: [CI]
+    types: [completed]
+    branches: [main, develop]
+  # Safety net for the caches of pull requests closed without a later push on main or develop.
+  schedule:
+    - cron: "43 4 * * *"
+  workflow_dispatch:
+  # Runs in the pull request that edits it, since workflow_run and schedule only fire from main.
+  pull_request:
+    paths: [.github/workflows/cache-cleanup.yml, scripts/cache-prune.sh]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: cache-cleanup
+  cancel-in-progress: false
+
+jobs:
+  prune:
+    name: Prune stale caches
+    runs-on: ubuntu-latest
+    timeout-minutes: 5
+    permissions:
+      contents: read
+      actions: write # delete caches
+      pull-requests: read # keep the caches of open pull requests
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Prune
+        env:
+          GH_TOKEN: ${{ github.token }}
+          GH_REPO: ${{ github.repository }}
+        run: scripts/cache-prune.sh
