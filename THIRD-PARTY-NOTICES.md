@@ -9,7 +9,7 @@ Generated from `package-lock.json`; do not edit by hand. Regenerate with
 `npm run licenses:write`. Build-time-only dependencies are excluded: they
 are not part of anything that ships.
 
-Runtime packages: 539.
+Runtime packages: 533.
 
 ## Obligations worth knowing
 
@@ -23,9 +23,9 @@ Runtime packages: 539.
 
 ## Packages by license
 
-### MIT (391)
+### MIT (386)
 
-- @authenio/xml-encryption@2.0.2
+- @authenio/xml-encryption@6.0.2
 - @babel/helper-string-parser@7.29.7
 - @babel/helper-validator-identifier@7.29.7
 - @babel/parser@7.29.9
@@ -34,19 +34,17 @@ Runtime packages: 539.
 - @base-ui/react@1.8.0
 - @base-ui/utils@0.4.0
 - @bcoe/v8-coverage@1.0.2
-- @better-auth/core@1.7.5
-- @better-auth/core@1.7.7
-- @better-auth/drizzle-adapter@1.7.5
-- @better-auth/kysely-adapter@1.7.5
-- @better-auth/memory-adapter@1.7.5
-- @better-auth/mongo-adapter@1.7.5
-- @better-auth/passkey@1.7.5
-- @better-auth/prisma-adapter@1.7.5
-- @better-auth/sso@1.7.5
-- @better-auth/telemetry@1.7.5
-- @better-auth/utils@0.4.2
-- @better-auth/utils@0.5.0
-- @better-fetch/fetch@1.3.2
+- @better-auth/core@1.7.14
+- @better-auth/drizzle-adapter@1.7.14
+- @better-auth/kysely-adapter@1.7.14
+- @better-auth/memory-adapter@1.7.14
+- @better-auth/mongo-adapter@1.7.14
+- @better-auth/passkey@1.7.14
+- @better-auth/prisma-adapter@1.7.14
+- @better-auth/sso@1.7.14
+- @better-auth/telemetry@1.7.14
+- @better-auth/utils@0.5.1
+- @better-fetch/fetch@1.3.3
 - @emnapi/runtime@1.11.3
 - @esbuild/aix-ppc64@0.28.1
 - @esbuild/android-arm64@0.28.1
@@ -96,21 +94,21 @@ Runtime packages: 539.
 - @noble/ciphers@1.3.0
 - @noble/ciphers@2.2.0
 - @noble/hashes@1.8.0
-- @noble/hashes@2.2.0
 - @noble/hashes@2.3.0
-- @nodable/entities@3.0.0
+- @noble/hashes@2.4.0
+- @nodable/entities@3.1.0
 - @oxc-project/types@0.155.0
-- @peculiar/asn1-android@2.8.0
-- @peculiar/asn1-cms@2.8.0
-- @peculiar/asn1-csr@2.8.0
-- @peculiar/asn1-ecc@2.8.0
-- @peculiar/asn1-pfx@2.8.0
-- @peculiar/asn1-pkcs8@2.8.0
-- @peculiar/asn1-pkcs9@2.8.0
-- @peculiar/asn1-rsa@2.8.0
-- @peculiar/asn1-schema@2.8.0
-- @peculiar/asn1-x509-attr@2.8.0
-- @peculiar/asn1-x509@2.8.0
+- @peculiar/asn1-android@2.11.1
+- @peculiar/asn1-cms@2.11.1
+- @peculiar/asn1-csr@2.11.1
+- @peculiar/asn1-ecc@2.11.1
+- @peculiar/asn1-pfx@2.11.1
+- @peculiar/asn1-pkcs8@2.11.1
+- @peculiar/asn1-pkcs9@2.11.1
+- @peculiar/asn1-rsa@2.11.1
+- @peculiar/asn1-schema@2.11.1
+- @peculiar/asn1-x509-attr@2.11.1
+- @peculiar/asn1-x509@2.11.1
 - @peculiar/utils@2.0.3
 - @peculiar/x509@1.14.3
 - @radix-ui/primitive@1.1.3
@@ -153,7 +151,7 @@ Runtime packages: 539.
 - @rolldown/binding-win32-x64-msvc@1.2.15
 - @rolldown/pluginutils@1.0.1
 - @simplewebauthn/browser@13.3.0
-- @simplewebauthn/server@13.3.2
+- @simplewebauthn/server@13.3.3
 - @standard-schema/spec@1.1.0
 - @standard-schema/utils@0.3.0
 - @tanstack/react-store@0.11.1
@@ -210,14 +208,13 @@ Runtime packages: 539.
 - ansi-regex@5.0.1
 - ansi-styles@4.3.0
 - anynum@1.0.1
-- asn1@0.2.6
 - assertion-error@2.0.1
 - ast-v8-to-istanbul@1.0.7
 - aws-ssl-profiles@1.1.2
 - base64-js@0.0.8
 - base64-js@1.5.1
-- better-auth@1.7.5
-- better-call@1.4.0
+- better-auth@1.7.14
+- better-call@1.4.4
 - better-result@2.10.0
 - bidi-js@1.0.3
 - bowser@2.14.1
@@ -262,7 +259,7 @@ Runtime packages: 539.
 - fast-equals@4.0.3
 - fast-querystring@1.1.2
 - fast-xml-builder@1.3.1
-- fast-xml-parser@5.10.1
+- fast-xml-parser@5.11.2
 - fdir@6.5.0
 - fflate@0.8.3
 - find-my-way@9.9.0
@@ -279,7 +276,7 @@ Runtime packages: 539.
 - immer@11.1.11
 - is-fullwidth-code-point@3.0.0
 - is-property@1.0.2
-- is-unsafe@2.0.0
+- is-unsafe@2.0.2
 - is-url@1.2.4
 - jay-peg@1.1.1
 - jiti@1.21.7
@@ -288,7 +285,7 @@ Runtime packages: 539.
 - js-tokens@10.0.0
 - js-tokens@4.0.0
 - json-schema-traverse@1.0.0
-- kysely@0.29.5
+- kysely@0.29.7
 - ldapts@9.2.0
 - linebreak@1.1.0
 - locate-path@5.0.0
@@ -301,9 +298,8 @@ Runtime packages: 539.
 - mysql2@3.24.3
 - named-placeholders@1.1.6
 - nanoid@3.3.18
-- nanostores@1.4.2
+- nanostores@1.5.5
 - next@16.4.3
-- node-rsa@1.1.1
 - normalize-svg-path@1.1.0
 - object-assign@4.1.1
 - obug@3.0.0
@@ -342,7 +338,7 @@ Runtime packages: 539.
 - proper-lockfile@4.1.2
 - pure-rand@6.1.0
 - pvtsutils@1.3.6
-- pvutils@1.1.5
+- pvutils@1.2.0
 - qrcode@1.5.4
 - queue@6.0.2
 - rc9@3.0.1
@@ -370,10 +366,10 @@ Runtime packages: 539.
 - rou3@0.9.2
 - safe-regex2@5.1.1
 - safer-buffer@2.1.2
-- samlify@2.13.1
+- samlify@2.15.1
 - scheduler@0.25.0-rc-603e6108-20241029
 - scheduler@0.28.0
-- set-cookie-parser@3.1.2
+- set-cookie-parser@3.2.1
 - shebang-command@2.0.0
 - shebang-regex@3.0.0
 - sql-escaper@1.5.1
@@ -381,7 +377,7 @@ Runtime packages: 539.
 - std-env@4.3.0
 - string-width@4.2.3
 - strip-ansi@6.0.1
-- strnum@2.4.2
+- strnum@2.5.1
 - styled-jsx@5.1.6
 - tailwind-merge@3.7.0
 - tiny-inflate@1.0.3
@@ -390,8 +386,8 @@ Runtime packages: 539.
 - tinyexec@1.3.1
 - tinyglobby@0.2.17
 - tinyrainbow@3.2.0
-- tldts-core@7.4.11
-- tldts@7.4.11
+- tldts-core@7.4.20
+- tldts@7.4.19
 - tsx@4.23.15
 - tsyringe@4.10.0
 - tw-animate-css@1.4.0
@@ -404,20 +400,19 @@ Runtime packages: 539.
 - vitest@5.0.5
 - why-is-node-running@3.2.1
 - wrap-ansi@6.2.0
-- xml-crypto@6.1.2
+- xml-crypto@6.4.0
 - xml-escape@1.1.0
 - xml-naming@0.3.0
 - xml@1.0.1
-- xpath@0.0.32
 - xpath@0.0.33
-- xpath@0.0.34
+- xpath@0.0.35
 - xtend@4.0.2
 - yargs@15.4.1
 - yoga-layout@3.2.1
 - zeptomatch@2.1.0
 - zod@4.6.7
 
-### Apache-2.0 (66)
+### Apache-2.0 (65)
 
 - @aws-sdk/client-identitystore@3.1139.0
 - @aws-sdk/core@3.978.1
@@ -450,7 +445,6 @@ Runtime packages: 539.
 - @img/sharp-linuxmusl-arm64@0.35.5
 - @img/sharp-linuxmusl-x64@0.35.5
 - @img/sharp-webcontainers-wasm32@0.35.5
-- @opentelemetry/semantic-conventions@1.43.0
 - @playwright/test@1.63.0
 - @prisma/adapter-pg@7.10.0
 - @prisma/client-runtime-utils@7.10.0
@@ -560,7 +554,7 @@ Runtime packages: 539.
 
 ### BSD-3-Clause (6)
 
-- asn1js@3.0.10
+- asn1js@3.1.0
 - bcryptjs@3.0.3
 - d3-ease@3.0.1
 - deepmerge-ts@8.0.2
