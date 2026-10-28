@@ -15,7 +15,7 @@ export default async function DataApiPage() {
   const companyId = session!.user.companyId
   const perms = await permissionsForRole(session!.user.roleId ?? null)
 
-  const [credentials, coverage, lastScan] = await Promise.all([
+  const [credentials, coverage] = await Promise.all([
     prisma.apiCredential.findMany({
       where: { companyId },
       orderBy: { provider: "asc" },
@@ -29,7 +29,6 @@ export default async function DataApiPage() {
       },
     }),
     getScanCoverage(companyId),
-    prisma.scanCheck.aggregate({ where: { employee: { companyId } }, _max: { lastAttemptAt: true } }),
   ])
 
   const serialized = credentials.map((c) => ({
@@ -53,7 +52,6 @@ export default async function DataApiPage() {
         credentials={serialized}
         coverage={coverage}
         defaultRates={defaultRates}
-        lastScanAt={lastScan._max.lastAttemptAt?.toISOString() ?? null}
         isAdmin={authorize(perms, "api_credentials:manage")}
         canScan={authorize(perms, "employees:scan")}
       />

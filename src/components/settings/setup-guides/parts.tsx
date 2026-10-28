@@ -13,8 +13,10 @@ export function Code({ children }: { children: string }) {
   }
 
   return (
-    <span className="group inline-flex items-center gap-1">
-      <code className="rounded bg-muted px-1.5 py-0.5 font-mono text-xs text-foreground">{children}</code>
+    <span className="group inline-flex max-w-full items-center gap-1">
+      <code className="min-w-0 break-all rounded bg-muted px-1.5 py-0.5 font-mono text-xs text-foreground">
+        {children}
+      </code>
       <button
         onClick={copy}
         className="opacity-0 group-hover:opacity-100 transition-opacity text-muted-foreground hover:text-foreground"
