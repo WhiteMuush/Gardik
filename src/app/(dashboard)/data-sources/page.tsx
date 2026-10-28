@@ -66,7 +66,7 @@ export default async function SettingsPage() {
 
       <DirectoryCatalog initial={serialized} isAdmin={isAdmin} />
 
-      <section className="mt-10">
+      <section className="mt-10 max-w-3xl">
         <h3 className="text-sm font-semibold text-foreground">Automation & export</h3>
         <p className="mb-4 text-xs text-muted-foreground">
           Act on exposed accounts and send alerts to your security tools.
