@@ -57,7 +57,7 @@ export function DirectoryCatalog({ initial, isAdmin }: Props) {
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {visible.map((view) => (
             <DirectoryTile
               key={view.provider.type}
