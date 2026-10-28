@@ -12,7 +12,7 @@ export function AccessTabs({ tabs }: { tabs: Tab[] }) {
 
   return (
     <div className="space-y-4">
-      <div role="tablist" className="flex items-center gap-6 border-b border-border">
+      <div role="tablist" className="flex items-center gap-6 overflow-x-auto border-b border-border">
         {tabs.map((t) => (
           <button
             key={t.id}
@@ -20,7 +20,7 @@ export function AccessTabs({ tabs }: { tabs: Tab[] }) {
             aria-selected={t.id === current?.id}
             onClick={() => setActive(t.id)}
             className={cn(
-              "-mb-px border-b-2 px-0.5 pb-2.5 text-sm transition-colors",
+              "-mb-px shrink-0 whitespace-nowrap border-b-2 px-0.5 pb-2.5 text-sm transition-colors",
               t.id === current?.id
                 ? "border-foreground font-medium text-foreground"
                 : "border-transparent text-muted-foreground hover:text-foreground"

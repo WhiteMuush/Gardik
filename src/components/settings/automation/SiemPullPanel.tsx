@@ -1,9 +1,9 @@
 "use client"
 
 import { useState } from "react"
-import { Copy, Loader2 } from "lucide-react"
+import { Copy, FileCode, KeyRound, Link, Loader2 } from "lucide-react"
 import { Button } from "@/components/ui/button"
-import { SettingRow } from "./SettingRow"
+import { AutomationPanel } from "./AutomationPanel"
 
 type Props = {
   companyId: string
@@ -11,17 +11,34 @@ type Props = {
   isAdmin: boolean
 }
 
+const FEATURES = [
+  {
+    icon: KeyRound,
+    title: "1. Generate a token",
+    text: "It is shown once. Store it in your collector and send it as a bearer token.",
+  },
+  {
+    icon: Link,
+    title: "2. Point your collector at the feed",
+    text: "Copy the endpoint below into Splunk, Microsoft Sentinel or any HTTPS collector.",
+  },
+  {
+    icon: FileCode,
+    title: "3. Pick a format",
+    text: "Set format to cef, syslog or json. Add since to fetch only newer alerts.",
+  },
+]
+
 function generateToken(): string {
   const bytes = new Uint8Array(24)
   crypto.getRandomValues(bytes)
   return Array.from(bytes, (b) => b.toString(16).padStart(2, "0")).join("")
 }
 
-export function SiemPullRow({ companyId, tokenHint, isAdmin }: Props) {
+export function SiemPullPanel({ companyId, tokenHint, isAdmin }: Props) {
   const [hint, setHint] = useState(tokenHint)
   const [token, setToken] = useState<string | null>(null)
   const [busy, setBusy] = useState(false)
-  const [open, setOpen] = useState(false)
 
   const origin = typeof window !== "undefined" ? window.location.origin : ""
   const feedUrl = `${origin}/api/integrations/siem/${companyId}?format=cef`
@@ -38,33 +55,31 @@ export function SiemPullRow({ companyId, tokenHint, isAdmin }: Props) {
     if (res.ok) {
       setToken(fresh)
       setHint(`...${fresh.slice(-4)}`)
-      setOpen(true)
     }
   }
 
   return (
-    <SettingRow
-      title="SIEM pull feed"
-      description="Splunk, Microsoft Sentinel or any collector polls Gardik for new alerts."
+    <AutomationPanel
+      title="Let your SIEM pull alerts"
+      description="Your SIEM or SOAR calls Gardik on its own schedule and fetches new alerts over HTTPS."
       status={{ on: hint !== null, label: hint ? `Token ${hint}` : "No token" }}
       action={
         isAdmin && (
-          <Button size="sm" variant="outline" onClick={() => void rotate()} disabled={busy}>
+          <Button variant={hint ? "outline" : "default"} onClick={() => void rotate()} disabled={busy}>
             {busy && <Loader2 className="animate-spin" />}
             {hint ? "Rotate token" : "Generate token"}
           </Button>
         )
       }
-      open={open}
-      onToggle={() => setOpen(!open)}
+      features={FEATURES}
     >
       {token && (
-        <p className="break-all rounded-md bg-muted px-3 py-2 text-xs text-foreground">
+        <p className="break-all rounded-lg bg-muted px-4 py-3 text-sm text-foreground">
           Copy now, it will not be shown again: <span className="font-mono">{token}</span>
         </p>
       )}
       <div>
-        <label htmlFor="siem-feed" className="mb-1 block text-xs font-medium text-muted-foreground">
+        <label htmlFor="siem-feed" className="mb-2 block text-sm font-medium text-foreground">
           Feed endpoint
         </label>
         <div className="flex items-center gap-2">
@@ -72,7 +87,7 @@ export function SiemPullRow({ companyId, tokenHint, isAdmin }: Props) {
             id="siem-feed"
             readOnly
             value={feedUrl}
-            className="min-w-0 flex-1 rounded-lg border border-input bg-background px-3 py-2 text-xs text-foreground"
+            className="min-w-0 flex-1 rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground"
           />
           <Button
             size="icon"
@@ -84,10 +99,6 @@ export function SiemPullRow({ companyId, tokenHint, isAdmin }: Props) {
           </Button>
         </div>
       </div>
-      <p className="text-xs text-muted-foreground">
-        Send the token as a bearer token. Formats: <code>cef</code>, <code>syslog</code> or <code>json</code>,
-        set with the <code>format</code> query parameter.
-      </p>
-    </SettingRow>
+    </AutomationPanel>
   )
 }

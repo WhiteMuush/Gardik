@@ -1,10 +1,10 @@
 "use client"
 
 import { useState } from "react"
-import { Loader2 } from "lucide-react"
+import { Building2, KeyRound, Loader2, LogOut } from "lucide-react"
 import { Button } from "@/components/ui/button"
 import { Warning } from "../setup-guides/parts"
-import { SettingRow } from "./SettingRow"
+import { AutomationPanel } from "./AutomationPanel"
 
 export type RemediationLogRow = {
   action: string
@@ -25,10 +25,27 @@ const ACTION_LABEL: Record<string, string> = {
   FORCE_PASSWORD_RESET: "Force password reset",
 }
 
-export function RemediationRow({ enabled: initialEnabled, isAdmin, recent }: Props) {
+const FEATURES = [
+  {
+    icon: LogOut,
+    title: "Revoke sessions",
+    text: "Signs the employee out everywhere, so a stolen session stops working.",
+  },
+  {
+    icon: KeyRound,
+    title: "Force a password reset",
+    text: "The employee picks a new password at next sign-in, so a leaked one is useless.",
+  },
+  {
+    icon: Building2,
+    title: "Supported directories",
+    text: "Entra ID revokes sessions. Google Workspace and Okta do both actions.",
+  },
+]
+
+export function RemediationPanel({ enabled: initialEnabled, isAdmin, recent }: Props) {
   const [enabled, setEnabled] = useState(initialEnabled)
   const [busy, setBusy] = useState(false)
-  const [open, setOpen] = useState(false)
 
   async function toggle() {
     const next = !enabled
@@ -50,41 +67,31 @@ export function RemediationRow({ enabled: initialEnabled, isAdmin, recent }: Pro
   }
 
   return (
-    <SettingRow
-      title="Automated remediation"
-      description="Revoke sessions and force password resets on exposed accounts through the connected directory."
+    <AutomationPanel
+      title="Act on exposed accounts"
+      description="When an employee shows up in a breach, admins can cut off access from the alert itself, through the connected directory."
       status={{ on: enabled, label: enabled ? "Enabled" : "Disabled" }}
       action={
         isAdmin && (
-          <Button
-            size="sm"
-            variant={enabled ? "outline" : "default"}
-            onClick={() => void toggle()}
-            disabled={busy}
-          >
+          <Button variant={enabled ? "outline" : "default"} onClick={() => void toggle()} disabled={busy}>
             {busy && <Loader2 className="animate-spin" />}
-            {enabled ? "Disable" : "Enable"}
+            {enabled ? "Disable remediation" : "Enable remediation"}
           </Button>
         )
       }
-      open={open}
-      onToggle={() => setOpen(!open)}
+      features={FEATURES}
     >
       <Warning>
-        Works with Entra ID, Google Workspace and Okta. Actions are irreversible and run against your live
-        IdP.
+        Actions are irreversible and run against your live identity provider. Every attempt is recorded below.
       </Warning>
       <div>
-        <p className="mb-2 text-xs font-medium text-muted-foreground">Recent actions</p>
+        <p className="mb-2 text-sm font-medium text-foreground">Recent actions</p>
         {recent.length === 0 ? (
-          <p className="text-xs text-muted-foreground">No action yet.</p>
+          <p className="text-sm text-muted-foreground">No action yet.</p>
         ) : (
-          <div className="space-y-1">
+          <div className="divide-y divide-border/60 rounded-xl border border-border/60 bg-card">
             {recent.map((r, i) => (
-              <div
-                key={i}
-                className="flex items-center gap-2 rounded-md border border-border px-3 py-1.5 text-xs"
-              >
+              <div key={i} className="flex items-center gap-3 px-4 py-2.5 text-sm">
                 <span className={r.status === "SUCCESS" ? "text-severity-ok" : "text-severity-critical"}>
                   {r.status === "SUCCESS" ? "OK" : "FAIL"}
                 </span>
@@ -98,6 +105,6 @@ export function RemediationRow({ enabled: initialEnabled, isAdmin, recent }: Pro
           </div>
         )}
       </div>
-    </SettingRow>
+    </AutomationPanel>
   )
 }
