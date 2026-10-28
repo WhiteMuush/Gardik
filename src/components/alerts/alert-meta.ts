@@ -9,7 +9,7 @@ export const borderBySeverity: Record<string, string> = {
 export const confidenceChip: Record<string, string> = {
   HIGH: "border-border text-muted-foreground",
   MEDIUM: "border-border text-muted-foreground",
-  LOW: "border-severity-medium/40 text-severity-medium",
+  LOW: "border-severity-medium/40 text-severity-medium-fg",
 }
 
 export const confidenceLabel: Record<string, string> = {

@@ -17,8 +17,8 @@ type UrgentAlert = {
 type Filter = "ALL" | "CRITICAL" | "HIGH"
 
 const SEV_BADGE_CLASSES: Record<string, string> = {
-  CRITICAL: "bg-red-500/10 text-red-400 border border-red-500/20",
-  HIGH: "bg-orange-500/10 text-orange-400 border border-orange-500/20",
+  CRITICAL: "bg-red-500/10 text-severity-critical-fg border border-red-500/20",
+  HIGH: "bg-orange-500/10 text-severity-high-fg border border-orange-500/20",
 }
 
 export function CriticalAlertsList({ data }: { data: UrgentAlert[] }) {

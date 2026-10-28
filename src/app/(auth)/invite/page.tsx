@@ -70,9 +70,9 @@ function InviteForm() {
         {pending ? "Saving..." : "Activate my account"}
       </Button>
       {token === "" ? (
-        <p className="text-xs text-severity-critical">This link is missing its token.</p>
+        <p className="text-xs text-severity-critical-fg">This link is missing its token.</p>
       ) : null}
-      {error ? <p className="text-xs text-severity-critical">{error}</p> : null}
+      {error ? <p className="text-xs text-severity-critical-fg">{error}</p> : null}
     </form>
   )
 }

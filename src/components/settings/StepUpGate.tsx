@@ -71,7 +71,7 @@ export function StepUpGate({ hasPassword, hasTwoFactor }: { hasPassword: boolean
       <Button type="submit" disabled={busy || (password === "" && code === "")}>
         {busy ? "Checking..." : "Continue"}
       </Button>
-      {error ? <p className="text-xs text-severity-critical">{error}</p> : null}
+      {error ? <p className="text-xs text-severity-critical-fg">{error}</p> : null}
     </form>
   )
 }

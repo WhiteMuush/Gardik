@@ -3,6 +3,8 @@ import containerQueries from "@tailwindcss/container-queries"
 
 const config: Config = {
   content: ["./src/**/*.{ts,tsx}"],
+  // The app has a single light theme, so dark: variants must not follow the OS setting.
+  darkMode: "class",
   theme: {
     extend: {
       fontFamily: {
@@ -57,6 +59,11 @@ const config: Config = {
           medium: "oklch(var(--severity-medium) / <alpha-value>)",
           low: "oklch(var(--severity-low) / <alpha-value>)",
           ok: "oklch(var(--severity-ok) / <alpha-value>)",
+          "critical-fg": "oklch(var(--severity-critical-fg) / <alpha-value>)",
+          "high-fg": "oklch(var(--severity-high-fg) / <alpha-value>)",
+          "medium-fg": "oklch(var(--severity-medium-fg) / <alpha-value>)",
+          "low-fg": "oklch(var(--severity-low-fg) / <alpha-value>)",
+          "ok-fg": "oklch(var(--severity-ok-fg) / <alpha-value>)",
         },
       },
     },

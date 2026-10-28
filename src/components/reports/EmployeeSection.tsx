@@ -6,8 +6,8 @@ const MAX_ROWS = 50
 
 function mfaLabel(mfaEnabled: boolean | null): { text: string; className: string } {
   if (mfaEnabled === null) return { text: "Unknown", className: "text-muted-foreground" }
-  if (mfaEnabled) return { text: "On", className: "text-severity-ok" }
-  return { text: "Off", className: "text-severity-critical" }
+  if (mfaEnabled) return { text: "On", className: "text-severity-ok-fg" }
+  return { text: "Off", className: "text-severity-critical-fg" }
 }
 
 function formatDate(iso: string | null): string {

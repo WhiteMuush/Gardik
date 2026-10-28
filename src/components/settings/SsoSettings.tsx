@@ -142,7 +142,7 @@ export function SsoSettings({ canConfigure }: Props) {
             "mt-3 rounded-md px-3 py-2 text-xs",
             status.kind === "error"
               ? "bg-destructive/10 text-destructive"
-              : "bg-severity-ok/10 text-severity-ok"
+              : "bg-severity-ok/10 text-severity-ok-fg"
           )}
         >
           {status.text}

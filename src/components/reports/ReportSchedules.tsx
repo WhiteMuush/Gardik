@@ -108,7 +108,7 @@ export function ReportSchedules({ initial, isAdmin }: { initial: ScheduleRow[]; 
                 <button
                   onClick={() => void remove(s.id)}
                   title="Delete"
-                  className="text-muted-foreground hover:text-severity-critical"
+                  className="text-muted-foreground hover:text-severity-critical-fg"
                 >
                   <Trash2 className="size-4" />
                 </button>
@@ -160,7 +160,7 @@ export function ReportSchedules({ initial, isAdmin }: { initial: ScheduleRow[]; 
               {busy ? <Loader2 className="size-4 animate-spin" /> : "Add schedule"}
             </button>
           </div>
-          {error && <p className="text-xs text-severity-critical">{error}</p>}
+          {error && <p className="text-xs text-severity-critical-fg">{error}</p>}
         </div>
       )}
     </div>

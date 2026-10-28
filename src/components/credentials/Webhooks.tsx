@@ -94,9 +94,9 @@ export function Webhooks({ initial, isAdmin }: Props) {
             </div>
             {tested[w.id] !== undefined &&
               (tested[w.id] ? (
-                <Check className="size-4 text-severity-ok" />
+                <Check className="size-4 text-severity-ok-fg" />
               ) : (
-                <X className="size-4 text-severity-critical" />
+                <X className="size-4 text-severity-critical-fg" />
               ))}
             {isAdmin && (
               <>
@@ -120,7 +120,7 @@ export function Webhooks({ initial, isAdmin }: Props) {
                   onClick={() => void remove(w.id)}
                   disabled={busy === w.id}
                   title="Delete"
-                  className="text-muted-foreground hover:text-severity-critical disabled:opacity-40"
+                  className="text-muted-foreground hover:text-severity-critical-fg disabled:opacity-40"
                 >
                   <Trash2 className="size-4" />
                 </button>
@@ -175,7 +175,7 @@ export function Webhooks({ initial, isAdmin }: Props) {
           </Button>
         </div>
       )}
-      {error && <p className="mt-2 text-xs text-severity-critical">{error}</p>}
+      {error && <p className="mt-2 text-xs text-severity-critical-fg">{error}</p>}
     </div>
   )
 }

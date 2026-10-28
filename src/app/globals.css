@@ -43,7 +43,7 @@
 
     /* UI */
     --muted: 0.94 0.02 280;
-    --muted-foreground: 0.55 0.04 280;
+    --muted-foreground: 0.5 0.04 280;
 
     --destructive: 0.637 0.237 25;
 
@@ -68,6 +68,12 @@
     --severity-medium: 0.79 0.17 85;
     --severity-low: 0.62 0.19 250;
     --severity-ok: 0.66 0.19 145;
+    /* Most saturated text variants that still reach 4.5:1 on white, cream and their own tint. */
+    --severity-critical-fg: 0.56 0.228 29;
+    --severity-high-fg: 0.555 0.146 50;
+    --severity-medium-fg: 0.55 0.114 80;
+    --severity-low-fg: 0.545 0.2 258;
+    --severity-ok-fg: 0.525 0.176 142;
   }
 
   * {

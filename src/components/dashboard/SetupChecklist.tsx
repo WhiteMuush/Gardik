@@ -74,7 +74,7 @@ export function SetupChecklist({
             >
               <div className="mt-0.5 shrink-0">
                 {step.done ? (
-                  <CheckCircle2 className="size-5 text-severity-ok" />
+                  <CheckCircle2 className="size-5 text-severity-ok-fg" />
                 ) : (
                   <Circle className="size-5 text-muted-foreground" />
                 )}

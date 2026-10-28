@@ -81,7 +81,9 @@ export function RemediationSettings({ enabled: initialEnabled, isAdmin, recent }
                 key={i}
                 className="flex items-center gap-2 rounded-md border border-border px-3 py-1.5 text-xs"
               >
-                <span className={r.status === "SUCCESS" ? "text-severity-ok" : "text-severity-critical"}>
+                <span
+                  className={r.status === "SUCCESS" ? "text-severity-ok-fg" : "text-severity-critical-fg"}
+                >
                   {r.status === "SUCCESS" ? "OK" : "FAIL"}
                 </span>
                 <span className="text-foreground">{ACTION_LABEL[r.action] ?? r.action}</span>

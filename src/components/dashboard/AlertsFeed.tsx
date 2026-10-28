@@ -30,9 +30,9 @@ const SEVERITY_DOT: Record<string, string> = {
 }
 
 const STATUS_STYLES: Record<string, string> = {
-  OPEN: "bg-severity-critical/10 text-severity-critical",
-  ACKNOWLEDGED: "bg-severity-medium/10 text-severity-medium",
-  RESOLVED: "bg-severity-ok/10 text-severity-ok",
+  OPEN: "bg-severity-critical/10 text-severity-critical-fg",
+  ACKNOWLEDGED: "bg-severity-medium/10 text-severity-medium-fg",
+  RESOLVED: "bg-severity-ok/10 text-severity-ok-fg",
 }
 
 const STATUS_LABELS: Record<string, string> = {
