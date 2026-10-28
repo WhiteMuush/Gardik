@@ -18,7 +18,7 @@ const CARDS: { key: CardKey; label: string }[] = [
   { key: "employees", label: "Employees at risk" },
   { key: "alerts", label: "Active alerts" },
   { key: "detections", label: "New detections" },
-  { key: "risk", label: "Risk score" },
+  { key: "risk", label: "Company risk" },
 ]
 
 type WidgetConfig = { visibleCards: CardKey[] }
@@ -76,14 +76,13 @@ export function StatsRow({ compromisedEmployees, openAlerts, recentBreaches, ris
     },
     {
       key: "risk" as CardKey,
-      label: "Risk score",
+      label: "Company risk",
       value: `${riskScore} / 100`,
       variant: risk.variant,
     },
   ]
 
   const visible = cards.filter((c) => config.visibleCards.includes(c.key))
-  const cols = Math.max(1, visible.length)
 
   return (
     <div className="space-y-3">
@@ -130,7 +129,10 @@ export function StatsRow({ compromisedEmployees, openAlerts, recentBreaches, ris
         </div>
       )}
 
-      <div className="grid gap-4" style={{ gridTemplateColumns: `repeat(${cols}, minmax(0, 1fr))` }}>
+      <div
+        className="grid gap-4"
+        style={{ gridTemplateColumns: "repeat(auto-fit, minmax(min(100%, 7rem), 1fr))" }}
+      >
         {visible.map(({ key, ...card }) => (
           <StatCard key={key} {...card} />
         ))}

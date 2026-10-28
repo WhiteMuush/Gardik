@@ -49,3 +49,14 @@ export function buildRglLayout(
     return extra ? { ...base, h: base.h + extra } : base
   })
 }
+
+// One-column layout for narrow screens: widgets keep their height and follow reading order, top to bottom then left to right.
+export function stackLayout(layout: RglItem[]): RglItem[] {
+  const ordered = [...layout].sort((a, b) => a.y - b.y || a.x - b.x)
+  let y = 0
+  return ordered.map((l) => {
+    const item = { ...l, x: 0, y, w: 1, minW: 1 }
+    y += l.h
+    return item
+  })
+}
