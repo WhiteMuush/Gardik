@@ -17,10 +17,10 @@ type Employee = {
 }
 
 const VARIANT_STYLES: Record<string, string> = {
-  critical: "text-severity-critical bg-severity-critical/10",
-  high: "text-severity-high bg-severity-high/10",
-  medium: "text-severity-medium bg-severity-medium/10",
-  ok: "text-severity-ok bg-severity-ok/10",
+  critical: "text-severity-critical-fg bg-severity-critical/10",
+  high: "text-severity-high-fg bg-severity-high/10",
+  medium: "text-severity-medium-fg bg-severity-medium/10",
+  ok: "text-severity-ok-fg bg-severity-ok/10",
   default: "text-muted-foreground bg-muted",
 }
 
@@ -89,7 +89,7 @@ export function TopRiskyEmployees({ data }: { data: Employee[] }) {
                     {emp.breachCount} breach{emp.breachCount > 1 ? "es" : ""}
                   </span>
                   {emp.openAlerts > 0 && (
-                    <span className="text-[11px] text-severity-critical shrink-0 flex items-center gap-0.5">
+                    <span className="text-[11px] text-severity-critical-fg shrink-0 flex items-center gap-0.5">
                       <ShieldAlert className="size-3" />
                       {emp.openAlerts}
                     </span>

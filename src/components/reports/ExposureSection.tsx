@@ -26,7 +26,7 @@ export function ExposureSection({ data, deltas }: { data: ExposureSummary; delta
           delta={{ value: deltas.newBreaches.current, label: deltas.windowLabel, goodWhen: "down" }}
         />
         <StatCard
-          label="Risk score"
+          label="Company risk"
           value={data.riskScore}
           description={data.riskLabel}
           icon={Activity}

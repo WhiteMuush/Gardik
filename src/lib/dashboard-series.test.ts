@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest"
 import {
   buildBreachSources,
   buildDataTypes,
+  mergeTrackedTypes,
   buildTrendData,
   type BreachCatalogEntry,
   type BreachRecordRaw,
@@ -13,6 +14,26 @@ const records: BreachRecordRaw[] = [
   { detectedAt: new Date(), exposedData: ["email"], sources: [] }, // legacy, no tag
 ]
 
+describe("mergeTrackedTypes", () => {
+  const many = Array.from({ length: 10 }, (_, i) => ({ type: `t${i}`, count: 10 - i }))
+
+  it("computes shares over every type, not only the ones shown", () => {
+    const { items, total } = mergeTrackedTypes(many, [])
+    expect(total).toBe(55)
+    expect(items).toHaveLength(8)
+    expect(items[0]).toEqual({ type: "t0", count: 10, percentage: 18 })
+  })
+
+  it("lists tracked types first, at zero when not detected", () => {
+    const { items } = mergeTrackedTypes(many, ["passport", "t5"])
+    expect(items.slice(0, 2)).toEqual([
+      { type: "passport", count: 0, percentage: 0 },
+      { type: "t5", count: 5, percentage: 9 },
+    ])
+    expect(items.filter((i) => i.type === "t5")).toHaveLength(1)
+  })
+})
+
 describe("buildDataTypes", () => {
   it("counts every record when no provider is given", () => {
     const out = buildDataTypes(records)
@@ -23,6 +44,12 @@ describe("buildDataTypes", () => {
     const out = buildDataTypes(records, "HIBP")
     expect(out.find((d) => d.type === "email")?.count).toBe(1)
     expect(out.find((d) => d.type === "password")?.count).toBe(1)
+  })
+  it("keeps every type so shares can use the full total", () => {
+    const wide: BreachRecordRaw[] = [
+      { detectedAt: new Date(), exposedData: Array.from({ length: 12 }, (_, i) => `t${i}`), sources: [] },
+    ]
+    expect(buildDataTypes(wide)).toHaveLength(12)
   })
   it("excludes untagged legacy records under a provider filter", () => {
     const out = buildDataTypes(records, "DEHASHED")

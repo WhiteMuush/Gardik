@@ -1,5 +1,6 @@
 import { describe, it, expect } from "vitest"
 import { findSwapTarget, sameGeometry, squeezeResize } from "./dashboardLayoutUtils"
+import { stackLayout } from "./canvas/types"
 
 const poolA = { i: "a", x: 0, y: 0, w: 6, h: 4, minW: 2, minH: 2 }
 const pool = [
@@ -120,5 +121,26 @@ describe("sameGeometry", () => {
   })
   it("false when the widget set differs", () => {
     expect(sameGeometry(layout, [la])).toBe(false)
+  })
+})
+
+describe("stackLayout", () => {
+  it("stacks widgets in one column, in reading order", () => {
+    const stacked = stackLayout([pool[2]!, pool[1]!, poolA])
+    expect(stacked.map((l) => l.i)).toEqual(["a", "b", "c"])
+    expect(stacked.map((l) => [l.x, l.y, l.w])).toEqual([
+      [0, 0, 1],
+      [0, 4, 1],
+      [0, 12, 1],
+    ])
+    expect(stacked.every((l) => l.minW === 1)).toBe(true)
+  })
+
+  it("keeps unplaced widgets last", () => {
+    const stacked = stackLayout([{ ...poolA, y: Infinity }, pool[1]!])
+    expect(stacked.map((l) => [l.i, l.y])).toEqual([
+      ["b", 0],
+      ["a", 8],
+    ])
   })
 })

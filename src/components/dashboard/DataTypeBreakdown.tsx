@@ -4,6 +4,7 @@ import { useState } from "react"
 import { Settings2, X, Plus, Check } from "lucide-react"
 import { useWidgetConfig } from "@/hooks/useWidgetConfig"
 import { PRESET_DATA_TYPES } from "@/lib/dataTypes"
+import { mergeTrackedTypes } from "@/lib/dashboard-series"
 import { useDashboardEditing } from "@/contexts/DashboardEditContext"
 import { useWidgetTitle } from "@/hooks/useWidgetTitle"
 import { useDetailDrawer } from "@/contexts/DetailDrawerContext"
@@ -40,16 +41,7 @@ export function DataTypeBreakdown({ data }: DataTypeBreakdownProps) {
     setNewType("")
   }
 
-  const breachMap = new Map(data.map((d) => [d.type, d]))
-  const totalCount = data.reduce((sum, d) => sum + d.count, 0)
-
-  const merged = [
-    ...config.trackedTypes.map((type) => breachMap.get(type) ?? { type, count: 0, percentage: 0 }),
-    ...data.filter((d) => !config.trackedTypes.includes(d.type)),
-  ].map((item) => ({
-    ...item,
-    percentage: totalCount > 0 ? Math.round((item.count / totalCount) * 100) : 0,
-  }))
+  const { items: merged, total: totalCount } = mergeTrackedTypes(data, config.trackedTypes)
 
   const presetKeys = new Set(PRESET_DATA_TYPES.map((p) => p.key))
   const customTypes = config.trackedTypes.filter((t) => !presetKeys.has(t as never))

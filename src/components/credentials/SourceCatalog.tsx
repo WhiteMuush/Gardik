@@ -1,26 +1,23 @@
 "use client"
 
 import { useMemo, useState } from "react"
-import { Search } from "lucide-react"
-import { cn } from "@/lib/utils"
 import { API_PROVIDERS, recommendationLevel, type ProviderMeta } from "@/lib/credentials/providers"
 import { sourceHealth } from "@/lib/credentials/health"
 import type { SourceCoverage } from "@/lib/scan/coverage"
 import { SourceDrawer } from "./SourceDrawer"
 import { HealthPill, LevelBadge, SourceAvatar } from "./SourceBadges"
-import { CatalogStats } from "./CatalogStats"
+import { CatalogToolbar } from "./CatalogToolbar"
 import { FILTERS, matches, type Filter, type SourceCredential, type SourceView } from "./source-view"
 
 type Props = {
   credentials: SourceCredential[]
   coverage: SourceCoverage[]
   defaultRates: Partial<Record<ProviderMeta["id"], number>>
-  lastScanAt: string | null
   isAdmin: boolean
   canScan: boolean
 }
 
-export function SourceCatalog({ credentials, coverage, defaultRates, lastScanAt, isAdmin, canScan }: Props) {
+export function SourceCatalog({ credentials, coverage, defaultRates, isAdmin, canScan }: Props) {
   const [filter, setFilter] = useState<Filter>("All")
   const [query, setQuery] = useState("")
   const [openId, setOpenId] = useState<ProviderMeta["id"] | null>(null)
@@ -45,50 +42,18 @@ export function SourceCatalog({ credentials, coverage, defaultRates, lastScanAt,
   )
 
   const visible = views.filter((v) => matches(v, filter, query))
-  const connected = views.filter((v) => v.credential).length
-  const needsAction = views.filter((v) => v.health.status === "NEEDS_ACTION").length
   const open = views.find((v) => v.meta.id === openId) ?? null
 
   return (
     <div>
-      <CatalogStats
-        connected={connected}
-        total={views.length}
-        lastScanAt={lastScanAt}
-        needsAction={needsAction}
-        onNeedsAction={() => setFilter("Needs action")}
+      <CatalogToolbar
+        noun="sources"
+        query={query}
+        onQuery={setQuery}
+        filters={FILTERS}
+        filter={filter}
+        onFilter={setFilter}
       />
-
-      <div className="mb-4 flex flex-wrap items-center gap-3">
-        <div className="relative w-full max-w-xs">
-          <Search className="absolute left-3 top-1/2 size-4 -translate-y-1/2 text-muted-foreground" />
-          <input
-            placeholder="Search sources..."
-            aria-label="Search sources"
-            value={query}
-            onChange={(e) => setQuery(e.target.value)}
-            className="w-full rounded-lg border border-input bg-card py-2 pl-9 pr-3 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none focus:ring-2 focus:ring-ring/20"
-          />
-        </div>
-        <div className="flex flex-wrap gap-1.5" role="group" aria-label="Filter sources">
-          {FILTERS.map((f) => (
-            <button
-              key={f}
-              type="button"
-              aria-pressed={filter === f}
-              onClick={() => setFilter(f)}
-              className={cn(
-                "rounded-full border px-3 py-1 text-xs transition-colors",
-                filter === f
-                  ? "border-primary bg-primary text-primary-foreground"
-                  : "border-border bg-card text-muted-foreground hover:text-foreground"
-              )}
-            >
-              {f}
-            </button>
-          ))}
-        </div>
-      </div>
 
       <p className="mb-4 text-xs text-muted-foreground">
         Levels are advice only: enable any source, in any combination.
@@ -109,7 +74,7 @@ export function SourceCatalog({ credentials, coverage, defaultRates, lastScanAt,
           </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 gap-3 md:grid-cols-2 xl:grid-cols-3">
+        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-3">
           {visible.map((view) => (
             <button
               key={view.meta.id}

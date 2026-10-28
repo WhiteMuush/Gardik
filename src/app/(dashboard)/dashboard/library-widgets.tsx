@@ -20,7 +20,7 @@ export function libraryWidgets({ data, sourceFor }: WidgetContext): WidgetEntry[
     {
       instanceId: "risk-gauge",
       type: "risk-gauge",
-      defaultTitle: "Risk Score",
+      defaultTitle: "Company risk",
       defaultSize: { w: 3, h: 5 },
       minSize: { w: 2, h: 4 },
       defaultVisible: false,

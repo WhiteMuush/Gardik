@@ -73,7 +73,7 @@ export function PasswordChange({ required, continueTo }: { required: boolean; co
       <Button type="submit" disabled={pending} className="w-full">
         {pending ? "Saving..." : "Save and continue"}
       </Button>
-      {error ? <p className="text-xs text-severity-critical">{error}</p> : null}
+      {error ? <p className="text-xs text-severity-critical-fg">{error}</p> : null}
     </form>
   )
 }

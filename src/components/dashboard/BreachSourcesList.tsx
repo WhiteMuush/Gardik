@@ -21,9 +21,9 @@ const SOURCE_LABELS: Record<string, string> = {
 }
 
 const SOURCE_COLORS: Record<string, string> = {
-  HIBP: "text-severity-medium bg-severity-medium/10",
+  HIBP: "text-severity-medium-fg bg-severity-medium/10",
   MANUAL: "text-muted-foreground bg-muted",
-  DARK_WEB: "text-severity-critical bg-severity-critical/10",
+  DARK_WEB: "text-severity-critical-fg bg-severity-critical/10",
 }
 
 export function BreachSourcesList({ data }: { data: BreachSource[] }) {
@@ -98,7 +98,7 @@ export function BreachSourcesList({ data }: { data: BreachSource[] }) {
                 >
                   {SOURCE_LABELS[breach.source] ?? breach.source}
                 </span>
-                <div className="flex items-center justify-end gap-1 text-xs text-severity-critical">
+                <div className="flex items-center justify-end gap-1 text-xs text-severity-critical-fg">
                   <Eye className="size-3" />
                   <span className="font-medium tabular-nums">{breach.affectedEmployees}</span>
                   <span className="text-muted-foreground">emp.</span>

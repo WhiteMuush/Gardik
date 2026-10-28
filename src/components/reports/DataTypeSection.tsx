@@ -22,7 +22,7 @@ export function DataTypeSection({ rows }: { rows: DataTypeExposure[] }) {
                   <td className="px-3 py-2">
                     <span className="text-foreground">{t.label}</span>
                     {t.critical && (
-                      <span className="ml-2 hidden rounded-md bg-severity-high/10 px-1.5 py-0.5 text-xs font-medium text-severity-high @[400px]:inline">
+                      <span className="ml-2 hidden rounded-md bg-severity-high/10 px-1.5 py-0.5 text-xs font-medium text-severity-high-fg @[400px]:inline">
                         Sensitive
                       </span>
                     )}

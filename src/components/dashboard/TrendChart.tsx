@@ -2,7 +2,7 @@
 
 import { useState } from "react"
 import { Settings2, Check } from "lucide-react"
-import { AreaChart, Area, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from "recharts"
 import { useWidgetConfig } from "@/hooks/useWidgetConfig"
 import { useDashboardEditing } from "@/contexts/DashboardEditContext"
 import { useWidgetTitle } from "@/hooks/useWidgetTitle"
@@ -38,6 +38,7 @@ export function TrendChart({ data }: TrendChartProps) {
       <div className="mb-4 shrink-0 flex items-start justify-between">
         <div>
           <h2 className="text-sm font-medium text-foreground">{title}</h2>
+          <p className="text-xs text-muted-foreground">Detections per month</p>
         </div>
         {editing && (
           <button
@@ -83,13 +84,7 @@ export function TrendChart({ data }: TrendChartProps) {
       ) : (
         <div className="flex-1 min-h-0">
           <ResponsiveContainer width="100%" height="100%">
-            <AreaChart data={sliced} margin={{ top: 5, right: 10, bottom: 0, left: -20 }}>
-              <defs>
-                <linearGradient id="areaGradient" x1="0" y1="0" x2="0" y2="1">
-                  <stop offset="5%" stopColor="oklch(var(--primary))" stopOpacity={0.25} />
-                  <stop offset="95%" stopColor="oklch(var(--primary))" stopOpacity={0} />
-                </linearGradient>
-              </defs>
+            <BarChart data={sliced} margin={{ top: 5, right: 10, bottom: 0, left: -20 }}>
               <CartesianGrid strokeDasharray="3 3" stroke="oklch(var(--border))" vertical={false} />
               <XAxis
                 dataKey="month"
@@ -111,19 +106,11 @@ export function TrendChart({ data }: TrendChartProps) {
                   color: "oklch(var(--foreground))",
                   fontSize: "12px",
                 }}
-                cursor={{ stroke: "oklch(var(--border))" }}
+                cursor={{ fill: "oklch(var(--muted))" }}
                 formatter={(value) => [value, "Detections"]}
               />
-              <Area
-                type="monotone"
-                dataKey="count"
-                stroke="oklch(var(--primary))"
-                strokeWidth={2}
-                fill="url(#areaGradient)"
-                dot={false}
-                activeDot={{ r: 4, fill: "oklch(var(--primary))" }}
-              />
-            </AreaChart>
+              <Bar dataKey="count" fill="oklch(var(--primary))" radius={[4, 4, 0, 0]} maxBarSize={48} />
+            </BarChart>
           </ResponsiveContainer>
         </div>
       )}

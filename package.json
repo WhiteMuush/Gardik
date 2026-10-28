@@ -1,6 +1,6 @@
 {
   "name": "gardik",
-  "version": "1.6.4",
+  "version": "1.7.0",
   "description": "Gardik is a self-hosted service that lets businesses know if these employees haven't had compromised data",
   "homepage": "https://github.com/WhiteMuush/Gardik#readme",
   "bugs": {
@@ -48,14 +48,14 @@
   "dependencies": {
     "@aws-sdk/client-identitystore": "^3.1139.0",
     "@base-ui/react": "^1.8.0",
-    "@better-auth/passkey": "1.7.5",
-    "@better-auth/sso": "1.7.5",
+    "@better-auth/passkey": "1.7.14",
+    "@better-auth/sso": "1.7.14",
     "@prisma/adapter-pg": "^7.10.0",
     "@prisma/client": "^7.10.0",
     "@react-pdf/renderer": "^4.8.1",
     "@tanstack/react-table": "^9.1.2",
     "bcryptjs": "^3.0.3",
-    "better-auth": "1.7.5",
+    "better-auth": "1.7.14",
     "class-variance-authority": "^0.7.1",
     "clsx": "^2.1.1",
     "ldapts": "^9.2.0",
