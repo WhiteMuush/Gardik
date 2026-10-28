@@ -79,7 +79,7 @@ const WIDGETS: WidgetDef[] = [
   // --- New widgets
   {
     type: "risk-gauge",
-    defaultTitle: "Risk Score",
+    defaultTitle: "Company risk",
     description: "Semi-circle gauge showing the company's overall security risk score (0-100)",
     defaultSize: { w: 3, h: 5 },
     minSize: { w: 2, h: 4 },

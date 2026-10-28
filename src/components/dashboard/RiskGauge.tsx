@@ -1,6 +1,7 @@
 "use client"
 
 import { useWidgetTitle } from "@/hooks/useWidgetTitle"
+import { getRiskLevel } from "@/lib/risk"
 
 function polarToCartesian(cx: number, cy: number, r: number, angleDeg: number) {
   const rad = (angleDeg * Math.PI) / 180
@@ -25,15 +26,8 @@ function scoreColor(score: number) {
   return "oklch(var(--severity-low))"
 }
 
-function scoreLabel(score: number) {
-  if (score >= 76) return "Critical Risk"
-  if (score >= 51) return "High Risk"
-  if (score >= 26) return "Medium Risk"
-  return "Low Risk"
-}
-
 export function RiskGauge({ riskScore }: { riskScore: number }) {
-  const { title } = useWidgetTitle("risk-gauge", "Risk Score")
+  const { title } = useWidgetTitle("risk-gauge", "Company risk")
 
   const cx = 100,
     cy = 100
@@ -41,7 +35,7 @@ export function RiskGauge({ riskScore }: { riskScore: number }) {
     ri = 56
   const scoreDeg = 180 + (Math.min(riskScore, 100) / 100) * 180
   const color = scoreColor(riskScore)
-  const label = scoreLabel(riskScore)
+  const label = getRiskLevel(riskScore).label
 
   const bgPath = ringPath(cx, cy, ro, ri, 180, 360)
   const fgPath = riskScore > 0 ? ringPath(cx, cy, ro, ri, 180, scoreDeg) : ""
