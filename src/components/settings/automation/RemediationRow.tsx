@@ -1,7 +1,10 @@
 "use client"
 
 import { useState } from "react"
-import { ShieldAlert, Loader2 } from "lucide-react"
+import { Loader2 } from "lucide-react"
+import { Button } from "@/components/ui/button"
+import { Warning } from "../setup-guides/parts"
+import { SettingRow } from "./SettingRow"
 
 export type RemediationLogRow = {
   action: string
@@ -22,9 +25,10 @@ const ACTION_LABEL: Record<string, string> = {
   FORCE_PASSWORD_RESET: "Force password reset",
 }
 
-export function RemediationSettings({ enabled: initialEnabled, isAdmin, recent }: Props) {
+export function RemediationRow({ enabled: initialEnabled, isAdmin, recent }: Props) {
   const [enabled, setEnabled] = useState(initialEnabled)
   const [busy, setBusy] = useState(false)
+  const [open, setOpen] = useState(false)
 
   async function toggle() {
     const next = !enabled
@@ -46,35 +50,35 @@ export function RemediationSettings({ enabled: initialEnabled, isAdmin, recent }
   }
 
   return (
-    <div className="rounded-xl border border-border/60 bg-card p-5">
-      <div className="mb-1 flex items-center gap-2">
-        <ShieldAlert className="size-4 text-muted-foreground" />
-        <h3 className="text-sm font-semibold text-foreground">Automated remediation</h3>
-      </div>
-      <p className="mb-4 text-xs text-muted-foreground">
-        When enabled, admins can revoke sessions and force password resets on exposed accounts directly
-        through the connected directory (Entra, Google, Okta). Actions are irreversible and run against your
-        live IdP.
-      </p>
-
-      <div className="flex items-center justify-between rounded-lg border border-border px-3 py-2">
-        <span className="text-sm text-foreground">
-          Live remediation is {enabled ? "enabled" : "disabled"}
-        </span>
-        {isAdmin && (
-          <button
+    <SettingRow
+      title="Automated remediation"
+      description="Revoke sessions and force password resets on exposed accounts through the connected directory."
+      status={{ on: enabled, label: enabled ? "Enabled" : "Disabled" }}
+      action={
+        isAdmin && (
+          <Button
+            size="sm"
+            variant={enabled ? "outline" : "default"}
             onClick={() => void toggle()}
             disabled={busy}
-            className="flex items-center gap-1.5 text-xs font-medium text-muted-foreground underline-offset-2 hover:underline disabled:opacity-40"
           >
-            {busy ? <Loader2 className="size-3.5 animate-spin" /> : enabled ? "Disable" : "Enable"}
-          </button>
-        )}
-      </div>
-
-      {recent.length > 0 && (
-        <div className="mt-4">
-          <p className="mb-2 text-xs font-medium text-muted-foreground">Recent actions</p>
+            {busy && <Loader2 className="animate-spin" />}
+            {enabled ? "Disable" : "Enable"}
+          </Button>
+        )
+      }
+      open={open}
+      onToggle={() => setOpen(!open)}
+    >
+      <Warning>
+        Works with Entra ID, Google Workspace and Okta. Actions are irreversible and run against your live
+        IdP.
+      </Warning>
+      <div>
+        <p className="mb-2 text-xs font-medium text-muted-foreground">Recent actions</p>
+        {recent.length === 0 ? (
+          <p className="text-xs text-muted-foreground">No action yet.</p>
+        ) : (
           <div className="space-y-1">
             {recent.map((r, i) => (
               <div
@@ -92,8 +96,8 @@ export function RemediationSettings({ enabled: initialEnabled, isAdmin, recent }
               </div>
             ))}
           </div>
-        </div>
-      )}
-    </div>
+        )}
+      </div>
+    </SettingRow>
   )
 }

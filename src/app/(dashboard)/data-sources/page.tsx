@@ -4,8 +4,9 @@ import { prisma } from "@/lib/prisma"
 import { authorize } from "@/lib/rbac/authorize"
 import { permissionsForRole } from "@/lib/rbac/session-permissions"
 import { DirectoryCatalog } from "@/components/settings/directory/DirectoryCatalog"
-import { RemediationSettings } from "@/components/settings/RemediationSettings"
-import { SiemExport } from "@/components/settings/SiemExport"
+import { RemediationRow } from "@/components/settings/automation/RemediationRow"
+import { SiemPullRow } from "@/components/settings/automation/SiemPullRow"
+import { SiemPushRow } from "@/components/settings/automation/SiemPushRow"
 
 export default async function SettingsPage() {
   const denied = await guardPage("connectors:read")
@@ -66,16 +67,18 @@ export default async function SettingsPage() {
       <DirectoryCatalog initial={serialized} isAdmin={isAdmin} />
 
       <section className="mt-10">
-        <h3 className="mb-4 text-sm font-semibold text-foreground">Settings</h3>
-        <div className="grid grid-cols-1 items-start gap-6 lg:grid-cols-2">
-          <RemediationSettings
+        <h3 className="text-sm font-semibold text-foreground">Automation & export</h3>
+        <p className="mb-4 text-xs text-muted-foreground">
+          Act on exposed accounts and send alerts to your security tools.
+        </p>
+        <div className="divide-y divide-border/60 rounded-xl border border-border/60 bg-card">
+          <RemediationRow
             enabled={company?.remediationEnabled ?? false}
             isAdmin={isAdmin}
             recent={remediationRecent}
           />
-          <SiemExport
-            companyId={companyId}
-            tokenHint={company?.siemTokenHint ?? null}
+          <SiemPullRow companyId={companyId} tokenHint={company?.siemTokenHint ?? null} isAdmin={isAdmin} />
+          <SiemPushRow
             pushHint={company?.siemPushHint ?? null}
             pushFormat={company?.siemPushFormat ?? null}
             isAdmin={isAdmin}
