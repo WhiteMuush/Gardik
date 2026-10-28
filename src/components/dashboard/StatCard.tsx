@@ -46,7 +46,7 @@ export function StatCard({
   // Compact layout (dashboard): no icon/description -> label left, value right.
   if (!Icon && !description) {
     return (
-      <div className="rounded-xl border border-border/60 bg-card p-5 shadow-sm">
+      <div className="rounded-xl border border-border/60 bg-card p-4 shadow-sm">
         <div className="flex items-center justify-between gap-4">
           <p className="text-sm font-medium text-muted-foreground">{label}</p>
           <div className="flex flex-col items-end">
@@ -60,7 +60,7 @@ export function StatCard({
 
   // Detailed layout (reports): label/value left, boxed icon right.
   return (
-    <div className="rounded-xl border border-border/60 bg-card p-5 shadow-sm">
+    <div className="rounded-xl border border-border/60 bg-card p-4 shadow-sm">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 space-y-1">
           <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{label}</p>
