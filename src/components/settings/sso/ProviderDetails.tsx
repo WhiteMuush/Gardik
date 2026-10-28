@@ -48,16 +48,16 @@ export function ProviderDetails({
         <div className="mt-3 flex flex-wrap items-center gap-1.5 border-t border-border pt-2">
           {provider.domainVerified ? (
             <>
-              <CheckCircle2 className="size-3.5 shrink-0 text-severity-ok" />
-              <span className="font-medium text-severity-ok">Domain verified</span>
+              <CheckCircle2 className="size-3.5 shrink-0 text-severity-ok-fg" />
+              <span className="font-medium text-severity-ok-fg">Domain verified</span>
               <span className="text-muted-foreground">
                 Members of {provider.domain} can sign in through this provider.
               </span>
             </>
           ) : (
             <>
-              <AlertTriangle className="size-3.5 shrink-0 text-severity-critical" />
-              <span className="font-medium text-severity-critical">Domain not verified</span>
+              <AlertTriangle className="size-3.5 shrink-0 text-severity-critical-fg" />
+              <span className="font-medium text-severity-critical-fg">Domain not verified</span>
               <span className="text-muted-foreground">
                 Sign-in through this provider is disabled until it is.
               </span>

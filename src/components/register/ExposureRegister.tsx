@@ -3,7 +3,7 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Loader2, Download, ShieldAlert } from "lucide-react"
-import { PRESET_DATA_TYPES } from "@/lib/dataTypes"
+import { DATA_TYPE_GROUPS, PRESET_DATA_TYPES } from "@/lib/dataTypes"
 import type { RegisterRow } from "@/lib/register"
 
 const STATUS_LABEL: Record<RegisterRow["status"], string> = {
@@ -15,9 +15,9 @@ const STATUS_LABEL: Record<RegisterRow["status"], string> = {
 function countdown(row: RegisterRow): { text: string; className: string } {
   if (row.status !== "ASSESSING")
     return { text: STATUS_LABEL[row.status], className: "text-muted-foreground" }
-  if (row.overdue) return { text: "72h deadline passed", className: "text-severity-critical" }
+  if (row.overdue) return { text: "72h deadline passed", className: "text-severity-critical-fg" }
   if (row.hoursRemaining <= 24)
-    return { text: `${row.hoursRemaining}h left`, className: "text-severity-high" }
+    return { text: `${row.hoursRemaining}h left`, className: "text-severity-high-fg" }
   return { text: `${row.hoursRemaining}h left`, className: "text-muted-foreground" }
 }
 
@@ -89,19 +89,24 @@ export function ExposureRegister({
               className="w-28 rounded-lg border border-input bg-background px-3 py-2 text-sm text-foreground placeholder:text-muted-foreground focus:border-ring focus:outline-none"
             />
           </div>
-          <div className="mt-3 flex flex-wrap gap-1.5">
-            {PRESET_DATA_TYPES.map((t) => (
-              <button
-                key={t.key}
-                onClick={() => toggleType(t.key)}
-                className={`rounded-full border px-2.5 py-1 text-xs transition-colors ${
-                  types.includes(t.key)
-                    ? "border-primary bg-primary/10 text-foreground"
-                    : "border-border text-muted-foreground hover:bg-muted"
-                }`}
-              >
-                {t.label}
-              </button>
+          <div className="mt-3 space-y-2">
+            {DATA_TYPE_GROUPS.map((group) => (
+              <div key={group} className="flex flex-wrap items-center gap-1.5">
+                <span className="w-36 shrink-0 text-xs font-medium text-muted-foreground">{group}</span>
+                {PRESET_DATA_TYPES.filter((t) => t.group === group).map((t) => (
+                  <button
+                    key={t.key}
+                    onClick={() => toggleType(t.key)}
+                    className={`rounded-full border px-2.5 py-1 text-xs transition-colors ${
+                      types.includes(t.key)
+                        ? "border-primary bg-primary/10 text-foreground"
+                        : "border-border text-muted-foreground hover:bg-muted"
+                    }`}
+                  >
+                    {t.label}
+                  </button>
+                ))}
+              </div>
             ))}
           </div>
           <div className="mt-3 flex justify-end">

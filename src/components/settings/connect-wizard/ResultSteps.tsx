@@ -28,7 +28,7 @@ export function TestStep({ testResult }: { testResult: TestResult | null }) {
             <p
               className={cn(
                 "text-sm font-medium",
-                testResult.ok ? "text-green-600 dark:text-green-400" : "text-destructive"
+                testResult.ok ? "text-severity-ok-fg" : "text-destructive"
               )}
             >
               {testResult.ok ? "Connection successful" : "Connection failed"}
@@ -63,9 +63,7 @@ export function DoneStep({
         <div className="flex items-center gap-3 rounded-lg border border-green-500/30 bg-green-500/10 px-4 py-3">
           <CheckCircle className="size-5 shrink-0 text-green-500" />
           <div>
-            <p className="text-sm font-medium text-green-600 dark:text-green-400">
-              Directory connected successfully
-            </p>
+            <p className="text-sm font-medium text-severity-ok-fg">Directory connected successfully</p>
             <p className="text-xs text-muted-foreground">
               {testResult?.userCount !== undefined && `${testResult.userCount} users ready to sync.`}
             </p>
@@ -81,7 +79,7 @@ export function DoneStep({
     <div className="space-y-4">
       <div className="flex items-center gap-3 rounded-lg border border-green-500/30 bg-green-500/10 px-4 py-3">
         <CheckCircle className="size-5 shrink-0 text-green-500" />
-        <p className="text-sm font-medium text-green-600 dark:text-green-400">SCIM endpoint ready</p>
+        <p className="text-sm font-medium text-severity-ok-fg">SCIM endpoint ready</p>
       </div>
       <p className="text-sm text-muted-foreground">
         Configure your identity provider with the values below. The bearer token is only shown once.

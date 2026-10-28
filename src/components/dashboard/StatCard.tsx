@@ -20,13 +20,17 @@ interface StatCardProps {
 const variants = {
   default: { value: "text-foreground", icon: "text-muted-foreground", iconBg: "bg-muted" },
   critical: {
-    value: "text-severity-critical",
-    icon: "text-severity-critical",
+    value: "text-severity-critical-fg",
+    icon: "text-severity-critical-fg",
     iconBg: "bg-severity-critical/10",
   },
-  high: { value: "text-severity-high", icon: "text-severity-high", iconBg: "bg-severity-high/10" },
-  medium: { value: "text-severity-medium", icon: "text-severity-medium", iconBg: "bg-severity-medium/10" },
-  ok: { value: "text-severity-ok", icon: "text-severity-ok", iconBg: "bg-severity-ok/10" },
+  high: { value: "text-severity-high-fg", icon: "text-severity-high-fg", iconBg: "bg-severity-high/10" },
+  medium: {
+    value: "text-severity-medium-fg",
+    icon: "text-severity-medium-fg",
+    iconBg: "bg-severity-medium/10",
+  },
+  ok: { value: "text-severity-ok-fg", icon: "text-severity-ok-fg", iconBg: "bg-severity-ok/10" },
 }
 
 export function StatCard({
@@ -42,7 +46,7 @@ export function StatCard({
   // Compact layout (dashboard): no icon/description -> label left, value right.
   if (!Icon && !description) {
     return (
-      <div className="rounded-xl border border-border/60 bg-card p-5 shadow-sm">
+      <div className="rounded-xl border border-border/60 bg-card p-4 shadow-sm">
         <div className="flex items-center justify-between gap-4">
           <p className="text-sm font-medium text-muted-foreground">{label}</p>
           <div className="flex flex-col items-end">
@@ -56,7 +60,7 @@ export function StatCard({
 
   // Detailed layout (reports): label/value left, boxed icon right.
   return (
-    <div className="rounded-xl border border-border/60 bg-card p-5 shadow-sm">
+    <div className="rounded-xl border border-border/60 bg-card p-4 shadow-sm">
       <div className="flex items-start justify-between gap-4">
         <div className="min-w-0 space-y-1">
           <p className="text-xs font-medium uppercase tracking-wider text-muted-foreground">{label}</p>
@@ -82,8 +86,8 @@ function DeltaPill({ delta }: { delta: StatDelta }) {
     direction === "flat"
       ? "text-muted-foreground"
       : direction === goodWhen
-        ? "text-severity-ok"
-        : "text-severity-high"
+        ? "text-severity-ok-fg"
+        : "text-severity-high-fg"
 
   return (
     <p className={cn("flex items-center gap-1 text-xs font-medium tabular-nums", tone)}>

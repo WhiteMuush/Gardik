@@ -12,7 +12,7 @@ import { DashboardEditContext } from "@/contexts/DashboardEditContext"
 import { DashboardConfigContext } from "@/contexts/DashboardConfigContext"
 import { DetailDrawerProvider } from "@/contexts/DetailDrawerContext"
 import { type DashboardPreset, SOURCE_FILTERABLE_WIDGETS } from "@/types/dashboard"
-import { COLS, buildRglLayout, type SourceOption, type WidgetEntry } from "./canvas/types"
+import { COLS, buildRglLayout, stackLayout, type SourceOption, type WidgetEntry } from "./canvas/types"
 import { usePresets } from "./canvas/usePresets"
 import { useGridGestures } from "./canvas/useGridGestures"
 import { Toolbar } from "./canvas/Toolbar"
@@ -110,10 +110,6 @@ export function DashboardCanvas({
                 // Extra top room in Customize so the first row's floating controls clear the toolbar.
                 editing ? "select-none pt-6" : "[&_.react-resizable-handle]:hidden"
               )}
-              style={{
-                backgroundImage: "radial-gradient(circle, oklch(var(--border)) 1px, transparent 1px)",
-                backgroundSize: "24px 24px",
-              }}
             >
               {containerW > 0 && (
                 // The spacer reserves the scaled footprint; the inner layer is the grid, scaled in place.
@@ -138,20 +134,20 @@ export function DashboardCanvas({
                     <ResponsiveGridLayout
                       className="layout"
                       width={scaledWidth}
-                      breakpoints={{ lg: 0 }}
-                      cols={{ lg: COLS }}
-                      layouts={{ lg: rglLayout }}
+                      breakpoints={{ lg: 768, xs: 0 }}
+                      cols={{ lg: COLS, xs: 1 }}
+                      layouts={{ lg: rglLayout, xs: stackLayout(rglLayout) }}
                       rowHeight={50}
                       compactor={gestures.compactor}
-                      dragConfig={{ enabled: editing, handle: ".widget-drag-handle" }}
-                      resizeConfig={{ enabled: editing }}
+                      dragConfig={{ enabled: editing && scaledWidth >= 768, handle: ".widget-drag-handle" }}
+                      resizeConfig={{ enabled: editing && scaledWidth >= 768 }}
                       onDragStart={gestures.onDragStart}
                       onDrag={gestures.onDrag}
                       onDragStop={gestures.onDragStop}
                       onResizeStart={gestures.onResizeStart}
                       onResizeStop={gestures.onResizeStop}
-                      margin={[16, 16]}
-                      containerPadding={[16, 16]}
+                      margin={[20, 20]}
+                      containerPadding={scaledWidth >= 768 ? [24, 24] : [16, 16]}
                     >
                       {visibleWidgets.map((w) => {
                         const title = getTitle(w.instanceId, w.defaultTitle)

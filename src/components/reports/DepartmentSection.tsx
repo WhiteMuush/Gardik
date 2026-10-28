@@ -43,7 +43,7 @@ export function DepartmentSection({ rows }: { rows: DepartmentRow[] }) {
                       <span
                         className={cn(
                           "text-xs tabular-nums",
-                          r.exposureRate >= 50 ? "text-severity-high" : "text-muted-foreground"
+                          r.exposureRate >= 50 ? "text-severity-high-fg" : "text-muted-foreground"
                         )}
                       >
                         {r.exposureRate}%

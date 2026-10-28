@@ -31,7 +31,7 @@ export const columns: LegacyColumnDef<EmployeeRow, any>[] = [
       <span
         className={cn(
           "font-medium tabular-nums",
-          info.getValue() > 0 ? "text-severity-high" : "text-muted-foreground"
+          info.getValue() > 0 ? "text-severity-high-fg" : "text-muted-foreground"
         )}
       >
         {info.getValue()}

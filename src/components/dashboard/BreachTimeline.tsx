@@ -18,7 +18,7 @@ type SourceFilter = "ALL" | "HIBP" | "MANUAL" | "DARK_WEB"
 const SOURCE_STYLE: Record<string, { label: string; color: string; dot: string }> = {
   HIBP: { label: "HIBP", color: "text-primary", dot: "bg-primary" },
   MANUAL: { label: "Manual", color: "text-purple-400", dot: "bg-purple-400" },
-  DARK_WEB: { label: "Dark Web", color: "text-red-400", dot: "bg-red-400" },
+  DARK_WEB: { label: "Dark Web", color: "text-severity-critical-fg", dot: "bg-red-400" },
 }
 
 export function BreachTimeline({ data }: { data: BreachSource[] }) {

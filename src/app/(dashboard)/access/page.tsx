@@ -23,7 +23,7 @@ export default async function AccessPage() {
 
   // The shell never scrolls, so the page owns its scrolling or the permission editor pushes content out of reach.
   return (
-    <div className="h-full overflow-y-auto p-6">
+    <div className="h-full overflow-y-auto p-4 sm:p-6">
       <div className="mb-6">
         <h2 className="text-lg font-semibold text-foreground">Access</h2>
         <p className="text-sm text-muted-foreground">
