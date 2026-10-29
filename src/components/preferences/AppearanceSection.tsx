@@ -1,6 +1,6 @@
 "use client"
 
-import { Check, Monitor, Moon, Sun, type LucideIcon } from "lucide-react"
+import { Check, CircleCheck, Monitor, Moon, Sun, type LucideIcon } from "lucide-react"
 import { cn } from "@/lib/utils"
 import type { Preferences } from "@/lib/preferences/schema"
 import { Segmented, SettingRow } from "./controls"
@@ -45,19 +45,22 @@ export function AppearanceSection({ prefs, update }: { prefs: Preferences; updat
               aria-checked={theme === value}
               onClick={() => update("theme", value)}
               className={cn(
-                "rounded-xl border p-2 text-left transition-colors",
-                theme === value
-                  ? "border-primary ring-2 ring-primary/30"
-                  : "border-border hover:border-primary/40"
+                "rounded-xl border p-2 text-left transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring focus-visible:ring-offset-2 focus-visible:ring-offset-background",
+                theme === value ? "border-primary bg-primary/10" : "border-border hover:border-primary/40"
               )}
             >
-              <span aria-hidden className="block h-16 rounded-lg p-2" style={{ background: page }}>
+              <span
+                aria-hidden
+                className="block h-16 rounded-lg p-2 ring-1 ring-border"
+                style={{ background: page }}
+              >
                 <span className="block h-2 w-1/2 rounded-full" style={{ background: card }} />
                 <span className="mt-2 block h-6 rounded-md" style={{ background: card }} />
               </span>
               <span className="mt-2 flex items-center gap-1.5 px-1 text-sm text-foreground">
                 <Icon className="hidden size-3.5 text-muted-foreground sm:block" />
                 {label}
+                {theme === value && <CircleCheck className="ml-auto size-4 text-primary" />}
               </span>
             </button>
           ))}

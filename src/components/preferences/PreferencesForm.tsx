@@ -1,6 +1,7 @@
 "use client"
 
-import { useState } from "react"
+import { useRef, useState } from "react"
+import { Check } from "lucide-react"
 import { preferenceAttributes } from "@/lib/preferences/apply"
 import type { Preferences } from "@/lib/preferences/schema"
 import { AppearanceSection } from "./AppearanceSection"
@@ -24,6 +25,8 @@ type Props = { initial: Preferences; homePages: { path: string; label: string }[
 export function PreferencesForm({ initial, homePages }: Props) {
   const [prefs, setPrefs] = useState(initial)
   const [error, setError] = useState<string | null>(null)
+  const [saved, setSaved] = useState(false)
+  const hideSaved = useRef<ReturnType<typeof setTimeout>>(undefined)
 
   const update: UpdatePreference = (key, value) => {
     const previous = prefs
@@ -31,13 +34,19 @@ export function PreferencesForm({ initial, homePages }: Props) {
     setPrefs(next)
     applyToDocument(next)
     setError(null)
+    setSaved(false)
     void fetch("/api/account/preferences", {
       method: "PATCH",
       headers: { "Content-Type": "application/json" },
       body: JSON.stringify({ [key]: value }),
     })
       .then(async (res) => {
-        if (res.ok) return
+        if (res.ok) {
+          setSaved(true)
+          clearTimeout(hideSaved.current)
+          hideSaved.current = setTimeout(() => setSaved(false), 2500)
+          return
+        }
         const body = (await res.json().catch(() => ({}))) as { error?: string }
         throw new Error(body.error ?? "Could not save this setting")
       })
@@ -50,11 +59,16 @@ export function PreferencesForm({ initial, homePages }: Props) {
 
   return (
     <div>
-      {error ? (
-        <p role="alert" className="mb-4 text-sm text-severity-critical-fg">
-          {error}
-        </p>
-      ) : null}
+      {/* Kept mounted so screen readers announce each change of its text. */}
+      <p role="status" className="mb-2 flex h-5 items-center gap-1.5 text-sm">
+        {error ? <span className="text-severity-critical-fg">{error}</span> : null}
+        {saved ? (
+          <span className="flex items-center gap-1.5 text-muted-foreground">
+            <Check className="size-4 text-primary" />
+            Saved
+          </span>
+        ) : null}
+      </p>
       <SettingsGroup title="Appearance" description="Colors and size of the interface.">
         <AppearanceSection prefs={prefs} update={update} />
       </SettingsGroup>

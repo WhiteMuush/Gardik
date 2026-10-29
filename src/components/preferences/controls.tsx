@@ -76,7 +76,7 @@ export function Segmented<T extends string>({
           className={cn(
             "rounded-md px-3 py-1.5 text-sm transition-colors",
             value === option.value
-              ? "bg-card font-medium text-foreground shadow-sm"
+              ? "bg-primary/15 font-medium text-foreground ring-1 ring-primary/50"
               : "text-muted-foreground hover:text-foreground"
           )}
         >

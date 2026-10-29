@@ -34,17 +34,28 @@ export function SaveViewButton({ page, current, saved }: Props) {
     setStored(((await res.json()) as { view: SavedView }).view)
   }
 
+  // Nothing to save and nothing saved: the page is on its defaults, so the button would only add noise.
+  if (isSaved && Object.keys(stored).length === 0) return null
+  if (isSaved) {
+    return (
+      <span className="flex items-center gap-1.5 px-1 text-sm text-muted-foreground">
+        <BookmarkCheck className="size-4 text-primary" />
+        Saved as default
+      </span>
+    )
+  }
+
   return (
     <span className="flex items-center gap-2">
       <button
         type="button"
         onClick={() => void save()}
-        disabled={busy || isSaved}
-        title={isSaved ? "This is your default view" : "Open this page with these filters next time"}
+        disabled={busy}
+        title="Open this page with these filters next time"
         className="flex items-center gap-1.5 rounded-lg border border-input bg-card px-3 py-2 text-sm text-foreground transition-colors hover:bg-muted disabled:opacity-60"
       >
-        {isSaved ? <BookmarkCheck className="size-4 text-primary" /> : <Bookmark className="size-4" />}
-        {isSaved ? "Default view" : "Save as my default view"}
+        <Bookmark className="size-4" />
+        {busy ? "Saving..." : "Save as my default view"}
       </button>
       {error ? <span className="text-xs text-severity-critical-fg">{error}</span> : null}
     </span>
