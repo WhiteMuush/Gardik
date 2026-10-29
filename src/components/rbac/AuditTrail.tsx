@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react"
 import { ChevronLeft, ChevronRight, ArrowRight } from "lucide-react"
+import { DateTime } from "@/components/ui/DateTime"
 
 type Snapshot = { name?: string; permissions?: string[]; roleId?: string | null }
 
@@ -142,7 +143,7 @@ export function AuditTrail() {
               entries.map((e) => (
                 <tr key={e.id} className="transition-colors hover:bg-muted/40">
                   <td className="whitespace-nowrap px-4 py-3 tabular-nums text-muted-foreground">
-                    {new Date(e.createdAt).toLocaleString()}
+                    <DateTime value={e.createdAt} options={{ dateStyle: "medium", timeStyle: "short" }} />
                   </td>
                   <td className="whitespace-nowrap px-4 py-3 text-muted-foreground">
                     {e.actor?.email ?? "system"}

@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation"
 import { Loader2, Download, ShieldAlert } from "lucide-react"
 import { DATA_TYPE_GROUPS, PRESET_DATA_TYPES } from "@/lib/dataTypes"
 import type { RegisterRow } from "@/lib/register"
+import { DateTime } from "@/components/ui/DateTime"
 
 const STATUS_LABEL: Record<RegisterRow["status"], string> = {
   ASSESSING: "Assessing",
@@ -135,7 +136,8 @@ export function ExposureRegister({
                   <div className="min-w-0 flex-1">
                     <p className="truncate text-sm font-medium text-foreground">{r.title}</p>
                     <p className="truncate text-xs text-muted-foreground">
-                      {new Date(r.detectedAt).toLocaleString()} - {r.affectedCount} affected
+                      <DateTime value={r.detectedAt} options={{ dateStyle: "medium", timeStyle: "short" }} />{" "}
+                      - {r.affectedCount} affected
                     </p>
                   </div>
                   <span className={`flex shrink-0 items-center gap-1 text-xs font-medium ${cd.className}`}>
