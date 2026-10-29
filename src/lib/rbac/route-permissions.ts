@@ -18,6 +18,8 @@ export const ROUTE_PERMISSIONS: Record<string, Permission | "PUBLIC" | "AUTH_ONL
   "account/profile": "AUTH_ONLY",
   "account/sessions/[id]": "AUTH_ONLY",
   "account/sessions/revoke-others": "AUTH_ONLY",
+  "account/preferences": "AUTH_ONLY",
+  "account/views/[page]": "AUTH_ONLY",
 
   "alerts/[id]": "alerts:status",
   "alerts/[id]/remediate": "alerts:remediate",
