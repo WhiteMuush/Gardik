@@ -6,7 +6,15 @@ import { Button } from "@/components/ui/button"
 import { DateTime } from "@/components/ui/DateTime"
 import { useStepUpRetry } from "./useStepUpRetry"
 
-const STAMP: Intl.DateTimeFormatOptions = { dateStyle: "medium", timeStyle: "short", timeZoneName: "short" }
+// Spelled out field by field, since Intl refuses timeZoneName next to dateStyle or timeStyle.
+const STAMP: Intl.DateTimeFormatOptions = {
+  month: "short",
+  day: "numeric",
+  year: "numeric",
+  hour: "numeric",
+  minute: "2-digit",
+  timeZoneName: "short",
+}
 
 export type SessionRow = {
   id: string
