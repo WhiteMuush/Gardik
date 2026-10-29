@@ -56,7 +56,8 @@ test("reports page draws its charts without size warnings", async ({ page }) => 
   await page.waitForURL("**/dashboard")
 
   await page.goto("/reports")
-  await expect(page.locator(".recharts-line-curve").first()).toBeVisible()
+  // The whole chart, since a line at zero has an empty box and never counts as visible.
+  await expect(page.locator(".recharts-surface[role=application]").filter({ visible: true })).toBeVisible()
   expect(chartWarnings).toEqual([])
 })
 
