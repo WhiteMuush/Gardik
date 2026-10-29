@@ -2,6 +2,7 @@ import { test, expect } from "@playwright/test"
 import { enrollTwoFactor, totpCode, setAllowedMethods, tryEnableTotp } from "./helpers/totp"
 import { latestEmailOtp, trySendEmailOtp } from "./helpers/email-otp"
 import { resetTwoFactorEnrollment } from "./helpers/reset"
+import { auditActionsBy } from "./helpers/audit"
 
 const EMAIL = "mfa@gardik.local"
 const PASSWORD = "ChangeMe123!"
@@ -28,6 +29,7 @@ test("company can forbid a method it has not allowed", async ({ request }) => {
 // Only a real DB round-trip catches enrollment failing, since the unit suite mocks Prisma.
 test("2FA-enrolled user must pass a TOTP challenge to sign in", async ({ page, request }) => {
   const secret = await enrollTwoFactor(request, EMAIL, PASSWORD)
+  expect(await auditActionsBy(EMAIL)).toContain("user.2fa.enable")
 
   await page.goto("/login")
   await page.getByLabel("Email").fill(EMAIL)
