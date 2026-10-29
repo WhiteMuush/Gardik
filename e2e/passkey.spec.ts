@@ -2,6 +2,7 @@ import { test, expect } from "@playwright/test"
 import { setAllowedMethods } from "./helpers/totp"
 import { addVirtualAuthenticator, tryGeneratePasskeyOptions } from "./helpers/passkey"
 import { resetPasskeys, resetStepUp } from "./helpers/reset"
+import { auditActionsBy } from "./helpers/audit"
 
 const PASSKEY_USER = { email: "passkey@gardik.local", password: "ChangeMe123!" }
 
@@ -45,6 +46,7 @@ test("a registered passkey signs the user in", async ({ page, request }) => {
   await page.getByPlaceholder("Name this device (optional)").fill("E2E Key")
   await page.getByRole("button", { name: "Add a passkey" }).click()
   await expect(page.getByText("E2E Key")).toBeVisible()
+  expect(await auditActionsBy(PASSKEY_USER.email)).toContain("user.passkey.add")
 
   // Drops the session but keeps the authenticator, which lives on the CDP target.
   await page.context().clearCookies()

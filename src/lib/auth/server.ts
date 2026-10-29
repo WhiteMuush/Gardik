@@ -10,6 +10,7 @@ import { prisma } from "@/lib/prisma"
 import { authPrisma } from "@/lib/auth/prisma"
 import { isSameTenant } from "@/lib/sso/tenant-guard"
 import { enforceAllowedMethod } from "./method-policy"
+import { auditPasskeyEvents, auditTwoFactorToggle } from "./account-audit"
 import { sendLoginOtp } from "./login-otp"
 import { rateLimitDisabled, testTrustedOrigins, webauthnConfig } from "./server-env"
 
@@ -55,6 +56,11 @@ export const auth = betterAuth({
   },
   hooks: {
     before: enforceAllowedMethod,
+    after: auditPasskeyEvents,
+  },
+  // A database hook, since /two-factor/verify-totp also serves sign-in and only an actual toggle rewrites the user.
+  databaseHooks: {
+    user: { update: { after: auditTwoFactorToggle } },
   },
   plugins: [
     twoFactor({

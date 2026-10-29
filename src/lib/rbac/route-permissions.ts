@@ -14,6 +14,10 @@ export const ROUTE_PERMISSIONS: Record<string, Permission | "PUBLIC" | "AUTH_ONL
   "invitations/accept": "PUBLIC",
   // Checks the session itself, since requireAuth refuses users under a forced rotation; it re-verifies the password.
   "account/password": "PUBLIC",
+  // The caller's own account, behind requireAuth and a step-up rather than a role permission.
+  "account/profile": "AUTH_ONLY",
+  "account/sessions/[id]": "AUTH_ONLY",
+  "account/sessions/revoke-others": "AUTH_ONLY",
 
   "alerts/[id]": "alerts:status",
   "alerts/[id]/remediate": "alerts:remediate",
