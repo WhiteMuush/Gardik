@@ -1,0 +1,171 @@
+/* Personal display settings, keyed on the data attributes the root layout puts on <html>. */
+
+@media screen {
+  html[data-theme="dark"] {
+    --background: 0.17 0.025 285;
+    --foreground: 0.95 0.01 285;
+    --card: 0.215 0.03 285;
+    --card-foreground: 0.95 0.01 285;
+    --popover: 0.24 0.03 285;
+    --popover-foreground: 0.95 0.01 285;
+    --primary: 0.72 0.16 285;
+    --primary-foreground: 0.15 0.04 285;
+    --secondary: 0.6 0.15 280;
+    --accent: 0.76 0.15 58;
+    --muted: 0.27 0.03 285;
+    --muted-foreground: 0.74 0.03 285;
+    --border: 0.33 0.03 285;
+    --input: 0.33 0.03 285;
+    --sidebar: 0.2 0.03 285;
+    --sidebar-foreground: 0.95 0.01 285;
+    --sidebar-accent: 0.27 0.03 285;
+    --sidebar-border: 0.3 0.03 285;
+    --severity-critical-fg: 0.72 0.16 25;
+    --severity-high-fg: 0.78 0.14 58;
+    --severity-medium-fg: 0.84 0.13 85;
+    --severity-low-fg: 0.74 0.13 255;
+    --severity-ok-fg: 0.76 0.15 145;
+    color-scheme: dark;
+  }
+}
+
+@media screen and (prefers-color-scheme: dark) {
+  html[data-theme="system"] {
+    --background: 0.17 0.025 285;
+    --foreground: 0.95 0.01 285;
+    --card: 0.215 0.03 285;
+    --card-foreground: 0.95 0.01 285;
+    --popover: 0.24 0.03 285;
+    --popover-foreground: 0.95 0.01 285;
+    --primary: 0.72 0.16 285;
+    --primary-foreground: 0.15 0.04 285;
+    --secondary: 0.6 0.15 280;
+    --accent: 0.76 0.15 58;
+    --muted: 0.27 0.03 285;
+    --muted-foreground: 0.74 0.03 285;
+    --border: 0.33 0.03 285;
+    --input: 0.33 0.03 285;
+    --sidebar: 0.2 0.03 285;
+    --sidebar-foreground: 0.95 0.01 285;
+    --sidebar-accent: 0.27 0.03 285;
+    --sidebar-border: 0.3 0.03 285;
+    --severity-critical-fg: 0.72 0.16 25;
+    --severity-high-fg: 0.78 0.14 58;
+    --severity-medium-fg: 0.84 0.13 85;
+    --severity-low-fg: 0.74 0.13 255;
+    --severity-ok-fg: 0.76 0.15 145;
+    color-scheme: dark;
+  }
+}
+
+/* Light accents carry white text at 4.5:1; the dark ones below are lighter and carry dark text. */
+html[data-accent="blue"] {
+  --primary: 0.49 0.21 264;
+}
+html[data-accent="teal"] {
+  --primary: 0.51 0.09 186;
+}
+html[data-accent="rose"] {
+  --primary: 0.52 0.2 358;
+}
+html[data-accent="orange"] {
+  --primary: 0.55 0.18 41;
+}
+
+@media screen {
+  html[data-theme="dark"][data-accent="blue"] {
+    --primary: 0.72 0.14 260;
+  }
+  html[data-theme="dark"][data-accent="teal"] {
+    --primary: 0.75 0.11 185;
+  }
+  html[data-theme="dark"][data-accent="rose"] {
+    --primary: 0.74 0.15 0;
+  }
+  html[data-theme="dark"][data-accent="orange"] {
+    --primary: 0.76 0.15 50;
+  }
+}
+
+@media screen and (prefers-color-scheme: dark) {
+  html[data-theme="system"][data-accent="blue"] {
+    --primary: 0.72 0.14 260;
+  }
+  html[data-theme="system"][data-accent="teal"] {
+    --primary: 0.75 0.11 185;
+  }
+  html[data-theme="system"][data-accent="rose"] {
+    --primary: 0.74 0.15 0;
+  }
+  html[data-theme="system"][data-accent="orange"] {
+    --primary: 0.76 0.15 50;
+  }
+}
+
+/* Okabe-Ito hues, which the common forms of color blindness still tell apart. */
+html[data-colorblind] {
+  --severity-critical: 0.63 0.19 42;
+  --severity-high: 0.76 0.16 72;
+  --severity-medium: 0.9 0.17 106;
+  --severity-low: 0.53 0.13 245;
+  --severity-ok: 0.62 0.12 166;
+  --severity-critical-fg: 0.53 0.17 40;
+  --severity-high-fg: 0.55 0.12 70;
+  --severity-medium-fg: 0.55 0.11 100;
+  --severity-low-fg: 0.5 0.13 245;
+  --severity-ok-fg: 0.52 0.1 166;
+}
+
+@media screen {
+  html[data-theme="dark"][data-colorblind] {
+    --severity-critical-fg: 0.72 0.16 42;
+    --severity-high-fg: 0.8 0.15 72;
+    --severity-medium-fg: 0.9 0.15 105;
+    --severity-low-fg: 0.72 0.12 245;
+    --severity-ok-fg: 0.76 0.12 166;
+  }
+}
+
+@media screen and (prefers-color-scheme: dark) {
+  html[data-theme="system"][data-colorblind] {
+    --severity-critical-fg: 0.72 0.16 42;
+    --severity-high-fg: 0.8 0.15 72;
+    --severity-medium-fg: 0.9 0.15 105;
+    --severity-low-fg: 0.72 0.12 245;
+    --severity-ok-fg: 0.76 0.12 166;
+  }
+}
+
+/* Tailwind sizes are in rem, so scaling the root scales the whole interface. */
+html[data-text-size="small"] {
+  font-size: 87.5%;
+}
+html[data-text-size="large"] {
+  font-size: 112.5%;
+}
+
+html[data-readable-font] {
+  font-family: Verdana, "DejaVu Sans", "Segoe UI", sans-serif;
+  letter-spacing: 0.02em;
+  word-spacing: 0.08em;
+}
+
+html[data-motion="reduce"] *,
+html[data-motion="reduce"] *::before,
+html[data-motion="reduce"] *::after {
+  animation-duration: 0.01ms !important;
+  animation-iteration-count: 1 !important;
+  transition-duration: 0.01ms !important;
+  scroll-behavior: auto !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-motion="system"] *,
+  html[data-motion="system"] *::before,
+  html[data-motion="system"] *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+    scroll-behavior: auto !important;
+  }
+}
