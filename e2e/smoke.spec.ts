@@ -41,6 +41,25 @@ test("admin signs in, sees dashboard and alerts", async ({ page }) => {
   await expect(page.getByRole("heading", { name: "Alert Severity" })).toBeVisible()
 })
 
+// The print-only copy of the report is hidden on screen, and a chart that measures a hidden box warns on every render.
+test("reports page draws its charts without size warnings", async ({ page }) => {
+  const chartWarnings: string[] = []
+  page.on("console", (msg) => {
+    if (msg.text().includes("of chart should be greater than 0")) chartWarnings.push(msg.text())
+  })
+
+  await page.goto("/login")
+  await page.getByLabel("Email").fill("admin@gardik.local")
+  await page.getByRole("button", { name: "Continue" }).click()
+  await page.getByLabel("Password").fill("ChangeMe123!")
+  await page.getByRole("button", { name: "Sign in", exact: true }).click()
+  await page.waitForURL("**/dashboard")
+
+  await page.goto("/reports")
+  await expect(page.locator(".recharts-line-curve").first()).toBeVisible()
+  expect(chartWarnings).toEqual([])
+})
+
 // Security settings must stay reachable from the sidebar once onboarding is over.
 test("security settings are reachable from the sidebar", async ({ page }) => {
   // Another spec may have left a step-up grant that would bypass the gate.
