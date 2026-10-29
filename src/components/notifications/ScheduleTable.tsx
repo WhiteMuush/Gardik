@@ -60,7 +60,9 @@ export function ScheduleTable({ rows, isAdmin, onToggle, onRemove }: Props) {
                 <span
                   className={cn(
                     "inline-flex rounded-full px-2 py-0.5 text-xs font-medium",
-                    s.enabled ? "bg-green-500/10 text-green-700" : "bg-muted text-muted-foreground"
+                    s.enabled
+                      ? "bg-green-500/10 text-green-700 dark:text-green-400"
+                      : "bg-muted text-muted-foreground"
                   )}
                 >
                   {s.enabled ? "Active" : "Paused"}

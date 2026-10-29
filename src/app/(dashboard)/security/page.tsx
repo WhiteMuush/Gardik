@@ -12,10 +12,6 @@ import { ProfileSection } from "@/components/account/ProfileSection"
 import { PasswordSection } from "@/components/account/PasswordSection"
 import { SessionsSection } from "@/components/account/SessionsSection"
 
-// Fixed to UTC so the server render and hydration print the same text.
-const stamp = new Intl.DateTimeFormat("en-US", { dateStyle: "medium", timeStyle: "short", timeZone: "UTC" })
-const formatDate = (d: Date) => `${stamp.format(d)} UTC`
-
 // Not /settings, since next.config.ts permanently redirects it and browsers cache the 308.
 export default async function SecurityPage() {
   const session = await getSession()
@@ -114,8 +110,8 @@ export default async function SecurityPage() {
               id: s.id,
               device: s.device,
               ipAddress: s.ipAddress,
-              signedIn: formatDate(s.createdAt),
-              lastRefreshed: formatDate(s.updatedAt),
+              signedIn: s.createdAt.toISOString(),
+              lastRefreshed: s.updatedAt.toISOString(),
               current: s.current,
             }))}
           />

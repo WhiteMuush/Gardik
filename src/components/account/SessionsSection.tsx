@@ -3,9 +3,19 @@
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 import { Button } from "@/components/ui/button"
+import { DateTime } from "@/components/ui/DateTime"
 import { useStepUpRetry } from "./useStepUpRetry"
 
-// Dates arrive preformatted from the server, so the server render and hydration never disagree on a timezone.
+// Spelled out field by field, since Intl refuses timeZoneName next to dateStyle or timeStyle.
+const STAMP: Intl.DateTimeFormatOptions = {
+  month: "short",
+  day: "numeric",
+  year: "numeric",
+  hour: "numeric",
+  minute: "2-digit",
+  timeZoneName: "short",
+}
+
 export type SessionRow = {
   id: string
   device: string
@@ -56,8 +66,12 @@ export function SessionsSection({ sessions }: { sessions: SessionRow[] }) {
               </p>
               <p className="flex flex-wrap gap-x-3 text-xs text-muted-foreground">
                 <span>{s.ipAddress ?? "Unknown IP"}</span>
-                <span>Signed in {s.signedIn}</span>
-                <span>Last refreshed {s.lastRefreshed}</span>
+                <span>
+                  Signed in <DateTime value={s.signedIn} options={STAMP} />
+                </span>
+                <span>
+                  Last refreshed <DateTime value={s.lastRefreshed} options={STAMP} />
+                </span>
               </p>
             </div>
             {s.current ? null : (

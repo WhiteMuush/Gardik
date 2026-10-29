@@ -7,6 +7,8 @@ import type { AlertRow } from "@/lib/alerts"
 import { downloadCsv } from "@/lib/csv"
 import { confidenceLabel, statusLabel } from "./alert-meta"
 import { AlertItem } from "./AlertItem"
+import { SaveViewButton } from "@/components/preferences/SaveViewButton"
+import type { SavedView } from "@/lib/preferences/views"
 
 const SEVERITIES = ["CRITICAL", "HIGH", "MEDIUM", "LOW"] as const
 const STATUSES = ["OPEN", "ACKNOWLEDGED", "RESOLVED"] as const
@@ -16,16 +18,18 @@ export function AlertTable({
   data,
   remediationEnabled = false,
   isAdmin = false,
+  savedView,
 }: {
   data: AlertRow[]
   remediationEnabled?: boolean
   isAdmin?: boolean
+  savedView?: SavedView
 }) {
   const router = useRouter()
   const [search, setSearch] = useState("")
-  const [severity, setSeverity] = useState("")
-  const [status, setStatus] = useState("")
-  const [confidence, setConfidence] = useState("")
+  const [severity, setSeverity] = useState(savedView?.severity ?? "")
+  const [status, setStatus] = useState(savedView?.status ?? "")
+  const [confidence, setConfidence] = useState(savedView?.confidence ?? "")
   const [pending, setPending] = useState<string | null>(null)
 
   const filtered = useMemo(() => {
@@ -133,6 +137,7 @@ export function AlertTable({
             </option>
           ))}
         </select>
+        <SaveViewButton page="alerts" current={{ severity, status, confidence }} saved={savedView} />
         <button
           onClick={exportCsv}
           disabled={filtered.length === 0}

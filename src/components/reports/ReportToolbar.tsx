@@ -3,6 +3,7 @@
 import { useState } from "react"
 import { Printer, Download, ChevronDown } from "lucide-react"
 import { Button, buttonVariants } from "@/components/ui/button"
+import { DateTime } from "@/components/ui/DateTime"
 
 const CSV_SECTIONS = [
   { key: "all", label: "Full report" },
@@ -13,13 +14,6 @@ const CSV_SECTIONS = [
   { key: "trends", label: "Trends" },
   { key: "compliance", label: "Compliance" },
 ]
-
-function formatTimestamp(iso: string): string {
-  return new Date(iso).toLocaleString("en-US", {
-    dateStyle: "medium",
-    timeStyle: "short",
-  })
-}
 
 export function ReportToolbar({
   generatedAt,
@@ -37,7 +31,7 @@ export function ReportToolbar({
   return (
     <div className="no-print flex items-center gap-2">
       <span className="mr-1 hidden text-xs text-muted-foreground sm:inline">
-        Generated {formatTimestamp(generatedAt)}
+        Generated <DateTime value={generatedAt} options={{ dateStyle: "medium", timeStyle: "short" }} />
       </span>
       {canExport && (
         <>

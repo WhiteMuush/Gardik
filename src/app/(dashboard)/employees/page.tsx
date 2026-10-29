@@ -1,22 +1,25 @@
 import { guardPage } from "@/lib/rbac/guard-page"
 import { getSession } from "@/lib/auth/session"
 import { getEmployees } from "@/lib/employees"
+import { prisma } from "@/lib/prisma"
 import { EmployeeTable } from "@/components/employees/EmployeeTable"
 import { ScanButton } from "@/components/employees/ScanButton"
 import { ScanCoverageBanner } from "@/components/employees/ScanCoverageBanner"
 import { getScanCoverage } from "@/lib/scan/coverage"
 import { authorize } from "@/lib/rbac/authorize"
 import { permissionsForRole } from "@/lib/rbac/session-permissions"
+import { loadSavedViews } from "@/lib/preferences/load"
 
 export default async function EmployeesPage() {
   const denied = await guardPage("employees:read")
   if (denied) return denied
 
   const session = await getSession()
-  const [employees, coverage, perms] = await Promise.all([
+  const [employees, coverage, perms, views] = await Promise.all([
     getEmployees(session!.user.companyId),
     getScanCoverage(session!.user.companyId),
     permissionsForRole(session!.user.roleId ?? null),
+    loadSavedViews(prisma, session!.user.id),
   ])
   const canScan = authorize(perms, "employees:scan")
 
@@ -32,7 +35,7 @@ export default async function EmployeesPage() {
         <ScanButton />
       </div>
       <ScanCoverageBanner coverage={coverage} canScan={canScan} className="mb-6" />
-      <EmployeeTable data={employees} />
+      <EmployeeTable data={employees} savedView={views.employees} />
     </div>
   )
 }
