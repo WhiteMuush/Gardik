@@ -5,7 +5,7 @@ import { useState } from "react"
 import { Button } from "@/components/ui/button"
 import { MIN_PASSWORD_LENGTH } from "@/lib/auth/invitation"
 
-// Only on the pre-dashboard gate, since a change needs an admin-required rotation, which the API enforces.
+// The forced-rotation form on /secure; self-service changes go through My account behind 2FA and step-up.
 export function PasswordChange({ required, continueTo }: { required: boolean; continueTo: string }) {
   const [currentPassword, setCurrentPassword] = useState("")
   const [newPassword, setNewPassword] = useState("")

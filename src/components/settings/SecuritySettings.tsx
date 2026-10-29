@@ -1,27 +1,18 @@
 import { getSession } from "@/lib/auth/session"
 import { prisma } from "@/lib/prisma"
-import { getUserPermissions, authorize } from "@/lib/rbac/authorize"
 import { TwoFactorSetup } from "@/components/settings/TwoFactorSetup"
 import { PasskeySetup } from "@/components/settings/PasskeySetup"
-import { AuthPolicySettings } from "@/components/settings/AuthPolicySettings"
-import { SsoSettings } from "@/components/settings/SsoSettings"
+import { CompanySecuritySettings } from "@/components/settings/CompanySecuritySettings"
 
-// Account and company security blocks, shared by /security and the onboarding checklist on /setup.
+// Security blocks for the onboarding checklist on /setup; /security composes its own sections.
 export async function SecuritySettings() {
   const session = await getSession()
-  const companyId = session!.user.companyId
   const twoFactorEnabled = session!.user.twoFactorEnabled ?? false
-  const perms = await getUserPermissions(prisma, session!.user.roleId ?? null)
-  const isAdmin = authorize(perms, "users:manage")
-  const canReadSso = authorize(perms, "sso:read")
-  const canConfigureSso = authorize(perms, "sso:config")
-
   const company = await prisma.company.findUnique({
-    where: { id: companyId },
-    select: { require2fa: true, allowedAuthMethods: true, ssoMandatory: true },
+    where: { id: session!.user.companyId },
+    select: { allowedAuthMethods: true },
   })
 
-  // No password block, since a rotation is admin-required and done on /secure.
   return (
     <>
       {(company?.allowedAuthMethods.includes("TOTP") ?? true) && (
@@ -46,15 +37,7 @@ export async function SecuritySettings() {
           </div>
         </div>
       )}
-      {isAdmin && company && (
-        <AuthPolicySettings
-          require2fa={company.require2fa}
-          allowedAuthMethods={company.allowedAuthMethods}
-          isAdmin={isAdmin}
-          ssoMandatory={company.ssoMandatory}
-        />
-      )}
-      {canReadSso && <SsoSettings canConfigure={canConfigureSso} />}
+      <CompanySecuritySettings />
     </>
   )
 }

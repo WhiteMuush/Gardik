@@ -48,4 +48,17 @@ describe("listAccountSessions", () => {
     ])
     expect(JSON.stringify(sessions)).not.toContain("tok-")
   })
+
+  it("hides the placeholder address recorded when the client IP was unknown", async () => {
+    const row = { token: "t", userAgent: null, createdAt: NOW, updatedAt: NOW }
+    const { db } = fakeDb([
+      { ...row, id: "v6", ipAddress: "0000:0000:0000:0000:0000:0000:0000:0000" },
+      { ...row, id: "v4", ipAddress: "0.0.0.0" },
+      { ...row, id: "short", ipAddress: "::" },
+      { ...row, id: "empty", ipAddress: "" },
+      { ...row, id: "real", ipAddress: "2001:db8::1" },
+    ])
+    const ips = (await listAccountSessions(db, "user-1", "x", NOW)).map((s) => s.ipAddress)
+    expect(ips).toEqual([null, null, null, null, "2001:db8::1"])
+  })
 })

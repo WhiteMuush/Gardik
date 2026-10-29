@@ -12,6 +12,11 @@ export type AccountSession = {
   current: boolean
 }
 
+// Better Auth stores an all-zero address when it cannot read the client IP, which is no address at all.
+function knownIp(ip: string | null): string | null {
+  return ip && !/^[0:.]*$/.test(ip) ? ip : null
+}
+
 // The token is only compared here, never returned, since it is the session credential itself.
 export async function listAccountSessions(
   db: Db,
@@ -27,7 +32,7 @@ export async function listAccountSessions(
   return rows.map((s) => ({
     id: s.id,
     device: describeUserAgent(s.userAgent),
-    ipAddress: s.ipAddress,
+    ipAddress: knownIp(s.ipAddress),
     createdAt: s.createdAt,
     updatedAt: s.updatedAt,
     current: s.token === currentToken,
