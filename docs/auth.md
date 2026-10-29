@@ -51,6 +51,29 @@ The `twoFactor` plugin enables TOTP-based two-factor authentication.
 Enrollment is per user; companies can require it for their members as part
 of their auth policy.
 
+## My account
+
+`/security` is where a user manages their own account, behind a step-up (the
+password or an authenticator code, valid five minutes). Every mutation below
+checks that grant on the server, and an expired grant answers
+`STEP_UP_REQUIRED` so the page asks again and replays the request.
+
+- **Profile**: `PATCH /api/account/profile` changes the display name (1 to 100
+  characters). Email, role and company are read-only.
+- **Password**: `POST /api/account/password` accepts a forced rotation, or a
+  self-service change when the user has two-factor enabled. Without 2FA the
+  change stays with an administrator: step-up accepts the password alone, so a
+  thief holding it could otherwise lock the owner out. Every other session is
+  signed out, the caller's survives.
+- **Sessions**: listed from the `Session` table, never exposing the token.
+  `DELETE /api/account/sessions/[id]` signs out one session of the caller (404
+  for anybody else's), `POST /api/account/sessions/revoke-others` all but the
+  current one.
+- **Audit**: these routes write their `AuditLog` row in the same transaction as
+  the change. Two-factor and passkey changes are written by Better Auth hooks
+  (`src/lib/auth/account-audit.ts`) right after the library commits them, so
+  those rows share no transaction with the change.
+
 ## First administrator
 
 A deployed image has no company and no account, and `disableSignUp: true` means
