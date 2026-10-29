@@ -5,8 +5,10 @@ import { prisma } from "@/lib/prisma"
 import { rateLimit } from "@/lib/rateLimit"
 import { verifyPassword } from "@/lib/rbac/step-up"
 import { passwordProblem } from "@/lib/auth/invitation"
+import { assertStepUp } from "@/lib/apiAuth"
+import { writeAudit, AUDIT_ACTIONS } from "@/lib/rbac/audit"
 
-// Only under an admin-required rotation, enforced here; it skips requireAuth, which refuses exactly these users.
+// A forced rotation, or a self-service change behind 2FA and step-up; it skips requireAuth, which refuses rotating users.
 export async function POST(req: Request) {
   const session = await getSession()
   if (!session) return NextResponse.json({ error: "Unauthorized" }, { status: 401 })
@@ -16,8 +18,17 @@ export async function POST(req: Request) {
     return NextResponse.json({ error: "Too many attempts" }, { status: 429 })
   }
 
-  if (session.user.mustChangePassword !== true) {
-    return NextResponse.json({ error: "Ask an administrator to require a password change" }, { status: 403 })
+  const rotation = session.user.mustChangePassword === true
+  // Step-up accepts the password alone, so without 2FA a thief holding it could lock the owner out.
+  if (!rotation && session.user.twoFactorEnabled !== true) {
+    return NextResponse.json(
+      { error: "Turn on two-factor authentication, or ask an administrator to require a password change" },
+      { status: 403 }
+    )
+  }
+  if (!rotation) {
+    const gate = await assertStepUp(session.user.id)
+    if (gate) return gate
   }
 
   const body = (await req.json().catch(() => ({}))) as {
@@ -59,8 +70,17 @@ export async function POST(req: Request) {
       data: { mustChangePassword: false },
     })
     // Every other session dies with the old password, but the caller's survives.
-    await tx.session.deleteMany({
+    const revoked = await tx.session.deleteMany({
       where: { userId: session.user.id, token: { not: currentSessionToken } },
+    })
+    await writeAudit(tx, {
+      companyId: session.user.companyId,
+      actorUserId: session.user.id,
+      action: AUDIT_ACTIONS.USER_PASSWORD_CHANGE,
+      targetType: "User",
+      targetId: session.user.id,
+      after: { reason: rotation ? "rotation" : "self_service", otherSessionsRevoked: revoked.count },
+      ip: session.session.ipAddress ?? null,
     })
   })
 
