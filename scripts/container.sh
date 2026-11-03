@@ -4,7 +4,7 @@
 
 # Local database settings (override via env or .env.local).
 DB_CONTAINER="gardik-db"
-DB_IMAGE="postgres:16"
+DB_IMAGE="postgres:16-alpine"
 DB_VOLUME="gardik-db-data"
 DB_USER="${POSTGRES_USER:-user}"
 DB_PASSWORD="${POSTGRES_PASSWORD:-password}"
