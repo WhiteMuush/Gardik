@@ -9,7 +9,7 @@ Generated from `package-lock.json`; do not edit by hand. Regenerate with
 `npm run licenses:write`. Build-time-only dependencies are excluded: they
 are not part of anything that ships.
 
-Runtime packages: 533.
+Runtime packages: 536.
 
 ## Obligations worth knowing
 
@@ -23,7 +23,7 @@ Runtime packages: 533.
 
 ## Packages by license
 
-### MIT (386)
+### MIT (389)
 
 - @authenio/xml-encryption@6.0.2
 - @babel/helper-string-parser@7.29.7
@@ -31,8 +31,8 @@ Runtime packages: 533.
 - @babel/parser@7.29.9
 - @babel/runtime@7.29.7
 - @babel/types@7.29.8
-- @base-ui/react@1.8.0
-- @base-ui/utils@0.4.0
+- @base-ui/react@1.9.0
+- @base-ui/utils@0.5.0
 - @bcoe/v8-coverage@1.0.2
 - @better-auth/core@1.7.14
 - @better-auth/drizzle-adapter@1.7.14
@@ -154,10 +154,10 @@ Runtime packages: 533.
 - @simplewebauthn/server@13.3.3
 - @standard-schema/spec@1.1.0
 - @standard-schema/utils@0.3.0
-- @tanstack/react-store@0.11.1
-- @tanstack/react-table@9.2.4
-- @tanstack/store@0.11.1
-- @tanstack/table-core@9.2.4
+- @tanstack/react-store@0.11.2
+- @tanstack/react-table@9.3.1
+- @tanstack/store@0.11.2
+- @tanstack/table-core@9.3.1
 - @types/chai@5.2.3
 - @types/d3-array@3.0.3
 - @types/d3-array@3.2.2
@@ -182,7 +182,7 @@ Runtime packages: 533.
 - @types/estree@1.0.9
 - @types/geojson@7946.0.16
 - @types/lodash@4.17.25
-- @types/node@26.6.2
+- @types/node@26.6.5
 - @types/pg@8.23.1
 - @types/react-dom@19.3.0
 - @types/react@19.3.0
@@ -217,7 +217,7 @@ Runtime packages: 533.
 - better-call@1.4.4
 - better-result@2.10.0
 - bidi-js@1.0.3
-- bowser@2.14.1
+- bowser@2.15.0
 - brotli@1.3.3
 - c12@3.3.4
 - camelcase@5.3.1
@@ -232,6 +232,7 @@ Runtime packages: 533.
 - color-name@2.1.1
 - color-string@2.1.4
 - confbox@0.2.4
+- confbox@0.3.1
 - cross-spawn@7.0.6
 - csstype@3.2.3
 - decamelize@1.2.0
@@ -252,7 +253,7 @@ Runtime packages: 533.
 - estree-walker@3.0.3
 - eventemitter3@5.0.4
 - events@3.3.0
-- exsolve@1.1.1
+- exsolve@1.1.3
 - fast-check@3.23.2
 - fast-decode-uri-component@1.0.1
 - fast-deep-equal@3.1.3
@@ -281,7 +282,7 @@ Runtime packages: 533.
 - jay-peg@1.1.1
 - jiti@1.21.7
 - jiti@2.7.0
-- jose@6.2.4
+- jose@6.2.13
 - js-tokens@10.0.0
 - js-tokens@4.0.0
 - json-schema-traverse@1.0.0
@@ -315,16 +316,16 @@ Runtime packages: 533.
 - pathe@2.0.3
 - pdfkit@0.20.1
 - perfect-debounce@2.1.0
-- pg-cloudflare@1.4.0
-- pg-connection-string@2.14.0
+- pg-cloudflare@1.4.1
+- pg-connection-string@2.14.1
 - pg-pool@3.14.0
-- pg-protocol@1.16.0
+- pg-protocol@1.16.1
 - pg-types@2.2.0
-- pg@8.23.0
+- pg@8.23.1
 - pgpass@1.0.5
 - picomatch@4.0.4
 - picomatch@4.0.7
-- pkg-types@2.3.1
+- pkg-types@2.4.0
 - png-js@2.0.0
 - pngjs@5.0.0
 - postcss-value-parser@4.2.0
@@ -341,15 +342,16 @@ Runtime packages: 533.
 - pvutils@1.2.0
 - qrcode@1.5.4
 - queue@6.0.2
-- rc9@3.0.1
-- react-dom@19.3.0
+- rc9@3.1.0
+- react-dom@19.3.1
 - react-draggable@4.6.0
-- react-grid-layout@2.2.4
+- react-grid-layout@2.3.0
 - react-is@16.13.1
 - react-is@19.2.6
 - react-redux@9.3.0
 - react-resizable@3.2.0
-- react@19.3.0
+- react-resizable@4.0.2
+- react@19.3.1
 - readdirp@5.1.1
 - recharts@3.10.1
 - redux-thunk@3.1.0
@@ -358,6 +360,7 @@ Runtime packages: 533.
 - require-directory@2.1.1
 - require-from-string@2.0.2
 - reselect@5.2.0
+- reselect@5.3.0
 - resize-observer-polyfill@1.5.1
 - restructure@3.0.2
 - ret@0.5.0
@@ -394,7 +397,7 @@ Runtime packages: 533.
 - undici-types@8.9.0
 - unicode-properties@1.4.1
 - unicode-trie@2.0.0
-- use-sync-external-store@1.6.0
+- use-sync-external-store@1.7.0
 - valibot@1.4.2
 - vite@8.3.5
 - vitest@5.0.5
@@ -414,20 +417,20 @@ Runtime packages: 533.
 
 ### Apache-2.0 (65)
 
-- @aws-sdk/client-identitystore@3.1139.0
-- @aws-sdk/core@3.978.1
-- @aws-sdk/credential-provider-env@3.972.72
-- @aws-sdk/credential-provider-http@3.972.74
-- @aws-sdk/credential-provider-ini@3.973.17
-- @aws-sdk/credential-provider-login@3.972.79
-- @aws-sdk/credential-provider-node@3.972.84
-- @aws-sdk/credential-provider-process@3.972.72
-- @aws-sdk/credential-provider-sso@3.973.16
-- @aws-sdk/credential-provider-web-identity@3.972.78
-- @aws-sdk/nested-clients@3.997.46
-- @aws-sdk/signature-v4-multi-region@3.996.47
-- @aws-sdk/token-providers@3.1138.0
-- @aws-sdk/types@3.974.6
+- @aws-sdk/client-identitystore@3.1157.0
+- @aws-sdk/core@3.978.6
+- @aws-sdk/credential-provider-env@3.972.77
+- @aws-sdk/credential-provider-http@3.972.79
+- @aws-sdk/credential-provider-ini@3.973.22
+- @aws-sdk/credential-provider-login@3.972.84
+- @aws-sdk/credential-provider-node@3.972.89
+- @aws-sdk/credential-provider-process@3.972.77
+- @aws-sdk/credential-provider-sso@3.973.21
+- @aws-sdk/credential-provider-web-identity@3.972.83
+- @aws-sdk/nested-clients@3.997.51
+- @aws-sdk/signature-v4-multi-region@3.996.49
+- @aws-sdk/token-providers@3.1157.0
+- @aws-sdk/types@3.975.0
 - @aws-sdk/xml-builder@3.972.41
 - @aws/lambda-invoke-store@0.3.0
 - @electric-sql/pglite-socket@0.1.3
@@ -445,27 +448,27 @@ Runtime packages: 533.
 - @img/sharp-linuxmusl-arm64@0.35.5
 - @img/sharp-linuxmusl-x64@0.35.5
 - @img/sharp-webcontainers-wasm32@0.35.5
-- @playwright/test@1.63.0
-- @prisma/adapter-pg@7.10.0
-- @prisma/client-runtime-utils@7.10.0
-- @prisma/client@7.10.0
-- @prisma/config@7.10.0
-- @prisma/debug@7.10.0
+- @playwright/test@1.64.1
+- @prisma/adapter-pg@7.10.1
+- @prisma/client-runtime-utils@7.10.1
+- @prisma/client@7.10.1
+- @prisma/config@7.10.1
+- @prisma/debug@7.10.1
 - @prisma/debug@7.2.0
-- @prisma/driver-adapter-utils@7.10.0
-- @prisma/engines-version@7.10.0-4.0edf323efd1d98336f3f0a68684b56f689b900d3
-- @prisma/engines@7.10.0
-- @prisma/fetch-engine@7.10.0
-- @prisma/get-platform@7.10.0
+- @prisma/driver-adapter-utils@7.10.1
+- @prisma/engines-version@8.1.0-1.d1b3f377ca835d73fd50954a5e22128b9ebdd6b8
+- @prisma/engines@7.10.1
+- @prisma/fetch-engine@7.10.1
+- @prisma/get-platform@7.10.1
 - @prisma/get-platform@7.2.0
 - @prisma/query-plan-executor@7.2.0
 - @prisma/streams-local@0.1.11
 - @prisma/studio-core@0.33.0
-- @smithy/core@3.35.0
+- @smithy/core@3.37.0
 - @smithy/credential-provider-imds@4.5.2
 - @smithy/fetch-http-handler@5.8.0
-- @smithy/node-http-handler@4.12.1
-- @smithy/signature-v4@5.7.3
+- @smithy/node-http-handler@4.13.0
+- @smithy/signature-v4@5.7.4
 - @smithy/types@4.19.0
 - @swc/helpers@0.5.23
 - baseline-browser-mapping@2.11.20
@@ -473,9 +476,9 @@ Runtime packages: 533.
 - detect-libc@2.1.2
 - expect-type@1.4.0
 - long@5.3.2
-- playwright-core@1.63.0
-- playwright@1.63.0
-- prisma@7.10.0
+- playwright-core@1.64.1
+- playwright@1.64.1
+- prisma@7.10.1
 - reflect-metadata@0.2.2
 - sharp@0.35.5
 - typescript@5.9.3
@@ -507,7 +510,7 @@ Runtime packages: 533.
 - inherits@2.0.4
 - internmap@2.0.3
 - isexe@2.0.0
-- lucide-react@1.47.0
+- lucide-react@1.61.0
 - pg-int8@1.0.1
 - picocolors@1.1.1
 - require-main-filename@2.0.0
