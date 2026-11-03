@@ -254,6 +254,7 @@ model User {
   auditActions     AuditLog[]        @relation("AuditActor")
   stepUpGrants     StepUpGrant[]
   ssoProviders     SsoProvider[]
+  preference       UserPreference?
   invitations      UserInvitation[]
 }
 
@@ -645,4 +646,22 @@ model SsoProvider {
   company Company? @relation(fields: [organizationId], references: [id], onDelete: Cascade)
 
   @@index([organizationId])
+}
+
+// One row per user who changed a setting; anyone without a row gets the defaults of src/lib/preferences/schema.ts.
+model UserPreference {
+  userId       String   @id
+  theme        String   @default("system")
+  accent       String   @default("violet")
+  textSize     String   @default("default")
+  motion       String   @default("system")
+  colorblind   Boolean  @default(false)
+  readableFont Boolean  @default(false)
+  timeZone     String?
+  homePage     String?
+  // Saved filters and sort per list page, validated on read by src/lib/preferences/views.ts.
+  views        Json     @default("{}")
+  updatedAt    DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

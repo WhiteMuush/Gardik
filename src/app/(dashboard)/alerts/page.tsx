@@ -3,6 +3,7 @@ import { getSession } from "@/lib/auth/session"
 import { prisma } from "@/lib/prisma"
 import { authorize } from "@/lib/rbac/authorize"
 import { permissionsForRole } from "@/lib/rbac/session-permissions"
+import { loadSavedViews } from "@/lib/preferences/load"
 import { getAlerts } from "@/lib/alerts"
 import { AlertTable } from "@/components/alerts/AlertTable"
 
@@ -12,10 +13,11 @@ export default async function AlertsPage() {
 
   const session = await getSession()
   const companyId = session!.user.companyId
-  const [alerts, company, perms] = await Promise.all([
+  const [alerts, company, perms, views] = await Promise.all([
     getAlerts(companyId),
     prisma.company.findUnique({ where: { id: companyId }, select: { remediationEnabled: true } }),
     permissionsForRole(session!.user.roleId ?? null),
+    loadSavedViews(prisma, session!.user.id),
   ])
 
   return (
@@ -30,6 +32,7 @@ export default async function AlertsPage() {
         data={alerts}
         remediationEnabled={company?.remediationEnabled ?? false}
         isAdmin={authorize(perms, "alerts:remediate")}
+        savedView={views.alerts}
       />
     </div>
   )

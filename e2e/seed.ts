@@ -57,6 +57,13 @@ async function main() {
     },
   })
 
+  // One alert in the current month, so the reports page draws its trends chart.
+  await prisma.alert.upsert({
+    where: { id: "e2e-trends-alert" },
+    update: { createdAt: new Date() },
+    create: { id: "e2e-trends-alert", companyId: company.id, severity: "LOW", message: "E2E fixture alert" },
+  })
+
   const adminRoleId = await resolvePresetRoleId(prisma, company.id, ADMINISTRATOR)
 
   const mfaUser = await prisma.user.upsert({

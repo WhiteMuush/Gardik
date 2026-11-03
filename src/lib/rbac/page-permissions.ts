@@ -15,6 +15,7 @@ export const PAGE_PERMISSIONS: Record<string, Permission | "AUTH_ONLY"> = {
   // Open to everyone but step-up guarded on the page, since it turns a session into lasting access.
   "/security": "AUTH_ONLY",
   "/setup": "AUTH_ONLY",
+  "/preferences": "AUTH_ONLY",
 }
 
 // The longest declared prefix wins, and null (undeclared) must be treated as a refusal.

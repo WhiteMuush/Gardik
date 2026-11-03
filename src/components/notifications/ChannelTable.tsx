@@ -52,7 +52,9 @@ export function ChannelTable({ hooks, isAdmin, busy, tested, onTest, onToggle, o
                 <span
                   className={cn(
                     "inline-flex rounded-full px-2 py-0.5 text-xs font-medium",
-                    w.enabled ? "bg-green-500/10 text-green-700" : "bg-muted text-muted-foreground"
+                    w.enabled
+                      ? "bg-green-500/10 text-green-700 dark:text-green-400"
+                      : "bg-muted text-muted-foreground"
                   )}
                 >
                   {w.enabled ? "Active" : "Paused"}
@@ -62,7 +64,14 @@ export function ChannelTable({ hooks, isAdmin, busy, tested, onTest, onToggle, o
                 <td className="px-4 py-3">
                   <div className="flex items-center justify-end gap-1.5 whitespace-nowrap">
                     {tested[w.id] !== undefined && (
-                      <span className={cn("text-xs", tested[w.id] ? "text-green-700" : "text-red-700")}>
+                      <span
+                        className={cn(
+                          "text-xs",
+                          tested[w.id]
+                            ? "text-green-700 dark:text-green-400"
+                            : "text-red-700 dark:text-red-400"
+                        )}
+                      >
                         {tested[w.id] ? "Delivered" : "Failed"}
                       </span>
                     )}

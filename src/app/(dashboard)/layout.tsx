@@ -10,6 +10,8 @@ import { needsTwoFactorEnrollment } from "@/lib/auth/two-factor-gate"
 import { authorize } from "@/lib/rbac/authorize"
 import { permissionsForRole } from "@/lib/rbac/session-permissions"
 import { requiredPermissionForPage, visiblePages } from "@/lib/rbac/page-permissions"
+import { loadPreferences } from "@/lib/preferences/load"
+import { TimeZoneProvider } from "@/components/ui/DateTime"
 
 export default async function DashboardLayout({ children }: { children: React.ReactNode }) {
   const session = await getSession()
@@ -46,17 +48,20 @@ export default async function DashboardLayout({ children }: { children: React.Re
   const may = (permission: ReturnType<typeof requiredPermissionForPage>) =>
     permission !== null && (permission === "AUTH_ONLY" || authorize(perms, permission))
 
-  const openAlerts = await getOpenAlertCount(session.user.companyId)
+  const [openAlerts, prefs] = await Promise.all([
+    getOpenAlertCount(session.user.companyId),
+    loadPreferences(prisma, session.user.id),
+  ])
 
   // The rail shows exactly the pages the server would open for this user, from the same map.
   const visible = visiblePages(perms)
 
   return (
-    <>
+    <TimeZoneProvider zone={prefs.timeZone}>
       <RoutePrefetcher visible={visible} />
       <DashboardShell openAlerts={openAlerts} visible={visible}>
         {may(requiredPermissionForPage(pathname)) ? children : <NoAccess />}
       </DashboardShell>
-    </>
+    </TimeZoneProvider>
   )
 }

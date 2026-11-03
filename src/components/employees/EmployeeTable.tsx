@@ -16,12 +16,21 @@ import type { EmployeeRow } from "@/lib/employees"
 import { downloadCsv } from "@/lib/csv"
 import { columns } from "./employee-columns"
 import { EmployeeFilters } from "./EmployeeFilters"
+import { SaveViewButton } from "@/components/preferences/SaveViewButton"
+import type { SavedView } from "@/lib/preferences/views"
 
-export function EmployeeTable({ data }: { data: EmployeeRow[] }) {
-  const [sorting, setSorting] = useState<SortingState>([])
+// Stored as "column:asc|desc", the one sort the table keeps.
+const toSorting = (sort?: string): SortingState => {
+  const [id, direction] = sort?.split(":") ?? []
+  return id ? [{ id, desc: direction === "desc" }] : []
+}
+
+export function EmployeeTable({ data, savedView }: { data: EmployeeRow[]; savedView?: SavedView }) {
+  const [sorting, setSorting] = useState<SortingState>(toSorting(savedView?.sort))
   const [search, setSearch] = useState("")
-  const [department, setDepartment] = useState("")
-  const [riskFilter, setRiskFilter] = useState("")
+  const [department, setDepartment] = useState(savedView?.department ?? "")
+  const [riskFilter, setRiskFilter] = useState(savedView?.risk ?? "")
+  const sort = sorting[0] ? `${sorting[0].id}:${sorting[0].desc ? "desc" : "asc"}` : ""
   const [selected, setSelected] = useState<EmployeeRow | null>(null)
 
   const departments = useMemo(
@@ -80,6 +89,13 @@ export function EmployeeTable({ data }: { data: EmployeeRow[] }) {
         departments={departments}
         canExport={filtered.length > 0}
         onExport={exportCsv}
+        saveView={
+          <SaveViewButton
+            page="employees"
+            current={{ department, risk: riskFilter, sort }}
+            saved={savedView}
+          />
+        }
       />
 
       {/* Table */}

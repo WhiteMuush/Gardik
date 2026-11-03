@@ -98,13 +98,13 @@ describe("POST /api/invitations/accept", () => {
 })
 
 describe("POST /api/account/password", () => {
-  // Runs with a rotation pending by default, the only state in which this endpoint does anything.
+  // Runs with a rotation pending by default; self-service cases live next to the route.
   async function actAs(userId: string, sessionToken: string, mustChangePassword = true) {
     mocks.stub.user = { id: userId, companyId: ctx.companyId, roleId: ctx.viewerRoleId, mustChangePassword }
     mocks.stub.session = { token: sessionToken }
   }
 
-  it("refuses a change nobody asked for, so the rule is not merely a hidden form", async () => {
+  it("refuses a voluntary change on an account without 2FA, so the rule is not merely a hidden form", async () => {
     const target = await makeUser("voluntary", { password: "the-real-password-1" })
     await actAs(target.id, `s0-${target.id}`, false)
 

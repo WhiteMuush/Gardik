@@ -3,8 +3,14 @@ import containerQueries from "@tailwindcss/container-queries"
 
 const config: Config = {
   content: ["./src/**/*.{ts,tsx}"],
-  // The app has a single light theme, so dark: variants must not follow the OS setting.
-  darkMode: "class",
+  // Follows the theme saved in Settings, where "system" defers to the OS setting.
+  darkMode: [
+    "variant",
+    [
+      "@media screen { &:is([data-theme=dark] *) }",
+      "@media screen and (prefers-color-scheme: dark) { &:is([data-theme=system] *) }",
+    ],
+  ],
   theme: {
     extend: {
       fontFamily: {

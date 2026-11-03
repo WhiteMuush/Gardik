@@ -17,6 +17,7 @@ import {
   LogOut,
   UserCircle,
   ShieldCheck,
+  Settings,
 } from "lucide-react"
 
 const navItems = [
@@ -29,6 +30,12 @@ const navItems = [
   { href: "/data-api", label: "Data API", icon: KeyRound },
   { href: "/notifications", label: "Notifications", icon: Send },
   { href: "/access", label: "Access", icon: ShieldCheck },
+]
+
+// The caller's own account and preferences, not sections of the product.
+const personalItems = [
+  { href: "/security", label: "My account", icon: UserCircle },
+  { href: "/preferences", label: "Settings", icon: Settings },
 ]
 
 // Labels (z-10) sit under the rail surface (z-20) and icons (z-30) above, so labels slide out from under it.
@@ -98,20 +105,21 @@ export function Sidebar({ openAlerts, visible }: SidebarProps) {
 
       <div className="relative space-y-1 px-2 py-3">
         <div aria-hidden className="absolute inset-x-2 top-0 z-30 border-t border-sidebar-border" />
-        {/* The caller's own account, not a section of the product. */}
-        <Link href="/security" className="group/item relative flex">
-          <span
-            className={cn(
-              "relative z-30 flex w-full items-center justify-center rounded-md py-2.5 transition-colors",
-              pathname.startsWith("/security")
-                ? "bg-sidebar-accent text-sidebar-primary"
-                : "text-sidebar-foreground/60 group-hover/item:bg-sidebar-accent/50 group-hover/item:text-sidebar-foreground"
-            )}
-          >
-            <UserCircle className="size-4 shrink-0" />
-          </span>
-          <RailLabel>My account</RailLabel>
-        </Link>
+        {personalItems.map(({ href, label, icon: Icon }) => (
+          <Link key={href} href={href} className="group/item relative flex">
+            <span
+              className={cn(
+                "relative z-30 flex w-full items-center justify-center rounded-md py-2.5 transition-colors",
+                pathname.startsWith(href)
+                  ? "bg-sidebar-accent text-sidebar-primary"
+                  : "text-sidebar-foreground/60 group-hover/item:bg-sidebar-accent/50 group-hover/item:text-sidebar-foreground"
+              )}
+            >
+              <Icon className="size-4 shrink-0" />
+            </span>
+            <RailLabel>{label}</RailLabel>
+          </Link>
+        ))}
         <button
           onClick={() =>
             void signOut({

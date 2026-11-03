@@ -1,4 +1,5 @@
 @import "../../node_modules/tw-animate-css/dist/tw-animate.css";
+@import "./preferences.css";
 @tailwind base;
 @tailwind components;
 @tailwind utilities;
@@ -49,18 +50,18 @@
 
     --border: 0.88 0.025 280;
     --input: 0.88 0.025 280;
-    --ring: 0.44 0.28 275;
+    --ring: var(--primary);
     --radius: 0.625rem;
 
     /* Sidebar */
     --sidebar: 1 0 0;
     --sidebar-foreground: 0.15 0.04 285;
-    --sidebar-primary: 0.44 0.28 275;
+    --sidebar-primary: var(--primary);
     --sidebar-primary-foreground: 1 0 0;
     --sidebar-accent: 0.94 0.02 280;
-    --sidebar-accent-foreground: 0.44 0.28 275;
+    --sidebar-accent-foreground: var(--primary);
     --sidebar-border: 0.88 0.025 280;
-    --sidebar-ring: 0.44 0.28 275;
+    --sidebar-ring: var(--primary);
 
     /* Severity */
     --severity-critical: 0.637 0.237 25;

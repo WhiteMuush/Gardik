@@ -1,3 +1,4 @@
+import type { ReactNode } from "react"
 import { Search, Download } from "lucide-react"
 import type { RiskLevel } from "@/lib/employees"
 
@@ -13,6 +14,7 @@ type Props = {
   departments: string[]
   canExport: boolean
   onExport: () => void
+  saveView: ReactNode
 }
 
 export function EmployeeFilters({
@@ -25,6 +27,7 @@ export function EmployeeFilters({
   departments,
   canExport,
   onExport,
+  saveView,
 }: Props) {
   return (
     <div className="mb-4 flex items-center gap-3">
@@ -61,6 +64,7 @@ export function EmployeeFilters({
           </option>
         ))}
       </select>
+      {saveView}
       <button
         onClick={onExport}
         disabled={!canExport}

@@ -102,9 +102,7 @@ export function AlertsFeed({ data }: { data: Alert[] }) {
                 <p className="text-xs font-medium text-foreground truncate">{alert.employeeName ?? "-"}</p>
                 <p className="text-[11px] text-muted-foreground truncate">
                   {alert.breachName ?? alert.severity}
-                  {alert.department && (
-                    <span className="text-muted-foreground/60"> - {alert.department}</span>
-                  )}
+                  {alert.department && <span> - {alert.department}</span>}
                 </p>
               </div>
               <div className="shrink-0 flex flex-col items-end gap-1">

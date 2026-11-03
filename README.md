@@ -39,10 +39,6 @@ The current version and its changes are on the
 production readiness checklist is tracked in
 [docs/production-readiness.md](docs/production-readiness.md).
 
-This project was previously named DataShield. See
-[docs/naming.md](docs/naming.md) for why it changed and what that means
-when you browse older commits.
-
 ## Features
 
 ### Exposure monitoring

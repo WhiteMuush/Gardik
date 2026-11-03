@@ -17,10 +17,7 @@ import { DepartmentSection } from "@/components/reports/DepartmentSection"
 import { TrendsSection } from "@/components/reports/TrendsSection"
 import { EmployeeSection } from "@/components/reports/EmployeeSection"
 import { ComplianceSection } from "@/components/reports/ComplianceSection"
-
-function formatGeneratedAt(iso: string): string {
-  return new Date(iso).toLocaleString("en-US", { dateStyle: "long", timeStyle: "short" })
-}
+import { DateTime } from "@/components/ui/DateTime"
 
 type SearchParams = Record<string, string | string[] | undefined>
 
@@ -104,7 +101,8 @@ export default async function ReportsPage({ searchParams }: { searchParams: Prom
       <div className="mb-6 hidden print:block">
         <h1 className="text-xl font-semibold text-foreground">Gardik Security Report</h1>
         <p className="text-sm text-muted-foreground">
-          {companyName}, generated {formatGeneratedAt(data.generatedAt)}
+          {companyName}, generated{" "}
+          <DateTime value={data.generatedAt} options={{ dateStyle: "long", timeStyle: "short" }} />
         </p>
       </div>
 
