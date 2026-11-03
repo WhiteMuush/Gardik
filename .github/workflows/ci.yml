@@ -113,7 +113,7 @@ jobs:
         timezone: [UTC, Europe/Paris]
     services:
       postgres:
-        image: postgres:16
+        image: postgres:16-alpine
         env:
           POSTGRES_USER: ci
           POSTGRES_PASSWORD: ci
@@ -165,7 +165,7 @@ jobs:
     timeout-minutes: 15
     services:
       postgres:
-        image: postgres:16
+        image: postgres:16-alpine
         env:
           POSTGRES_USER: ci
           POSTGRES_PASSWORD: ci

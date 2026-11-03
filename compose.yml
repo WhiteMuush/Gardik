@@ -26,7 +26,7 @@ services:
     command: sh -c 'C="$$POSTGRES_USER:$$POSTGRES_PASSWORD"; export DATABASE_URL="postgresql://$${C}@db:5432/$$POSTGRES_DB"; npx prisma migrate deploy && npm run seed:dev && npm run dev -- -H 0.0.0.0'
 
   db:
-    image: postgres:16
+    image: postgres:16-alpine
     container_name: gardik-stack-db
     environment:
       POSTGRES_USER: ${POSTGRES_USER:-user}
