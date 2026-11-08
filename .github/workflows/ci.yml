@@ -49,10 +49,7 @@ jobs:
           sudo tar -xzf /tmp/gitleaks.tar.gz -C /usr/local/bin gitleaks
 
       - name: Install Trivy
-        uses: aquasecurity/setup-trivy@81e514348e19b6112ce2a7e3ecbafe19c1e1f567 # v0.3.1
-        with:
-          version: v0.74.0
-          cache: true
+        uses: ./.github/actions/install-trivy
 
       # Same command as the pre-push hook, so local and CI cannot drift.
       - name: Every quality gate

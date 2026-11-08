@@ -25,6 +25,9 @@ jobs:
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
+      - name: Install Trivy
+        uses: ./.github/actions/install-trivy
+
       - name: Scan to SARIF
         uses: aquasecurity/trivy-action@ed142fd0673e97e23eac54620cfb913e5ce36c25 # v0.36.0
         with:
@@ -34,6 +37,7 @@ jobs:
           ignore-unfixed: true
           cache-dir: ${{ runner.temp }}/trivy
           cache: "false"
+          skip-setup-trivy: true
 
       # Each finding stays open in the Security tab until a release that fixes it is published.
       - name: Upload to the Security tab
