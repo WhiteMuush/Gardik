@@ -58,6 +58,9 @@ jobs:
           labels: ${{ steps.meta.outputs.labels }}
           # No GHA cache: GitHub scopes it to the tag ref, so a release could never read the previous one.
 
+      - name: Install Trivy
+        uses: ./.github/actions/install-trivy
+
       # Scanning before the push is the whole point: a scan that runs after it
       # only tells us a vulnerable image is already public. `ignore-unfixed`
       # keeps the gate on findings that can actually be acted on, otherwise a
@@ -73,6 +76,7 @@ jobs:
           # Outside the workspace, a database download would change the build context the push step sees.
           cache-dir: ${{ runner.temp }}/trivy
           cache: "false"
+          skip-setup-trivy: true
 
       # The builder still holds every layer from the build step, so this re-runs in seconds.
       - name: Push the image
