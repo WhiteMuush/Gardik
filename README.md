@@ -208,12 +208,22 @@ make image-down   # stop it and wipe its database
 password, the same bootstrap a real deployment goes through.
 
 The published image lives on Docker Hub at
-[`whitemuush/gardik`](https://hub.docker.com/r/whitemuush/gardik), so a
-deployment can pull it directly instead of building.
+[`whitemuush/gardik`](https://hub.docker.com/r/whitemuush/gardik) and on
+GitHub Container Registry at
+[`ghcr.io/whitemuush/gardik`](https://github.com/WhiteMuush?tab=packages&repo_name=Gardik),
+so a deployment can pull it directly instead of building. Both carry the same
+image and the same tags.
 
 ```bash
 docker pull whitemuush/gardik:latest
+# or
+docker pull ghcr.io/whitemuush/gardik:latest
 ```
+
+Updating a deployment is a pull, not a rebuild: `docker compose pull && docker
+compose up -d` fetches the new image and the container applies pending
+migrations on start. To hear about new versions, watch the repository's
+releases (Watch, Custom, Releases).
 
 To build it yourself instead:
 
@@ -227,13 +237,14 @@ The container needs `DATABASE_URL`, `BETTER_AUTH_SECRET`, `BETTER_AUTH_URL` and
 `RUN_MIGRATIONS=false` when a separate job already applies the schema, for
 instance when several replicas start at once.
 
-Tagged releases are published to Docker Hub by
+Tagged releases are published to Docker Hub and GHCR by
 [`docker-publish.yml`](.github/workflows/docker-publish.yml). The job runs in
 the protected `dockerhub` environment, so a publication waits for a manual
 approval and only runs from `main`, `develop` or a `v*.*.*` tag. The
-`DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` secrets belong to that environment.
-Set the `DOCKERHUB_IMAGE` repository variable to publish under a different name
-than the default. The Docker Hub page has its own README,
+`DOCKERHUB_USERNAME` and `DOCKERHUB_TOKEN` secrets belong to that environment;
+GHCR needs none, the job pushes there with its own `GITHUB_TOKEN`. Set the
+`DOCKERHUB_IMAGE` and `GHCR_IMAGE` repository variables to publish under
+different names than the defaults (a GHCR name must be lowercase). The Docker Hub page has its own README,
 [`docker/README.hub.md`](docker/README.hub.md), written for operators deploying
 the image rather than contributors; the same workflow keeps it in sync.
 
