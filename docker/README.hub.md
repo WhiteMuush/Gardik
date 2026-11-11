@@ -18,6 +18,9 @@ connecting a directory, troubleshooting, is in the wiki.
 | `X.Y.Z`, `X.Y` | A specific release, and the moving minor line.                            |
 | `edge`         | Built manually from a branch. Not a release, do not run it in production. |
 
+The same image and tags are published on GitHub Container Registry as
+`ghcr.io/whitemuush/gardik`.
+
 Images are `linux/amd64`. Each one carries the Next.js standalone server and
 runs as an unprivileged user.
 
@@ -128,6 +131,24 @@ container. The same token is reissued with a fresh window for as long as nobody
 has set a password, so there is nothing to rotate and nothing to clean up. A
 restart logs `Reissued the invitation for ...` instead of `Created ...`, because
 nothing was created that time.
+
+## Updating
+
+Nothing to rebuild: a new release is a new image. From the directory holding
+the compose file:
+
+```bash
+docker compose pull
+docker compose up -d
+```
+
+The container applies pending migrations on start, unless `RUN_MIGRATIONS=false`
+(see Operating notes). `latest` always follows the most recent release; pin
+`X.Y` instead to take only patch releases of one minor line.
+
+To hear about new versions, watch the releases of the source repository on
+GitHub (Watch, Custom, Releases). Each release note says whether it carries a
+migration or a configuration change.
 
 ## Configuration
 
