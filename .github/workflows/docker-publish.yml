@@ -1,8 +1,10 @@
 name: Docker image
 
-# Publishes the production image to Docker Hub. Tagged releases produce the
-# versioned tags plus `latest`; a manual run publishes `edge` so an image can
-# be built from a branch without cutting a release.
+# Publishes the production image to Docker Hub and to GitHub Container Registry.
+# Tagged releases produce the versioned tags plus `latest`; a manual run
+# publishes `edge` so an image can be built from a branch without cutting a
+# release. GHCR is what the repository's Packages list shows: without it, the
+# image looks absent to anyone looking for it from GitHub.
 on:
   push:
     tags:
@@ -20,6 +22,15 @@ jobs:
     # pushed publicly, and it is where the Docker Hub credentials live.
     environment: dockerhub
     timeout-minutes: 45
+    permissions:
+      contents: read
+      # GHCR authenticates with GITHUB_TOKEN, so it needs no secret in the environment.
+      packages: write
+    env:
+      DOCKERHUB_IMAGE: ${{ vars.DOCKERHUB_IMAGE || 'whitemuush/gardik' }}
+      # Spelled out rather than built from github.repository, which keeps the
+      # owner's capitals and GHCR only accepts lowercase names.
+      GHCR_IMAGE: ${{ vars.GHCR_IMAGE || 'ghcr.io/whitemuush/gardik' }}
     steps:
       - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
 
@@ -32,11 +43,21 @@ jobs:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
 
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@81c6f93d4bc991e510b342a00b419b3bb4efc5c6 # v4.7.0
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      # One build, one scan, one push: every tag below lands on both registries.
       - name: Derive image tags
         id: meta
         uses: docker/metadata-action@dc802804100637a589fabce1cb79ff13a1411302 # v6.2.0
         with:
-          images: ${{ vars.DOCKERHUB_IMAGE || 'whitemuush/gardik' }}
+          images: |
+            ${{ env.DOCKERHUB_IMAGE }}
+            ${{ env.GHCR_IMAGE }}
           tags: |
             type=semver,pattern={{version}}
             type=semver,pattern={{major}}.{{minor}}
@@ -91,19 +112,23 @@ jobs:
           # The SBOM is a separate attestation manifest, so the image layers stay those that were scanned.
           sbom: true
 
-      # A rebuilt layer in the push step would mean Docker Hub serves an image Trivy never scanned.
-      - name: Check the pushed image is the scanned one
+      # A rebuilt layer in the push step would mean a registry serves an image Trivy never scanned.
+      - name: Check the pushed images are the scanned one
         env:
-          IMAGE: ${{ fromJSON(steps.meta.outputs.json).tags[0] }}
+          SCANNED_IMAGE: ${{ fromJSON(steps.meta.outputs.json).tags[0] }}
+          VERSION: ${{ steps.meta.outputs.version }}
         # Layer digests, not the image ID, which the containerd store sets to the pulled index digest.
+        # Read before any pull, since a pull retags the local image it replaces.
         run: |
-          scanned=$(docker image inspect --format '{{json .RootFS.Layers}}' "$IMAGE")
-          docker pull --quiet --platform linux/amd64 "$IMAGE" > /dev/null
-          pushed=$(docker image inspect --format '{{json .RootFS.Layers}}' "$IMAGE")
-          if [ "$scanned" != "$pushed" ]; then
-            echo "::error::the layers pushed to Docker Hub differ from the layers Trivy scanned"
-            exit 1
-          fi
+          scanned=$(docker image inspect --format '{{json .RootFS.Layers}}' "$SCANNED_IMAGE")
+          for image in "$DOCKERHUB_IMAGE:$VERSION" "$GHCR_IMAGE:$VERSION"; do
+            docker pull --quiet --platform linux/amd64 "$image" > /dev/null
+            pushed=$(docker image inspect --format '{{json .RootFS.Layers}}' "$image")
+            if [ "$scanned" != "$pushed" ]; then
+              echo "::error::the layers pushed as $image differ from the layers Trivy scanned"
+              exit 1
+            fi
+          done
 
       # The Docker Hub page has its own audience (operators deploying the
       # image), hence its own README. Never fatal: a description that fails to
@@ -114,6 +139,6 @@ jobs:
         with:
           username: ${{ secrets.DOCKERHUB_USERNAME }}
           password: ${{ secrets.DOCKERHUB_TOKEN }}
-          repository: ${{ vars.DOCKERHUB_IMAGE || 'whitemuush/gardik' }}
+          repository: ${{ env.DOCKERHUB_IMAGE }}
           short-description: "Self-hosted breach exposure monitoring for your employees' credentials"
           readme-filepath: ./docker/README.hub.md
