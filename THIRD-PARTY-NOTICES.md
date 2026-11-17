@@ -259,8 +259,8 @@ Runtime packages: 536.
 - fast-deep-equal@3.1.3
 - fast-equals@4.0.3
 - fast-querystring@1.1.2
-- fast-xml-builder@1.3.1
-- fast-xml-parser@5.11.2
+- fast-xml-builder@1.3.2
+- fast-xml-parser@5.12.1
 - fdir@6.5.0
 - fflate@0.8.3
 - find-my-way@9.9.0
@@ -277,7 +277,7 @@ Runtime packages: 536.
 - immer@11.1.11
 - is-fullwidth-code-point@3.0.0
 - is-property@1.0.2
-- is-unsafe@2.0.2
+- is-unsafe@2.0.3
 - is-url@1.2.4
 - jay-peg@1.1.1
 - jiti@1.21.7
