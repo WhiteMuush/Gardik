@@ -241,7 +241,7 @@ Runtime packages: 536.
 - destr@2.0.5
 - dfa@1.2.0
 - dijkstrajs@1.0.3
-- effect@3.20.0
+- effect@3.22.5
 - emoji-regex-xs@1.0.0
 - emoji-regex@8.0.0
 - empathic@2.0.0
